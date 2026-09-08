@@ -1,0 +1,22 @@
+# Dependencies
+go.sum
+
+# Build output
+bin/
+api
+*.test
+
+# Runtime / environment
+.env
+.env.*
+!.env.example
+*.log
+
+# VCS, IDE, OS
+.git/
+.gitignore
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

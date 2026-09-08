@@ -1,0 +1,11 @@
+name: _
+publish_to: none
+
+environment:
+  sdk: ^3.10.1
+
+workspace:
+  - pub/orm
+
+dev_dependencies:
+  lints: ^6.0.0

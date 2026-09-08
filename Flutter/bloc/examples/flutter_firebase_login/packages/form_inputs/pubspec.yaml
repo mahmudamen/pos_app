@@ -1,0 +1,9 @@
+name: form_inputs
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  formz: ^0.8.0

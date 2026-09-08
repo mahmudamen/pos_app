@@ -1,0 +1,110 @@
+site_name: POS 系統
+site_url: https://evan361425.github.io/flutter-pos-system
+site_description: 開源的 Flutter 應用程式，希望和使用者一起建立一個好用的 POS 系統（點餐系統）
+docs_dir: docs/
+repo_name: GitHub
+repo_url: https://github.com/evan361425/flutter-pos-system
+edit_uri: https://github.com/evan361425/flutter-pos-system/edit/master
+
+nav:
+- README.md
+- Contribute: about/contribute.md
+- Structure: about/structure.md
+- Maintenance:
+  - Deployment: maintenance/deployment.md
+  - Development: maintenance/development.md
+  - Dependencies: maintenance/bump-dependencies.md
+- Document:
+  - Code of Conduct: CODE_OF_CONDUCT.md
+  - License: LICENSE.md
+  - Privacy Policy: PRIVACY_POLICY.md
+
+theme:
+  name: material
+  language: "en"
+  custom_dir: docs/overrides
+  features:
+  - search.suggest
+  - search.highlight
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - content.code.annotate
+  - content.code.copy
+  favicon: images/favicon.ico
+  logo: images/logo.png
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: indigo
+    accent: light-blue
+    toggle:
+      icon: material/weather-sunny
+      name: Dark Mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: blue-grey
+    accent: deep orange
+    toggle:
+      icon: material/weather-night
+      name: Light Mode
+
+markdown_extensions:
+# 展開用：??? info "title"
+- pymdownx.details
+- pymdownx.highlight
+- pymdownx.superfences:
+- toc:
+    # 增加 anchor
+    permalink: true
+    toc_depth: 3
+    # 重新命名
+    slugify: !!python/object/apply:pymdownx.slugs.slugify
+      kwds:
+        case: lower
+# 允許增加 tooltip，於 MD 檔下方中增加下列說明
+# *[Text]: Description
+- abbr
+# 允許設定警告卡片
+# !!! [note|abstract|info|tip|success|question|warning|failure|bug|example|quote|danger] "Custom title"
+- admonition
+# 設定腳註
+# [^1]: Description
+- footnotes
+# 允許 nested links，詳見：https://github.com/mkdocs/mkdocs/issues/545
+- mdx_truly_sane_lists
+
+extra:
+  analytics:
+    provider: google
+    property: G-P67FD9XP83
+  alternate:
+  - name: English
+    link: /flutter-pos-system/
+    lang: en
+  - name: 繁體中文
+    link: /flutter-pos-system/zh/
+    lang: zh
+
+plugins:
+- git-revision-date
+- search
+- i18n:
+    languages:
+    - locale: en
+      default: true
+      name: English
+      site_name: "POS System - Order & Checkout"
+    - locale: zh
+      name: 繁體中文
+      site_name: "POS 系統 - 點餐結帳"
+      nav_translations:
+        Contribute: 幫助
+        Structure: 架構
+        Maintenance: 維護
+        Deployment: 部署流程
+        Development: 本地端開發
+        Dependencies: 升版相依套件
+        Document: 文件
+        Code of Conduct: 開發公約
+        License: 使用許可
+        Privacy Policy: 隱私權規範

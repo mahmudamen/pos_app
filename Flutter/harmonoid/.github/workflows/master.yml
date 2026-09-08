@@ -1,0 +1,668 @@
+name: Harmonoid
+on:
+  push:
+    branches:
+      - master
+      - vnext
+      - ci/darwin
+
+jobs:
+  build_macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          submodules: recursive
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.44.3"
+      - name: Patch Flutter
+        run: |
+          flutter_root="$(cd "$(dirname "$(command -v flutter)")/.." && pwd)"
+          sed -i.bak 's/return kIsWeb ? SystemMouseCursors\.click : SystemMouseCursors\.basic;/return SystemMouseCursors.click;/' "$flutter_root/packages/flutter/lib/src/widgets/widget_state.dart"
+          rm "$flutter_root/packages/flutter/lib/src/widgets/widget_state.dart.bak"
+      - name: Build
+        run: |
+          rm -rf "assets/icons"
+          mkdir "assets/icons"
+          flutter pub get
+          flutter build macos --verbose \
+            --dart-define=API_KEY=${{ secrets.API_KEY }} \
+            --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }} \
+            --dart-define=LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }} \
+            --dart-define=LASTFM_SHARED_SECRET=${{ secrets.LASTFM_SHARED_SECRET }} \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }} \
+            --dart-define=REVENUECAT_API_KEY=''
+      - name: Import Developer ID Application Certificate
+        uses: apple-actions/import-codesign-certs@v7
+        with:
+          keychain: app-signing
+          keychain-password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          p12-file-base64: ${{ secrets.MACOS_APPLICATION_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.MACOS_APPLICATION_CERTIFICATE_PASSWORD }}
+      - name: Resolve Developer ID Identity
+        run: |
+          security list-keychains -d user -s app-signing.keychain login.keychain
+          security default-keychain -s app-signing.keychain
+
+          find_certificate_name() {
+            security find-certificate -a -c "$1" -p "$2" |
+              openssl x509 -noout -subject -nameopt RFC2253 |
+              sed -n 's/.*CN=\([^,]*\).*/\1/p' |
+              head -n 1
+          }
+
+          application_identity="$(find_certificate_name "Developer ID Application" app-signing.keychain)"
+
+          if [ -z "$application_identity" ]; then
+            echo "No Developer ID Application signing identity found."
+            exit 1
+          fi
+
+          echo "MACOS_APPLICATION_SIGNING_IDENTITY=$application_identity" >> "$GITHUB_ENV"
+      - name: Sign & Notarize App
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$MACOS_APPLICATION_SIGNING_IDENTITY" ]; then
+            echo "No application signing identity found."
+            exit 1
+          fi
+
+          app_path="build/macos/Build/Products/Release/Harmonoid.app"
+          zip_path="$RUNNER_TEMP/Harmonoid.app.zip"
+
+          codesign --force --deep --options runtime --timestamp \
+            --entitlements macos/Runner/Release.entitlements \
+            --sign "$MACOS_APPLICATION_SIGNING_IDENTITY" \
+            "$app_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+
+          xcrun notarytool store-credentials "harmonoid-notarytool" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD"
+          ditto -c -k --keepParent "$app_path" "$zip_path"
+          xcrun notarytool submit "$zip_path" \
+            --keychain-profile "harmonoid-notarytool" \
+            --wait
+          xcrun stapler staple "$app_path"
+          xcrun stapler validate "$app_path"
+          spctl --assess --type execute --verbose=4 "$app_path"
+      - name: Install create-dmg
+        run: |
+          brew install create-dmg
+      - name: Bundle DMG
+        run: |
+          if [ -z "$MACOS_APPLICATION_SIGNING_IDENTITY" ]; then
+            echo "No application signing identity found."
+            exit 1
+          fi
+
+          find "build/macos/Build/Products/Release/" -mindepth 1 -maxdepth 1 ! -name 'Harmonoid.app' -exec rm -rf {} +
+          mkdir -p Output
+
+          create-dmg \
+            --volname "Harmonoid" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "Harmonoid.app" 200 190 \
+            --hide-extension "Harmonoid.app" \
+            --app-drop-link 600 185 \
+            --codesign "$MACOS_APPLICATION_SIGNING_IDENTITY" \
+            --notarize "harmonoid-notarytool" \
+            "Output/harmonoid-macos-universal.dmg" \
+            "build/macos/Build/Products/Release/"
+          mv Output/harmonoid-macos-universal.dmg harmonoid-macos-universal.dmg
+          codesign --verify --deep --strict --verbose=2 harmonoid-macos-universal.dmg
+          xcrun stapler validate harmonoid-macos-universal.dmg
+          spctl --assess --type open --context context:primary-signature --verbose=4 harmonoid-macos-universal.dmg
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: ${{ secrets.REPOSITORY_2 }}
+        with:
+          repository: ${{ secrets.REPOSITORY_2 }}
+          draft: true
+          prerelease: false
+          tag_name: "vnext"
+          files: harmonoid-macos-*.dmg
+          token: ${{ secrets.ACCESS_TOKEN_2 }}
+      - name: Upload Release (Snapshot)
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: harmonoid/snapshots
+        with:
+          repository: harmonoid/snapshots
+          draft: false
+          prerelease: true
+          body: ${{ github.sha }}
+          tag_name: snapshot
+          files: harmonoid-macos-*.dmg
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: build/macos/Build/Products/Release/Harmonoid.app
+
+  build_windows_x64:
+    name: Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          submodules: recursive
+      - name: Enable Long Paths
+        run: |
+          git config --system core.longpaths true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.44.3"
+      - name: Patch Flutter
+        run: |
+          $flutterRoot = Split-Path -Parent (Split-Path -Parent (Get-Command flutter).Source)
+          $file = Join-Path $flutterRoot "packages/flutter/lib/src/widgets/widget_state.dart"
+          $content = Get-Content $file -Raw
+          $content = $content.Replace("return kIsWeb ? SystemMouseCursors.click : SystemMouseCursors.basic;", "return SystemMouseCursors.click;")
+          Set-Content -Path $file -Value $content -NoNewline
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Build SMTC DLL
+        run: |
+          cd external/smtc-win32
+          nuget restore smtc-win32.sln
+          msbuild smtc-win32.sln /p:Configuration=Release /p:Platform=x64
+          cd ../../
+          copy external/smtc-win32/x64/Release/smtc-win32.dll windows/bin/x64/
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build windows --verbose `
+            --dart-define=API_KEY=${{ secrets.API_KEY }} `
+            --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }} `
+            --dart-define=LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }} `
+            --dart-define=LASTFM_SHARED_SECRET=${{ secrets.LASTFM_SHARED_SECRET }} `
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} `
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }} `
+            --dart-define=REVENUECAT_API_KEY=''
+      - name: Create PFX
+        id: create_pfx
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: "certificate.pfx"
+          encodedString: ${{ secrets.CERTIFICATE }}
+      - name: Sign Executable
+        run: |
+          "%programfiles(x86)%\Windows Kits\10\App Certification Kit\signtool.exe" sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "${{ steps.create_pfx.outputs.filePath }}" /p ${{ secrets.PASSWORD }} "build/windows/x64/runner/Release/harmonoid.exe"
+        shell: cmd
+      - name: Bundle Executable
+        run: |
+          cp -r build/windows/x64/runner/Release harmonoid-windows-x64-exe
+          tar.exe -a -c -f harmonoid-windows-x64-exe.zip harmonoid-windows-x64-exe
+      - name: Bundle Installer
+        run: |
+          "%programfiles(x86)%\Inno Setup 6\iscc.exe" "Harmonoid_InnoSetup_x64.iss"
+        shell: cmd
+      - name: Sign Installer
+        run: |
+          "%programfiles(x86)%\Windows Kits\10\App Certification Kit\signtool.exe" sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "${{ steps.create_pfx.outputs.filePath }}" /p ${{ secrets.PASSWORD }} "Output/harmonoid-windows-x64-setup.exe"
+        shell: cmd
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: ${{ secrets.REPOSITORY_2 }}
+        with:
+          repository: ${{ secrets.REPOSITORY_2 }}
+          draft: true
+          prerelease: false
+          tag_name: "vnext"
+          files: |
+            Output/harmonoid-windows-x64-setup.exe
+            harmonoid-windows-x64-exe.zip
+          token: ${{ secrets.ACCESS_TOKEN_2 }}
+      - name: Upload Release (Snapshot)
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: harmonoid/snapshots
+        with:
+          repository: harmonoid/snapshots
+          draft: false
+          prerelease: true
+          body: ${{ github.sha }}
+          tag_name: snapshot
+          files: |
+            Output/harmonoid-windows-x64-setup.exe
+            harmonoid-windows-x64-exe.zip
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: build/windows/x64/runner/Release
+
+  build_windows_arm64:
+    name: Windows ARM64
+    runs-on: windows-11-arm
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          submodules: recursive
+      - name: Enable Long Paths
+        run: |
+          git config --system core.longpaths true
+      # https://github.com/subosito/flutter-action/issues/345#issuecomment-2638225681
+      - name: Clone Flutter
+        run: |
+          git clone --depth 1 https://github.com/flutter/flutter.git $env:RUNNER_TEMP\flutter
+          Add-Content $env:GITHUB_PATH "$env:RUNNER_TEMP\flutter\bin"
+      - name: Patch Flutter
+        run: |
+          $flutterRoot = Split-Path -Parent (Split-Path -Parent (Get-Command flutter).Source)
+          $file = Join-Path $flutterRoot "packages/flutter/lib/src/widgets/widget_state.dart"
+          $content = Get-Content $file -Raw
+          $content = $content.Replace("return kIsWeb ? SystemMouseCursors.click : SystemMouseCursors.basic;", "return SystemMouseCursors.click;")
+          Set-Content -Path $file -Value $content -NoNewline
+      - name: Install Flutter
+        run: flutter doctor
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Apply Patches
+        run: |
+          git config --global core.autocrlf false
+          git apply --whitespace=fix patches/remove_discord_rpc.patch
+      - name: Build SMTC DLL
+        run: |
+          cd external/smtc-win32
+          nuget restore smtc-win32.sln
+          msbuild smtc-win32.sln /p:Configuration=Release /p:Platform=ARM64
+          cd ../../
+          copy external/smtc-win32/ARM64/Release/smtc-win32.dll windows/bin/arm64/
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build windows --verbose `
+            --dart-define=API_KEY=${{ secrets.API_KEY }} `
+            --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }} `
+            --dart-define=LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }} `
+            --dart-define=LASTFM_SHARED_SECRET=${{ secrets.LASTFM_SHARED_SECRET }} `
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} `
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }} `
+            --dart-define=REVENUECAT_API_KEY=''
+      - name: Create PFX
+        id: create_pfx
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: "certificate.pfx"
+          encodedString: ${{ secrets.CERTIFICATE }}
+      - name: Sign Executable
+        run: |
+          "%programfiles(x86)%\Windows Kits\10\App Certification Kit\signtool.exe" sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "${{ steps.create_pfx.outputs.filePath }}" /p ${{ secrets.PASSWORD }} "build/windows/arm64/runner/Release/harmonoid.exe"
+        shell: cmd
+      - name: Bundle Executable
+        run: |
+          cp -r build/windows/arm64/runner/Release harmonoid-windows-arm64-exe
+          tar.exe -a -c -f harmonoid-windows-arm64-exe.zip harmonoid-windows-arm64-exe
+      - name: Bundle Installer
+        run: |
+          "%programfiles(x86)%\Inno Setup 6\iscc.exe" "Harmonoid_InnoSetup_arm64.iss"
+        shell: cmd
+      - name: Sign Installer
+        run: |
+          "%programfiles(x86)%\Windows Kits\10\App Certification Kit\signtool.exe" sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "${{ steps.create_pfx.outputs.filePath }}" /p ${{ secrets.PASSWORD }} "Output/harmonoid-windows-arm64-setup.exe"
+        shell: cmd
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: ${{ secrets.REPOSITORY_2 }}
+        with:
+          repository: ${{ secrets.REPOSITORY_2 }}
+          draft: true
+          prerelease: false
+          tag_name: "vnext"
+          files: |
+            Output/harmonoid-windows-arm64-setup.exe
+            harmonoid-windows-arm64-exe.zip
+          token: ${{ secrets.ACCESS_TOKEN_2 }}
+      - name: Upload Release (Snapshot)
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: harmonoid/snapshots
+        with:
+          repository: harmonoid/snapshots
+          draft: false
+          prerelease: true
+          body: ${{ github.sha }}
+          tag_name: snapshot
+          files: |
+            Output/harmonoid-windows-arm64-setup.exe
+            harmonoid-windows-arm64-exe.zip
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-arm64
+          path: build/windows/arm64/runner/Release
+
+  build_linux_x64:
+    name: Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          submodules: recursive
+      - name: Build
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -e DEBIAN_FRONTEND=noninteractive \
+            -e TZ=Etc/UTC \
+            -e API_KEY="${{ secrets.API_KEY }}" \
+            -e API_BASE_URL="${{ secrets.API_BASE_URL }}" \
+            -e LASTFM_API_KEY="${{ secrets.LASTFM_API_KEY }}" \
+            -e LASTFM_SHARED_SECRET="${{ secrets.LASTFM_SHARED_SECRET }}" \
+            -e SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            -e SUPABASE_PUBLISHABLE_KEY="${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" \
+            ubuntu:20.04 \
+            bash -c '
+              set -e
+              export DEBIAN_FRONTEND=noninteractive
+              export TZ=Etc/UTC
+
+              # Update and install dependencies
+              apt-get update
+              apt-get install -yq \
+                git curl wget unzip xz-utils zip libglu1-mesa file \
+                clang cmake ninja-build pkg-config libgtk-3-dev \
+                mpv libmpv-dev dpkg-dev rpm tree
+
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+              # Install Flutter
+              cd /opt
+              wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.41.9-stable.tar.xz
+              tar xf flutter_linux_3.41.9-stable.tar.xz
+              git config --global --add safe.directory /opt/flutter
+              export PATH="/opt/flutter/bin:$PATH"
+              flutter --version
+              sed -i.bak '"'"'s/return kIsWeb ? SystemMouseCursors\.click : SystemMouseCursors\.basic;/return SystemMouseCursors.click;/'"'"' /opt/flutter/packages/flutter/lib/src/widgets/widget_state.dart
+              rm /opt/flutter/packages/flutter/lib/src/widgets/widget_state.dart.bak
+
+              # Build application
+              cd /workspace
+              rm -rf "assets/icons" || true
+              mkdir "assets/icons"
+              flutter pub get
+              flutter build linux --verbose \
+                --dart-define=API_KEY=$API_KEY \
+                --dart-define=API_BASE_URL=$API_BASE_URL \
+                --dart-define=LASTFM_API_KEY=$LASTFM_API_KEY \
+                --dart-define=LASTFM_SHARED_SECRET=$LASTFM_SHARED_SECRET \
+                --dart-define=SUPABASE_URL=$SUPABASE_URL \
+                --dart-define=SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY \
+                --dart-define=REVENUECAT_API_KEY=''
+
+              # Bundle RPM
+              cp -fr build/linux/x64/release/bundle linux/debian/usr/share/harmonoid
+              mkdir -p linux/debian/usr/bin
+              ln -sr linux/debian/usr/share/harmonoid/harmonoid linux/debian/usr/bin/harmonoid
+              sed -i "s:cp -rf :cp -rf $(pwd)/:" linux/rpm/harmonoid.spec
+              cd linux/debian
+              sed -i "s:FILES_HERE:$(find usr \( -type l -o -type f \) -follow -print | awk '"'"'{printf "/%s\\n", $0}'"'"'):" ../rpm/harmonoid.spec
+              cd ../../
+              rpmbuild -bb linux/rpm/harmonoid.spec -D "_topdir $(pwd)/rpmbuild"
+              cp rpmbuild/RPMS/x86_64/*.rpm harmonoid-linux-x86_64.rpm
+
+              # Bundle DEB
+              dpkg-deb --build --root-owner-group linux/debian
+              cp linux/*.deb harmonoid-linux-x86_64.deb
+
+              # Build Tarball
+              mkdir -p AppDir/
+              cp -r linux/debian/usr AppDir/
+              ln -sr AppDir/usr/bin/harmonoid AppDir/harmonoid
+              tar czf harmonoid-linux-x86_64.tar.gz -C AppDir/ .
+            '
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: ${{ secrets.REPOSITORY_2 }}
+        with:
+          repository: ${{ secrets.REPOSITORY_2 }}
+          draft: true
+          prerelease: false
+          tag_name: "vnext"
+          files: harmonoid-linux-*
+          token: ${{ secrets.ACCESS_TOKEN_2 }}
+      - name: Upload Release (Snapshot)
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: harmonoid/snapshots
+        with:
+          repository: harmonoid/snapshots
+          draft: false
+          prerelease: true
+          body: ${{ github.sha }}
+          tag_name: snapshot
+          files: harmonoid-linux-*
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: build/linux/x64/release/bundle
+
+  build_linux_arm64:
+    name: Linux ARM64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          submodules: recursive
+      - name: Apply Patches
+        run: |
+          git config --global core.autocrlf false
+          git apply --whitespace=fix patches/remove_discord_rpc.patch
+      - name: Build
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -e DEBIAN_FRONTEND=noninteractive \
+            -e TZ=Etc/UTC \
+            -e API_KEY="${{ secrets.API_KEY }}" \
+            -e API_BASE_URL="${{ secrets.API_BASE_URL }}" \
+            -e LASTFM_API_KEY="${{ secrets.LASTFM_API_KEY }}" \
+            -e LASTFM_SHARED_SECRET="${{ secrets.LASTFM_SHARED_SECRET }}" \
+            -e SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            -e SUPABASE_PUBLISHABLE_KEY="${{ secrets.SUPABASE_PUBLISHABLE_KEY }}" \
+            ubuntu:20.04 \
+            bash -c '
+              set -e
+              export DEBIAN_FRONTEND=noninteractive
+              export TZ=Etc/UTC
+
+              # Update and install dependencies
+              apt-get update
+              apt-get install -yq \
+                git curl wget unzip xz-utils zip libglu1-mesa file \
+                clang cmake ninja-build pkg-config libgtk-3-dev \
+                mpv libmpv-dev dpkg-dev rpm tree
+
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+              # Install Flutter
+              cd /opt
+              git clone --depth 1 --branch 3.41.9 https://github.com/flutter/flutter.git
+              git config --global --add safe.directory /opt/flutter
+              export PATH="/opt/flutter/bin:$PATH"
+              flutter --version
+              sed -i.bak '"'"'s/return kIsWeb ? SystemMouseCursors\.click : SystemMouseCursors\.basic;/return SystemMouseCursors.click;/'"'"' /opt/flutter/packages/flutter/lib/src/widgets/widget_state.dart
+              rm /opt/flutter/packages/flutter/lib/src/widgets/widget_state.dart.bak
+
+              # Build application
+              cd /workspace
+              rm -rf "assets/icons" || true
+              mkdir "assets/icons"
+              flutter pub get
+              flutter build linux --verbose \
+                --dart-define=API_KEY=$API_KEY \
+                --dart-define=API_BASE_URL=$API_BASE_URL \
+                --dart-define=LASTFM_API_KEY=$LASTFM_API_KEY \
+                --dart-define=LASTFM_SHARED_SECRET=$LASTFM_SHARED_SECRET \
+                --dart-define=SUPABASE_URL=$SUPABASE_URL \
+                --dart-define=SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY \
+                --dart-define=REVENUECAT_API_KEY=''
+
+              # Bundle RPM
+              cp -fr build/linux/arm64/release/bundle linux/debian/usr/share/harmonoid
+              mkdir -p linux/debian/usr/bin
+              ln -sr linux/debian/usr/share/harmonoid/harmonoid linux/debian/usr/bin/harmonoid
+              sed -i "s:cp -rf :cp -rf $(pwd)/:" linux/rpm/harmonoid.spec
+              cd linux/debian
+              sed -i "s:FILES_HERE:$(find usr \( -type l -o -type f \) -follow -print | awk '"'"'{printf "/%s\\n", $0}'"'"'):" ../rpm/harmonoid.spec
+              cd ../../
+              rpmbuild -bb linux/rpm/harmonoid.spec -D "_topdir $(pwd)/rpmbuild"
+              cp rpmbuild/RPMS/aarch64/*.rpm harmonoid-linux-aarch64.rpm
+
+              # Bundle DEB
+              dpkg-deb --build --root-owner-group linux/debian
+              cp linux/*.deb harmonoid-linux-aarch64.deb
+
+              # Build Tarball
+              mkdir -p AppDir/
+              cp -r linux/debian/usr AppDir/
+              ln -sr AppDir/usr/bin/harmonoid AppDir/harmonoid
+              tar czf harmonoid-linux-aarch64.tar.gz -C AppDir/ .
+            '
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: ${{ secrets.REPOSITORY_2 }}
+        with:
+          repository: ${{ secrets.REPOSITORY_2 }}
+          draft: true
+          prerelease: false
+          tag_name: "vnext"
+          files: harmonoid-linux-aarch64*
+          token: ${{ secrets.ACCESS_TOKEN_2 }}
+      - name: Upload Release (Snapshot)
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: harmonoid/snapshots
+        with:
+          repository: harmonoid/snapshots
+          draft: false
+          prerelease: true
+          body: ${{ github.sha }}
+          tag_name: snapshot
+          files: harmonoid-linux-aarch64*
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-arm64
+          path: build/linux/arm64/release/bundle
+
+  build_android:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          submodules: recursive
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.44.3"
+      - name: Patch Flutter
+        run: |
+          flutter_root="$(cd "$(dirname "$(command -v flutter)")/.." && pwd)"
+          sed -i.bak 's/return kIsWeb ? SystemMouseCursors\.click : SystemMouseCursors\.basic;/return SystemMouseCursors.click;/' "$flutter_root/packages/flutter/lib/src/widgets/widget_state.dart"
+          rm "$flutter_root/packages/flutter/lib/src/widgets/widget_state.dart.bak"
+      - name: Create Key Store
+        id: create_key_store
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: "keystore.pfx"
+          encodedString: ${{ secrets.KEY_STORE }}
+      - name: Create Key Properties
+        id: create_key_properties
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: "key.properties"
+          encodedString: ${{ secrets.KEY_PROPERTIES }}
+      - name: Build
+        run: |
+          rm -rf "assets/icons"
+          mkdir "assets/icons"
+          rm -rf "assets/visuals"
+          mkdir "assets/visuals"
+          cp "${{ steps.create_key_store.outputs.filePath }}" android/app/keystore.jks
+          cp "${{ steps.create_key_properties.outputs.filePath }}" android/key.properties
+          flutter pub get
+          flutter build apk --split-per-abi --verbose \
+            --dart-define=API_KEY=${{ secrets.API_KEY }} \
+            --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }} \
+            --dart-define=LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }} \
+            --dart-define=LASTFM_SHARED_SECRET=${{ secrets.LASTFM_SHARED_SECRET }} \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }} \
+            --dart-define=REVENUECAT_API_KEY=${{ secrets.GOOGLE_REVENUECAT_API_KEY }}
+          flutter build appbundle --verbose \
+            --dart-define=API_KEY=${{ secrets.API_KEY }} \
+            --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }} \
+            --dart-define=LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }} \
+            --dart-define=LASTFM_SHARED_SECRET=${{ secrets.LASTFM_SHARED_SECRET }} \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }} \
+            --dart-define=REVENUECAT_API_KEY=${{ secrets.GOOGLE_REVENUECAT_API_KEY }}
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk harmonoid-android-arm64-v8a-release.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk harmonoid-android-armeabi-v7a-release.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk harmonoid-android-x86_64-release.apk
+          cp build/app/outputs/bundle/release/app-release.aab harmonoid-android-release.aab
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_REPOSITORY: ${{ secrets.REPOSITORY_2 }}
+        with:
+          repository: ${{ secrets.REPOSITORY_2 }}
+          draft: true
+          prerelease: false
+          tag_name: "vnext"
+          files: |
+            harmonoid-android-arm64-v8a-release.apk
+            harmonoid-android-armeabi-v7a-release.apk
+            harmonoid-android-x86_64-release.apk
+            harmonoid-android-release.aab
+          token: ${{ secrets.ACCESS_TOKEN_2 }}

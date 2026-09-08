@@ -1,0 +1,7 @@
+contact_links:
+- name: ❗ Security Issues
+  url: https://en.wikipedia.org/wiki/Responsible_disclosure
+  about: Do not disclose any security issues through issues or public discussions. Try to contact the team privately, such as via email (evanlu361425@gmail.com). We will discuss and resolve such issues together. Thank you!
+- name: 👻 Others
+  url: https://github.com/evan361425/flutter-pos-system/discussions
+  about: All other issues can be discussed here.

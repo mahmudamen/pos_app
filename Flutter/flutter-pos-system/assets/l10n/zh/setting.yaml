@@ -1,0 +1,41 @@
+$prefix: setting
+tab: 設定
+version: 版本：{version}
+welcome: HI，{name}
+logoutBtn: 登出
+elf:
+  title: 建議
+  description: 使用 Google 表單提供回饋
+  content: |-
+    覺得這裡還少了什麼嗎？
+    歡迎[提供建議](https://forms.gle/R1vZDk9ztQLScUdb9)。
+    也可以來看看[排程中的功能](https://github.com/evan361425/flutter-pos-system/milestones)。
+feature:
+  title: 其他設定
+  description: 外觀、語言、提示
+theme:
+  title: 調色盤
+  name:
+  - dark: 暗色模式
+    light: 日光模式
+    system: 跟隨系統
+language:
+  title: 語言
+checkoutWarning:
+  title: 收銀機提示
+  name:
+  - showAll: 全部顯示
+    onlyNotEnough: 僅不夠時顯示
+    hideAll: 全部隱藏
+  tip:
+  - showAll: |-
+      若使用小錢去找，顯示提示。
+      例如 5 塊錢不夠了，開始用 5 個 1 塊去找錢
+    onlyNotEnough: 當零錢不夠找的時候，顯示提示。
+    hideAll: 當點餐時，收銀機不會顯示任何提示
+orderAwakening:
+  title: 點餐時不關閉螢幕
+  description: 若取消，則會根據系統設定時間關閉螢幕
+report:
+  title: 收集錯誤訊息和事件
+  description: 當應用程式發生錯誤時，寄送錯誤訊息，以幫助應用程式成長

@@ -1,0 +1,86 @@
+---
+template: splash
+title: مكتبة Bloc لإدارة الحالة
+description:
+  التوثيق الرسمي لمكتبة Bloc لإدارة الحالة. تدعم Dart وFlutter وAngularDart.
+  يتضمن أمثلة ودروسًا تعليمية.
+banner:
+  content: |
+    ✨ تفضل بزيارة
+    <a href="https://shop.bloclibrary.dev">متجر Bloc</a> ✨
+editUrl: false
+lastUpdated: false
+hero:
+  title: Bloc <sup><span style="font-size:0.4em">v9.2.1</span></sup>
+  tagline: مكتبة لإدارة الحالة في Dart تعتمد على قابلية التنبؤ.
+  image:
+    alt: Bloc logo
+    file: ~/assets/bloc.svg
+  actions:
+    - text: ابدأ الآن
+      link: /ar/getting-started/
+      variant: primary
+      icon: rocket
+    - text: عرض على GitHub
+      link: https://github.com/felangel/bloc
+      icon: github
+      variant: secondary
+---
+
+import { CardGrid } from '@astrojs/starlight/components';
+import SponsorsGrid from '~/components/landing/SponsorsGrid.astro';
+import Card from '~/components/landing/Card.astro';
+import ListCard from '~/components/landing/ListCard.astro';
+import SplitCard from '~/components/landing/SplitCard.astro';
+import Discord from '~/components/landing/Discord.astro';
+
+<SponsorsGrid sponsoredBy="برعاية 💖 بواسطة" becomeASponsor="اصبح كفيل" />
+
+<hr />
+
+<CardGrid>
+
+<SplitCard title="ابدأ الآن" icon="rocket">
+	```sh
+	# .إلى مشروعك bloc أضف
+	dart pub add bloc
+	```
+
+يوفر [دليل البدء](/ar/getting-started) إرشادات خطوة بخطوة حول كيفية بدء استخدام
+Bloc خلال بضع دقائق فقط.
+
+</SplitCard>
+
+<Card title="قم بجولة إرشادية" icon="star">
+	أكمل [الدروس الرسمية](/ar/tutorials/flutter-counter) لتتعلم أفضل الممارسات
+	وبناء مجموعة متنوعة من التطبيقات المعتمدة على Bloc.
+</Card>
+
+<Card title="أنشئ باستخدام Bloc" icon="laptop">
+	استكشف [أمثلة تطبيقات عالية الجودة ومختبرة
+	بالكامل](https://github.com/felangel/bloc/tree/master/examples) مثل العداد،
+	والمؤقت، والقائمة اللانهائية، والطقس، والمهام، والمزيد.
+</Card>
+
+<ListCard title="تعلّم" icon="open-book">
+
+    - [لماذا Bloc؟](/ar/why-bloc)
+    - [المفاهيم الأساسية](/ar/bloc-concepts)
+    - [البنية المعمارية](/ar/architecture)
+    - [الاختبارات](/ar/testing)
+    - [اتفاقيات التسمية](/ar/naming-conventions)
+    - [الأسئلة الشائعة](/ar/faqs)
+
+</ListCard>
+
+  <ListCard title="التكامل" icon="puzzle">
+    - [التكامل مع VSCode](https://marketplace.visualstudio.com/items?itemName=FelixAngelov.bloc)
+    - [التكامل مع IntelliJ](https://plugins.jetbrains.com/plugin/12129-bloc)
+    - [التكامل مع Neovim](https://github.com/wa11breaker/flutter-bloc.nvim)
+    - [التكامل مع Mason CLI](https://github.com/felangel/bloc/blob/master/bricks/README.md)
+    - [قوالب مخصصة](https://brickhub.dev/search?q=bloc)
+    - [أدوات المطورين](https://github.com/felangel/bloc/blob/master/packages/bloc_tools/README.md)
+  </ListCard>
+</CardGrid>
+
+<Discord joinDiscord="انضم معنا في Discord" />

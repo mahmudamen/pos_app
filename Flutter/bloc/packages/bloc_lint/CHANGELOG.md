@@ -1,0 +1,101 @@
+# 0.4.2
+
+- deps: adjust bounds for `_fe_analyzer_shared`
+
+# 0.4.1
+
+- deps: adjust upper bound for `_fe_analyzer_shared`
+
+# 0.4.0
+
+- feat: upgrade to latest analyzer frontend
+
+# 0.3.7
+
+- fix: `analysis_options.yaml` resolution in pub workspace
+- deps: support latest stable Flutter version.
+
+# 0.3.6
+
+- feat: upgrade to latest analyzer frontend
+
+# 0.3.5
+
+- fix: adjust upper bound for `_fe_analyzer_shared`
+
+# 0.3.4
+
+- chore: various dependency upgrades
+
+# 0.3.3
+
+- fix: ignore whitespace in ignore comments
+- docs: add `bloc_lint` badge to `README`
+
+# 0.3.2
+
+- feat: add [prefer_build_context_extensions](https://bloclibrary.dev/lint-rules/prefer_build_context_extensions)
+
+# 0.3.1
+
+- fix: adjust lower bound for `_fe_analyzer_shared`
+
+# 0.3.0
+
+- fix: widen supported version ranges for `_fe_analyzer_shared`
+- feat: add [avoid_build_context_extensions](https://bloclibrary.dev/lint-rules/avoid_build_context_extensions)
+- feat: add [prefer_file_naming_conventions](https://bloclibrary.dev/lint-rules/prefer_file_naming_conventions)
+
+# 0.2.1
+
+- feat: ignore dot directories
+- fix: include bloc/cubit instances defined in any file
+- chore: various dependency upgrades
+
+# 0.2.0
+
+- chore: stable `0.2.0` release 🎉
+- chore: various dependency upgrades
+- fix: ignore `.fvm`
+
+# 0.2.0-dev.6
+
+- fix: `prefer_void_public_cubit_methods` false positive when using switch expressions
+- fix: `avoid_public_bloc_methods` false positive when using switch expressions
+
+# 0.2.0-dev.5
+
+- fix: `avoid_public_bloc_methods` false positive when using switch expressions
+
+# 0.2.0-dev.4
+
+- fix: various bug fixes for Windows
+
+# 0.2.0-dev.3
+
+- feat: add support for `// ignore`
+- feat: add support for `// ignore_for_file`
+
+# 0.2.0-dev.2
+
+- feat: add [prefer_void_public_cubit_methods](https://bloclibrary.dev/lint-rules/prefer_void_public_cubit_methods)
+
+# 0.2.0-dev.1
+
+- fix: package resolution in `include` on windows
+- fix: uri resolution on windows
+- docs: improvements to `README.md`
+
+# 0.2.0-dev.0
+
+- Full rewrite of `pkg:bloc_lint`
+- Supported Lint Rules
+  - [avoid_flutter_imports](https://bloclibrary.dev/lint-rules/avoid_flutter_imports)
+  - [avoid_public_bloc_methods](https://bloclibrary.dev/lint-rules/avoid_public_bloc_methods)
+  - [avoid_public_fields](https://bloclibrary.dev/lint-rules/avoid_public_fields)
+  - [prefer_bloc](https://bloclibrary.dev/lint-rules/prefer_bloc)
+  - [prefer_cubit](https://bloclibrary.dev/lint-rules/prefer_cubit)
+
+# 0.1.0
+
+- Initial experimental community release using `pkg:custom_lint`

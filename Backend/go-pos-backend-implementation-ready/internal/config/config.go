@@ -1,0 +1,150 @@
+package config
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+)
+
+type Config struct {
+	AppName             string
+	HTTPAddr            string
+	HTTPReadTimeout     time.Duration
+	HTTPWriteTimeout    time.Duration
+	HTTPIdleTimeout     time.Duration
+	HTTPShutdownTimeout time.Duration
+	HTTPMaxBodyBytes    int64
+	DatabaseURL         string
+	DBMaxConns          int32
+	DBMinConns          int32
+	DBMaxConnLifetime   time.Duration
+	DBMaxConnIdleTime   time.Duration
+	RedisAddr           string
+	RedisPassword       string
+	RedisDB             int
+	JWTIssuer           string
+	JWTAccessSecret     string
+	JWTRefreshSecret    string
+	JWTAccessTTL        time.Duration
+	JWTRefreshTTL       time.Duration
+	BcryptCost          int
+	LogLevel            string
+	LogFormat           string
+}
+
+func Load() (Config, error) {
+	c := Config{
+		AppName:          envOr("APP_NAME", "pos-api"),
+		HTTPAddr:         envOr("HTTP_ADDR", ":8080"),
+		DatabaseURL:      os.Getenv("DATABASE_URL"),
+		RedisAddr:        envOr("REDIS_ADDR", "127.0.0.1:6379"),
+		RedisPassword:    os.Getenv("REDIS_PASSWORD"),
+		JWTIssuer:        envOr("JWT_ISSUER", "pos-api"),
+		JWTAccessSecret:  os.Getenv("JWT_ACCESS_SECRET"),
+		JWTRefreshSecret: os.Getenv("JWT_REFRESH_SECRET"),
+		LogLevel:         envOr("LOG_LEVEL", "info"),
+		LogFormat:        envOr("LOG_FORMAT", "json"),
+	}
+	var err error
+	if c.HTTPReadTimeout, err = duration("HTTP_READ_TIMEOUT", 10*time.Second); err != nil {
+		return Config{}, err
+	}
+	if c.HTTPWriteTimeout, err = duration("HTTP_WRITE_TIMEOUT", 15*time.Second); err != nil {
+		return Config{}, err
+	}
+	if c.HTTPIdleTimeout, err = duration("HTTP_IDLE_TIMEOUT", 60*time.Second); err != nil {
+		return Config{}, err
+	}
+	if c.HTTPShutdownTimeout, err = duration("HTTP_SHUTDOWN_TIMEOUT", 15*time.Second); err != nil {
+		return Config{}, err
+	}
+	if c.DBMaxConnLifetime, err = duration("DB_MAX_CONN_LIFETIME", 30*time.Minute); err != nil {
+		return Config{}, err
+	}
+	if c.DBMaxConnIdleTime, err = duration("DB_MAX_CONN_IDLE_TIME", 5*time.Minute); err != nil {
+		return Config{}, err
+	}
+	if c.JWTAccessTTL, err = duration("JWT_ACCESS_TTL", 15*time.Minute); err != nil {
+		return Config{}, err
+	}
+	if c.JWTRefreshTTL, err = duration("JWT_REFRESH_TTL", 7*24*time.Hour); err != nil {
+		return Config{}, err
+	}
+	bcryptCost, err := intValue("BCRYPT_COST", 12)
+	if err != nil {
+		return Config{}, err
+	}
+	if c.HTTPMaxBodyBytes, err = int64Value("HTTP_MAX_BODY_BYTES", 1<<20); err != nil {
+		return Config{}, err
+	}
+	maxConns, err := intValue("DB_MAX_CONNS", 20)
+	if err != nil {
+		return Config{}, err
+	}
+	minConns, err := intValue("DB_MIN_CONNS", 2)
+	if err != nil {
+		return Config{}, err
+	}
+	redisDB, err := intValue("REDIS_DB", 0)
+	if err != nil {
+		return Config{}, err
+	}
+	if maxConns < 1 || minConns < 0 || minConns > maxConns {
+		return Config{}, fmt.Errorf("invalid database pool sizes: min=%d max=%d", minConns, maxConns)
+	}
+	if c.HTTPMaxBodyBytes < 1 {
+		return Config{}, fmt.Errorf("HTTP_MAX_BODY_BYTES must be positive")
+	}
+	if c.JWTAccessTTL <= 0 || c.JWTRefreshTTL <= 0 || c.JWTRefreshTTL <= c.JWTAccessTTL {
+		return Config{}, fmt.Errorf("JWT refresh TTL must be greater than access TTL")
+	}
+	if bcryptCost < 4 || bcryptCost > 31 {
+		return Config{}, fmt.Errorf("BCRYPT_COST must be between 4 and 31")
+	}
+	c.DBMaxConns, c.DBMinConns, c.RedisDB, c.BcryptCost = int32(maxConns), int32(minConns), redisDB, bcryptCost
+	return c, nil
+}
+
+func envOr(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func duration(key string, fallback time.Duration) (time.Duration, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback, nil
+	}
+	parsed, err := time.ParseDuration(value)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s: %w", key, err)
+	}
+	return parsed, nil
+}
+
+func intValue(key string, fallback int) (int, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s: %w", key, err)
+	}
+	return parsed, nil
+}
+
+func int64Value(key string, fallback int64) (int64, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s: %w", key, err)
+	}
+	return parsed, nil
+}

@@ -1,0 +1,32 @@
+name: 💡 Feature Proposal
+description: Suggest ideas or improvements for the POS system
+labels:
+- "enhancement"
+body:
+- type: textarea
+  id: expected
+  attributes:
+    label: What do you expect this feature to look like?
+    description: How should it operate and display?
+  validations:
+    required: true
+- type: textarea
+  id: problems
+  attributes:
+    label: Is this feature related to a problem you are experiencing?
+    description: Whenever I want to..., I find that I can't...
+- type: textarea
+  id: alternative
+  attributes:
+    label: How do you manage without this feature?
+- type: textarea
+  id: more
+  attributes:
+    label: Any additional comments?
+- type: checkboxes
+  id: checks
+  attributes:
+    label: Before opening a new issue
+    options:
+    - label: I have checked other [issues](https://github.com/evan361425/flutter-pos-system/issues)
+      required: true

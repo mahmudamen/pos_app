@@ -1,0 +1,30 @@
+# Legacy Backend Plan
+
+The authoritative cross-project SpecKit plan is now [specs/001-pos-saas-platform/plan.md](specs/001-pos-saas-platform/plan.md). This file is retained as a backend stage summary for compatibility.
+
+## Stage 0
+Bootstrap Go, configuration, database, Redis, HTTP server, migrations, health, CI.
+
+## Stage 1
+Implement tenant/user/device/session schema, RLS, indexes, and integration tests.
+
+## Stage 2
+Implement authentication, JWT validation, refresh rotation, session lifecycle, rate limiting.
+
+## Stage 3
+Implement categories/products/barcode lookup.
+
+## Stage 4
+Implement sales, exact money calculations, stock transaction rules, idempotency.
+
+## Stage 5
+Implement offline synchronization using monotonic server sequence and command IDs.
+
+## Stage 6
+Implement metrics, hardening, benchmarks, security scanning, backup verification.
+
+## Stage 7
+Production packaging, Caddy/TLS, systemd/container deployment, monitoring, rollback.
+
+## Rule
+Implement one stage at a time. Do not implement the entire backend in a single generated change.

@@ -1,0 +1,23 @@
+[Unit]
+Description=Go POS SaaS API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pos-api
+Group=pos-api
+WorkingDirectory=/opt/pos-api
+EnvironmentFile=/opt/pos-api/.env
+ExecStart=/opt/pos-api/bin/pos-api
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/pos-api
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

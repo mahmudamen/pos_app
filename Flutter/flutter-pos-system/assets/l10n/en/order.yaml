@@ -1,0 +1,203 @@
+$prefix: order
+title: Ordering
+btn: Order
+tutorial:
+  title: Ordering!
+  content: |
+    Once you have set up your menu, you can start ordering!
+    Let's tap and go see what's available!
+  printerBtn:
+    title: Printer Status Change
+    content: Printer status has changed, please check.
+snackbar:
+  printer:
+    connected:
+    - 'Printer connected: {names}'
+    - names:
+    disconnected:
+    - 'Printer "{name}" disconnected'
+    - name:
+  cashier:
+    notEnough: Insufficient cash in the cashier!
+    usingSmallMoney: Using smaller denominations to give change
+    usingSmallMoneyHelper:
+    - |-
+      When giving change to customers, if the cashier doesn't have the appropriate denominations, this message will appear.
+
+      For example, if the total is $65 and the customer pays $100, the change should be $35.
+      If the cashier only has two $10 bills and more than three $5 bills, this message will appear.
+
+      To avoid this prompt:
+      • Go to the changer page and top up various denominations.
+      • Go to the [settings page]({link}) to disable related prompts from the cashier.
+    - link:
+action:
+  checkout:
+  - Checkout
+  - Proceed to the next step after confirming the items in your cart
+  exchange: Exchange
+  stash: Stash
+  review: Order History
+loader:
+  meta:
+    totalRevenue:
+    - 'Revenue: {revenue}'
+    - Total revenue from orders in the order list
+    - revenue:
+    totalCost:
+    - 'Cost: {cost}'
+    - Total cost from orders in the order list
+    - cost:
+    totalCount:
+    - 'Count: {count}'
+    - Total number of orders in the order list
+    - count: {type: int, format: compact}
+  empty: No order records found
+catalogList:
+  empty: No product categories set yet
+productList:
+  view:
+    helper:
+    - grid: Grid
+      list: List
+    - Product list display mode
+  noIngredient: No ingredients
+printer:
+  empty: No printers set yet
+  divider:
+    unused: Unused
+    connecting: Connecting
+    connected: Connected
+  error:
+    createReceipt: Unable to generate receipt
+cart:
+  action:
+    bulk: Bulk Actions
+    toggle: Toggle
+    selectAll: Select All
+    discount: Discount
+    _discount:
+      $prefix: discount
+      label: Discount
+      hint: e.g., 30 means 70% off
+      helper: The number here represents the "percentage" off, i.e., 85 means 15% off. For precise prices, use "Price Change".
+      suffix: '%'
+    changePrice: Change Price
+    _changePrice:
+      $prefix: changePrice
+      label: Price
+      hint: Price per item
+      prefix: '$'
+      suffix: ''
+    changeCount: Change Quantity
+    _changeCount:
+      $prefix: changeCount
+      label: Quantity
+      hint: Quantity of items
+      suffix: items
+    free: Free
+    delete: Delete
+  snapshot:
+    empty: No items in cart
+  meta:
+    totalPrice:
+    - 'Price: {price}'
+    - Total price of items in the cart
+    - price:
+    totalCount:
+    - 'Count: {count}'
+    - Total number of items in the cart
+    - count: {type: int, format: compact}
+  product:
+    price:
+    - '0': Free
+      other: '${price}'
+    - Price of the product
+    - price:
+    increase: Increase Quantity
+    defaultQuantity: Default Quantity
+    ingredient:
+    - "{name} ({quantity})"
+    - Ingredients and quantities of each item in the product list when ordering
+    - name:
+      quantity:
+  ingredient:
+    status:
+    - emptyCart: Please select a product to set its ingredients
+      differentProducts: Please select the same product to set its ingredients
+      noNeedIngredient: This product doesn't require ingredient settings
+    - Prompt to users during ordering if the selected product doesn't require ingredient settings
+    - status:
+  quantity:
+    notAble:
+    - Please select an ingredient to set quantity
+    - During ordering, select the ingredient to set the quantity
+    label:
+    - '{name} ({amount})'
+    - name:
+      amount: {type: num, format: decimalPattern}
+    defaultLabel:
+    - Default ({amount})
+    - During ingredient setup, the quantity can be customized or set to default (no quantity used)
+    - amount: {type: num, format: decimalPattern}
+checkout:
+  emptyCart: Please make an order first.
+  action:
+    stash: Stash
+    confirm: Confirm
+  stash:
+    tab: Stash
+    empty: No items currently stashed.
+    noProducts: No products
+    action:
+      checkout: Checkout
+      restore: Restore
+    dialog:
+      calculator: Checkout Calculator
+      restore:
+        title: Restore Stashed Order
+        content: This action will override the current cart contents.
+      delete:
+        name: order
+  attribute:
+    tab: Customer
+  details:
+    tab: Details
+    calculator:
+      label:
+        paid: Paid
+        change: Change
+    snapshot:
+      label:
+        change:
+        - 'Change: {change}'
+        - Change given by the cashier after the customer's payment
+        - change:
+  snackbar:
+    paidFailed: Payment is less than the order amount.
+objectView:
+  empty: No order records found
+  change: Change
+  price:
+    total:
+    - 'Total Price: {price}'
+    - Total price information after ordering
+    - price:
+    products: Product Price
+    attributes: Customer Settings Price
+  cost: Cost
+  profit: Profit
+  paid: Paid
+  note: Note
+  divider:
+    attribute: Customer Settings
+    product: Product Information
+  product:
+    price: Price
+    cost: Cost
+    count: Count
+    singlePrice: Unit Price
+    originalPrice: Original Unit Price
+    catalog: Product Category
+    ingredient: Ingredients
+    defaultQuantity: Default

@@ -1,0 +1,30 @@
+name: 😺 User Experience
+description: What's not user-friendly in the POS system?
+labels:
+- "ux"
+body:
+- type: textarea
+  id: feature
+  attributes:
+    label: Which feature is not user-friendly?
+    description: Which page's feature, and why is it not user-friendly?
+  validations:
+    required: true
+- type: textarea
+  id: expected
+  attributes:
+    label: What do you expect this feature to look like?
+    description: How should it operate and display?
+  validations:
+    required: true
+- type: textarea
+  id: more
+  attributes:
+    label: Any additional comments?
+- type: checkboxes
+  id: checks
+  attributes:
+    label: Before opening a new issue
+    options:
+    - label: I have checked other [issues](https://github.com/evan361425/flutter-pos-system/issues)
+      required: true

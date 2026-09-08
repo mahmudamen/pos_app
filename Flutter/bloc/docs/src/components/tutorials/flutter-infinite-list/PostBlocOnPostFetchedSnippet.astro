@@ -1,0 +1,32 @@
+---
+import { Code } from '@astrojs/starlight/components';
+
+const code = `
+PostBloc({required this.httpClient}) : super(const PostState()) {
+  on<PostFetched>(_onFetched);
+}
+
+Future<void> _onFetched(PostFetched event, Emitter<PostState> emit) async {
+  if (state.hasReachedMax) return;
+
+  try {
+    final posts = await _fetchPosts(startIndex: state.posts.length);
+
+    if (posts.isEmpty) {
+      return emit(state.copyWith(hasReachedMax: true));
+    }
+
+    emit(
+      state.copyWith(
+        status: PostStatus.success,
+        posts: [...state.posts, ...posts],
+      ),
+    );
+  } catch (_) {
+    emit(state.copyWith(status: PostStatus.failure));
+  }
+}
+`;
+---
+
+<Code code={code} lang="dart" title="lib/posts/bloc/post_bloc.dart" />

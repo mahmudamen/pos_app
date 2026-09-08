@@ -1,0 +1,86 @@
+---
+template: splash
+title: Bloc State Management Library
+description:
+  Official documentation for the bloc state management library. Support for
+  Dart, Flutter, and AngularDart. Includes examples and tutorials.
+banner:
+  content: |
+    ✨ 访问
+    <a href="https://shop.bloclibrary.dev">Bloc 商店</a> ✨
+editUrl: false
+lastUpdated: false
+hero:
+  title: Bloc <sup><span style="font-size:0.4em">v9.2.1</span></sup>
+  tagline: 基于 Dart 的可预测的状态管理库。
+  image:
+    alt: Bloc logo
+    file: ~/assets/bloc.svg
+  actions:
+    - text: 快速入门
+      link: /zh-cn/getting-started/
+      variant: primary
+      icon: rocket
+    - text: GitHub
+      link: https://github.com/felangel/bloc
+      icon: github
+      variant: secondary
+---
+
+import { CardGrid } from '@astrojs/starlight/components';
+import SponsorsGrid from '~/components/landing/SponsorsGrid.astro';
+import Card from '~/components/landing/Card.astro';
+import ListCard from '~/components/landing/ListCard.astro';
+import SplitCard from '~/components/landing/SplitCard.astro';
+import Discord from '~/components/landing/Discord.astro';
+
+<SponsorsGrid sponsoredBy="💖的赞助商们" becomeASponsor="成为我们的赞助商" />
+
+<hr />
+
+<CardGrid>
+
+<SplitCard title="快速入门" icon="rocket">
+	```sh
+	# 将bloc添加到你的项目。
+	dart pub add bloc
+	```
+
+我们的 [快速入门](/zh-cn/getting-started)
+提供了如何在几分钟内开始使用 Bloc 的详细指引。
+
+</SplitCard>
+
+<Card title="查看向导" icon="star">
+	完成 [官方向导](/zh-cn/tutorials/flutter-counter) 来了解最佳实践以及构建基于
+	Bloc 的各种不同应用。
+</Card>
+
+<Card title="使用 Bloc 构建" icon="laptop">
+	浏览优质并充分测试过的
+	[示例应用](https://github.com/felangel/bloc/tree/master/examples) 例如
+	计数器，定时器，无限列表，天气，待办事项以及更多其他示例！
+</Card>
+
+<ListCard title="学习" icon="open-book">
+
+    - [为什么用 Bloc？](/zh-cn/why-bloc)
+    - [核心概念](/zh-cn/bloc-concepts)
+    - [架构](/zh-cn/architecture)
+    - [测试](/zh-cn/testing)
+    - [命名约定](/zh-cn/naming-conventions)
+    - [FAQs](/zh-cn/faqs)
+
+</ListCard>
+
+  <ListCard title="集成" icon="puzzle">
+    - [VSCode 集成](https://marketplace.visualstudio.com/items?itemName=FelixAngelov.bloc)
+    - [IntelliJ 集成](https://plugins.jetbrains.com/plugin/12129-bloc)
+    - [Neovim 集成](https://github.com/wa11breaker/flutter-bloc.nvim)
+    - [Mason CLI 集成](https://github.com/felangel/bloc/blob/master/bricks/README.md)
+    - [自定义模板](https://brickhub.dev/search?q=bloc)
+    - [开发者工具](https://github.com/felangel/bloc/blob/master/packages/bloc_tools/README.md)
+  </ListCard>
+</CardGrid>
+
+<Discord joinDiscord="加入 Discord" />
