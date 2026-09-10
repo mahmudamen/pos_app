@@ -1,4 +1,0 @@
-enum TrackViewType {
-  list,
-  grid,
-}

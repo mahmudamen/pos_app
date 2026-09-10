@@ -1,3 +1,0 @@
-🚀 Features
-
-- Allow customize receipt format #240 : evan361425

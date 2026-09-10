@@ -1,6 +1,0 @@
-part of '{{cubit_snake_case}}_cubit.dart';
-
-@freezed
-class {{cubit_pascal_case}}State with _${{cubit_pascal_case}}State {
-  const factory {{cubit_pascal_case}}State.initial() = _Initial;
-}

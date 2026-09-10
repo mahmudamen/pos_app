@@ -1,7 +1,0 @@
-include: ../../analysis_options.yaml
-
-analyzer:
-  errors:
-    require_trailing_commas: ignore
-    implementation_imports: ignore
-    do_not_use_environment: ignore

@@ -1,4 +1,0 @@
-    return BlocProvider(
-      create: (_) => {{name.pascalCase()}}Bloc(),
-      child: const {{name.pascalCase()}}View(),
-    );
