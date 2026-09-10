@@ -3,6 +3,7 @@ package catalog
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
@@ -24,22 +25,32 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/categories", h.listCategories)
 	router.POST("/categories", h.createCategory)
+	router.PATCH("/categories/:id", h.updateCategory)
+	router.DELETE("/categories/:id", h.deleteCategory)
 	router.GET("/products", h.listProducts)
 	router.POST("/products", h.createProduct)
 	router.GET("/products/:id", h.getProduct)
 	router.PATCH("/products/:id", h.updateProduct)
+	router.DELETE("/products/:id", h.deleteProduct)
 	router.GET("/products/barcode/:barcode", h.getByBarcode)
 }
 
 type Category struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Slug     string `json:"slug"`
+	IsActive bool   `json:"is_active"`
 }
 
 type categoryRequest struct {
 	Name string `json:"name" binding:"required"`
 	Slug string `json:"slug" binding:"required"`
+}
+
+type categoryPatchRequest struct {
+	Name     *string `json:"name"`
+	Slug     *string `json:"slug"`
+	IsActive *bool   `json:"is_active"`
 }
 
 type productRequest struct {
@@ -75,7 +86,7 @@ func (h *Handler) listCategories(c *gin.Context) {
 		return
 	}
 	defer tx.Rollback(c.Request.Context())
-	rows, err := tx.Query(c.Request.Context(), `SELECT id, name, slug FROM categories WHERE is_active ORDER BY name`)
+	rows, err := tx.Query(c.Request.Context(), `SELECT id, name, slug, is_active FROM categories WHERE is_active ORDER BY name`)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load categories")
 		return
@@ -84,7 +95,7 @@ func (h *Handler) listCategories(c *gin.Context) {
 	categories := make([]Category, 0)
 	for rows.Next() {
 		var category Category
-		if err := rows.Scan(&category.ID, &category.Name, &category.Slug); err != nil {
+		if err := rows.Scan(&category.ID, &category.Name, &category.Slug, &category.IsActive); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load categories")
 			return
 		}
@@ -119,7 +130,7 @@ func (h *Handler) createCategory(c *gin.Context) {
 	var category Category
 	err := tx.QueryRow(c.Request.Context(), `
 		INSERT INTO categories (tenant_id, name, slug) VALUES ($1::uuid, $2, $3)
-		RETURNING id, name, slug`, claims.TenantID, strings.TrimSpace(request.Name), strings.TrimSpace(request.Slug)).Scan(&category.ID, &category.Name, &category.Slug)
+		RETURNING id, name, slug, is_active`, claims.TenantID, strings.TrimSpace(request.Name), strings.TrimSpace(request.Slug)).Scan(&category.ID, &category.Name, &category.Slug, &category.IsActive)
 	if err != nil {
 		writeError(c, http.StatusConflict, "category_conflict", "category slug is already in use")
 		return
@@ -129,6 +140,132 @@ func (h *Handler) createCategory(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"data": category, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+func (h *Handler) updateCategory(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	var request categoryPatchRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid category request")
+		return
+	}
+	if request.Name != nil && strings.TrimSpace(*request.Name) == "" {
+		writeError(c, http.StatusBadRequest, "validation_error", "name cannot be empty")
+		return
+	}
+	if request.Slug != nil && strings.TrimSpace(*request.Slug) == "" {
+		writeError(c, http.StatusBadRequest, "validation_error", "slug cannot be empty")
+		return
+	}
+	tx, ok := h.tenantTx(c, claims)
+	if !ok {
+		return
+	}
+	defer tx.Rollback(c.Request.Context())
+	var current Category
+	err := tx.QueryRow(c.Request.Context(),
+		`SELECT id, name, slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
+		&current.ID, &current.Name, &current.Slug, &current.IsActive)
+	if errors.Is(err, pgx.ErrNoRows) {
+		writeError(c, http.StatusNotFound, "category_not_found", "category not found")
+		return
+	}
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load category")
+		return
+	}
+	if request.Name != nil {
+		current.Name = strings.TrimSpace(*request.Name)
+	}
+	if request.Slug != nil {
+		current.Slug = strings.TrimSpace(*request.Slug)
+	}
+	if request.IsActive != nil {
+		current.IsActive = *request.IsActive
+	}
+	_, err = tx.Exec(c.Request.Context(),
+		`UPDATE categories SET name = $1, slug = $2, is_active = $3 WHERE id = $4::uuid`,
+		current.Name, current.Slug, current.IsActive, c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusConflict, "category_conflict", "category slug is already in use")
+		return
+	}
+	if err := tx.Commit(c.Request.Context()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to update category")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": current, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+func (h *Handler) deleteCategory(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	tx, ok := h.tenantTx(c, claims)
+	if !ok {
+		return
+	}
+	defer tx.Rollback(c.Request.Context())
+	var category Category
+	err := tx.QueryRow(c.Request.Context(),
+		`SELECT id, name, slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
+		&category.ID, &category.Name, &category.Slug, &category.IsActive)
+	if errors.Is(err, pgx.ErrNoRows) {
+		writeError(c, http.StatusNotFound, "category_not_found", "category not found")
+		return
+	}
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load category")
+		return
+	}
+	_, err = tx.Exec(c.Request.Context(),
+		`UPDATE categories SET is_active = false WHERE id = $1::uuid`, c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to delete category")
+		return
+	}
+	if err := tx.Commit(c.Request.Context()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to delete category")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": category, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+func (h *Handler) deleteProduct(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	tx, ok := h.tenantTx(c, claims)
+	if !ok {
+		return
+	}
+	defer tx.Rollback(c.Request.Context())
+	product, err := queryProduct(c, tx, c.Param("id"))
+	if errors.Is(err, pgx.ErrNoRows) {
+		writeError(c, http.StatusNotFound, "product_not_found", "product not found")
+		return
+	}
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load product")
+		return
+	}
+	_, err = tx.Exec(c.Request.Context(),
+		`UPDATE products SET is_active = false WHERE id = $1::uuid`, c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to delete product")
+		return
+	}
+	if err := tx.Commit(c.Request.Context()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to delete product")
+		return
+	}
+	product.IsActive = false
+	c.JSON(http.StatusOK, gin.H{"data": product, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
 func (h *Handler) createProduct(c *gin.Context) {
@@ -242,6 +379,17 @@ func (h *Handler) listProducts(c *gin.Context) {
 		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
 		return
 	}
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 500 {
+		limit = 100
+	}
+	offset := int64((page - 1) * limit)
+
 	tx, err := h.pool.Begin(c.Request.Context())
 	if err != nil {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
@@ -253,12 +401,22 @@ func (h *Handler) listProducts(c *gin.Context) {
 		return
 	}
 	search := strings.TrimSpace(c.Query("search"))
+
+	var total int64
+	err = tx.QueryRow(c.Request.Context(), `
+		SELECT COUNT(*) FROM products WHERE is_active
+		  AND ($1 = '' OR name ILIKE '%' || $1 || '%' OR sku ILIKE '%' || $1 || '%' OR barcode ILIKE '%' || $1 || '%')`, search).Scan(&total)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to count products")
+		return
+	}
+
 	rows, err := tx.Query(c.Request.Context(), `
 		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity
 		FROM products WHERE is_active
 		  AND ($1 = '' OR name ILIKE '%' || $1 || '%' OR sku ILIKE '%' || $1 || '%' OR barcode ILIKE '%' || $1 || '%')
 		ORDER BY name
-		LIMIT 100`, search)
+		LIMIT $2 OFFSET $3`, search, limit, offset)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load products")
 		return
@@ -281,7 +439,15 @@ func (h *Handler) listProducts(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load products")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": products, "meta": gin.H{"request_id": c.GetString("request_id")}})
+	c.JSON(http.StatusOK, gin.H{
+		"data": products,
+		"meta": gin.H{
+			"request_id": c.GetString("request_id"),
+			"page":       page,
+			"limit":      limit,
+			"total":      total,
+		},
+	})
 }
 
 func (h *Handler) getByBarcode(c *gin.Context) {

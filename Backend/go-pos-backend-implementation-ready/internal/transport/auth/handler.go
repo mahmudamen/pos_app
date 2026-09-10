@@ -47,9 +47,21 @@ type refreshRequest struct {
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
-	router.POST("/auth/login", h.login)
-	router.POST("/auth/refresh", h.refresh)
-	router.POST("/auth/logout", h.logout)
+	router.POST("/auth/login", h.Login())
+	router.POST("/auth/refresh", h.Refresh())
+	router.POST("/auth/logout", h.Logout())
+}
+
+func (h *Handler) Login() gin.HandlerFunc {
+	return h.login
+}
+
+func (h *Handler) Refresh() gin.HandlerFunc {
+	return h.refresh
+}
+
+func (h *Handler) Logout() gin.HandlerFunc {
+	return h.logout
 }
 
 func (h *Handler) logout(c *gin.Context) {
@@ -124,8 +136,11 @@ func (h *Handler) login(c *gin.Context) {
 	}
 	defer tx.Rollback(ctx)
 
-	var tenantID string
-	err = tx.QueryRow(ctx, `SELECT id FROM tenants WHERE id::text = $1 OR slug = $1`, request.TenantID).Scan(&tenantID)
+	var tenantID, businessType, countryCode, currencyCode, defaultLanguage string
+	err = tx.QueryRow(ctx, `
+		SELECT id, business_type, country_code, currency_code, default_language
+		FROM tenants WHERE id::text = $1 OR slug = $1`, request.TenantID).
+		Scan(&tenantID, &businessType, &countryCode, &currencyCode, &defaultLanguage)
 	if err != nil {
 		writeError(c, http.StatusUnauthorized, "invalid_credentials", "email or password is incorrect")
 		return
@@ -134,10 +149,10 @@ func (h *Handler) login(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return
 	}
-	var userID, passwordHash, displayName, role string
+	var userID, passwordHash, displayName, role, accountType string
 	err = tx.QueryRow(ctx, `
-		SELECT id, password_hash, display_name, role FROM users
-		WHERE tenant_id = $1 AND lower(email) = lower($2) AND is_active`, tenantID, request.Email).Scan(&userID, &passwordHash, &displayName, &role)
+		SELECT id, password_hash, display_name, role, account_type FROM users
+		WHERE tenant_id = $1 AND lower(email) = lower($2) AND is_active`, tenantID, request.Email).Scan(&userID, &passwordHash, &displayName, &role, &accountType)
 	if err != nil || !security.CheckPassword(passwordHash, request.Password) {
 		writeError(c, http.StatusUnauthorized, "invalid_credentials", "email or password is incorrect")
 		return
@@ -186,7 +201,11 @@ func (h *Handler) login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{
 		"access_token": accessToken, "refresh_token": refreshToken, "expires_in": int(h.tokens.AccessTTL.Seconds()),
-		"user": gin.H{"id": userID, "display_name": displayName, "role": role}, "tenant": gin.H{"id": tenantID},
+		"user": gin.H{"id": userID, "display_name": displayName, "role": role, "account_type": accountType},
+		"tenant": gin.H{
+			"id": tenantID, "business_type": businessType,
+			"country_code": countryCode, "currency_code": currencyCode, "default_language": defaultLanguage,
+		},
 	}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 

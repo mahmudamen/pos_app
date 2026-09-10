@@ -7,6 +7,13 @@ class Session {
     required this.userId,
     required this.displayName,
     required this.tenantId,
+    this.deviceId = '',
+    this.role = '',
+    this.accountType = '',
+    this.businessType = '',
+    this.countryCode = 'EG',
+    this.currencyCode = 'EGP',
+    this.defaultLanguage = 'ar',
   });
 
   factory Session.fromJson(Map<String, dynamic> json) {
@@ -17,7 +24,14 @@ class Session {
       refreshToken: json['refresh_token'] as String,
       userId: user['id'] as String? ?? '',
       displayName: user['display_name'] as String? ?? 'Cashier',
+      role: user['role'] as String? ?? '',
+      accountType: user['account_type'] as String? ?? '',
       tenantId: tenant['id'] as String? ?? '',
+      deviceId: json['device_id'] as String? ?? '',
+      businessType: tenant['business_type'] as String? ?? '',
+      countryCode: tenant['country_code'] as String? ?? 'EG',
+      currencyCode: tenant['currency_code'] as String? ?? 'EGP',
+      defaultLanguage: tenant['default_language'] as String? ?? 'ar',
     );
   }
 
@@ -26,14 +40,61 @@ class Session {
   final String userId;
   final String displayName;
   final String tenantId;
+  final String deviceId;
+  final String role;
+  final String accountType;
+  final String businessType;
+  final String countryCode;
+  final String currencyCode;
+  final String defaultLanguage;
 
-  Session copyWith({String? accessToken, String? refreshToken}) => Session(
+  bool get isPlatformAdmin => role == 'saas_admin';
+
+  bool get isOwner => role == 'owner';
+
+  bool get isManager => role == 'owner' || role == 'manager';
+
+  bool get canManageSettings => isManager || isPlatformAdmin;
+
+  Session copyWith({
+    String? accessToken,
+    String? refreshToken,
+    String? displayName,
+    String? role,
+    String? accountType,
+    String? businessType,
+    String? countryCode,
+    String? currencyCode,
+    String? defaultLanguage,
+  }) =>
+      Session(
         accessToken: accessToken ?? this.accessToken,
         refreshToken: refreshToken ?? this.refreshToken,
         userId: userId,
-        displayName: displayName,
+        displayName: displayName ?? this.displayName,
         tenantId: tenantId,
+        deviceId: deviceId,
+        role: role ?? this.role,
+        accountType: accountType ?? this.accountType,
+        businessType: businessType ?? this.businessType,
+        countryCode: countryCode ?? this.countryCode,
+        currencyCode: currencyCode ?? this.currencyCode,
+        defaultLanguage: defaultLanguage ?? this.defaultLanguage,
       );
+}
+
+class RememberedLogin {
+  const RememberedLogin({
+    required this.tenantId,
+    required this.email,
+    required this.deviceName,
+    required this.password,
+  });
+
+  final String tenantId;
+  final String email;
+  final String deviceName;
+  final String password;
 }
 
 class SessionStore {
@@ -42,8 +103,60 @@ class SessionStore {
   static const _userIdKey = 'user_id';
   static const _displayNameKey = 'display_name';
   static const _tenantIdKey = 'tenant_id';
+  static const _deviceIdKey = 'device_id';
+  static const _roleKey = 'role';
+  static const _accountTypeKey = 'account_type';
+  static const _businessTypeKey = 'business_type';
+  static const _countryCodeKey = 'country_code';
+  static const _currencyCodeKey = 'currency_code';
+  static const _defaultLanguageKey = 'default_language';
+
+  static const _languageKey = 'app_language';
+  static const _languageCustomizedKey = 'app_language_customized';
+
+  static const _rememberLoginKey = 'remember_login';
+  static const _rememberTenantKey = 'remember_tenant';
+  static const _rememberEmailKey = 'remember_email';
+  static const _rememberDeviceNameKey = 'remember_device_name';
+  static const _rememberPasswordKey = 'remember_password';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<void> saveRememberedLogin(RememberedLogin login) async {
+    await Future.wait([
+      _storage.write(key: _rememberLoginKey, value: '1'),
+      _storage.write(key: _rememberTenantKey, value: login.tenantId),
+      _storage.write(key: _rememberEmailKey, value: login.email),
+      _storage.write(key: _rememberDeviceNameKey, value: login.deviceName),
+      _storage.write(key: _rememberPasswordKey, value: login.password),
+    ]);
+  }
+
+  Future<RememberedLogin?> readRememberedLogin() async {
+    final enabled = await _storage.read(key: _rememberLoginKey);
+    if (enabled != '1') return null;
+    final tenant = await _storage.read(key: _rememberTenantKey);
+    final email = await _storage.read(key: _rememberEmailKey);
+    final deviceName = await _storage.read(key: _rememberDeviceNameKey);
+    final password = await _storage.read(key: _rememberPasswordKey);
+    if (tenant == null || email == null) return null;
+    return RememberedLogin(
+      tenantId: tenant,
+      email: email,
+      deviceName: deviceName ?? 'Counter 1',
+      password: password ?? '',
+    );
+  }
+
+  Future<void> clearRememberedLogin() async {
+    await Future.wait([
+      _storage.delete(key: _rememberLoginKey),
+      _storage.delete(key: _rememberTenantKey),
+      _storage.delete(key: _rememberEmailKey),
+      _storage.delete(key: _rememberDeviceNameKey),
+      _storage.delete(key: _rememberPasswordKey),
+    ]);
+  }
 
   Future<void> save(Session session) async {
     await Future.wait([
@@ -52,11 +165,59 @@ class SessionStore {
       _storage.write(key: _userIdKey, value: session.userId),
       _storage.write(key: _displayNameKey, value: session.displayName),
       _storage.write(key: _tenantIdKey, value: session.tenantId),
+      _storage.write(key: _roleKey, value: session.role),
+      _storage.write(key: _accountTypeKey, value: session.accountType),
+      _storage.write(key: _businessTypeKey, value: session.businessType),
+      _storage.write(key: _countryCodeKey, value: session.countryCode),
+      _storage.write(key: _currencyCodeKey, value: session.currencyCode),
+      _storage.write(key: _defaultLanguageKey, value: session.defaultLanguage),
+      if (session.deviceId.isNotEmpty)
+        _storage.write(key: _deviceIdKey, value: session.deviceId),
     ]);
   }
 
   Future<void> clear() async {
-    await _storage.deleteAll();
+    await Future.wait([
+      _storage.delete(key: _accessTokenKey),
+      _storage.delete(key: _refreshTokenKey),
+      _storage.delete(key: _userIdKey),
+      _storage.delete(key: _displayNameKey),
+      _storage.delete(key: _tenantIdKey),
+      _storage.delete(key: _roleKey),
+      _storage.delete(key: _accountTypeKey),
+      _storage.delete(key: _businessTypeKey),
+      _storage.delete(key: _countryCodeKey),
+      _storage.delete(key: _currencyCodeKey),
+      _storage.delete(key: _defaultLanguageKey),
+      // Device id and app language preferences intentionally survive sign-out.
+    ]);
+  }
+
+  Future<String?> readDeviceId() async {
+    return _storage.read(key: _deviceIdKey);
+  }
+
+  Future<void> saveDeviceId(String deviceId) async {
+    await _storage.write(key: _deviceIdKey, value: deviceId);
+  }
+
+  Future<String> readLanguage() async {
+    return await _storage.read(key: _languageKey) ?? 'ar';
+  }
+
+  Future<void> saveLanguage(String code) async {
+    await Future.wait([
+      _storage.write(key: _languageKey, value: code),
+      _storage.write(key: _languageCustomizedKey, value: '1'),
+    ]);
+  }
+
+  Future<void> applyTenantLanguage(String code) async {
+    await _storage.write(key: _languageKey, value: code);
+  }
+
+  Future<bool> hasCustomizedLanguage() async {
+    return await _storage.read(key: _languageCustomizedKey) == '1';
   }
 
   Future<Session?> read() async {
@@ -69,6 +230,13 @@ class SessionStore {
       userId: await _storage.read(key: _userIdKey) ?? '',
       displayName: await _storage.read(key: _displayNameKey) ?? 'Cashier',
       tenantId: await _storage.read(key: _tenantIdKey) ?? '',
+      deviceId: await _storage.read(key: _deviceIdKey) ?? '',
+      role: await _storage.read(key: _roleKey) ?? '',
+      accountType: await _storage.read(key: _accountTypeKey) ?? '',
+      businessType: await _storage.read(key: _businessTypeKey) ?? '',
+      countryCode: await _storage.read(key: _countryCodeKey) ?? 'EG',
+      currencyCode: await _storage.read(key: _currencyCodeKey) ?? 'EGP',
+      defaultLanguage: await _storage.read(key: _defaultLanguageKey) ?? 'ar',
     );
   }
 }

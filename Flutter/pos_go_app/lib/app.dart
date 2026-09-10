@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/api_client.dart';
 import 'core/session_store.dart';
+import 'core/storage/local_database.dart';
 import 'features/auth/login_screen.dart';
 import 'features/pos/pos_screen.dart';
+import 'features/splash/splash_screen.dart';
+import 'l10n/strings.dart';
 
 class PosApp extends StatefulWidget {
   const PosApp({super.key});
@@ -14,9 +18,13 @@ class PosApp extends StatefulWidget {
 
 class _PosAppState extends State<PosApp> {
   final _sessionStore = SessionStore();
+  final _localDatabase = LocalDatabase();
   late final ApiClient _apiClient;
   Session? _session;
   bool _restoring = true;
+  bool _splashDone = false;
+  Locale _locale = const Locale('ar');
+  bool _languageCustomized = false;
 
   @override
   void initState() {
@@ -32,11 +40,37 @@ class _PosAppState extends State<PosApp> {
 
   Future<void> _restoreSession() async {
     final session = await _sessionStore.read();
+    final language = await _sessionStore.readLanguage();
+    final customized = await _sessionStore.hasCustomizedLanguage();
     if (!mounted) return;
     setState(() {
       _session = session;
+      _locale = Locale(language);
+      _languageCustomized = customized;
       _restoring = false;
     });
+  }
+
+  Future<void> _setLanguage(String code) async {
+    await _sessionStore.saveLanguage(code);
+    if (mounted) {
+      setState(() {
+        _locale = Locale(code);
+        _languageCustomized = true;
+      });
+    }
+  }
+
+  Future<void> _authenticated(Session session) async {
+    await _sessionStore.save(session);
+    if (!_languageCustomized) {
+      // Tenant's default language applies only until the user explicitly picks
+      // one (login toggle or settings).
+      await _sessionStore.applyTenantLanguage(session.defaultLanguage);
+      if (mounted) setState(() => _locale = Locale(session.defaultLanguage));
+    }
+    if (!mounted) return;
+    setState(() => _session = session);
   }
 
   @override
@@ -44,34 +78,57 @@ class _PosAppState extends State<PosApp> {
     return MaterialApp(
       title: 'POS Go',
       debugShowCheckedModeBanner: false,
+      locale: _locale,
+      supportedLocales: AppStrings.supportedLocales,
+      localizationsDelegates: const [
+        AppStrings.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff0f766e)),
         scaffoldBackgroundColor: const Color(0xfff4f7f6),
         useMaterial3: true,
       ),
-      home: _restoring
-          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-          : _session == null
-              ? LoginScreen(
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        child: _restoring || !_splashDone
+            ? SplashScreen(
+                key: const ValueKey('splash'),
+                onFinished: () {
+                  if (mounted) setState(() => _splashDone = true);
+                },
+              )
+            : _session == null
+                ? LoginScreen(
+                    key: const ValueKey('login'),
+                    apiClient: _apiClient,
+                    sessionStore: _sessionStore,
+                    onLanguageChanged: _setLanguage,
+                    onAuthenticated: _authenticated,
+                  )
+                : PosScreen(
+                    key: const ValueKey('pos'),
+                    session: _session!,
                   apiClient: _apiClient,
-                  onAuthenticated: (session) async {
-                    await _sessionStore.save(session);
-                    if (mounted) setState(() => _session = session);
-                  },
-                )
-              : PosScreen(
-                  session: _session!,
-                  apiClient: _apiClient,
+                  localDatabase: _localDatabase,
+                  onLanguageChanged: _setLanguage,
                   onSignOut: () async {
                     try {
                       await _apiClient.logout(_session!);
                     } catch (_) {
                       // Clear local credentials even when the server is offline.
                     }
-                    await _sessionStore.clear();
+                    try {
+                      await _sessionStore.clear();
+                    } catch (_) {
+                      // Unlock the UI even if secure storage is transiently unavailable.
+                    }
                     if (mounted) setState(() => _session = null);
                   },
                 ),
+              ),
     );
   }
 }

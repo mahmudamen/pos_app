@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
+import 'payments.dart';
+import 'registers.dart';
 import 'session_store.dart';
 
 class ApiClient {
@@ -67,6 +69,57 @@ class ApiClient {
     return session.copyWith(
       accessToken: data['access_token'] as String,
       refreshToken: data['refresh_token'] as String,
+    );
+  }
+
+  Future<List<Category>> categories(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/categories'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data
+        .map((item) => Category.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SalesPage> listSales(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/sales').replace(
+      queryParameters: {'page': '$page', 'limit': '$limit'},
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'] as List<dynamic>;
+    final meta = body['meta'] as Map<String, dynamic>;
+    return SalesPage(
+      sales: data
+          .map((item) => SaleSummary.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      total: (meta['total'] as num).toInt(),
+      page: (meta['page'] as num).toInt(),
+      limit: (meta['limit'] as num).toInt(),
     );
   }
 
@@ -169,6 +222,8 @@ class ApiClient {
     Session session,
     List<SaleItemInput> items, {
     String? idempotencyKey,
+    List<PaymentInput>? payments,
+    String? sessionId,
   }) async {
     final requestIdempotencyKey = idempotencyKey ?? const Uuid().v4();
     final response = await _authenticatedRequest(
@@ -188,6 +243,9 @@ class ApiClient {
                     'quantity': item.quantity,
                   })
               .toList(),
+          if (payments != null && payments.isNotEmpty)
+            'payments': payments.map((p) => p.toJson()).toList(),
+          if (sessionId != null) 'session_id': sessionId,
         }),
       ),
     );
@@ -196,6 +254,240 @@ class ApiClient {
     }
     final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
     return SaleResult.fromJson(data);
+  }
+
+  Future<List<Country>> countries() async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/v1/meta/countries'),
+      headers: const {'Accept': 'application/json'},
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data
+        .map((item) => Country.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<Currency>> currencies() async {
+    final response = await _client.get(
+      Uri.parse('$baseUrl/v1/meta/currencies'),
+      headers: const {'Accept': 'application/json'},
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data
+        .map((item) => Currency.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SaasSummary> saasSummary(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/saas/summary'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return SaasSummary.fromJson(jsonDecode(response.body)['data']);
+  }
+
+  Future<SaasTenantsPage> saasTenants(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/saas/tenants').replace(
+      queryParameters: {'page': '$page', 'limit': '$limit'},
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final meta = body['meta'] as Map<String, dynamic>;
+    return SaasTenantsPage(
+      tenants: (body['data'] as List<dynamic>)
+          .map((item) => SaasTenant.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      total: (meta['total'] as num?)?.toInt() ?? 0,
+      page: (meta['page'] as num?)?.toInt() ?? page,
+      limit: (meta['limit'] as num?)?.toInt() ?? limit,
+    );
+  }
+
+  Future<TenantSettings> settings(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/settings'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return TenantSettings.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TenantSettings> updateSettings(
+    Session session,
+    TenantSettings settings,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.put(
+        Uri.parse('$baseUrl/v1/settings'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'settings': settings.toUpdateMap()}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return TenantSettings.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// The terminal's open register session, or null when the terminal has none.
+  Future<RegisterSession?> currentSession(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/registers/current'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode == 404) return null;
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return RegisterSession.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<RegisterSession> openSession(
+    Session session, {
+    required int openingCashMinor,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/registers/open'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'opening_cash_minor': openingCashMinor}),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    return RegisterSession.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<RegisterSession> closeSession(
+    Session session,
+    String sessionId, {
+    int? closingCashMinor,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/registers/$sessionId/close'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (closingCashMinor != null)
+            'closing_cash_minor': closingCashMinor,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return RegisterSession.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<SessionsPage> sessions(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/registers').replace(
+      queryParameters: {'page': '$page', 'limit': '$limit'},
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final meta = body['meta'] as Map<String, dynamic>;
+    return SessionsPage(
+      sessions: (body['data'] as List<dynamic>)
+          .map((item) => SessionListItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      total: (meta['total'] as num).toInt(),
+      page: (meta['page'] as num).toInt(),
+      limit: (meta['limit'] as num).toInt(),
+    );
+  }
+
+  Future<RegisterSession> sessionDetail(Session session, String sessionId) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/registers/$sessionId'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return RegisterSession.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
   }
 
   Future<http.Response> _authenticatedRequest(
@@ -290,6 +582,7 @@ class SaleResult {
     required this.subtotalMinor,
     required this.totalMinor,
     required this.currency,
+    required this.paymentMethod,
   });
 
   factory SaleResult.fromJson(Map<String, dynamic> json) => SaleResult(
@@ -297,12 +590,14 @@ class SaleResult {
         subtotalMinor: (json['subtotal_minor'] as num).toInt(),
         totalMinor: (json['total_minor'] as num).toInt(),
         currency: json['currency'] as String,
+        paymentMethod: PaymentMethod.fromWire(json['payment_method'] as String?),
       );
 
   final String id;
   final int subtotalMinor;
   final int totalMinor;
   final String currency;
+  final PaymentMethod paymentMethod;
 }
 
 class ApiException implements Exception {
@@ -311,4 +606,249 @@ class ApiException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class Category {
+  const Category({
+    required this.id,
+    required this.name,
+    required this.slug,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        slug: json['slug'] as String,
+      );
+
+  final String id;
+  final String name;
+  final String slug;
+}
+
+class SaleSummary {
+  const SaleSummary({
+    required this.id,
+    required this.status,
+    required this.subtotalMinor,
+    required this.totalMinor,
+    required this.currency,
+    required this.createdAt,
+    required this.paymentMethod,
+  });
+
+  factory SaleSummary.fromJson(Map<String, dynamic> json) => SaleSummary(
+        id: json['id'] as String,
+        status: json['status'] as String? ?? 'completed',
+        subtotalMinor: (json['subtotal_minor'] as num).toInt(),
+        totalMinor: (json['total_minor'] as num).toInt(),
+        currency: json['currency'] as String,
+        createdAt: json['created_at'] as String? ?? '',
+        paymentMethod:
+            PaymentMethod.fromWire(json['payment_method'] as String?),
+      );
+
+  final String id;
+  final String status;
+  final int subtotalMinor;
+  final int totalMinor;
+  final String currency;
+  final String createdAt;
+  final PaymentMethod paymentMethod;
+}
+
+class SalesPage {
+  const SalesPage({
+    required this.sales,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  final List<SaleSummary> sales;
+  final int total;
+  final int page;
+  final int limit;
+}
+
+class Country {
+  const Country({
+    required this.code,
+    required this.nameEn,
+    required this.nameAr,
+    required this.currencyCode,
+    required this.phoneCode,
+  });
+
+  factory Country.fromJson(Map<String, dynamic> json) => Country(
+        code: json['code'] as String,
+        nameEn: json['name_en'] as String,
+        nameAr: json['name_ar'] as String? ?? json['name_en'] as String,
+        currencyCode: json['currency_code'] as String,
+        phoneCode: json['phone_code'] as String? ?? '',
+      );
+
+  final String code;
+  final String nameEn;
+  final String nameAr;
+  final String currencyCode;
+  final String phoneCode;
+}
+
+class Currency {
+  const Currency({
+    required this.code,
+    required this.nameEn,
+    required this.nameAr,
+    required this.symbol,
+    required this.digitsAfterDecimal,
+  });
+
+  factory Currency.fromJson(Map<String, dynamic> json) => Currency(
+        code: json['code'] as String,
+        nameEn: json['name_en'] as String,
+        nameAr: json['name_ar'] as String? ?? json['name_en'] as String,
+        symbol: json['symbol'] as String? ?? json['code'] as String,
+        digitsAfterDecimal: (json['digits_after_decimal'] as num?)?.toInt() ?? 2,
+      );
+
+  final String code;
+  final String nameEn;
+  final String nameAr;
+  final String symbol;
+  final int digitsAfterDecimal;
+}
+
+class SaasBusinessCount {
+  const SaasBusinessCount({required this.businessType, required this.tenants});
+
+  factory SaasBusinessCount.fromJson(Map<String, dynamic> json) =>
+      SaasBusinessCount(
+        businessType: json['business_type'] as String,
+        tenants: (json['tenants'] as num).toInt(),
+      );
+
+  final String businessType;
+  final int tenants;
+}
+
+class SaasSummary {
+  const SaasSummary({
+    required this.totalTenants,
+    required this.totalUsers,
+    required this.totalSales,
+    required this.revenueMinor,
+    required this.byBusiness,
+    this.supportedCountry = 'EG',
+    this.supportedCurrency = 'EGP',
+  });
+
+  factory SaasSummary.fromJson(Map<String, dynamic> json) => SaasSummary(
+        totalTenants: (json['total_tenants'] as num).toInt(),
+        totalUsers: (json['total_users'] as num).toInt(),
+        totalSales: (json['total_sales'] as num).toInt(),
+        revenueMinor: (json['revenue_minor'] as num).toInt(),
+        byBusiness: (json['by_business'] as List<dynamic>? ?? const [])
+            .map((item) =>
+                SaasBusinessCount.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        supportedCountry: json['supported_country'] as String? ?? 'EG',
+        supportedCurrency: json['supported_currency'] as String? ?? 'EGP',
+      );
+
+  final int totalTenants;
+  final int totalUsers;
+  final int totalSales;
+  final int revenueMinor;
+  final List<SaasBusinessCount> byBusiness;
+  final String supportedCountry;
+  final String supportedCurrency;
+}
+
+class SaasTenant {
+  const SaasTenant({
+    required this.id,
+    required this.name,
+    required this.slug,
+    required this.businessType,
+    required this.countryCode,
+    required this.currencyCode,
+    required this.defaultLanguage,
+    required this.users,
+    required this.products,
+  });
+
+  factory SaasTenant.fromJson(Map<String, dynamic> json) => SaasTenant(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        slug: json['slug'] as String,
+        businessType: json['business_type'] as String? ?? '',
+        countryCode: json['country_code'] as String? ?? '',
+        currencyCode: json['currency_code'] as String? ?? '',
+        defaultLanguage: json['default_language'] as String? ?? '',
+        users: (json['users'] as num?)?.toInt() ?? 0,
+        products: (json['products'] as num?)?.toInt() ?? 0,
+      );
+
+  final String id;
+  final String name;
+  final String slug;
+  final String businessType;
+  final String countryCode;
+  final String currencyCode;
+  final String defaultLanguage;
+  final int users;
+  final int products;
+}
+
+class SaasTenantsPage {
+  const SaasTenantsPage({
+    required this.tenants,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  final List<SaasTenant> tenants;
+  final int total;
+  final int page;
+  final int limit;
+}
+
+class TenantSettings {
+  const TenantSettings({
+    this.defaultPaymentMethod = PaymentMethod.cash,
+    this.showStockBadges = true,
+    this.receiptFooter = '',
+  });
+
+  factory TenantSettings.fromJson(Map<String, dynamic> json) => TenantSettings(
+        defaultPaymentMethod: PaymentMethod.fromWire(
+            json['pos.default_payment_method'] as String?),
+        showStockBadges:
+            (json['pos.show_stock_badges'] as String?) != 'false',
+        receiptFooter: json['pos.receipt_footer'] as String? ?? '',
+      );
+
+  final PaymentMethod defaultPaymentMethod;
+  final bool showStockBadges;
+  final String receiptFooter;
+
+  TenantSettings copyWith({
+    PaymentMethod? defaultPaymentMethod,
+    bool? showStockBadges,
+    String? receiptFooter,
+  }) =>
+      TenantSettings(
+        defaultPaymentMethod:
+            defaultPaymentMethod ?? this.defaultPaymentMethod,
+        showStockBadges: showStockBadges ?? this.showStockBadges,
+        receiptFooter: receiptFooter ?? this.receiptFooter,
+      );
+
+  Map<String, String> toUpdateMap() => {
+        'pos.default_payment_method': defaultPaymentMethod.wireName,
+        'pos.show_stock_badges': '$showStockBadges',
+        'pos.receipt_footer': receiptFooter,
+      };
 }

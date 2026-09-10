@@ -1,6 +1,3 @@
-# Dependencies
-go.sum
-
 # Build output
 bin/
 api

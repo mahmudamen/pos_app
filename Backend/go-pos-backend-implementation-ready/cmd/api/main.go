@@ -15,7 +15,12 @@ import (
 	authtransport "github.com/example/pos-api/internal/transport/auth"
 	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
 	httptransport "github.com/example/pos-api/internal/transport/http"
+	metatransport "github.com/example/pos-api/internal/transport/meta"
+	registerstransport "github.com/example/pos-api/internal/transport/registers"
+	saastransport "github.com/example/pos-api/internal/transport/saas"
 	salestransport "github.com/example/pos-api/internal/transport/sales"
+	settingsTransport "github.com/example/pos-api/internal/transport/settings"
+	usertransport "github.com/example/pos-api/internal/transport/users"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -49,6 +54,8 @@ func main() {
 
 	router := gin.New()
 	router.Use(
+		httptransport.CORS(),
+		httptransport.SecurityHeaders(),
 		httptransport.RequestID(),
 		httptransport.RequestLogger(logger),
 		httptransport.Recovery(logger),
@@ -69,9 +76,18 @@ func main() {
 	})
 	api := router.Group("/v1")
 	authHandler := authtransport.NewHandler(pool, cfg)
-	authHandler.Register(api)
+	// Register auth routes with rate limiting on login
+	authGroup := api.Group("/auth")
+	authGroup.POST("/login", httptransport.LoginRateLimit(5, 5*time.Minute), authHandler.Login())
+	authGroup.POST("/refresh", authHandler.Refresh())
+	authGroup.POST("/logout", authHandler.Logout())
 	catalogtransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	salestransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	registerstransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	usertransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	settingsTransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	metatransport.NewHandler(pool).Register(api)
+	saastransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,

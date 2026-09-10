@@ -1,6 +1,8 @@
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
+import '../api_client.dart';
+
 class PendingCommand {
   const PendingCommand({
     required this.id,
@@ -39,6 +41,7 @@ class LocalDatabase {
               sku TEXT NOT NULL,
               barcode TEXT,
               price_minor INTEGER NOT NULL,
+              cost_minor INTEGER NOT NULL DEFAULT 0,
               currency TEXT NOT NULL,
               stock_quantity INTEGER NOT NULL
             )
@@ -58,6 +61,41 @@ class LocalDatabase {
       ),
     );
     return _database!;
+  }
+
+  Future<void> cacheProducts(List<Product> products) async {
+    final db = await database;
+    final batch = db.batch();
+    await db.delete('cached_products');
+    for (final p in products) {
+      batch.insert('cached_products', {
+        'id': p.id,
+        'name': p.name,
+        'sku': p.sku,
+        'barcode': p.barcode,
+        'price_minor': p.priceMinor,
+        'cost_minor': p.costMinor,
+        'currency': p.currency,
+        'stock_quantity': p.stockQuantity,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Product>> cachedProducts() async {
+    final rows = await (await database).query('cached_products', orderBy: 'name');
+    return rows
+        .map((row) => Product(
+              id: row['id'] as String,
+              name: row['name'] as String,
+              sku: row['sku'] as String,
+              barcode: row['barcode'] as String? ?? '',
+              priceMinor: row['price_minor'] as int,
+              costMinor: row['cost_minor'] as int,
+              currency: row['currency'] as String,
+              stockQuantity: row['stock_quantity'] as int,
+            ))
+        .toList();
   }
 
   Future<void> enqueue(PendingCommand command) async {
