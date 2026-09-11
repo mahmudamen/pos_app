@@ -10,6 +10,7 @@ import '../../core/registers.dart';
 import '../../core/session_store.dart';
 import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../sales/sale_history_screen.dart';
 import '../settings/settings_screen.dart';
 import 'session_screen.dart';
@@ -188,6 +189,18 @@ class _PosScreenState extends State<PosScreen> {
       appBar: AppBar(
         title: Text(s.checkout),
         actions: [
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => DashboardScreen(
+                  session: widget.session,
+                  apiClient: widget.apiClient,
+                ),
+              ),
+            ),
+            tooltip: s.dashboard,
+            icon: const Icon(Icons.insights),
+          ),
           IconButton(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(

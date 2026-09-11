@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:pos_go_app/core/api_client.dart';
+import 'package:pos_go_app/core/dashboard.dart';
 import 'package:pos_go_app/core/payments.dart';
 import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/session_store.dart';
@@ -249,6 +250,89 @@ void main() {
     );
 
     expect(sale.id, 'sale-3');
+  });
+
+  test('DashboardSummary parses today revenue, top products, cashiers and mix',
+      () {
+    final summary = DashboardSummary.fromJson(const {
+      'date': '2026-09-11',
+      'today': {
+        'revenue_minor': 4125,
+        'sales_count': 7,
+        'avg_sale_minor': 589,
+        'items_sold': 12,
+      },
+      'top_products': [
+        {
+          'product_name': 'Blueberry Muffin',
+          'sku': 'MUF-001',
+          'quantity': 4,
+          'revenue_minor': 1200
+        }
+      ],
+      'recent_sales': [
+        {
+          'id': 'sale-1',
+          'status': 'completed',
+          'total_minor': 600,
+          'currency': 'EGP',
+          'payment_method': 'cash',
+          'created_at': '2026-09-11 00:11:17'
+        }
+      ],
+      'per_cashier': [
+        {
+          'cashier': 'Restaurant Admin',
+          'sales_count': 7,
+          'revenue_minor': 4125
+        }
+      ],
+      'payment_mix': [
+        {'method': 'cash', 'amount_minor': 3000},
+        {'method': 'card', 'amount_minor': 1125}
+      ],
+    });
+    expect(summary.date, '2026-09-11');
+    expect(summary.today.revenueMinor, 4125);
+    expect(summary.today.salesCount, 7);
+    expect(summary.today.avgSaleMinor, 589);
+    expect(summary.today.itemsSold, 12);
+    expect(summary.topProducts, hasLength(1));
+    expect(summary.topProducts.first.productName, 'Blueberry Muffin');
+    expect(summary.recentSales, hasLength(1));
+    expect(summary.recentSales.first.paymentMethod, 'cash');
+    expect(summary.perCashier, hasLength(1));
+    expect(summary.perCashier.first.cashier, 'Restaurant Admin');
+    expect(summary.paymentMix, hasLength(2));
+    expect(summary.paymentMix.first.method, 'cash');
+    expect(summary.paymentMix.first.amountMinor, 3000);
+  });
+
+  test('dashboardSummary fetches /v1/dashboard/summary', () async {
+    final client = ApiClient(client: _DashboardClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final summary = await client.dashboardSummary(session);
+    expect(summary.today.revenueMinor, 4125);
+    expect(summary.paymentMix, hasLength(2));
+  });
+
+  test('dashboardSummary surfaces API errors', () async {
+    final client = ApiClient(client: _ErrorResponseClient('missing token'));
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+expect(() => client.dashboardSummary(session),
+        throwsA(isA<ApiException>()));
   });
 
   test('RegisterSession parses an open session with its live summary', () {
@@ -1118,6 +1202,23 @@ class _SessionsListClient extends http.BaseClient {
         '{"data":[{"id":"session-1","status":"closed","opening_cash_minor":5000,"closing_cash_minor":5300,"expected_cash_minor":5200,"cash_difference_minor":100,"opened_at":"2026-09-11 00:46:27","closed_at":"2026-09-11 00:47:21","opened_by":"Restaurant Admin","sales_count":1,"total_minor":600}],"meta":{"request_id":"t","page":1,"limit":5,"total":1}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _dashboardJson =
+    '{"data":{"date":"2026-09-11","today":{"revenue_minor":4125,"sales_count":7,"avg_sale_minor":589,"items_sold":12},"top_products":[{"product_name":"Blueberry Muffin","sku":"MUF-001","quantity":4,"revenue_minor":1200}],"recent_sales":[{"id":"sale-1","status":"completed","total_minor":600,"currency":"EGP","payment_method":"cash","created_at":"2026-09-11 00:11:17"}],"per_cashier":[{"cashier":"Restaurant Admin","sales_count":7,"revenue_minor":4125}],"payment_mix":[{"method":"cash","amount_minor":3000},{"method":"card","amount_minor":1125}]},"meta":{"request_id":"t"}}';
+
+class _DashboardClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/dashboard/summary');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_dashboardJson.codeUnits),
       200,
       headers: {'content-type': 'application/json'},
     );

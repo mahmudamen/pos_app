@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
+import 'dashboard.dart';
 import 'payments.dart';
 import 'registers.dart';
 import 'session_store.dart';
@@ -329,6 +330,24 @@ class ApiClient {
       page: (meta['page'] as num?)?.toInt() ?? page,
       limit: (meta['limit'] as num?)?.toInt() ?? limit,
     );
+  }
+
+  Future<DashboardSummary> dashboardSummary(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/dashboard/summary'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return DashboardSummary.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
   }
 
   Future<TenantSettings> settings(Session session) async {

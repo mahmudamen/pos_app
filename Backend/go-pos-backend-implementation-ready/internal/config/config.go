@@ -29,6 +29,7 @@ type Config struct {
 	JWTAccessTTL        time.Duration
 	JWTRefreshTTL       time.Duration
 	BcryptCost          int
+	CashierDiscountPct  int
 	LogLevel            string
 	LogFormat           string
 }
@@ -102,7 +103,15 @@ func Load() (Config, error) {
 	if bcryptCost < 4 || bcryptCost > 31 {
 		return Config{}, fmt.Errorf("BCRYPT_COST must be between 4 and 31")
 	}
+	cashierDiscountPct, err := intValue("CASHIER_DISCOUNT_PCT", 5)
+	if err != nil {
+		return Config{}, err
+	}
+	if cashierDiscountPct < 0 || cashierDiscountPct > 100 {
+		return Config{}, fmt.Errorf("CASHIER_DISCOUNT_PCT must be between 0 and 100")
+	}
 	c.DBMaxConns, c.DBMinConns, c.RedisDB, c.BcryptCost = int32(maxConns), int32(minConns), redisDB, bcryptCost
+	c.CashierDiscountPct = cashierDiscountPct
 	return c, nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
+	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,12 +15,23 @@ import (
 )
 
 type Handler struct {
-	pool   *pgxpool.Pool
-	tokens security.TokenManager
+	pool             *pgxpool.Pool
+	tokens           security.TokenManager
+	discountLimitPct int
 }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
-	return &Handler{pool: pool, tokens: tokens}
+	return &Handler{pool: pool, tokens: tokens, discountLimitPct: 5}
+}
+
+func NewHandlerWithDiscountLimit(pool *pgxpool.Pool, tokens security.TokenManager, limitPct int) *Handler {
+	if limitPct < 0 {
+		limitPct = 0
+	}
+	if limitPct > 100 {
+		limitPct = 100
+	}
+	return &Handler{pool: pool, tokens: tokens, discountLimitPct: limitPct}
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
@@ -32,6 +44,7 @@ type createSaleRequest struct {
 	Items             []saleItemRequest `json:"items" binding:"required,min=1"`
 	Payments          []paymentRequest  `json:"payments"`
 	RegisterSessionID string            `json:"session_id"`
+	DiscountMinor     int64             `json:"discount_minor"`
 }
 
 type saleItemRequest struct {
@@ -388,7 +401,25 @@ func (h *Handler) createSale(c *gin.Context) {
 		lockedItems = append(lockedItems, product)
 	}
 
-	payments, err := normalizePayments(request.Payments, subtotal)
+	discount := request.DiscountMinor
+	total := subtotal
+	if discount > 0 {
+		if !httptransport.HasPermission(claims.Role, "pos", "discount") {
+			writeError(c, http.StatusForbidden, "permission_denied", "discount not allowed for this role")
+			return
+		}
+		validated, err := validateDiscount(claims.Role, subtotal, discount, h.discountLimitPct)
+		if err != nil {
+			writeError(c, http.StatusBadRequest, "discount_error", err.Error())
+			return
+		}
+		total = validated
+	} else if discount < 0 {
+		writeError(c, http.StatusBadRequest, "discount_error", string(ErrNegativeDiscount))
+		return
+	}
+
+	payments, err := normalizePayments(request.Payments, total)
 	if err != nil {
 		writeError(c, http.StatusBadRequest, "validation_error", err.Error())
 		return
@@ -396,8 +427,8 @@ func (h *Handler) createSale(c *gin.Context) {
 
 	saleID := uuid.New()
 	_, err = tx.Exec(ctx, `
-		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, total_minor, currency, payment_method, register_session_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $6, $7, $8, $9)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, currency, primaryPaymentMethod(payments), requestSessionID)
+		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, currency, payment_method, register_session_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, currency, primaryPaymentMethod(payments), requestSessionID)
 	if err != nil {
 		writeError(c, http.StatusConflict, "idempotency_conflict", "idempotency key is already in use")
 		return
@@ -429,7 +460,7 @@ func (h *Handler) createSale(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit sale")
 		return
 	}
-	writeSale(c, Sale{ID: saleID.String(), Status: "completed", SubtotalMinor: subtotal, TotalMinor: subtotal, Currency: currency, PaymentMethod: primaryPaymentMethod(payments)})
+	writeSale(c, Sale{ID: saleID.String(), Status: "completed", SubtotalMinor: subtotal, DiscountMinor: discount, TotalMinor: total, Currency: currency, PaymentMethod: primaryPaymentMethod(payments)})
 }
 
 func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {

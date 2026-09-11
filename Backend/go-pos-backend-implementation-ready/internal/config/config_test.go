@@ -159,17 +159,50 @@ func TestLoadRejectsNegativeDBMinConns(t *testing.T) {
 	}
 }
 
+func TestLoadDefaultsCashierDiscountPct(t *testing.T) {
+	clearEnv()
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.CashierDiscountPct != 5 {
+		t.Errorf("CashierDiscountPct: got %d, want 5", cfg.CashierDiscountPct)
+	}
+}
+
+func TestLoadRejectsCashierDiscountPctOutOfRange(t *testing.T) {
+	for _, value := range []string{"101", "-1"} {
+		clearEnv()
+		os.Setenv("CASHIER_DISCOUNT_PCT", value)
+		if _, err := Load(); err == nil {
+			t.Fatalf("expected error for CASHIER_DISCOUNT_PCT=%s", value)
+		}
+		os.Unsetenv("CASHIER_DISCOUNT_PCT")
+	}
+}
+
+func TestLoadRejectsInvalidCashierDiscountPct(t *testing.T) {
+	clearEnv()
+	os.Setenv("CASHIER_DISCOUNT_PCT", "abc")
+	defer os.Unsetenv("CASHIER_DISCOUNT_PCT")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected error for CASHIER_DISCOUNT_PCT=abc")
+	}
+}
+
 func TestLoadOverridesFromEnv(t *testing.T) {
 	clearEnv()
 	os.Setenv("APP_NAME", "my-pos")
 	os.Setenv("HTTP_ADDR", ":9090")
 	os.Setenv("BCRYPT_COST", "8")
+	os.Setenv("CASHIER_DISCOUNT_PCT", "7")
 	os.Setenv("DB_MAX_CONNS", "10")
 	os.Setenv("DB_MIN_CONNS", "1")
 	defer func() {
 		os.Unsetenv("APP_NAME")
 		os.Unsetenv("HTTP_ADDR")
 		os.Unsetenv("BCRYPT_COST")
+		os.Unsetenv("CASHIER_DISCOUNT_PCT")
 		os.Unsetenv("DB_MAX_CONNS")
 		os.Unsetenv("DB_MIN_CONNS")
 	}()
@@ -185,6 +218,9 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.BcryptCost != 8 {
 		t.Errorf("BcryptCost: got %d, want 8", cfg.BcryptCost)
+	}
+	if cfg.CashierDiscountPct != 7 {
+		t.Errorf("CashierDiscountPct: got %d, want 7", cfg.CashierDiscountPct)
 	}
 	if cfg.DBMaxConns != 10 {
 		t.Errorf("DBMaxConns: got %d, want 10", cfg.DBMaxConns)

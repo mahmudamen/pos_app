@@ -20,9 +20,10 @@ func testTokens() security.TokenManager {
 
 func validToken(t *testing.T) string {
 	t.Helper()
-	raw, err := testTokens().Issue(time.Now(), security.AccessToken,
+	raw, err := testTokens().IssueWithRole(time.Now(), security.AccessToken,
 		"00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002",
-		"00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000004")
+		"00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000004",
+		"cashier")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,6 +158,45 @@ func TestSessionsUnavailableWithoutDatabase(t *testing.T) {
 		router.ServeHTTP(recorder, request)
 		if recorder.Code != http.StatusServiceUnavailable {
 			t.Fatalf("%s: expected 503, got %d", path, recorder.Code)
+		}
+	}
+}
+
+func deniedToken(t *testing.T) string {
+	t.Helper()
+	raw, err := testTokens().IssueWithRole(time.Now(), security.AccessToken,
+		"00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002",
+		"00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000004",
+		"guest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw
+}
+
+func TestSessionsDeniedWithoutPermission(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	cases := []struct {
+		method string
+		path   string
+		body   string
+	}{
+		{http.MethodGet, "/v1/registers", ""},
+		{http.MethodGet, "/v1/registers/list", ""},
+		{http.MethodGet, "/v1/registers/current", ""},
+		{http.MethodGet, "/v1/registers/00000000-0000-0000-0000-000000000001", ""},
+		{http.MethodPost, "/v1/registers/open", `{"opening_cash_minor":0}`},
+		{http.MethodPost, "/v1/registers/00000000-0000-0000-0000-000000000001/close", `{"closing_cash_minor":0}`},
+	}
+	for _, tc := range cases {
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+		request.Header.Set("Authorization", "Bearer "+deniedToken(t))
+		request.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusForbidden {
+			t.Fatalf("%s %s: expected 403, got %d", tc.method, tc.path, recorder.Code)
 		}
 	}
 }

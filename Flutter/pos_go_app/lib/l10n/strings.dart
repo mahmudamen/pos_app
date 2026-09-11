@@ -113,6 +113,25 @@ class AppStrings {
   String get closeSessionError => isArabic ? 'تعذر إنهاء الجلسة' : 'Could not finish session';
   String get statusOpen => isArabic ? 'مفتوحة' : 'Open';
   String get statusClosed => isArabic ? 'مغلقة' : 'Closed';
+  String get dashboard => isArabic ? 'لوحة التحكم' : 'Dashboard';
+  String get revenueToday => isArabic ? 'إيرادات اليوم' : "Today's revenue";
+  String get avgSale => isArabic ? 'متوسط البيع' : 'Avg. sale';
+  String get itemsSold => isArabic ? 'القطع المباعة' : 'Items sold';
+  String get paymentMix => isArabic ? 'مزيج الدفع' : 'Payment mix';
+  String get topProducts => isArabic ? 'الأكثر مبيعًا' : 'Top products';
+  String get perCashier => isArabic ? 'حسب أمين الصندوق' : 'Per cashier';
+  String get recentSales => isArabic ? 'أحدث المبيعات' : 'Recent sales';
+
+  String methodLabel(String method) {
+    switch (method) {
+      case 'card':
+        return card;
+      case 'mobile':
+        return mobilePayment;
+      default:
+        return cash;
+    }
+  }
 
   String formatMoney(int minor, String currencyCode) {
     final symbol = currencySymbol(currencyCode);

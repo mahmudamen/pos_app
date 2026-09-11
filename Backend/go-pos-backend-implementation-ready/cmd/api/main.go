@@ -14,7 +14,9 @@ import (
 	redisinfra "github.com/example/pos-api/internal/infrastructure/redis"
 	authtransport "github.com/example/pos-api/internal/transport/auth"
 	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
+	dashboardtransport "github.com/example/pos-api/internal/transport/dashboard"
 	httptransport "github.com/example/pos-api/internal/transport/http"
+	inventorytransport "github.com/example/pos-api/internal/transport/inventory"
 	metatransport "github.com/example/pos-api/internal/transport/meta"
 	registerstransport "github.com/example/pos-api/internal/transport/registers"
 	saastransport "github.com/example/pos-api/internal/transport/saas"
@@ -82,8 +84,10 @@ func main() {
 	authGroup.POST("/refresh", authHandler.Refresh())
 	authGroup.POST("/logout", authHandler.Logout())
 	catalogtransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	salestransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	dashboardtransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	salestransport.NewHandlerWithDiscountLimit(pool, authHandler.Tokens(), cfg.CashierDiscountPct).Register(api)
 	registerstransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	inventorytransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	usertransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	settingsTransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	metatransport.NewHandler(pool).Register(api)

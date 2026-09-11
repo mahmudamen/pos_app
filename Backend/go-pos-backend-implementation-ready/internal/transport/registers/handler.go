@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
+	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -69,6 +70,9 @@ func (h *Handler) current(c *gin.Context) {
 	if !ok {
 		return
 	}
+	if !h.can(c, claims.Role, "pos", "read") {
+		return
+	}
 	if h.pool == nil {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
@@ -124,6 +128,9 @@ func (h *Handler) current(c *gin.Context) {
 func (h *Handler) open(c *gin.Context) {
 	claims, ok := h.authenticate(c)
 	if !ok {
+		return
+	}
+	if !h.can(c, claims.Role, "pos", "open") {
 		return
 	}
 	if h.pool == nil {
@@ -215,6 +222,9 @@ func (h *Handler) open(c *gin.Context) {
 func (h *Handler) close(c *gin.Context) {
 	claims, ok := h.authenticate(c)
 	if !ok {
+		return
+	}
+	if !h.can(c, claims.Role, "pos", "close") {
 		return
 	}
 	if h.pool == nil {
@@ -329,6 +339,9 @@ func (h *Handler) list(c *gin.Context) {
 	if !ok {
 		return
 	}
+	if !h.can(c, claims.Role, "pos", "read") {
+		return
+	}
 	if h.pool == nil {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
@@ -433,6 +446,9 @@ func (h *Handler) get(c *gin.Context) {
 	if !ok {
 		return
 	}
+	if !h.can(c, claims.Role, "pos", "read") {
+		return
+	}
 	if h.pool == nil {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
@@ -493,6 +509,14 @@ func (h *Handler) get(c *gin.Context) {
 		"data": toSession(row, buildSummary(totals, row.openingCashMinor)),
 		"meta": gin.H{"request_id": c.GetString("request_id")},
 	})
+}
+
+func (h *Handler) can(c *gin.Context, role, resource, action string) bool {
+	if !httptransport.HasPermission(role, resource, action) {
+		writeError(c, http.StatusForbidden, "permission_denied", "insufficient permissions")
+		return false
+	}
+	return true
 }
 
 func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {

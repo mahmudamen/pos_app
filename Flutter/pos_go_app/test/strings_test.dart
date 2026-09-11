@@ -46,6 +46,15 @@ void main() {
     expect(ar.cashShort, 'عجز');
     expect(ar.statusOpen, 'مفتوحة');
     expect(ar.statusClosed, 'مغلقة');
+    expect(ar.dashboard, 'لوحة التحكم');
+    expect(ar.revenueToday, 'إيرادات اليوم');
+    expect(ar.topProducts, 'الأكثر مبيعًا');
+    expect(ar.perCashier, 'حسب أمين الصندوق');
+    expect(ar.paymentMix, 'مزيج الدفع');
+    expect(ar.methodLabel('card'), 'بطاقة');
+    expect(ar.methodLabel('mobile'), 'محفظة');
+    expect(ar.methodLabel('cash'), 'نقدًا');
+    expect(ar.methodLabel('unknown'), 'نقدًا');
   });
 
   test('English strings are provided for core labels', () {
@@ -83,6 +92,15 @@ void main() {
     expect(en.cashShort, 'Short');
     expect(en.statusOpen, 'Open');
     expect(en.statusClosed, 'Closed');
+    expect(en.dashboard, 'Dashboard');
+    expect(en.revenueToday, "Today's revenue");
+    expect(en.topProducts, 'Top products');
+    expect(en.perCashier, 'Per cashier');
+    expect(en.paymentMix, 'Payment mix');
+    expect(en.methodLabel('card'), 'Card');
+    expect(en.methodLabel('mobile'), 'Mobile wallet');
+    expect(en.methodLabel('cash'), 'Cash');
+    expect(en.methodLabel('unknown'), 'Cash');
   });
 
   test('money formatted with EGP symbol', () {
