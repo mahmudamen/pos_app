@@ -1,8 +1,22 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pos_go_app/core/session_store.dart';
 
 void main() {
+  test('sync cursor persists per tenant and defaults to zero', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    expect(await store.readSyncCursor('tenant-1'), 0);
+
+    await store.saveSyncCursor('tenant-1', 130);
+    await store.saveSyncCursor('tenant-2', 42);
+
+    expect(await store.readSyncCursor('tenant-1'), 130);
+    expect(await store.readSyncCursor('tenant-2'), 42);
+  });
+
   test('session restores identity fields from the Go login envelope', () {
     final session = Session.fromJson({
       'access_token': 'access',

@@ -413,6 +413,38 @@ class ApiClient {
         jsonDecode(respond.body)['data'] as Map<String, dynamic>);
   }
 
+  Future<SyncPullPage> syncPull(
+    Session session, {
+    int cursor = 0,
+    int limit = 100,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/sync/pull?cursor=$cursor&limit=$limit'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode == 409) {
+      throw ApiException(_message(respond));
+    }
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .map((e) => SyncRow.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return SyncPullPage(
+      items: items,
+      cursor: _toIntValue(data['cursor']),
+      hasMore: data['has_more'] as bool? ?? false,
+    );
+  }
+
   Future<TenantSettings> settings(Session session) async {
     final response = await _authenticatedRequest(
       session,
@@ -909,6 +941,42 @@ class CustomersPage {
   final int total;
   final int page;
   final int limit;
+}
+
+class SyncPullPage {
+  const SyncPullPage({
+    required this.items,
+    required this.cursor,
+    required this.hasMore,
+  });
+
+  final List<SyncRow> items;
+  final int cursor;
+  final bool hasMore;
+}
+
+class SyncRow {
+  const SyncRow({
+    required this.entity,
+    required this.id,
+    required this.changeSeq,
+    required this.changeType,
+    required this.data,
+  });
+
+  factory SyncRow.fromJson(Map<String, dynamic> json) => SyncRow(
+        entity: json['entity'] as String,
+        id: json['id'] as String,
+        changeSeq: (json['change_seq'] as num).toInt(),
+        changeType: json['change_type'] as String? ?? 'upsert',
+        data: (json['data'] as Map<String, dynamic>?) ?? const {},
+      );
+
+  final String entity;
+  final String id;
+  final int changeSeq;
+  final String changeType;
+  final Map<String, dynamic> data;
 }
 
 class TenantSettings {

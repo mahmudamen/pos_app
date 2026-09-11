@@ -23,6 +23,7 @@ import (
 	saastransport "github.com/example/pos-api/internal/transport/saas"
 	salestransport "github.com/example/pos-api/internal/transport/sales"
 	settingsTransport "github.com/example/pos-api/internal/transport/settings"
+	synctransport "github.com/example/pos-api/internal/transport/sync"
 	usertransport "github.com/example/pos-api/internal/transport/users"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -92,6 +93,7 @@ func main() {
 	inventorytransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	usertransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	settingsTransport.NewHandler(pool, authHandler.Tokens()).Register(api)
+	synctransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 	metatransport.NewHandler(pool).Register(api)
 	saastransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 

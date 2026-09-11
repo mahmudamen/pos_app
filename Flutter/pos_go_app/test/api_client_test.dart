@@ -388,6 +388,55 @@ expect(() => client.dashboardSummary(session),
     expect(customer.loyaltyPoints, 0);
   });
 
+  test('syncPull fetches /v1/sync/pull with cursor + limit params', () async {
+    final client = ApiClient(client: _SyncPullClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.syncPull(session, cursor: 28, limit: 5);
+    expect(page.items, hasLength(2));
+    expect(page.cursor, 130);
+    expect(page.hasMore, isTrue);
+    final first = page.items.first;
+    expect(first.entity, 'categories');
+    expect(first.id, 'category-1');
+    expect(first.changeSeq, 28);
+    expect(first.changeType, 'upsert');
+    expect(first.data['name'], 'Drinks');
+  });
+
+  test('syncPull surfaces cursor_expired as an ApiException', () async {
+    final client = ApiClient(client: _SyncExpiredClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    expect(
+      () => client.syncPull(session, cursor: 1),
+      throwsA(isA<ApiException>()),
+    );
+  });
+
+  test('SyncRow parses a soft-deleted product row', () {
+    const row = SyncRow(
+      entity: 'products',
+      id: 'product-1',
+      changeSeq: 260,
+      changeType: 'delete',
+      data: {},
+    );
+    expect(row.entity, 'products');
+    expect(row.changeSeq, 260);
+    expect(row.changeType, 'delete');
+  });
+
   test('RegisterSession parses an open session with its live summary', () {
     final session = RegisterSession.fromJson(const {
       'id': 'session-1',
@@ -1330,6 +1379,38 @@ class _CreateCustomerClient extends http.BaseClient {
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SyncPullClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/sync/pull');
+    expect(request.url.queryParameters['cursor'], '28');
+    expect(request.url.queryParameters['limit'], '5');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response =
+        '{"data":{"items":[{"entity":"categories","id":"category-1","change_seq":28,"change_type":"upsert","data":{"name":"Drinks","is_active":true}},{"entity":"products","id":"product-1","change_seq":130,"change_type":"upsert","data":{"name":"Cappuccino"}}],"cursor":130,"has_more":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SyncExpiredClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.url.path, '/v1/sync/pull');
+    const response =
+        '{"error":{"code":"cursor_expired","message":"cursor is older than the retention window"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      409,
       headers: {'content-type': 'application/json'},
     );
   }

@@ -239,4 +239,15 @@ class SessionStore {
       defaultLanguage: await _storage.read(key: _defaultLanguageKey) ?? 'ar',
     );
   }
+
+  String _syncKey(String tenantId) => 'sync_cursor_$tenantId';
+
+  Future<int> readSyncCursor(String tenantId) async {
+    final raw = await _storage.read(key: _syncKey(tenantId));
+    return int.tryParse(raw ?? '') ?? 0;
+  }
+
+  Future<void> saveSyncCursor(String tenantId, int cursor) async {
+    await _storage.write(key: _syncKey(tenantId), value: '$cursor');
+  }
 }
