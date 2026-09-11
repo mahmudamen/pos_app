@@ -10,6 +10,7 @@ import '../../core/registers.dart';
 import '../../core/session_store.dart';
 import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
+import '../customers/customers_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../sales/sale_history_screen.dart';
 import '../settings/settings_screen.dart';
@@ -212,6 +213,18 @@ class _PosScreenState extends State<PosScreen> {
             ),
             tooltip: s.salesHistory,
             icon: const Icon(Icons.receipt_long),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CustomersScreen(
+                  session: widget.session,
+                  apiClient: widget.apiClient,
+                ),
+              ),
+            ),
+            tooltip: s.customers,
+            icon: const Icon(Icons.groups_outlined),
           ),
           Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

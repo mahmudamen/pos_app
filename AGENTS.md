@@ -68,6 +68,7 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **User management**: `GET /v1/users` (paginated), `POST /v1/users` (role cashier/manager + `account_type` standard/demo/guest, bcrypt password)
 - **Register cash sessions**: migration `011_registers` — `register_sessions` (status open/closed, `opening_cash_minor`, `closing_cash_minor`, `expected_cash_minor`, `cash_difference_minor`, opened/closed_at, device, user; partial unique index = one open session per tenant+device; RLS) + `sales.register_session_id` FK/index. Routes: `GET /v1/registers/current` (404 `no_open_session`), `POST /v1/registers/open`, `POST /v1/registers/:id/close` (optional `closing_cash_minor`; expected = opening + cash tender, difference = counted − expected), `GET /v1/registers` (paginated lean list), `GET /v1/registers/:id` (full + live `summary`). `POST /v1/sales` accepts optional `session_id` (must be open, same tenant+device). Module `internal/transport/registers/`.
 - **Multi-tenant SaaS demo**: migration `006_tenant_type` (`tenants.business_type`), migration `007_localization` (tenants `country_code`/`currency_code`/`default_language`, reference `countries`/`currencies` tables — Egypt `EG`/EGP/ar only, demo users `account_type`, role check now allows `saas_admin`); login returns tenant `business_type`/`country_code`/`currency_code`/`default_language` + user `account_type`
+- **Customers + loyalty (C4)**: migration `013_loyalty` adds `customers.loyalty_points`/`loyalty_points_total` + `customer_loyalty_log` ledger (RLS FORCE, rows carry `reason`/`change_seq`); seeds `loyalty.points_per_100 = '1'` per tenant (RLS-safe `DO` loop). Routes `GET /v1/customers` (page/limit + `q` search on name/email/phone), `GET /v1/customers/:id` (customer + last 20 ledger entries), `POST /v1/customers`, `PATCH /v1/customers/:id` — `customers.read` (all tenant roles), `customers.write` (manager/owner). `POST /v1/sales` accepts optional `customer_id` (404 `customer_not_found`), accrues `(total_minor/100) × rate` points atomically with the sale (ledger row + counter update), echoes `customer_id` + `loyalty_points_earned`. Module `internal/transport/customers/`.
 - **Meta + SaaS endpoints**: public `GET /v1/meta/countries`, `GET /v1/meta/currencies`; `GET /v1/saas/summary` and `GET /v1/saas/tenants` behind `saas_admin` role (cross-tenant aggregates loop tenants inside one tx setting `app.current_tenant` per tenant — RLS-safe)
 - **CORS middleware**: wildcard origin, OPTIONS preflight, wired in `cmd/api/main.go`
 - **SecurityHeaders middleware**: HSTS, X-Frame-Options DENY, nosniff, no-store, XSS protection
@@ -78,22 +79,23 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **Granular RBAC (B1)**: static `resource.action` matrix in `internal/transport/http/permissions.go` (`HasPermission`) — `pos.read|open|close|sale|discount`, `inventory.adjust` (manager/owner/saas_admin), `dashboard.read`, `saas.admin`; enforced on registers (read/open/close → 403 `permission_denied` otherwise) and inventory create
 - **Server-enforced discount limits (B1)**: `POST /v1/sales` accepts optional `discount_minor`; total = subtotal − discount and payments must sum to the discounted total; non-zero discounts require `pos.discount`; cashiers capped at `CASHIER_DISCOUNT_PCT` (config, default 5% of subtotal), managers/owners uncapped; pure helpers `validateDiscount` (`internal/transport/sales/discounts.go`)
 
-### Backend — tests (225 passing, `go vet` clean)
+### Backend — tests (225 total, `go vet` clean)
 | Package | Tests | Coverage |
 |---------|-------|----------|
 | `config` | 17 | env parsing, defaults, durations, overrides, `CASHIER_DISCOUNT_PCT` bounds/parse |
 | `errors` | 7 | New/Wrap, error string, Unwrap, codes |
-| `database` | 2 | nil pool, close without connect, tenant-context check (RLS integration SKIPs without `TEST_DATABASE_URL`) |
+| `database` | 2 | nil pool, close without connect (1 skip: RLS integration) |
 | `security` | 11 | issue/parse, expired, wrong issuer, short secret, role, passwords |
 | `auth` handler | 13 | login/refresh/logout happy paths, invalid JSON, missing fields, bad email, unavailable, route registration |
-| `catalog` handler | 49 | CRUD, pagination, search, barcode, validation, PATCH, category PATCH/DELETE, product soft-delete, errors |
+| `catalog` handler | 49 | CRUD, pagination, search, barcode, validation, PATCH, category PATCH/DELETE, product soft-delete, errors (5 skips: integration DB tests) |
+| `customers` handler | 14 | routes, 401s, 403s (cashier write, guest read), 503 without DB, validation 400s (missing/blank name, bad email, long fields, bad uuid), invalid-body-vs-pool ordering |
+| `dashboard` handler | 3 | route registration, auth required, unavailable without DB (summary math covered E2E) |
 | `http` middleware | 21 | CORS, SecurityHeaders, RateLimit, RequestID, Recovery, MaxBodySize, Claims, `HasPermission` RBAC matrix |
-| `registers` handler | 20 | current/open/close/list/detail happy paths + validation (starting cash, counted cash, balance on private balance board, conflict/404s), summary aggregation math, `pos.*` RBAC → 403 |
-| `sales` handler | 25 | list/get/create, auth required, unavailable, pagination, validation, writeSale/writeError, normalizePayments/primaryPaymentMethod (split tender) + `validateDiscount` role caps (discount >0 gated/required, cashier cap, manager uncapped, negative/exceeds/forbidden) |
+| `inventory` handler | 11 | route registration, auth required, unavailable without DB, invalid reason/zero-delta/bad-uuid/long-note 400, `inventory.adjust` 403 for cashier, `validReason` |
+| `registers` handler | 14 | current/open/close/list/detail happy paths + validation (starting cash, counted cash, balance on private balance board, conflict/404s), summary aggregation math, `pos.*` RBAC → 403 |
+| `sales` handler | 29 | list/get/create, auth required, unavailable, pagination, validation, writeSale/writeError, normalizePayments/primaryPaymentMethod (split tender) + `validateDiscount` role caps (discount >0 gated/required, cashier cap, manager uncapped, negative/exceeds/forbidden) + `saleCustomerID`, `loyaltyRateFromValue`, `pointsForTotal` (6 skips: integration DB tests) |
 | `settings` handler | 14 | get/update, defaults, validation, auth required, unavailable |
 | `users` handler | 20 | list/create, auth required, unavailable, pagination, validation (email, password, role, display_name), route registration |
-| `dashboard` handler | 3 | route registration, auth required, unavailable without DB (summary math covered E2E) |
-| `inventory` handler | 11 | route registration, auth required, unavailable without DB, invalid reason/zero-delta/bad-uuid/long-note 400, `inventory.adjust` 403 for cashier, `validReason` |
 
 ### Flutter — features
 - **Arabic-first l10n**: `AppStrings` (`lib/l10n/strings.dart`, no ARB) with `flutter_localizations` delegates; Arabic default, switchable from the login screen and POS settings sheet; language persisted via `SessionStore` (`app_language` key)
@@ -111,15 +113,16 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **POS cash sessions (registers)**: one open session per tenant+device — `_SessionBar` in `pos_screen.dart` (open → starting-cash dialog with default 0, resume on relaunch, finish with optional counted cash, history). Report + history screens in `lib/features/pos/session_screen.dart` (`SessionReportScreen` Z-report with expected vs counted difference, `SessionHistoryScreen`); wire models in `lib/core/registers.dart` (`SessionSummary`, `RegisterSession`, `SessionListItem`, `SessionsPage`); offline `create_sale` queue now carries `session_id`
 - **Login focus chain**: explicit `focusNode` + `textInputAction` (`next`/`done`) + `onFieldSubmitted` on all four login fields — fixes IME "Next" skipping Email under Arabic RTL (reading-order `nextFocus()` misbehavior); widget-tested
 - **Dashboard screen (D1)**: `DashboardScreen` (`lib/features/dashboard/`) reachable via an insights `IconButton` in the POS app bar — today revenue/avg-sale/items/sales stat cards, payment mix, top products, per-cashier breakdown, recent sales, pull-to-refresh; wire models in `lib/core/dashboard.dart`, `ApiClient.dashboardSummary()`
+- **Customers screen (C4)**: `CustomersScreen` (`lib/features/customers/`) reachable via a groups `IconButton` in the POS app bar — list with search, add-customer bottom sheet, loyalty points display. Models in `lib/core/customers.dart`; `ApiClient.listCustomers`/`createCustomer`. Strings: `customers`, `addCustomer`, `loyaltyPoints`.
 
-### Flutter — tests (97 passing, `flutter analyze` 0 issues)
+### Flutter — tests (100 passing, `flutter analyze` 0 issues)
 | File | Tests | Coverage |
 |------|-------|----------|
-| `api_client_test.dart` | 47 | login, logout, products, categories, sales, refresh, createProduct, updateProduct, session, Product.fromJson, _message edge cases, Country/Currency parsing + meta fetch, SaasSummary/SaasTenant parsing, split-payment request, SaleResult/SaleSummary payment method, register session models current/open/close/sessions/session_id-on-createSale, DashboardSummary parse + fetch + error |
+| `api_client_test.dart` | 50 | login, logout, products, categories, sales, refresh, createProduct, updateProduct, session, Product.fromJson, _message edge cases, Country/Currency parsing + meta fetch, SaasSummary/SaasTenant parsing, split-payment request, SaleResult/SaleSummary payment method, register session models current/open/close/sessions/session_id-on-createSale, DashboardSummary parse + fetch + error, Customer parse + listCustomers + createCustomer |
 | `auth_test.dart` | 6 | session parse, SaaS/i18n fields, defaults, copyWith, deviceId, RememberedLogin |
 | `local_database_test.dart` | 8 | open/close, cacheProducts/cachedProducts, pending command enqueue/order/dedupe/markComplete, split-payment payload round-trip |
 | `app_exception_test.dart` | 9 | mapApiError for all HTTP codes, ApiException display |
-| `strings_test.dart` | 7 | supported locales (ar default), Arabic/English labels (incl. remember/stock/offline/payment/session/dashboard), EGP money formatting, fallback, `methodLabel` |
+| `strings_test.dart` | 5 | supported locales (ar default), Arabic/English labels (incl. remember/stock/offline/payment/session/dashboard/customers/loyalty), EGP money formatting, fallback, `methodLabel` |
 | `payments_test.dart` | 17 | PaymentMethod wire mapping, PaymentInput json, PaymentSplit.allocate (auto cash remainder, splits, zero/negative/total guards), minorFromInput decimal parsing |
 | `splash_screen_test.dart` | 3 | Arabic/English branding, entrance/glow animations, XAMLtech footer |
 | `login_focus_test.dart` | 2 | Next/Done focus chain across the four login fields (Arabic RTL default) |
@@ -142,7 +145,7 @@ Phase A ("close the checkout gap") is the active workstream. Short status:
 - **Manager PIN for refunds/discounts**: defer until refunds exist (discount **limits** + granular RBAC already shipped server-side — B1)
 - **Cashier security / RBAC extension**: refunds (new `pos.refund`), per-tenant permission overrides
 - **Multi-device sync**: full offline→online replay + conflict resolution (idempotency already in place)
-- **Loyalty/v1**: points, buy-X-get-Y — needs `customers` table
+- **Loyalty/v2**: buy-X-get-Y, coupons, promotion rules — needs new schema beyond the points rate already shipped (C4)
 - **Restaurant/pharmacy/textile depth**: tables/KDS, expiry/lot, size-color variants (typed tenants)
 - **SaaS control plane** (`Backend/saas/*.md`): tenants/subscriptions/plans/backups/restore — reference spec; out of current scope
 

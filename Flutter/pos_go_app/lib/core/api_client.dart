@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
+import 'customers.dart';
 import 'dashboard.dart';
 import 'payments.dart';
 import 'registers.dart';
@@ -348,6 +349,68 @@ class ApiClient {
     }
     return DashboardSummary.fromJson(
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<CustomersPage> listCustomers(
+    Session session, {
+    String query = '',
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+          '$baseUrl/v1/customers?page=$page&limit=$limit${query.isEmpty ? '' : '&q=${Uri.encodeQueryComponent(query)}'}',
+        ),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    final data = jsonDecode(respond.body);
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return CustomersPage(
+      customers: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => Customer.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: _toIntValue(meta['total']),
+      page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
+      limit: _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+    );
+  }
+
+  Future<Customer> createCustomer(
+    Session session, {
+    required String name,
+    String email = '',
+    String phone = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/customers'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'name': name,
+          if (email.isNotEmpty) 'email': email,
+          if (phone.isNotEmpty) 'phone': phone,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond));
+    }
+    return Customer.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
   }
 
   Future<TenantSettings> settings(Session session) async {
@@ -834,6 +897,20 @@ class SaasTenantsPage {
   final int limit;
 }
 
+class CustomersPage {
+  const CustomersPage({
+    required this.customers,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  final List<Customer> customers;
+  final int total;
+  final int page;
+  final int limit;
+}
+
 class TenantSettings {
   const TenantSettings({
     this.defaultPaymentMethod = PaymentMethod.cash,
@@ -870,4 +947,10 @@ class TenantSettings {
         'pos.show_stock_badges': '$showStockBadges',
         'pos.receipt_footer': receiptFooter,
       };
+}
+
+int _toIntValue(dynamic v) {
+  if (v is int) return v;
+  if (v is String) return int.tryParse(v) ?? 0;
+  return 0;
 }

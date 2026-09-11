@@ -121,6 +121,14 @@ class AppStrings {
   String get topProducts => isArabic ? 'الأكثر مبيعًا' : 'Top products';
   String get perCashier => isArabic ? 'حسب أمين الصندوق' : 'Per cashier';
   String get recentSales => isArabic ? 'أحدث المبيعات' : 'Recent sales';
+  String get customers => isArabic ? 'العملاء' : 'Customers';
+  String get customerName => isArabic ? 'اسم العميل' : 'Customer name';
+  String get customerEmail => isArabic ? 'البريد الإلكتروني' : 'Email';
+  String get customerPhone => isArabic ? 'الهاتف' : 'Phone';
+  String get addCustomer => isArabic ? 'إضافة عميل' : 'Add customer';
+  String get noCustomers => isArabic ? 'لا يوجد عملاء' : 'No customers found';
+  String get searchCustomers => isArabic ? 'ابحث عن عميل...' : 'Search customers...';
+  String get loyaltyPoints => isArabic ? 'نقاط الولاء' : 'Loyalty points';
 
   String methodLabel(String method) {
     switch (method) {

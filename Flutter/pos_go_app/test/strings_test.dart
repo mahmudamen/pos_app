@@ -55,6 +55,9 @@ void main() {
     expect(ar.methodLabel('mobile'), 'محفظة');
     expect(ar.methodLabel('cash'), 'نقدًا');
     expect(ar.methodLabel('unknown'), 'نقدًا');
+    expect(ar.customers, 'العملاء');
+    expect(ar.addCustomer, 'إضافة عميل');
+    expect(ar.loyaltyPoints, 'نقاط الولاء');
   });
 
   test('English strings are provided for core labels', () {
@@ -101,6 +104,9 @@ void main() {
     expect(en.methodLabel('mobile'), 'Mobile wallet');
     expect(en.methodLabel('cash'), 'Cash');
     expect(en.methodLabel('unknown'), 'Cash');
+    expect(en.customers, 'Customers');
+    expect(en.addCustomer, 'Add customer');
+    expect(en.loyaltyPoints, 'Loyalty points');
   });
 
   test('money formatted with EGP symbol', () {

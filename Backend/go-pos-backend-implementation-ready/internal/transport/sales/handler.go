@@ -45,6 +45,7 @@ type createSaleRequest struct {
 	Payments          []paymentRequest  `json:"payments"`
 	RegisterSessionID string            `json:"session_id"`
 	DiscountMinor     int64             `json:"discount_minor"`
+	CustomerID        string            `json:"customer_id"`
 }
 
 type saleItemRequest struct {
@@ -53,15 +54,17 @@ type saleItemRequest struct {
 }
 
 type Sale struct {
-	ID            string `json:"id"`
-	Status        string `json:"status"`
-	SubtotalMinor int64  `json:"subtotal_minor"`
-	DiscountMinor int64  `json:"discount_minor"`
-	TaxMinor      int64  `json:"tax_minor"`
-	TotalMinor    int64  `json:"total_minor"`
-	Currency      string `json:"currency"`
-	PaymentMethod string `json:"payment_method"`
-	CreatedAt     string `json:"created_at"`
+	ID                  string `json:"id"`
+	Status              string `json:"status"`
+	SubtotalMinor       int64  `json:"subtotal_minor"`
+	DiscountMinor       int64  `json:"discount_minor"`
+	TaxMinor            int64  `json:"tax_minor"`
+	TotalMinor          int64  `json:"total_minor"`
+	Currency            string `json:"currency"`
+	PaymentMethod       string `json:"payment_method"`
+	CustomerID          string `json:"customer_id"`
+	LoyaltyPointsEarned int64  `json:"loyalty_points_earned"`
+	CreatedAt           string `json:"created_at"`
 }
 
 type SaleItem struct {
@@ -204,11 +207,13 @@ func (h *Handler) getSale(c *gin.Context) {
 	var detail SaleDetail
 	err = tx.QueryRow(ctx, `
 		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
-		       COALESCE(payment_method, 'cash'), created_at::text,
-		       COALESCE(created_by::text, '')
+		       COALESCE(payment_method, 'cash'), COALESCE(customer_id::text, ''),
+		       COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = sales.id), 0),
+		       created_at::text, COALESCE(created_by::text, '')
 		FROM sales WHERE id = $1`, saleID).Scan(
 		&detail.ID, &detail.Status, &detail.SubtotalMinor, &detail.DiscountMinor, &detail.TaxMinor,
-		&detail.TotalMinor, &detail.Currency, &detail.PaymentMethod, &detail.CreatedAt, &detail.CreatedBy)
+		&detail.TotalMinor, &detail.Currency, &detail.PaymentMethod, &detail.CustomerID,
+		&detail.LoyaltyPointsEarned, &detail.CreatedAt, &detail.CreatedBy)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "sale_not_found", "sale not found")
 		return
@@ -318,6 +323,26 @@ func (h *Handler) createSale(c *gin.Context) {
 		return
 	}
 
+	var requestCustomerID *uuid.UUID
+	if request.CustomerID != "" {
+		parsed, parseErr := uuid.Parse(request.CustomerID)
+		if parseErr != nil {
+			writeError(c, http.StatusBadRequest, "validation_error", "customer_id is invalid")
+			return
+		}
+		var exists bool
+		err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM customers WHERE id = $1 AND tenant_id = $2)`, parsed, tenantID).Scan(&exists)
+		if err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to check customer")
+			return
+		}
+		if !exists {
+			writeError(c, http.StatusNotFound, "customer_not_found", "customer not found")
+			return
+		}
+		requestCustomerID = &parsed
+	}
+
 	var requestSessionID *uuid.UUID
 	if request.RegisterSessionID != "" {
 		parsed, parseErr := uuid.Parse(request.RegisterSessionID)
@@ -347,8 +372,10 @@ func (h *Handler) createSale(c *gin.Context) {
 
 	var existing Sale
 	err = tx.QueryRow(ctx, `SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
-		COALESCE(payment_method, 'cash'), created_at::text FROM sales WHERE idempotency_key = $1`, idempotencyKey).Scan(
-		&existing.ID, &existing.Status, &existing.SubtotalMinor, &existing.DiscountMinor, &existing.TaxMinor, &existing.TotalMinor, &existing.Currency, &existing.PaymentMethod, &existing.CreatedAt)
+		COALESCE(payment_method, 'cash'), COALESCE(customer_id::text, ''),
+		COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = sales.id), 0),
+		created_at::text FROM sales WHERE idempotency_key = $1`, idempotencyKey).Scan(
+		&existing.ID, &existing.Status, &existing.SubtotalMinor, &existing.DiscountMinor, &existing.TaxMinor, &existing.TotalMinor, &existing.Currency, &existing.PaymentMethod, &existing.CustomerID, &existing.LoyaltyPointsEarned, &existing.CreatedAt)
 	if err == nil {
 		if err = tx.Commit(ctx); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sale")
@@ -427,8 +454,8 @@ func (h *Handler) createSale(c *gin.Context) {
 
 	saleID := uuid.New()
 	_, err = tx.Exec(ctx, `
-		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, currency, payment_method, register_session_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, currency, primaryPaymentMethod(payments), requestSessionID)
+		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, currency, payment_method, register_session_id, customer_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, currency, primaryPaymentMethod(payments), requestSessionID, requestCustomerID)
 	if err != nil {
 		writeError(c, http.StatusConflict, "idempotency_conflict", "idempotency key is already in use")
 		return
@@ -456,11 +483,40 @@ func (h *Handler) createSale(c *gin.Context) {
 			return
 		}
 	}
+
+	loyaltyPoints := int64(0)
+	if requestCustomerID != nil {
+		loyaltyPoints, err = loyaltyPointsForSale(ctx, tx, total)
+		if err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to read loyalty settings")
+			return
+		}
+		if loyaltyPoints > 0 {
+			_, err = tx.Exec(ctx, `
+				UPDATE customers
+				SET loyalty_points = loyalty_points + $1,
+				    loyalty_points_total = loyalty_points_total + $1,
+				    updated_at = NOW()
+				WHERE id = $2`, loyaltyPoints, requestCustomerID)
+			if err != nil {
+				writeError(c, http.StatusInternalServerError, "internal_error", "unable to update customer loyalty")
+				return
+			}
+			_, err = tx.Exec(ctx, `
+				INSERT INTO customer_loyalty_log (tenant_id, customer_id, sale_id, points_delta, reason)
+				VALUES ($1, $2, $3, $4, 'sale')`, tenantID, requestCustomerID, saleID, loyaltyPoints)
+			if err != nil {
+				writeError(c, http.StatusInternalServerError, "internal_error", "unable to record loyalty")
+				return
+			}
+		}
+	}
+
 	if err = tx.Commit(ctx); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit sale")
 		return
 	}
-	writeSale(c, Sale{ID: saleID.String(), Status: "completed", SubtotalMinor: subtotal, DiscountMinor: discount, TotalMinor: total, Currency: currency, PaymentMethod: primaryPaymentMethod(payments)})
+	writeSale(c, Sale{ID: saleID.String(), Status: "completed", SubtotalMinor: subtotal, DiscountMinor: discount, TotalMinor: total, Currency: currency, PaymentMethod: primaryPaymentMethod(payments), CustomerID: saleCustomerID(requestCustomerID), LoyaltyPointsEarned: loyaltyPoints})
 }
 
 func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {

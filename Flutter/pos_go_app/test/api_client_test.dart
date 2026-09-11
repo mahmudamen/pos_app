@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:pos_go_app/core/api_client.dart';
+import 'package:pos_go_app/core/customers.dart';
 import 'package:pos_go_app/core/dashboard.dart';
 import 'package:pos_go_app/core/payments.dart';
 import 'package:pos_go_app/core/registers.dart';
@@ -333,6 +334,58 @@ void main() {
     );
 expect(() => client.dashboardSummary(session),
         throwsA(isA<ApiException>()));
+  });
+
+  test('Customer parses the Go customer row with loyalty fields', () {
+    final parsed = Customer.fromJson(const {
+      'id': 'customer-1',
+      'name': 'Ahmed Ali',
+      'email': 'ahmed@example.com',
+      'phone': '+201000000000',
+      'loyalty_points': 4,
+      'loyalty_points_total': 400,
+      'created_at': '2026-09-11 00:11:17',
+    });
+    expect(parsed.id, 'customer-1');
+    expect(parsed.name, 'Ahmed Ali');
+    expect(parsed.email, 'ahmed@example.com');
+    expect(parsed.phone, '+201000000000');
+    expect(parsed.loyaltyPoints, 4);
+    expect(parsed.loyaltyPointsTotal, 400);
+  });
+
+  test('listCustomers fetches /v1/customers with pagination meta', () async {
+    final client = ApiClient(client: _CustomersListClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.listCustomers(session);
+    expect(page.customers, hasLength(1));
+    expect(page.total, 1);
+    expect(page.customers.first.loyaltyPoints, 4);
+  });
+
+  test('createCustomer posts to /v1/customers and returns the row', () async {
+    final client = ApiClient(client: _CreateCustomerClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final customer = await client.createCustomer(
+      session,
+      name: 'Ahmed Ali',
+      email: 'ahmed@example.com',
+      phone: '+201000000000',
+    );
+    expect(customer.id, 'customer-1');
+    expect(customer.loyaltyPoints, 0);
   });
 
   test('RegisterSession parses an open session with its live summary', () {
@@ -1235,6 +1288,45 @@ class _SessionSaleClient extends http.BaseClient {
     expect(payload['session_id'], 'session-1');
     const response =
         '{"data":{"id":"sale-3","subtotal_minor":280,"total_minor":280,"currency":"EGP","payment_method":"cash"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CustomersListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/customers');
+    expect(request.url.queryParameters['page'], '1');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response =
+        '{"data":[{"id":"customer-1","name":"Ahmed Ali","email":"ahmed@example.com","phone":"+201000000000","loyalty_points":4,"loyalty_points_total":400,"created_at":"2026-09-11 00:11:17"}],"meta":{"request_id":"t","page":1,"limit":50,"total":1}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CreateCustomerClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/customers');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = await request.finalize().bytesToString();
+    expect(jsonDecode(body), {
+      'name': 'Ahmed Ali',
+      'email': 'ahmed@example.com',
+      'phone': '+201000000000',
+    });
+    const response =
+        '{"data":{"id":"customer-1","name":"Ahmed Ali","email":"ahmed@example.com","phone":"+201000000000","loyalty_points":0,"loyalty_points_total":0,"created_at":"2026-09-11 00:11:17"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       201,
