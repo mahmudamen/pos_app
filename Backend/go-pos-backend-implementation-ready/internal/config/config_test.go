@@ -42,6 +42,41 @@ func TestLoadReturnsDefaultsWhenNoEnv(t *testing.T) {
 	if cfg.JWTIssuer != "pos-api" {
 		t.Errorf("JWTIssuer: got %q, want %q", cfg.JWTIssuer, "pos-api")
 	}
+	if len(cfg.CORSAllowedOrigins) != 1 || cfg.CORSAllowedOrigins[0] != "*" {
+		t.Errorf("CORSAllowedOrigins: got %v, want [*]", cfg.CORSAllowedOrigins)
+	}
+}
+
+func TestLoadParsesCORSAllowedOrigins(t *testing.T) {
+	clearEnv()
+	os.Setenv("CORS_ALLOWED_ORIGINS", "  https://app.example.com , https://admin.example.com  ")
+	defer os.Unsetenv("CORS_ALLOWED_ORIGINS")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"https://app.example.com", "https://admin.example.com"}
+	if len(cfg.CORSAllowedOrigins) != len(want) {
+		t.Fatalf("CORSAllowedOrigins: got %v, want %v", cfg.CORSAllowedOrigins, want)
+	}
+	for i := range want {
+		if cfg.CORSAllowedOrigins[i] != want[i] {
+			t.Fatalf("CORSAllowedOrigins[%d]: got %q, want %q", i, cfg.CORSAllowedOrigins[i], want[i])
+		}
+	}
+}
+
+func TestLoadKeepsWildcardDefaultWhenCORSBlank(t *testing.T) {
+	clearEnv()
+	os.Setenv("CORS_ALLOWED_ORIGINS", "   ")
+	defer os.Unsetenv("CORS_ALLOWED_ORIGINS")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.CORSAllowedOrigins) != 1 || cfg.CORSAllowedOrigins[0] != "*" {
+		t.Fatalf("CORSAllowedOrigins: got %v, want [*]", cfg.CORSAllowedOrigins)
+	}
 }
 
 func TestLoadRejectsInvalidBcryptCost(t *testing.T) {

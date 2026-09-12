@@ -71,7 +71,7 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **Customers + loyalty (C4)**: migration `013_loyalty` adds `customers.loyalty_points`/`loyalty_points_total` + `customer_loyalty_log` ledger (RLS FORCE, rows carry `reason`/`change_seq`); seeds `loyalty.points_per_100 = '1'` per tenant (RLS-safe `DO` loop). Routes `GET /v1/customers` (page/limit + `q` search on name/email/phone), `GET /v1/customers/:id` (customer + last 20 ledger entries), `POST /v1/customers`, `PATCH /v1/customers/:id` — `customers.read` (all tenant roles), `customers.write` (manager/owner). `POST /v1/sales` accepts optional `customer_id` (404 `customer_not_found`), accrues `(total_minor/100) × rate` points atomically with the sale (ledger row + counter update), echoes `customer_id` + `loyalty_points_earned`. Module `internal/transport/customers/`.
 - **Meta + SaaS endpoints**: public `GET /v1/meta/countries`, `GET /v1/meta/currencies`; `GET /v1/saas/summary` and `GET /v1/saas/tenants` behind `saas_admin` role (cross-tenant aggregates loop tenants inside one tx setting `app.current_tenant` per tenant — RLS-safe)
 - **SaaS admin polish (D2)**: `GET /v1/saas/tenants/:id/analytics` — per-tenant drill-down (plan/resource facts, user+product counts, today's stats, 7-day revenue trend, top products, recent sales) via one tx with per-tenant RLS context, 404 `tenant_not_found`/400 `invalid_tenant_id`. **Plan limits**: migration `016_tenant_plan` adds `tenants.plan` (default `standard`) + `max_users`/`max_products` (0 = unlimited); enforced 409 `plan_limit_exceeded` on `POST /v1/users` and `POST /v1/products` (checked inside the tenant tx so the count is RLS-scoped); tenant list exposes plan fields. Billing/webhook hooks remain backlog.
-- **CORS middleware**: wildcard origin, OPTIONS preflight, wired in `cmd/api/main.go`
+- **CORS middleware**: config-driven allowlist (`CORS_ALLOWED_ORIGINS`, dev default `*`; `docker-compose.prod.yml` requires it), OPTIONS preflight, wired in `internal/transport/server/router.go`
 - **SecurityHeaders middleware**: HSTS, X-Frame-Options DENY, nosniff, no-store, XSS protection
 - **LoginRateLimit middleware**: in-memory, configurable attempts/window per IP, wired to `/auth/login`
 - **JWT**: `TokenManager` with typed access/refresh tokens, `IssueWithRole`, short-secret rejection
@@ -87,11 +87,11 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **Backup/restore runbook (OPS-006)**: `scripts/backup.sh` (pg_dump | gzip, `--no-owner/--no-privileges`, retention `BACKUP_KEEP_DAYS`=14) + `scripts/restore.sh` (gunzip → psql `ON_ERROR_STOP`); runbook in `docs/11_OPERATIONS.md` (cron schedule, mandatory restore verification, app-only vs schema rollback).
 - **Production security checklist (OPS-007)**: `docs/14_SECURITY_CHECKLIST.md` — go/no-go gates for secrets (JWT ≥32B, least-privilege DB role), TLS/Caddy + HSTS, request hardening (CORS allowlist, max body, rate limit, RLS FORCE), operations (verified backups, `/health`, metrics-collector-only `/metrics`), tenant data, deploy hygiene (forward-only migrations, pinned image, non-root `pos-api` user).
 
-### Backend — tests (265 test functions; 243 pass + 22 skip offline, `go vet` clean)
+### Backend — tests (270 test functions; 248 pass + 22 skip offline, `go vet` clean)
 
 | Package | Tests | Coverage |
 |---------|-------|----------|
-| `config` | 20 | env parsing, defaults, durations, overrides, `CASHIER_DISCOUNT_PCT` bounds/parse |
+| `config` | 22 | env parsing, defaults, durations, overrides, `CASHIER_DISCOUNT_PCT` bounds/parse, `CORS_ALLOWED_ORIGINS` parse + wildcard default |
 | `errors` | 7 | New/Wrap, error string, Unwrap, codes |
 | `database` | 2 | nil pool, close without connect, `TestRLSIsolatesTenants` runs against a real Postgres when `DATABASE_URL` set (DB-010: proves cross-tenant reads are filtered/denied). Needs `.env` exported (skips otherwise) |
 | `security` | 11 | issue/parse, expired, wrong issuer, short secret, role, passwords |
@@ -100,7 +100,7 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 | `catalog` handler | 49 | CRUD, pagination, search, barcode, validation, PATCH, category PATCH/DELETE, product soft-delete, errors, 5 integration DB tests (run when `DATABASE_URL` set; soft-delete keeps `is_active=false` viewable — the sync-pull `delete` decode) |
 | `customers` handler | 14 | routes, 401s, 403s (cashier write, guest read), 503 without DB, validation 400s (missing/blank name, bad email, long fields, bad uuid), invalid-body-vs-pool ordering |
 | `dashboard` handler | 3 | route registration, auth required, unavailable without DB (summary math covered E2E) |
-| `http` middleware | 22 | CORS, SecurityHeaders, RateLimit, RequestID, Recovery, MaxBodySize, Claims, `HasPermission` RBAC matrix |
+| `http` middleware | 25 | CORS (preflight, normal, allowlist echo, disallowed origin omitted, no-origin allowlist), SecurityHeaders, RateLimit, RequestID, Recovery, MaxBodySize, Claims, `HasPermission` RBAC matrix |
 | `inventory` handler | 11 | route registration, auth required, unavailable without DB, invalid reason/zero-delta/bad-uuid/long-note 400, `inventory.adjust` 403 for cashier, `validReason` |
 | `metrics` | 3 | exposition serves core family names + route/status_class/method labels, statusClass hundreds-digit bucketing, in-flight gauge returns to zero after a request |
 | `registers` handler | 14 | current/open/close/list/detail happy paths + validation (starting cash, counted cash, balance on private balance board, conflict/404s), summary aggregation math, `pos.*` RBAC → 403 |

@@ -17,7 +17,7 @@ import (
 func TestCORSAllowsPreflightRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(CORS())
+	router.Use(CORS([]string{"*"}))
 	router.POST("/v1/sales", func(c *gin.Context) { c.Status(http.StatusCreated) })
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodOptions, "/v1/sales", nil)
@@ -34,7 +34,7 @@ func TestCORSAllowsPreflightRequest(t *testing.T) {
 func TestCORSAllowsNormalRequest(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	router.Use(CORS())
+	router.Use(CORS([]string{"*"}))
 	router.GET("/v1/products", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"ok": true}) })
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/v1/products", nil)
@@ -45,6 +45,52 @@ func TestCORSAllowsNormalRequest(t *testing.T) {
 	}
 	if recorder.Header().Get("Access-Control-Allow-Origin") != "*" {
 		t.Fatalf("expected wildcard CORS origin header")
+	}
+}
+
+func TestCORSEchoesAllowedOrigin(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(CORS([]string{"https://app.example.com", "https://admin.example.com"}))
+	router.GET("/v1/products", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"ok": true}) })
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/v1/products", nil)
+	req.Header.Set("Origin", "https://app.example.com")
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "https://app.example.com" {
+		t.Fatalf("expected echoed allow-origin, got %q", got)
+	}
+}
+
+func TestCORSOmitsHeaderForDisallowedOrigin(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(CORS([]string{"https://app.example.com"}))
+	router.GET("/v1/products", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"ok": true}) })
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/v1/products", nil)
+	req.Header.Set("Origin", "https://evil.example.com")
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected no CORS header for disallowed origin, got %q", got)
+	}
+}
+
+func TestCORSOmitsHeaderForAllowlistWithoutOrigin(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(CORS([]string{"https://app.example.com"}))
+	router.GET("/v1/products", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"ok": true}) })
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/products", nil))
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("expected no CORS header, got %q", got)
 	}
 }
 

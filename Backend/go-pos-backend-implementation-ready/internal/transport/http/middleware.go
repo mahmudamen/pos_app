@@ -68,9 +68,22 @@ func MaxBodySize(bytes int64) gin.HandlerFunc {
 	}
 }
 
-func CORS() gin.HandlerFunc {
+// CORS returns a permissive-by-default CORS middleware. Pass the origins from
+// CORS_ALLOWED_ORIGINS: the single entry "*" keeps the dev default (reflect the
+// wildcard), otherwise only the listed origins are echoed back.
+func CORS(allowedOrigins []string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		allow := "*"
+		if len(allowedOrigins) > 0 && !contains(allowedOrigins, "*") {
+			origin := c.GetHeader("Origin")
+			if origin == "" || !contains(allowedOrigins, origin) {
+				c.Next()
+				return
+			}
+			allow = origin
+		}
+		c.Header("Access-Control-Allow-Origin", allow)
+		c.Header("Vary", "Origin")
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, Idempotency-Key, X-Request-ID")
 		c.Header("Access-Control-Max-Age", "86400")
@@ -80,6 +93,15 @@ func CORS() gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func contains(values []string, target string) bool {
+	for _, v := range values {
+		if v == target {
+			return true
+		}
+	}
+	return false
 }
 
 func SecurityHeaders() gin.HandlerFunc {

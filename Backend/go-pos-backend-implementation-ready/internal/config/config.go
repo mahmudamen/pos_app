@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,6 +31,7 @@ type Config struct {
 	JWTRefreshTTL       time.Duration
 	BcryptCost          int
 	CashierDiscountPct  int
+	CORSAllowedOrigins  []string
 	LogLevel            string
 	LogFormat           string
 	MaxSessionsPerUser  int
@@ -134,6 +136,7 @@ func Load() (Config, error) {
 	c.CashierDiscountPct = cashierDiscountPct
 	c.MaxSessionsPerUser = maxSessions
 	c.LoginRateMax = loginRateMax
+	c.CORSAllowedOrigins = stringList("CORS_ALLOWED_ORIGINS", []string{"*"})
 	return c, nil
 }
 
@@ -166,6 +169,27 @@ func intValue(key string, fallback int) (int, error) {
 		return 0, fmt.Errorf("parse %s: %w", key, err)
 	}
 	return parsed, nil
+}
+
+// stringList parses a comma-separated env var into a trimmed slice. An empty
+// or unset variable returns the fallback. Entries are kept as written;
+// "*" is the dev-only wildcard.
+func stringList(key string, fallback []string) []string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	parts := strings.Split(value, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			out = append(out, trimmed)
+		}
+	}
+	if len(out) == 0 {
+		return fallback
+	}
+	return out
 }
 
 func int64Value(key string, fallback int64) (int64, error) {

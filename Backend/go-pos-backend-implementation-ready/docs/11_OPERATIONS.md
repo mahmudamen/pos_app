@@ -118,3 +118,35 @@ Production requires:
 - firewall policy;
 - OS patching;
 - log retention policy.
+
+## Secret rotation runbook
+
+Rotating secrets invalidates issued tokens: set the new secret, restart the
+API, and the old access/refresh tokens stop verifying at a blocking
+`security.ErrInvalidToken`. Plan a low-traffic window.
+
+1. Generate replacements offline, >32 bytes, unique per environment:
+   `openssl rand -base64 48`. Do not reuse secrets across environments.
+2. Update the environment's secret store (`.env.prod` / deployment secrets).
+3. Restart the API; verify `/health/live` and `/health/ready` pass.
+4. Rotate **refresh tokens with care**: an active refresh token signed with the
+   old secret can no longer be validated — clients on `JWT_REFRESH_TTL` (7d
+   default) must re-login or handle the 401. Roll a rotation out with a
+   client-visible announcement for managed devices; `remembered` logins on the
+   Flutter app prompt for credentials again.
+5. Back up the old secret value (encrypted, offline) for incident forensics,
+   then destroy the working copy.
+
+### Compromised-token revocation
+
+- A leaked access token dies with its `JWT_ACCESS_TTL` (15m default); raising
+  the rate limit and rotating both secrets is the emergency stop.
+- Revoke a *refresh* token (and its access family) by logging the user out —
+  the session row in `auth_sessions` is deleted server-side and blocked at the
+  `auth.CheckSession` guard, *before* any JWT validation passes.
+- After an account compromise: rotate both JWT secrets, drop the user's
+  sessions (`DELETE FROM auth_sessions WHERE user_id = <id>;`), issue a
+  password reset, and audit the sync `change_seq` feed for that tenant for
+  anomalous writes.
+- Never put passwords, JWT secrets, or refresh tokens in logs (structured
+  JSON logger writes request IDs and error codes only).

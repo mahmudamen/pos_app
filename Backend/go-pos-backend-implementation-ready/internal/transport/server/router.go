@@ -54,7 +54,7 @@ func Register(engine *gin.Engine, d Deps) {
 		engine.Use(d.Metrics.Middleware())
 	}
 	engine.Use(
-		httptransport.CORS(),
+		httptransport.CORS(d.Config.CORSAllowedOrigins),
 		httptransport.SecurityHeaders(),
 		httptransport.RequestID(),
 		httptransport.RequestLogger(logger),
