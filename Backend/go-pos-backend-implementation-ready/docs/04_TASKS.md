@@ -33,10 +33,10 @@
 - [x] AUTH-004 Access JWT validation with issuer/algorithm/type checks.
 - [x] AUTH-005 Refresh-token hashing.
 - [x] AUTH-006 Refresh rotation.
-- [ ] AUTH-007 Refresh replay/reuse detection.
-- [ ] AUTH-008 Session registration.
-- [ ] AUTH-009 Session revocation.
-- [ ] AUTH-010 Maximum-session eviction using explicit ordering.
+- [x] AUTH-007 Refresh replay/reuse detection.
+- [x] AUTH-008 Session registration.
+- [x] AUTH-009 Session revocation.
+- [x] AUTH-010 Maximum-session eviction using explicit ordering.
 - [ ] AUTH-011 Auth API integration tests.
 
 ## CATALOG
@@ -71,8 +71,8 @@
 
 ## OPS
 
-- [ ] OPS-001 Add Prometheus metrics.
-- [ ] OPS-002 Add request latency/error metrics.
+- [x] OPS-001 Add Prometheus metrics.
+- [x] OPS-002 Add request latency/error metrics.
 - [ ] OPS-003 Add production Dockerfile.
 - [ ] OPS-004 Add systemd service.
 - [ ] OPS-005 Add Caddy reverse proxy configuration.
