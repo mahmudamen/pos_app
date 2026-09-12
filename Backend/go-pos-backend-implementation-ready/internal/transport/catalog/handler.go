@@ -283,6 +283,27 @@ func (h *Handler) createProduct(c *gin.Context) {
 		return
 	}
 	defer tx.Rollback(c.Request.Context())
+
+	// D2 plan limits: max_products = 0 means unlimited; the check runs inside
+	// the tenant tx so COUNT(*) is RLS-filtered to this tenant's rows.
+	var maxProducts int
+	if err := tx.QueryRow(c.Request.Context(), `SELECT max_products FROM tenants WHERE id = $1::uuid`, claims.TenantID).Scan(&maxProducts); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load tenant plan")
+		return
+	}
+	if maxProducts > 0 {
+		var existing int
+		if err := tx.QueryRow(c.Request.Context(), `SELECT COUNT(*) FROM products`).Scan(&existing); err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to count products")
+			return
+		}
+		if existing >= maxProducts {
+			_ = tx.Rollback(c.Request.Context())
+			writeError(c, http.StatusConflict, "plan_limit_exceeded", "tenant product limit reached")
+			return
+		}
+	}
+
 	product, err := insertProduct(c, tx, claims.TenantID, request)
 	if err != nil {
 		writeError(c, http.StatusConflict, "product_conflict", "product SKU or barcode is already in use")

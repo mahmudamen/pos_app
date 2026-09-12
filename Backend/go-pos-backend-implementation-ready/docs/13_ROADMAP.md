@@ -37,7 +37,7 @@ Status legend:
 ## Phase D — Analytics & SaaS
 
 - [x] D1 Dashboard/analytics: `GET /v1/dashboard/summary` — today's revenue, top products, recent sales; extended with per-cashier + payment-method breakdown. Flutter `DashboardScreen` wired into the POS app bar.
-- [ ] D2 SaaS admin polish: per-tenant analytics drill-down, plan limits, billing hooks.
+- [x] D2 SaaS admin polish: **per-tenant analytics drill-down** (`GET /v1/saas/tenants/:id/analytics`) + **plan limits** (migration `016_tenant_plan`: tenants `plan`/`max_users`/`max_products`, 0 = unlimited; enforced 409 `plan_limit_exceeded` on `POST /v1/users` and `POST /v1/products`; tenant list exposes plan fields). Billing/webhook hooks remain backlog — external payment provider out of scope.
 
 ## Phase E — Engineering hardening (tech debt)
 

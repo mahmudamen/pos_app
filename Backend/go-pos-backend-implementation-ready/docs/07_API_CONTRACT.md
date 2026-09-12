@@ -126,7 +126,61 @@ Per-command `data.results[]`:
 Dedupe: an identical (device, operation, payload) seen under a fresh
 `command_id` replays the stored outcome instead of applying twice. Batch cap:
 100 commands per request (400 `validation_error` beyond that). All commands in
-a batch commit atomically.
+ a batch commit atomically.
+
+## SaaS platform (operation-aware role)
+
+All `/v1/saas/*` endpoints require an access token whose role is exactly
+`saas_admin` (403 `forbidden` otherwise).
+
+`GET /v1/saas/summary` returns platform-wide totals:
+
+```text
+{ "data": { "tenants": <n>, "users": <n>, "products": <n>, "revenue_minor": <n>,
+            "by_business_type": { "<type>": { "tenants": <n>, "users": <n>, "revenue_minor": <n> } } } }
+```
+
+Tenant lists expose plan fields (`plan`, `max_users`, `max_products`) plus live
+user/product counts:
+
+```text
+GET /v1/saas/tenants?page=1&limit=20
+{ "data": [ { "id", "name", "slug", "business_type", "country_code", "currency_code",
+              "default_language", "plan", "max_users", "max_products",
+              "users": <n>, "products": <n> } ], "meta": { ...paginated... } }
+```
+
+Per-tenant drill-down (D2) runs inside one transaction with the tenant RLS
+context set, so the counts/stats are scoped to that tenant:
+
+```text
+GET /v1/saas/tenants/:id/analytics
+{ "data": {
+    "tenant": { "id", "name", "slug", "business_type", "country_code",
+                "currency_code", "default_language", "plan", "max_users", "max_products" },
+    "counts": { "users": <n>, "products": <n> },
+    "today": { "date", "revenue_minor", "sales_count", "avg_sale_minor", "items_sold" },
+    "revenue_trend": [ { "day", "revenue_minor" } ],                        // last 7 days
+    "top_products": [ { "product_name", "sku", "quantity", "revenue_minor" } ], // top 5 (7d)
+    "recent_sales": [ { "id", "status", "total_minor", "currency", "payment_method", "cashier", "created_at" } ] } }
+```
+
+Errors: 400 `invalid_tenant_id` (malformed id), 404 `tenant_not_found`.
+
+## Tenant plan limits
+
+Migration `016_tenant_plan` gives every tenant `plan` (default `standard`)
+plus `max_users` and `max_products`; a value of `0` (the default) means
+unlimited. `POST /v1/users` and `POST /v1/products` enforce the caps *inside*
+the tenant transaction (RLS-scoped count) and respond 409:
+
+```text
+{ "error": { "code": "plan_limit_exceeded", "message": "tenant user limit reached", ... } }
+```
+
+Billing / plan-change webhook ingestion is not yet implemented (external
+provider is a backlog item); plan columns are currently updated directly by a
+platform admin, e.g. `UPDATE tenants SET max_users = 5, max_products = 500 WHERE slug = 'demo-store';`
 
 ## Idempotency
 

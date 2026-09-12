@@ -176,6 +176,26 @@ func (h *Handler) createUser(c *gin.Context) {
 		return
 	}
 
+	// D2 plan limits: max_users = 0 means unlimited; otherwise refuse to grow
+	// past the cap (checked inside the tx so the RLS tenant context is active).
+	var maxUsers int
+	if err := tx.QueryRow(ctx, `SELECT max_users FROM tenants WHERE id = $1::uuid`, tenantID.String()).Scan(&maxUsers); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load tenant plan")
+		return
+	}
+	if maxUsers > 0 {
+		var existing int
+		if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&existing); err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to count users")
+			return
+		}
+		if existing >= maxUsers {
+			_ = tx.Rollback(ctx)
+			writeError(c, http.StatusConflict, "plan_limit_exceeded", "tenant user limit reached")
+			return
+		}
+	}
+
 	var user User
 	err = tx.QueryRow(ctx, `
 		INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type)

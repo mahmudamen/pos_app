@@ -784,6 +784,31 @@
         }
       }
     },
+    "/v1/saas/tenants/{id}/analytics": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasTenantsIdAnalytics",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/sales": {
       "get": {
         "tags": [
