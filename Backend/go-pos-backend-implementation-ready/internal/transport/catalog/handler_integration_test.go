@@ -210,13 +210,19 @@ func TestCatalogIntegration_ProductSoftDelete(t *testing.T) {
 		t.Fatalf("delete product: expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
 
-	// Get product — should return 404
+	// Get product — soft-deleted rows stay viewable with is_active=false
+	// (the sync pull decodes that as change_type: delete).
 	rec = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/v1/products/"+prodID, nil)
 	req.Header.Set("Authorization", authHeader(token))
 	router.ServeHTTP(rec, req)
-	if rec.Code != http.StatusNotFound {
-		t.Fatalf("get deleted product: expected 404, got %d", rec.Code)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("get soft-deleted product: expected 200, got %d", rec.Code)
+	}
+	body := mustParseJSON(t, rec.Body.Bytes())
+	p := body["data"].(map[string]interface{})
+	if p["is_active"] != false {
+		t.Fatalf("soft-deleted product must carry is_active=false, got %v", p["is_active"])
 	}
 }
 
@@ -276,7 +282,7 @@ func TestCatalogIntegration_PaginationAndSearch(t *testing.T) {
 		t.Fatalf("search: expected 200, got %d", rec.Code)
 	}
 	search := mustParseJSON(t, rec.Body.Bytes())
- searchData := search["data"].([]interface{})
+	searchData := search["data"].([]interface{})
 	if len(searchData) != 1 {
 		t.Errorf("search results: got %d, want 1", len(searchData))
 	}

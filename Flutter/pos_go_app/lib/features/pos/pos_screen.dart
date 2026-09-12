@@ -44,6 +44,7 @@ class _CartLine {
 }
 
 class _PosScreenState extends State<PosScreen> {
+  static const _pendingBatchLimit = 10;
   final _searchController = TextEditingController();
   final List<_CartLine> _cart = [];
   List<Product> _products = [];
@@ -514,26 +515,29 @@ class _PosScreenState extends State<PosScreen> {
     if (queued.isEmpty) return;
     var synced = 0;
     for (final command in queued) {
+      if (synced >= _pendingBatchLimit) break;
       try {
         final payload = jsonDecode(command.payload) as Map<String, dynamic>;
-        final items = (payload['items'] as List)
-            .map((item) => SaleItemInput(
-                  productId: (item as Map)['product_id'] as String,
-                  quantity: item['quantity'] as int,
-                ))
-            .toList();
-        final payments = (payload['payments'] as List?)
-            ?.map((p) => PaymentInput.fromJson(p as Map<String, dynamic>))
-            .toList();
-        await widget.apiClient.createSale(
-          widget.session,
-          items,
-          idempotencyKey: command.idempotencyKey,
-          payments: payments,
-          sessionId: payload['session_id'] as String?,
-        );
-        await db.markComplete(command.id);
-        synced++;
+        final commands = <SyncPushCommand>[
+          SyncPushCommand(
+            commandId: command.id,
+            operation: 'sale.create',
+            payload: {
+              ...payload,
+              'idempotency_key': command.idempotencyKey,
+            },
+          ),
+        ];
+        final page = await widget.apiClient.syncPush(widget.session, commands);
+        final result = page.results.isEmpty ? null : page.results.first;
+        if (result != null && result.applied) {
+          await db.markComplete(command.id);
+          synced++;
+        } else if (result != null && result.rejected) {
+          await db.markComplete(command.id);
+        } else {
+          break;
+        }
       } catch (_) {
         break;
       }

@@ -90,8 +90,32 @@ exists; `data.cursor` is the last seen `change_seq` (the next request's
 `{error:{code:"cursor_expired"}}` and requires a controlled full resync
 (`cursor=0`).
 
-`POST /v1/sync/push` is part of the roadmap backlog (the offline `create_sale`
-replay via client idempotency key is the current write path).
+`POST /v1/sync/push` applies replay-safe commands in one transaction.
+
+```text
+POST /v1/sync/push
+{ "commands": [ { "command_id": "<uuid>", "operation": "sale.create", "payload": { ... } } ] }
+```
+
+- `command_id` — client-supplied UUID that identifies the intent; must be
+  stable across retries.
+- `operation` — currently `sale.create` only.
+- `payload` — operation payload, forwarded verbatim to the handler.
+
+Per-command `data.results[]`:
+- `command_id` — echoed back for correlation
+- `status` — `applied` (freshly executed), `replayed` (same `command_id` +
+  same payload seen before; stored outcome returned, nothing re-applied),
+  `conflict` (same `command_id` reused with a different payload →
+  `command_conflict`, or a business conflict like `insufficient_stock`),
+  or `rejected` (invalid/unrecognized, e.g. `unknown_command`).
+- `replayed` — true when the result came from the stored record
+- `result` / `error_code` / `error_detail` — operation outcome
+
+Dedupe: an identical (device, operation, payload) seen under a fresh
+`command_id` replays the stored outcome instead of applying twice. Batch cap:
+100 commands per request (400 `validation_error` beyond that). All commands in
+a batch commit atomically.
 
 ## Idempotency
 

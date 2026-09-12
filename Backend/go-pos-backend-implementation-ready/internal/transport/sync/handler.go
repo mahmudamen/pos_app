@@ -81,6 +81,7 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/sync/pull", h.pull)
+	router.POST("/sync/push", h.push)
 }
 
 func (h *Handler) pull(c *gin.Context) {

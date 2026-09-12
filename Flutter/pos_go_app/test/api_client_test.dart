@@ -437,6 +437,55 @@ expect(() => client.dashboardSummary(session),
     expect(row.changeType, 'delete');
   });
 
+  test('syncPush POSTs commands and maps applied/replayed/conflict results',
+      () async {
+    final client = ApiClient(client: _SyncPushClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.syncPush(session, const [
+      SyncPushCommand(
+        commandId: 'cmd-1',
+        operation: 'sale.create',
+        payload: {
+          'idempotency_key': 'offline-sale-1',
+          'items': [
+            {'product_id': 'product-1', 'quantity': 1}
+          ],
+          'payments': [
+            {'method': 'cash', 'amount_minor': 350}
+          ],
+        },
+      ),
+    ]);
+    expect(page.results, hasLength(3));
+    expect(page.results[0].applied, isTrue);
+    expect(page.results[0].replayed, isFalse);
+    expect(page.results[0].result['id'], 'sale-42');
+    expect(page.results[1].applied, isTrue);
+    expect(page.results[1].replayed, isTrue);
+    expect(page.results[2].conflicted, isTrue);
+    expect(page.results[2].errorCode, 'insufficient_stock');
+    expect(page.results[2].rejected, isFalse);
+  });
+
+  test('SyncPushResult default states are safe for rejected commands', () {
+    const result = SyncPushResult(
+      commandId: 'cmd-x',
+      status: 'rejected',
+      errorCode: 'unknown_command',
+      errorDetail: 'unknown operation: foo.bar',
+    );
+    expect(result.rejected, isTrue);
+    expect(result.applied, isFalse);
+    expect(result.conflicted, isFalse);
+    expect(result.result, isEmpty);
+  });
+
   test('RegisterSession parses an open session with its live summary', () {
     final session = RegisterSession.fromJson(const {
       'id': 'session-1',
@@ -1394,6 +1443,31 @@ class _SyncPullClient extends http.BaseClient {
     expect(request.headers['Authorization'], 'Bearer access-token');
     const response =
         '{"data":{"items":[{"entity":"categories","id":"category-1","change_seq":28,"change_type":"upsert","data":{"name":"Drinks","is_active":true}},{"entity":"products","id":"product-1","change_seq":130,"change_type":"upsert","data":{"name":"Cappuccino"}}],"cursor":130,"has_more":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SyncPushClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sync/push');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = await request.finalize().bytesToString();
+    final payload = jsonDecode(body) as Map<String, dynamic>;
+    final commands = payload['commands'] as List;
+    expect(commands, hasLength(1));
+    final cmd = commands.first as Map<String, dynamic>;
+    expect(cmd['command_id'], 'cmd-1');
+    expect(cmd['operation'], 'sale.create');
+    final cmdPayload = cmd['payload'] as Map<String, dynamic>;
+    expect(cmdPayload['idempotency_key'], 'offline-sale-1');
+    const response =
+        '{"data":{"results":[{"command_id":"cmd-1","status":"applied","replayed":false,"result":{"id":"sale-42","total_minor":350}},{"command_id":"cmd-2","status":"applied","replayed":true},{"command_id":"cmd-3","status":"conflict","error_code":"insufficient_stock","error_detail":"stock is too low"}]},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,

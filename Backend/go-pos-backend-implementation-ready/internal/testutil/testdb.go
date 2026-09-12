@@ -134,6 +134,11 @@ func SeedTenant(t *testing.T, pool *pgxpool.Pool) Seed {
 		"Test Store", seed.Slug).Scan(&seed.TenantID); err != nil {
 		t.Fatalf("seed tenant: %v", err)
 	}
+	// RLS is FORCE-enabled on users/devices, so all writes by the seeded
+	// tenant must run inside the transaction-local tenant context.
+	if _, err := tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", seed.TenantID); err != nil {
+		t.Fatalf("set seed tenant context: %v", err)
+	}
 	for _, role := range []string{"manager", "cashier"} {
 		target := &seed.ManagerID
 		if role == "cashier" {

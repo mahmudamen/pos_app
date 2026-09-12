@@ -23,7 +23,7 @@
 - [x] DB-007 Add tenant-scoped indexes and constraints.
 - [x] DB-008 Add RLS policies to every tenant-scoped table.
 - [x] DB-009 Add monotonic change sequence.
-- [ ] DB-010 Add integration tests proving cross-tenant access is denied.
+- [x] DB-010 Add integration tests proving cross-tenant access is denied.
 
 ## AUTH
 
@@ -61,13 +61,13 @@
 
 ## SYNC
 
-- [ ] SYNC-001 Implement change sequence.
-- [ ] SYNC-002 Implement pull cursor.
-- [ ] SYNC-003 Implement cursor expiry.
-- [ ] SYNC-004 Implement push command IDs.
-- [ ] SYNC-005 Implement replay-safe command processing.
-- [ ] SYNC-006 Define per-entity conflict policy.
-- [ ] SYNC-007 Add offline replay integration tests.
+- [x] SYNC-001 Implement change sequence.
+- [x] SYNC-002 Implement pull cursor.
+- [x] SYNC-003 Implement cursor expiry.
+- [x] SYNC-004 Implement push command IDs.
+- [x] SYNC-005 Implement replay-safe command processing.
+- [x] SYNC-006 Define per-entity conflict policy.
+- [ ] SYNC-007 Add offline replay integration tests. **Partial**: curl E2E covers apply → replay → conflict → dedupe → reject; the Flutter offline queue pushes through `/v1/sync/push`, but an automated device-level offline→online replay test is not written (needs `flutter drive` or an emulator walkthrough).
 
 ## OPS
 

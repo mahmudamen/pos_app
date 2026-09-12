@@ -1,13 +1,16 @@
 package sync
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func testTokens() security.TokenManager {
@@ -97,5 +100,116 @@ func TestPullDefaultsCursorToZero(t *testing.T) {
 	router.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusServiceUnavailable {
 		t.Fatalf("expected 503 (nil pool reached with default cursor), got %d", recorder.Code)
+	}
+}
+
+func TestPushRouteRegistered(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	found := false
+	for _, r := range router.Routes() {
+		if r.Method == http.MethodPost && r.Path == "/v1/sync/push" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("POST /v1/sync/push not registered")
+	}
+}
+
+func TestPushRequiresAccessToken(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/v1/sync/push", nil))
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", recorder.Code)
+	}
+}
+
+func TestPushRejectsInvalidBody(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	for _, body := range []string{"not-json", `{"commands":[]}`, `{"commands":1200}`} {
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/v1/sync/push", strings.NewReader(body))
+		request.Header.Set("Authorization", "Bearer "+pullToken(t))
+		router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusBadRequest {
+			t.Fatalf("body %q: expected 400, got %d", body, recorder.Code)
+		}
+	}
+}
+
+func TestPushUnavailableWithoutDatabase(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/sync/push", strings.NewReader(`{"commands":[{"command_id":"11111111-1111-1111-1111-111111111111","operation":"sale.create","payload":{}}]}`))
+	request.Header.Set("Authorization", "Bearer "+pullToken(t))
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 (nil pool reached with valid body), got %d", recorder.Code)
+	}
+}
+
+func TestApplyRejectsInvalidCommandID(t *testing.T) {
+	result := applyCommand(context.Background(), nil, &Handler{}, pushCommand{
+		CommandID: "not-a-uuid",
+		Operation: "sale.create",
+		Payload:   map[string]any{},
+	}, uuid.Nil, uuid.Nil, uuid.Nil, "cashier")
+	if result.Status != "rejected" {
+		t.Fatalf("expected rejected, got %q", result.Status)
+	}
+	if result.ErrorCode != "validation_error" {
+		t.Fatalf("expected validation_error, got %q", result.ErrorCode)
+	}
+}
+
+func TestApplyRejectsUnknownOperation(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, pushCommand{
+		CommandID: "11111111-1111-1111-1111-111111111111",
+		Operation: "foo.create",
+		Payload:   map[string]any{},
+	}, uuid.Nil, uuid.Nil, uuid.Nil, "cashier")
+	if result.Status != "rejected" {
+		t.Fatalf("expected rejected, got %q", result.Status)
+	}
+	if result.ErrorCode != "unknown_command" {
+		t.Fatalf("expected unknown_command, got %q", result.ErrorCode)
+	}
+}
+
+func TestHashPayloadIsDeterministic(t *testing.T) {
+	a := hashPayload(map[string]any{"items": []any{}})
+	b := hashPayload(map[string]any{"items": []any{}})
+	if a != b {
+		t.Fatal("hash must be deterministic for identical payloads")
+	}
+	if len(a) != 64 {
+		t.Fatalf("expected sha256 hex (64 chars), got %d", len(a))
+	}
+	c := hashPayload(map[string]any{"items": []any{map[string]any{"quantity": 2}}})
+	if c == a {
+		t.Fatal("different payloads must hash differently")
+	}
+}
+
+func TestPushStatusFor(t *testing.T) {
+	cases := []struct {
+		http int
+		want string
+	}{
+		{http.StatusConflict, "conflict"},
+		{http.StatusNotFound, "rejected"},
+		{http.StatusBadRequest, "rejected"},
+		{http.StatusForbidden, "rejected"},
+	}
+	for _, c := range cases {
+		if got := pushStatusFor(c.http); got != c.want {
+			t.Fatalf("pushStatusFor(%d) = %q, want %q", c.http, got, c.want)
+		}
 	}
 }

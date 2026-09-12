@@ -445,6 +445,40 @@ class ApiClient {
     );
   }
 
+  Future<SyncPushPage> syncPush(
+    Session session,
+    List<SyncPushCommand> commands,
+  ) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/sync/push'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'commands': commands
+              .map((c) => {
+                    'command_id': c.commandId,
+                    'operation': c.operation,
+                    'payload': c.payload,
+                  })
+              .toList(),
+        }),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
+    final results = (data['results'] as List<dynamic>? ?? [])
+        .map((e) => SyncPushResult.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return SyncPushPage(results: results);
+  }
+
   Future<TenantSettings> settings(Session session) async {
     final response = await _authenticatedRequest(
       session,
@@ -977,6 +1011,56 @@ class SyncRow {
   final int changeSeq;
   final String changeType;
   final Map<String, dynamic> data;
+}
+
+class SyncPushCommand {
+  const SyncPushCommand({
+    required this.commandId,
+    required this.operation,
+    required this.payload,
+  });
+
+  final String commandId;
+  final String operation;
+  final Map<String, dynamic> payload;
+}
+
+class SyncPushPage {
+  const SyncPushPage({required this.results});
+
+  final List<SyncPushResult> results;
+}
+
+class SyncPushResult {
+  const SyncPushResult({
+    required this.commandId,
+    required this.status,
+    this.replayed = false,
+    this.errorCode,
+    this.errorDetail,
+    this.result = const {},
+  });
+
+  factory SyncPushResult.fromJson(Map<String, dynamic> json) =>
+      SyncPushResult(
+        commandId: json['command_id'] as String? ?? '',
+        status: json['status'] as String? ?? '',
+        replayed: json['replayed'] as bool? ?? false,
+        errorCode: json['error_code'] as String?,
+        errorDetail: json['error_detail'] as String?,
+        result: (json['result'] as Map<String, dynamic>?) ?? const {},
+      );
+
+  final String commandId;
+  final String status;
+  final bool replayed;
+  final String? errorCode;
+  final String? errorDetail;
+  final Map<String, dynamic> result;
+
+  bool get applied => status == 'applied' || status == 'replayed';
+  bool get conflicted => status == 'conflict';
+  bool get rejected => status == 'rejected';
 }
 
 class TenantSettings {
