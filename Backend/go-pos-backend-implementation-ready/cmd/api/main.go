@@ -11,6 +11,7 @@ import (
 
 	"github.com/example/pos-api/internal/config"
 	"github.com/example/pos-api/internal/infrastructure/database"
+	"github.com/example/pos-api/internal/infrastructure/metrics"
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	redisinfra "github.com/example/pos-api/internal/infrastructure/redis"
 	authtransport "github.com/example/pos-api/internal/transport/auth"
@@ -68,8 +69,10 @@ func main() {
 		logger.Info("login rate limiting uses in-memory limiter", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
 	}
 
+	metricsRegistry := metrics.New()
 	router := gin.New()
 	router.Use(
+		metricsRegistry.Middleware(),
 		httptransport.CORS(),
 		httptransport.SecurityHeaders(),
 		httptransport.RequestID(),
@@ -77,6 +80,8 @@ func main() {
 		httptransport.Recovery(logger),
 		httptransport.MaxBodySize(cfg.HTTPMaxBodyBytes),
 	)
+
+	router.GET("/metrics", metricsRegistry.Handler())
 
 	router.GET("/health/live", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
