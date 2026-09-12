@@ -54,6 +54,25 @@ SELECT * FROM (
 	SELECT 'tenant_settings', key AS id, change_seq, 'upsert',
 	       row_to_json(tenant_settings)::text
 	FROM tenant_settings WHERE change_seq > $1
+	UNION ALL
+	SELECT 'product_variants', id::text, change_seq,
+	       CASE WHEN is_active THEN 'upsert' ELSE 'delete' END,
+	       row_to_json(product_variants)::text
+	FROM product_variants WHERE change_seq > $1
+	UNION ALL
+	SELECT 'product_lots', id::text, change_seq, 'upsert',
+	       row_to_json(product_lots)::text
+	FROM product_lots WHERE change_seq > $1
+	UNION ALL
+	SELECT 'floors', id::text, change_seq,
+	       CASE WHEN is_active THEN 'upsert' ELSE 'delete' END,
+	       row_to_json(floors)::text
+	FROM floors WHERE change_seq > $1
+	UNION ALL
+	SELECT 'restaurant_tables', id::text, change_seq,
+	       CASE WHEN is_active THEN 'upsert' ELSE 'delete' END,
+	       row_to_json(restaurant_tables)::text
+	FROM restaurant_tables WHERE change_seq > $1
 ) changes
 ORDER BY change_seq ASC
 LIMIT $2`
@@ -68,6 +87,10 @@ SELECT MIN(m) FROM (
 	UNION ALL SELECT MIN(change_seq) FROM register_sessions
 	UNION ALL SELECT MIN(change_seq) FROM inventory_adjustments
 	UNION ALL SELECT MIN(change_seq) FROM tenant_settings
+	UNION ALL SELECT MIN(change_seq) FROM product_variants
+	UNION ALL SELECT MIN(change_seq) FROM product_lots
+	UNION ALL SELECT MIN(change_seq) FROM floors
+	UNION ALL SELECT MIN(change_seq) FROM restaurant_tables
 ) seq`
 
 type Handler struct {

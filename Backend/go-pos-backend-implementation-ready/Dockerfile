@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.23-alpine AS build
+FROM golang:1.23-alpine@sha256:383395b794dffa5b53012a212365d40c8e37109a626ca30d6151c8348d380b5f AS build
 WORKDIR /src
 
 COPY go.mod go.sum ./
@@ -10,7 +10,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/pos-api ./cmd/api \
     && GOFLAGS=-mod=mod go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
 
-FROM alpine:3.20
+FROM alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
 RUN apk --no-cache add ca-certificates tzdata \
     && addgroup -S pos-api && adduser -S -G pos-api pos-api
 WORKDIR /app

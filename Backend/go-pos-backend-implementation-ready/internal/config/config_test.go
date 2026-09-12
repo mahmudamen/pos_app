@@ -42,6 +42,9 @@ func TestLoadReturnsDefaultsWhenNoEnv(t *testing.T) {
 	if cfg.JWTIssuer != "pos-api" {
 		t.Errorf("JWTIssuer: got %q, want %q", cfg.JWTIssuer, "pos-api")
 	}
+	if !cfg.MetricsEnabled {
+		t.Errorf("MetricsEnabled: got false, want true (default)")
+	}
 	if len(cfg.CORSAllowedOrigins) != 1 || cfg.CORSAllowedOrigins[0] != "*" {
 		t.Errorf("CORSAllowedOrigins: got %v, want [*]", cfg.CORSAllowedOrigins)
 	}
@@ -63,6 +66,28 @@ func TestLoadParsesCORSAllowedOrigins(t *testing.T) {
 		if cfg.CORSAllowedOrigins[i] != want[i] {
 			t.Fatalf("CORSAllowedOrigins[%d]: got %q, want %q", i, cfg.CORSAllowedOrigins[i], want[i])
 		}
+	}
+}
+
+func TestLoadParsesMetricsEnabledFalse(t *testing.T) {
+	clearEnv()
+	os.Setenv("METRICS_ENABLED", "false")
+	defer os.Unsetenv("METRICS_ENABLED")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.MetricsEnabled {
+		t.Fatalf("MetricsEnabled: got true, want false")
+	}
+}
+
+func TestLoadRejectsInvalidMetricsEnabled(t *testing.T) {
+	clearEnv()
+	os.Setenv("METRICS_ENABLED", "sometimes")
+	defer os.Unsetenv("METRICS_ENABLED")
+	if _, err := Load(); err == nil {
+		t.Fatalf("Load: expected error for METRICS_ENABLED=sometimes")
 	}
 }
 

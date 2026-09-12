@@ -11,3 +11,18 @@
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 	}
 }
+
+# Prometheus /metrics is only for the monitoring collector. SCRAPE_METRICS_ONLY_IP
+# is the collector's (or the scrape host's) source IP; everything else gets 403.
+:9090 {
+	@metrics path /metrics
+	@scrape_allowed remote_ip {$SCRAPE_IP:127.0.0.1}
+
+	handle @metrics {
+		handle @scrape_allowed {
+			reverse_proxy api:8080
+		}
+		respond "forbidden" 403
+	}
+	respond "not found" 404
+}

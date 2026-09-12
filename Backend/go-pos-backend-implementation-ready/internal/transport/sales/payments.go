@@ -7,6 +7,7 @@ var allowedPaymentMethods = map[string]bool{"cash": true, "card": true, "mobile"
 type paymentRequest struct {
 	Method      string `json:"method"`
 	AmountMinor int64  `json:"amount_minor"`
+	TipMinor    int64  `json:"tip_minor,omitempty"`
 }
 
 // normalizePayments turns the client-supplied tender lines into the canonical
@@ -16,24 +17,31 @@ type paymentRequest struct {
 //     clients that predate split payments).
 //   - otherwise each line must use an allowed method with a positive amount
 //     and the lines must exactly sum to the sale total.
-func normalizePayments(payments []paymentRequest, totalMinor int64) ([]paymentRequest, error) {
+//   - tip_minor (>= 0) is a gratuity on top of the exact tender sum; the
+//     aggregate is returned so callers can store sales.tips_minor.
+func normalizePayments(payments []paymentRequest, totalMinor int64) ([]paymentRequest, int64, error) {
+	var tips int64
 	if len(payments) == 0 {
-		return []paymentRequest{{Method: "cash", AmountMinor: totalMinor}}, nil
+		return []paymentRequest{{Method: "cash", AmountMinor: totalMinor}}, 0, nil
 	}
 	var sum int64
 	for _, p := range payments {
 		if !allowedPaymentMethods[p.Method] {
-			return nil, fmt.Errorf("payment method %q is not allowed", p.Method)
+			return nil, 0, fmt.Errorf("payment method %q is not allowed", p.Method)
 		}
 		if p.AmountMinor <= 0 {
-			return nil, fmt.Errorf("payment amount must be positive")
+			return nil, 0, fmt.Errorf("payment amount must be positive")
+		}
+		if p.TipMinor < 0 {
+			return nil, 0, fmt.Errorf("tip amount must not be negative")
 		}
 		sum += p.AmountMinor
+		tips += p.TipMinor
 	}
 	if sum != totalMinor {
-		return nil, fmt.Errorf("payments total %d does not match sale total %d", sum, totalMinor)
+		return nil, 0, fmt.Errorf("payments total %d does not match sale total %d", sum, totalMinor)
 	}
-	return payments, nil
+	return payments, tips, nil
 }
 
 // primaryPaymentMethod is the method of the largest line (stable first on

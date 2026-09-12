@@ -73,6 +73,7 @@ func runGoose(connString string) error {
 		return err
 	}
 	migrations := filepath.Join(root, "internal", "infrastructure", "database", "migrations")
+	// #nosec G204 -- test harness: fixed command, no untrusted input.
 	cmd := exec.Command("go", "run", "github.com/pressly/goose/v3/cmd/goose@v3.21.1",
 		"-dir", migrations, "postgres", connString, "up")
 	if output, err := cmd.CombinedOutput(); err != nil {

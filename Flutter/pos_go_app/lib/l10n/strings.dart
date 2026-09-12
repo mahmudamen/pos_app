@@ -73,6 +73,9 @@ class AppStrings {
   String get stockBadgesHint => isArabic ? 'إظهار الكمية المتاحة على بطاقات المنتجات' : 'Show available quantity on product cards';
   String get receiptFooter => isArabic ? 'تذييل الإيصال' : 'Receipt footer';
   String get receiptFooterHint => isArabic ? 'رسالة تُطبع أسفل الإيصال' : 'Message printed at the bottom of receipts';
+  String get receipt => isArabic ? 'الإيصال' : 'Receipt';
+  String get printReceipt => isArabic ? 'طباعة' : 'Print';
+  String get receiptPrintHint => isArabic ? 'طباعة فعلية تحتاج طابعة حرارية؛ يمكن جلب تنسيق ESC/POS من نقطة الطباعة' : 'Printing needs a thermal printer; ESC/POS bytes are available from the print endpoint';
   String get account => isArabic ? 'الحساب' : 'Account';
   String get save => isArabic ? 'حفظ' : 'Save';
   String get cancel => isArabic ? 'إلغاء' : 'Cancel';

@@ -45,11 +45,13 @@ type createSaleRequest struct {
 	RegisterSessionID string            `json:"session_id"`
 	DiscountMinor     int64             `json:"discount_minor"`
 	CustomerID        string            `json:"customer_id"`
+	TableID           string            `json:"table_id"`
 }
 
 type saleItemRequest struct {
 	ProductID string `json:"product_id" binding:"required"`
 	Quantity  int64  `json:"quantity" binding:"required,gt=0"`
+	VariantID string `json:"variant_id"`
 }
 
 type Sale struct {
@@ -63,6 +65,8 @@ type Sale struct {
 	PaymentMethod       string `json:"payment_method"`
 	CustomerID          string `json:"customer_id"`
 	LoyaltyPointsEarned int64  `json:"loyalty_points_earned"`
+	TipsMinor           int64  `json:"tips_minor"`
+	TableID             string `json:"table_id"`
 	CreatedAt           string `json:"created_at"`
 }
 
@@ -73,11 +77,14 @@ type SaleItem struct {
 	Quantity       int64  `json:"quantity"`
 	UnitPriceMinor int64  `json:"unit_price_minor"`
 	TotalMinor     int64  `json:"total_minor"`
+	VariantName    string `json:"variant_name,omitempty"`
+	LotNumber      string `json:"lot_number,omitempty"`
 }
 
 type Payment struct {
 	Method      string `json:"method"`
 	AmountMinor int64  `json:"amount_minor"`
+	TipMinor    int64  `json:"tip_minor"`
 }
 
 type SaleDetail struct {
@@ -133,7 +140,7 @@ func (h *Handler) listSales(c *gin.Context) {
 
 	rows, err := tx.Query(ctx, `
 		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
-		       COALESCE(payment_method, 'cash'), created_at::text
+		       COALESCE(payment_method, 'cash'), tips_minor, COALESCE(table_id::text, ''), created_at::text
 		FROM sales ORDER BY created_at DESC LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sales")
@@ -144,7 +151,7 @@ func (h *Handler) listSales(c *gin.Context) {
 	sales := make([]Sale, 0)
 	for rows.Next() {
 		var s Sale
-		if err := rows.Scan(&s.ID, &s.Status, &s.SubtotalMinor, &s.DiscountMinor, &s.TaxMinor, &s.TotalMinor, &s.Currency, &s.PaymentMethod, &s.CreatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Status, &s.SubtotalMinor, &s.DiscountMinor, &s.TaxMinor, &s.TotalMinor, &s.Currency, &s.PaymentMethod, &s.TipsMinor, &s.TableID, &s.CreatedAt); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sales")
 			return
 		}
@@ -208,11 +215,13 @@ func (h *Handler) getSale(c *gin.Context) {
 		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
 		       COALESCE(payment_method, 'cash'), COALESCE(customer_id::text, ''),
 		       COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = sales.id), 0),
+		       tips_minor, COALESCE(table_id::text, ''),
 		       created_at::text, COALESCE(created_by::text, '')
 		FROM sales WHERE id = $1`, saleID).Scan(
 		&detail.ID, &detail.Status, &detail.SubtotalMinor, &detail.DiscountMinor, &detail.TaxMinor,
 		&detail.TotalMinor, &detail.Currency, &detail.PaymentMethod, &detail.CustomerID,
-		&detail.LoyaltyPointsEarned, &detail.CreatedAt, &detail.CreatedBy)
+		&detail.LoyaltyPointsEarned, &detail.TipsMinor, &detail.TableID,
+		&detail.CreatedAt, &detail.CreatedBy)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "sale_not_found", "sale not found")
 		return
@@ -223,7 +232,8 @@ func (h *Handler) getSale(c *gin.Context) {
 	}
 
 	itemRows, err := tx.Query(ctx, `
-		SELECT id, product_name, sku, quantity, unit_price_minor, total_minor
+		SELECT id, product_name, sku, quantity, unit_price_minor, total_minor,
+		       COALESCE(variant_name, ''), COALESCE(lot_number, '')
 		FROM sale_items WHERE sale_id = $1 ORDER BY created_at`, saleID)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sale items")
@@ -234,7 +244,7 @@ func (h *Handler) getSale(c *gin.Context) {
 	detail.Items = make([]SaleItem, 0)
 	for itemRows.Next() {
 		var item SaleItem
-		if err := itemRows.Scan(&item.ID, &item.ProductName, &item.SKU, &item.Quantity, &item.UnitPriceMinor, &item.TotalMinor); err != nil {
+		if err := itemRows.Scan(&item.ID, &item.ProductName, &item.SKU, &item.Quantity, &item.UnitPriceMinor, &item.TotalMinor, &item.VariantName, &item.LotNumber); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sale items")
 			return
 		}
@@ -246,7 +256,7 @@ func (h *Handler) getSale(c *gin.Context) {
 	}
 
 	paymentRows, err := tx.Query(ctx, `
-		SELECT method, amount_minor FROM sale_payments WHERE sale_id = $1 ORDER BY amount_minor DESC, created_at`, saleID)
+		SELECT method, amount_minor, tip_minor FROM sale_payments WHERE sale_id = $1 ORDER BY amount_minor DESC, created_at`, saleID)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sale payments")
 		return
@@ -256,7 +266,7 @@ func (h *Handler) getSale(c *gin.Context) {
 	detail.Payments = make([]Payment, 0)
 	for paymentRows.Next() {
 		var p Payment
-		if err := paymentRows.Scan(&p.Method, &p.AmountMinor); err != nil {
+		if err := paymentRows.Scan(&p.Method, &p.AmountMinor, &p.TipMinor); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sale payments")
 			return
 		}

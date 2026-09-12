@@ -19,6 +19,13 @@ func saleCustomerID(id *uuid.UUID) string {
 	return id.String()
 }
 
+func saleTableID(id *uuid.UUID) string {
+	if id == nil {
+		return ""
+	}
+	return id.String()
+}
+
 func loyaltyRateFromValue(value string) int64 {
 	value = strings.TrimSpace(value)
 	if value == "" {

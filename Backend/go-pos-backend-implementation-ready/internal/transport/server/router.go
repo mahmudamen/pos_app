@@ -19,13 +19,17 @@ import (
 	dashboardtransport "github.com/example/pos-api/internal/transport/dashboard"
 	httptransport "github.com/example/pos-api/internal/transport/http"
 	inventorytransport "github.com/example/pos-api/internal/transport/inventory"
+	lotstransport "github.com/example/pos-api/internal/transport/lots"
 	metatransport "github.com/example/pos-api/internal/transport/meta"
+	receiptstransport "github.com/example/pos-api/internal/transport/receipts"
 	registerstransport "github.com/example/pos-api/internal/transport/registers"
+	restauranttransport "github.com/example/pos-api/internal/transport/restaurants"
 	saastransport "github.com/example/pos-api/internal/transport/saas"
 	salestransport "github.com/example/pos-api/internal/transport/sales"
 	settingsTransport "github.com/example/pos-api/internal/transport/settings"
 	synctransport "github.com/example/pos-api/internal/transport/sync"
 	usertransport "github.com/example/pos-api/internal/transport/users"
+	variantstransport "github.com/example/pos-api/internal/transport/variants"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -102,4 +106,8 @@ func Register(engine *gin.Engine, d Deps) {
 	synctransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	metatransport.NewHandler(d.Pool).Register(api)
 	saastransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	restauranttransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	lotstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	variantstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	receiptstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 }

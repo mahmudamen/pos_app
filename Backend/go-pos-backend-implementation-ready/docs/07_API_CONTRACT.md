@@ -67,19 +67,75 @@ PATCH  /v1/products/:id
 GET    /v1/products/barcode/:barcode
 ```
 
+### Variants (C3 — fashion/textile)
+
+```text
+GET    /v1/products/:id/variants          (authenticated)
+POST   /v1/products/:id/variants         (catalog.write)
+PATCH  /v1/variants/:id                  (catalog.write)
+DELETE /v1/variants/:id                  (catalog.write, soft-delete is_active=false)
+```
+
+`variant` fields: `id`, `product_id`, `name`, `sku`, `barcode`, `price_minor`,
+`stock_quantity`, `is_active`. Variant `price_minor`/`stock_quantity` are
+authoritative at POS: KDS/checkout locks the variant row, decrements **variant**
+stock, and does not touch `products.stock_quantity` for variant lines.
+
+### Lots (C2 — pharmacy/expiry)
+
+```text
+GET    /v1/products/:id/lots               (catalog.read; ?include_empty=)
+POST   /v1/products/:id/lots               (catalog.write)
+PATCH  /v1/lots/:id                        (catalog.write)
+```
+
+`lot` fields: `id`, `product_id`, `lot_number`, `expiry_date`, `serial_number`,
+`quantity_remaining`, `is_active`. Products with `track_lots=true` consume
+sales FEFO (`ORDER BY expiry_date ASC NULLS LAST` — un-dated lots are shelf-life
+unlimited and used last), writing one `sale_items` row per lot.
+
 ## Sales
 
 ```text
 POST /v1/sales
+GET  /v1/sales
 GET  /v1/sales/:id
+GET  /v1/sales/:id/receipt        (JSON receipt payload)
+GET  /v1/sales/:id/receipt/print  (application/vnd.escpos byte stream)
 ```
+
+Restaurant (C1) — `POST /v1/sales`:
+- `table_id` — optional; must reference an open (`status != closed`) table,
+  404 `table_not_found` / 409 `table_not_available` otherwise; the table is
+  marked occupied on completion.
+- `split` — optional list of `{ "sale_id": "<source sale id>", "lines": [ { "sale_item_id": "<uuid>", "quantity": n } ] }`
+  for split bills: items are attracted from the source sale, the group's totals
+  sum across member sales, and each member keeps its own payments.
+- `tip_minor` — optional gratuity, `>= 0`, summed into the response as
+  `tips_minor` (visible on item-less totals, payments, and the receipt).
+
+Pharmacy (C2) — sale line gains optional `lot_id`; the server picks lots FEFO
+when omitted and echoes `lot_id`/`lot_number` per `sale_items` row.
+
+Fashion (C3) — sale line gains optional `variant_id`; server locks and decrements
+the variant, echoes `variant_id`/`variant_name`.
+
+Receipt payload (JSON at `/receipt`): `tenant_name`, `tenant_address`,
+`sale_id`, `status`, `created_at`, `cashier`, `device`, `floor_name`,
+`table_name`, `customer_name`, `currency`, `items[]` (`name`, `sku`,
+`quantity`, `unit_price_minor`, `total_minor`, `variant_name`, `lot_number`),
+`subtotal_minor`, `discount_minor`, `tips_minor`, `total_minor`,
+`payments[]` (`method`, `amount_minor`, `tip_minor`), `loyalty_points_earned`.
+The `/print` variant returns the same content as ESC/POS bytes (32-col thermal
+layout, QR, cut) for direct printer handoff.
 
 ## Sync
 
 Pull endpoint streams tenant changes ordered by the monotonic `change_seq`.
-Entities: categories, products, customers, sales, customer_loyalty_log,
-register_sessions, inventory_adjustments, tenant_settings. Users, devices and
-sync_commands are intentionally excluded (sensitive/internal).
+Entities: categories, products, product_variants, product_lots, customers,
+sales, customer_loyalty_log, register_sessions, inventory_adjustments,
+floors, restaurant_tables, tenant_settings. Users, devices and sync_commands
+are intentionally excluded (sensitive/internal).
 
 ```text
 GET /v1/sync/pull?cursor=<int>&limit=<int>

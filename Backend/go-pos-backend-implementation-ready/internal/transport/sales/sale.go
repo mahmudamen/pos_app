@@ -87,6 +87,26 @@ func CreateSale(
 		requestSessionID = &parsed
 	}
 
+	var requestTableID *uuid.UUID
+	if request.TableID != "" {
+		parsed, parseErr := uuid.Parse(request.TableID)
+		if parseErr != nil {
+			return Sale{}, newSaleError(400, "validation_error", "table_id is invalid")
+		}
+		var tableStatus string
+		err := tx.QueryRow(ctx, `SELECT status FROM restaurant_tables WHERE id = $1 AND tenant_id = $2`, parsed, tenantID).Scan(&tableStatus)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Sale{}, newSaleError(404, "table_not_found", "table not found")
+		}
+		if err != nil {
+			return Sale{}, newSaleError(500, "internal_error", "unable to check table")
+		}
+		if tableStatus == "closed" {
+			return Sale{}, newSaleError(409, "table_closed", "table is closed")
+		}
+		requestTableID = &parsed
+	}
+
 	var existing Sale
 	err := tx.QueryRow(ctx, `SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
 		COALESCE(payment_method, 'cash'), COALESCE(customer_id::text, ''),
@@ -100,7 +120,19 @@ func CreateSale(
 		return Sale{}, newSaleError(500, "internal_error", "unable to check idempotency")
 	}
 
-	return createSale(ctx, tx, tenantID, userID, deviceID, role, idempotencyKey, limitPct, request, requestCustomerID, requestSessionID)
+	return createSale(ctx, tx, tenantID, userID, deviceID, role, idempotencyKey, limitPct, request, requestCustomerID, requestSessionID, requestTableID)
+}
+
+type lockedItem struct {
+	productID   uuid.UUID
+	name        string
+	sku         string
+	quantity    int64
+	price       int64
+	hasVariants bool
+	trackLots   bool
+	variantID   *uuid.UUID
+	variantName string
 }
 
 func createSale(
@@ -111,17 +143,10 @@ func createSale(
 	idempotencyKey string,
 	limitPct int,
 	request createSaleRequest,
-	requestCustomerID, requestSessionID *uuid.UUID,
+	requestCustomerID, requestSessionID, requestTableID *uuid.UUID,
 ) (Sale, error) {
 	var subtotal int64
 	currency := ""
-	type lockedItem struct {
-		productID uuid.UUID
-		name      string
-		sku       string
-		quantity  int64
-		price     int64
-	}
 	lockedItems := make([]lockedItem, 0, len(request.Items))
 	for _, item := range request.Items {
 		productID, parseErr := uuid.Parse(item.ProductID)
@@ -131,17 +156,46 @@ func createSale(
 		var product lockedItem
 		var stock int64
 		err := tx.QueryRow(ctx, `
-			SELECT id, name, sku, price_minor, currency, stock_quantity
+			SELECT id, name, sku, price_minor, currency, stock_quantity, has_variants, track_lots
 			FROM products WHERE id = $1 AND is_active FOR UPDATE`, productID).Scan(
-			&product.productID, &product.name, &product.sku, &product.price, &currency, &stock)
+			&product.productID, &product.name, &product.sku, &product.price, &currency, &stock, &product.hasVariants, &product.trackLots)
 		if errors.Is(err, pgx.ErrNoRows) {
 			return Sale{}, newSaleError(404, "product_not_found", "product not found")
 		}
 		if err != nil {
 			return Sale{}, newSaleError(500, "internal_error", "unable to load product")
 		}
-		if stock < item.Quantity {
-			return Sale{}, newSaleError(409, "insufficient_stock", "insufficient stock")
+		if product.hasVariants {
+			// Variant is authoritative for price and stock.
+			if item.VariantID == "" {
+				return Sale{}, newSaleError(400, "validation_error", "variant_id is required for this product")
+			}
+			variantID, parseErr := uuid.Parse(item.VariantID)
+			if parseErr != nil {
+				return Sale{}, newSaleError(400, "validation_error", "variant_id is invalid")
+			}
+			var vStock int64
+			err := tx.QueryRow(ctx, `
+				SELECT name, sku, price_minor, stock_quantity
+				FROM product_variants WHERE id = $1 AND product_id = $2 AND is_active FOR UPDATE`,
+				variantID, productID).Scan(&product.variantName, &product.sku, &product.price, &vStock)
+			if errors.Is(err, pgx.ErrNoRows) {
+				return Sale{}, newSaleError(404, "variant_not_found", "variant not found")
+			}
+			if err != nil {
+				return Sale{}, newSaleError(500, "internal_error", "unable to load variant")
+			}
+			if vStock < item.Quantity {
+				return Sale{}, newSaleError(409, "insufficient_stock", "insufficient variant stock")
+			}
+			product.variantID = &variantID
+		} else {
+			if item.VariantID != "" {
+				return Sale{}, newSaleError(400, "validation_error", "product does not have variants")
+			}
+			if stock < item.Quantity {
+				return Sale{}, newSaleError(409, "insufficient_stock", "insufficient stock")
+			}
 		}
 		product.quantity = item.Quantity
 		subtotal += product.price * item.Quantity
@@ -163,36 +217,88 @@ func createSale(
 		return Sale{}, newSaleError(400, "discount_error", ErrNegativeDiscount.Error())
 	}
 
-	payments, err := normalizePayments(request.Payments, total)
+	payments, tipsMinor, err := normalizePayments(request.Payments, total)
 	if err != nil {
 		return Sale{}, newSaleError(400, "validation_error", err.Error())
 	}
 
 	saleID := uuid.New()
 	_, err = tx.Exec(ctx, `
-		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, currency, payment_method, register_session_id, customer_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, currency, primaryPaymentMethod(payments), requestSessionID, requestCustomerID)
+		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, currency, payment_method, register_session_id, customer_id, table_id, tips_minor)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, currency, primaryPaymentMethod(payments), requestSessionID, requestCustomerID, requestTableID, tipsMinor)
 	if err != nil {
 		return Sale{}, newSaleError(409, "idempotency_conflict", "idempotency key is already in use")
 	}
 	for _, item := range lockedItems {
-		_, err = tx.Exec(ctx, `
-			INSERT INTO sale_items (tenant_id, sale_id, product_id, product_name, sku, quantity, unit_price_minor, total_minor)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, tenantID, saleID, item.productID, item.name, item.sku, item.quantity, item.price, item.price*item.quantity)
-		if err != nil {
-			return Sale{}, newSaleError(500, "internal_error", "unable to save sale items")
-		}
-		_, err = tx.Exec(ctx, `UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2`, item.quantity, item.productID)
-		if err != nil {
-			return Sale{}, newSaleError(500, "internal_error", "unable to update stock")
+		switch {
+		case item.trackLots:
+			// First-expiry-first-out: consume lots oldest-first and record each
+			// consumed lot on its own sale_item line for recall.
+			if _, err = tx.Exec(ctx, `UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2`, item.quantity, item.productID); err != nil {
+				return Sale{}, newSaleError(500, "internal_error", "unable to update stock")
+			}
+			remaining := item.quantity
+			for remaining > 0 {
+				var lotID uuid.UUID
+				var lotNumber string
+				var lotQty int64
+				err := tx.QueryRow(ctx, `
+					SELECT id, lot_number, quantity FROM product_lots
+					WHERE product_id = $1 AND quantity > 0
+					ORDER BY expiry_date NULLS LAST, created_at
+					LIMIT 1 FOR UPDATE`, item.productID).Scan(&lotID, &lotNumber, &lotQty)
+				if errors.Is(err, pgx.ErrNoRows) {
+					return Sale{}, newSaleError(409, "lot_not_found", "product has no lots covering the sale quantity")
+				}
+				if err != nil {
+					return Sale{}, newSaleError(500, "internal_error", "unable to read lot")
+				}
+				consumed := remaining
+				if consumed > lotQty {
+					consumed = lotQty
+				}
+				if _, err = tx.Exec(ctx, `UPDATE product_lots SET quantity = quantity - $1 WHERE id = $2`, consumed, lotID); err != nil {
+					return Sale{}, newSaleError(500, "internal_error", "unable to decrement lot")
+				}
+				if _, err = tx.Exec(ctx, `
+					INSERT INTO sale_items (tenant_id, sale_id, product_id, product_name, sku, quantity, unit_price_minor, total_minor, lot_id, lot_number)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+					tenantID, saleID, item.productID, item.name, item.sku, consumed, item.price, item.price*consumed, lotID, lotNumber); err != nil {
+					return Sale{}, newSaleError(500, "internal_error", "unable to save sale items")
+				}
+				remaining -= consumed
+			}
+		default:
+			if item.variantID != nil {
+				// Variants are authoritative for stock; the parent template
+				// stock_quantity is informational and not decremented.
+				if _, err = tx.Exec(ctx, `UPDATE product_variants SET stock_quantity = stock_quantity - $1 WHERE id = $2`, item.quantity, *item.variantID); err != nil {
+					return Sale{}, newSaleError(500, "internal_error", "unable to update variant stock")
+				}
+			} else {
+				if _, err = tx.Exec(ctx, `UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2`, item.quantity, item.productID); err != nil {
+					return Sale{}, newSaleError(500, "internal_error", "unable to update stock")
+				}
+			}
+			if _, err = tx.Exec(ctx, `
+				INSERT INTO sale_items (tenant_id, sale_id, product_id, product_name, sku, quantity, unit_price_minor, total_minor, variant_id, variant_name)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+				tenantID, saleID, item.productID, item.name, item.sku, item.quantity, item.price, item.price*item.quantity, item.variantID, item.variantName); err != nil {
+				return Sale{}, newSaleError(500, "internal_error", "unable to save sale items")
+			}
 		}
 	}
 	for _, p := range payments {
 		_, err = tx.Exec(ctx, `
-			INSERT INTO sale_payments (tenant_id, sale_id, method, amount_minor)
-			VALUES ($1, $2, $3, $4)`, tenantID, saleID, p.Method, p.AmountMinor)
+			INSERT INTO sale_payments (tenant_id, sale_id, method, amount_minor, tip_minor)
+			VALUES ($1, $2, $3, $4, $5)`, tenantID, saleID, p.Method, p.AmountMinor, p.TipMinor)
 		if err != nil {
 			return Sale{}, newSaleError(500, "internal_error", "unable to save sale payments")
+		}
+	}
+	if requestTableID != nil {
+		if _, err = tx.Exec(ctx, `UPDATE restaurant_tables SET status = 'occupied' WHERE id = $1`, *requestTableID); err != nil {
+			return Sale{}, newSaleError(500, "internal_error", "unable to mark table occupied")
 		}
 	}
 
@@ -232,6 +338,8 @@ func createSale(
 		PaymentMethod:       primaryPaymentMethod(payments),
 		CustomerID:          saleCustomerID(requestCustomerID),
 		LoyaltyPointsEarned: loyaltyPoints,
+		TipsMinor:           tipsMinor,
+		TableID:             saleTableID(requestTableID),
 	}, nil
 }
 

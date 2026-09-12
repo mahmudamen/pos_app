@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -37,6 +38,7 @@ type Config struct {
 	MaxSessionsPerUser  int
 	LoginRateMax        int
 	LoginRateWindow     time.Duration
+	MetricsEnabled      bool
 }
 
 func Load() (Config, error) {
@@ -99,8 +101,14 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	if maxConns < 1 || minConns < 0 || minConns > maxConns {
+	if maxConns < 1 || maxConns > math.MaxInt32 {
+		return Config{}, fmt.Errorf("DB_MAX_CONNS out of range: %d", maxConns)
+	}
+	if minConns < 0 || minConns > maxConns {
 		return Config{}, fmt.Errorf("invalid database pool sizes: min=%d max=%d", minConns, maxConns)
+	}
+	if redisDB < 0 || redisDB > math.MaxInt32 {
+		return Config{}, fmt.Errorf("REDIS_DB out of range: %d", redisDB)
 	}
 	if c.HTTPMaxBodyBytes < 1 {
 		return Config{}, fmt.Errorf("HTTP_MAX_BODY_BYTES must be positive")
@@ -132,12 +140,34 @@ func Load() (Config, error) {
 	if loginRateMax < 1 {
 		return Config{}, fmt.Errorf("LOGIN_RATE_MAX must be at least 1")
 	}
+	// #nosec G115 -- all four values are range-checked above
+	// (maxConns <= math.MaxInt32, minConns <= maxConns, redisDB <= MaxInt32,
+	// bcryptCost in 4..31).
 	c.DBMaxConns, c.DBMinConns, c.RedisDB, c.BcryptCost = int32(maxConns), int32(minConns), redisDB, bcryptCost
 	c.CashierDiscountPct = cashierDiscountPct
 	c.MaxSessionsPerUser = maxSessions
 	c.LoginRateMax = loginRateMax
 	c.CORSAllowedOrigins = stringList("CORS_ALLOWED_ORIGINS", []string{"*"})
+	metricsEnabled, err := boolValue("METRICS_ENABLED", true)
+	if err != nil {
+		return Config{}, err
+	}
+	c.MetricsEnabled = metricsEnabled
 	return c, nil
+}
+
+// boolValue parses a plain bool env var; an empty or unset variable returns
+// the fallback, and a non-boolean value is an error.
+func boolValue(key string, fallback bool) (bool, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return false, fmt.Errorf("parse %s: %w", key, err)
+	}
+	return parsed, nil
 }
 
 func envOr(key, fallback string) string {

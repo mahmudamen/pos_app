@@ -51,7 +51,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "marshal openapi:", err)
 		os.Exit(1)
 	}
-	if err := os.WriteFile(out, data, 0o644); err != nil {
+	if err := os.WriteFile(out, data, 0o600); err != nil { // #nosec G703 -- path comes from the CLI -out flag, not untrusted input
 		fmt.Fprintln(os.Stderr, "write "+out+":", err)
 		os.Exit(1)
 	}

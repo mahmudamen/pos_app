@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'customers.dart';
 import 'dashboard.dart';
 import 'payments.dart';
+import 'receipts.dart';
 import 'registers.dart';
 import 'session_store.dart';
 
@@ -477,6 +478,27 @@ class ApiClient {
         .map((e) => SyncPushResult.fromJson(e as Map<String, dynamic>))
         .toList();
     return SyncPushPage(results: results);
+  }
+
+  /// Fetches the printable receipt payload for a sale as JSON. Clients can
+  /// either render their own preview or hit /v1/sales/:id/receipt/print for
+  /// the ESC/POS byte stream.
+  Future<SaleReceipt> fetchReceipt(Session session, String saleId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/sales/$saleId/receipt'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
+    return SaleReceipt.fromJson(data);
   }
 
   Future<TenantSettings> settings(Session session) async {

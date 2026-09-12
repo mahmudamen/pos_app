@@ -4,6 +4,7 @@ import '../../core/api_client.dart';
 import '../../core/payments.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
+import 'receipt_screen.dart';
 
 class SaleHistoryScreen extends StatefulWidget {
   const SaleHistoryScreen({
@@ -112,6 +113,28 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          IconButton(
+                            tooltip: s.receipt,
+                            icon: const Icon(Icons.receipt_long_outlined),
+                            onPressed: () async {
+                              try {
+                                final receipt = await widget.apiClient
+                                    .fetchReceipt(widget.session, sale.id);
+                                if (!context.mounted) return;
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        ReceiptScreen(receipt: receipt),
+                                  ),
+                                );
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              }
+                            },
+                          ),
                           Chip(
                             label: Text(
                               switch (sale.paymentMethod) {

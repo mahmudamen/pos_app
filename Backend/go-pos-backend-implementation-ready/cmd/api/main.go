@@ -58,11 +58,14 @@ func main() {
 		logger.Info("login rate limiting uses in-memory limiter", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
 	}
 
-	metricsRegistry := metrics.NewScoped()
-	if err := metricsRegistry.Register(prometheus.DefaultRegisterer, prometheus.DefaultGatherer); err != nil {
-		// Already registered (duplicate main run) — keep serving; the vectors
-		// middleware feeds are the same ones /metrics gathers either way.
-		logger.Warn("metrics registry already registered", "err", err)
+	var metricsRegistry *metrics.Registry
+	if cfg.MetricsEnabled {
+		metricsRegistry = metrics.NewScoped()
+		if err := metricsRegistry.Register(prometheus.DefaultRegisterer, prometheus.DefaultGatherer); err != nil {
+			// Already registered (duplicate main run) — keep serving; the vectors
+			// middleware feeds are the same ones /metrics gathers either way.
+			logger.Warn("metrics registry already registered", "err", err)
+		}
 	}
 	router := gin.New()
 	server.Register(router, server.Deps{

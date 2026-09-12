@@ -16,7 +16,7 @@ func testConfig() config.Config {
 	return config.Config{
 		JWTIssuer: "pos-api", JWTAccessSecret: "access-secret-that-is-at-least-32-bytes",
 		JWTRefreshSecret: "refresh-secret-that-is-at-least-32-bytes",
-		JWTAccessTTL: time.Minute, JWTRefreshTTL: time.Hour, BcryptCost: 4,
+		JWTAccessTTL:     time.Minute, JWTRefreshTTL: time.Hour, BcryptCost: 4,
 	}
 }
 

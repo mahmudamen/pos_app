@@ -19,8 +19,10 @@ target host before go-live.
       `.env.prod`.
 - [ ] Database credentials are least-privilege: the app role has `DML` on
       `pos`/public but not superuser; `saas_admin` and maintenance roles are
-      separate. `scripts/bootstrap_local.sql` creates a plain `LOGIN` role; the
-      production role grants must be confirmed on the host.
+      separate. `scripts/bootstrap_local.sql` creates a plain `LOGIN` role;
+      `scripts/grants_prod.sql` has the production least-privilege grants
+      (DML + sequence usage, `REVOKE CREATE`, no superuser). *Deploy step:*
+      run the grants script once after a rollout and confirm on the host.
 - [x] No secrets in client code: the Flutter app logs in with user
       credentials only (no baked-in API keys). Evidence: `pos_go_app` uses
       `flutter_secure_storage` for tokens; the only credentials in the tree
@@ -84,10 +86,11 @@ target host before go-live.
       requires PostgreSQL; Redis failure keeps `/health/live` OK.
       Evidence: both endpoints are registered on the shared router and tested;
       wired monitoring (Prometheus thresholds, pager) is a deploy action.
-- [ ] Prometheus `/metrics` is reachable only by the monitoring collector
-      (put it behind the proxy with an allowlist, not public).
-      Evidence: `/metrics` exists on the shared router; the proxy ACL must be
-      configured to block public access.
+- [x] Prometheus `/metrics` is reachable only by the monitoring collector
+      (it sits behind a proxy allowlist, not public). Evidence: `/metrics`
+      exists on the shared router; `deployments/caddy/Caddyfile` serves it only
+      on the `:9090` listener and 403s any source other than `SCRAPE_IP`; the
+      whole endpoint + middleware can be switched off with `METRICS_ENABLED=false`.
 - [x] Runbooks exist for: restore, rollback of app-only deploys, secret
       rotation, compromised-token revocation (log out user → all sessions
       revoked server-side). Evidence: `11_OPERATIONS.md` — restore + rollback
@@ -95,7 +98,7 @@ target host before go-live.
       sections.
 - [ ] `gosec` clean (`make security`), `go vet` clean, tests green,
       `go test -race` on the DB-backed suites. Evidence so far: `go vet`
-      clean and `go test ./...` green offline (243 pass / 22 skip). *Deploy
+      clean and `go test ./...` green offline (284 pass / 22 skip). *Deploy
       step:* install gosec and run `make security`; run `make integration-test`
       on a host with Docker (none available in this environment).
 
@@ -131,7 +134,8 @@ target host before go-live.
       (`scripts/integration-test.sh`). Evidence: the harness boots an
       ephemeral Postgres + Redis with `--wait` and runs DB-backed suites;
       `make integration-test`.
-- [ ] OS patched; container image pulled from a pinned digest; non-root user
-      in the image (see `Dockerfile`). Evidence so far: `USER pos-api`
-      non-root is set and used. *Deploy step:* pin `alpine:3.20` (and the
-      build image) to a digest and confirm the host is patched.
+- [x] OS patched; container image pulled from a pinned digest; non-root user
+      in the image (see `Dockerfile`). Evidence: both stages pin
+      `golang:1.23-alpine` / `alpine:3.20` by `@sha256:` digest, the runtime
+      runs `USER pos-api`, and the prod compose pins postgres/redis/caddy by
+      digest. *Deploy step:* confirm the host OS itself is patched.

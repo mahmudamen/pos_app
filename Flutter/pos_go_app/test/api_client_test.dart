@@ -7,6 +7,7 @@ import 'package:pos_go_app/core/api_client.dart';
 import 'package:pos_go_app/core/customers.dart';
 import 'package:pos_go_app/core/dashboard.dart';
 import 'package:pos_go_app/core/payments.dart';
+import 'package:pos_go_app/core/receipts.dart';
 import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
@@ -484,6 +485,63 @@ expect(() => client.dashboardSummary(session),
     expect(result.applied, isFalse);
     expect(result.conflicted, isFalse);
     expect(result.result, isEmpty);
+  });
+
+  test('SaleReceipt parses the Go receipt payload', () {
+    final receipt = SaleReceipt.fromJson({
+      'tenant_name': 'Demo Store',
+      'tenant_address': 'Cairo, Egypt',
+      'sale_id': 'sale-42',
+      'status': 'completed',
+      'created_at': '2026-09-12 12:00:00',
+      'cashier': 'Demo Manager',
+      'device': 'register-1',
+      'table_name': 'T1',
+      'floor_name': 'Ground',
+      'currency': 'EGP',
+      'items': [
+        {
+          'name': 'Flat White',
+          'sku': 'FW',
+          'quantity': 2,
+          'unit_price_minor': 1000,
+          'total_minor': 2000,
+        }
+      ],
+      'subtotal_minor': 2500,
+      'discount_minor': 500,
+      'tips_minor': 0,
+      'total_minor': 2000,
+      'payments': [
+        {'method': 'card', 'amount_minor': 2000, 'tip_minor': 100}
+      ],
+      'loyalty_points_earned': 20,
+      'idempotency_key': 'offline-sale-1',
+    });
+    expect(receipt.tenantName, 'Demo Store');
+    expect(receipt.saleId, 'sale-42');
+    expect(receipt.tableName, 'T1');
+    expect(receipt.items, hasLength(1));
+    expect(receipt.items.first.unitPriceMinor, 1000);
+    expect(receipt.totalMinor, 2000);
+    expect(receipt.payments.single.tipMinor, 100);
+    expect(receipt.loyaltyPointsEarned, 20);
+  });
+
+  test('fetchReceipt GETs the JSON receipt endpoint', () async {
+    final client = ApiClient(client: _ReceiptClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final receipt = await client.fetchReceipt(session, 'sale-42');
+    expect(receipt.saleId, 'sale-42');
+    expect(receipt.tenantName, 'Demo Store');
+    expect(receipt.totalMinor, 2000);
+    expect(receipt.items, hasLength(1));
   });
 
   test('RegisterSession parses an open session with its live summary', () {
@@ -1468,6 +1526,28 @@ class _SyncPushClient extends http.BaseClient {
     expect(cmdPayload['idempotency_key'], 'offline-sale-1');
     const response =
         '{"data":{"results":[{"command_id":"cmd-1","status":"applied","replayed":false,"result":{"id":"sale-42","total_minor":350}},{"command_id":"cmd-2","status":"applied","replayed":true},{"command_id":"cmd-3","status":"conflict","error_code":"insufficient_stock","error_detail":"stock is too low"}]},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _ReceiptClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/sales/sale-42/receipt');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response =
+        '{"data":{"tenant_name":"Demo Store","tenant_address":"Cairo, Egypt","sale_id":"sale-42",'
+        '"status":"completed","created_at":"2026-09-12 12:00:00","cashier":"Demo Manager",'
+        '"device":"register-1","currency":"EGP","items":[{"name":"Flat White","sku":"FW",'
+        '"quantity":2,"unit_price_minor":1000,"total_minor":2000}],"subtotal_minor":2500,'
+        '"discount_minor":500,"tips_minor":0,"total_minor":2000,"payments":'
+        '[{"method":"card","amount_minor":2000,"tip_minor":0}],"loyalty_points_earned":20,'
+        '"idempotency_key":"key-1"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,
