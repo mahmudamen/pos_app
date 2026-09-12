@@ -12,15 +12,29 @@ Test:
 
 ## Integration
 
-Use real PostgreSQL and Redis where behavior depends on them.
+Use real PostgreSQL and Redis where behavior depends on them. The DB-backed
+suites (auth, catalog, sales, sync, database) skip unless
+`TEST_DATABASE_URL`/`DATABASE_URL` is configured. To run them against an
+ephemeral Docker Compose stack (real Postgres + Redis, E3):
 
-Required PostgreSQL tests:
+```bash
+./scripts/integration-test.sh               # go test ./... with TEST_DATABASE_URL set
+RACE=1 ./scripts/integration-test.sh        # same, under go test -race
+# or: make integration-test
+```
 
-- RLS cross-tenant isolation;
+Coverage currently includes:
+
+- RLS cross-tenant isolation (`TestRLSIsolatesTenants`);
+- auth login / refresh rotation / replay revocation / logout (AUTH-011);
+- sync push apply → replay → conflict → dedupe (SYNC-007);
+- idempotent + concurrent sale creation (SALE-008);
+- catalog CRUD and soft-delete.
+
+Required PostgreSQL tests also include:
+
 - unique constraints;
 - transaction rollback;
-- idempotency;
-- concurrent sale creation;
 - change sequence ordering.
 
 ## API
