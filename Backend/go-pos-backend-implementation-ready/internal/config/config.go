@@ -32,6 +32,9 @@ type Config struct {
 	CashierDiscountPct  int
 	LogLevel            string
 	LogFormat           string
+	MaxSessionsPerUser  int
+	LoginRateMax        int
+	LoginRateWindow     time.Duration
 }
 
 func Load() (Config, error) {
@@ -72,6 +75,9 @@ func Load() (Config, error) {
 	if c.JWTRefreshTTL, err = duration("JWT_REFRESH_TTL", 7*24*time.Hour); err != nil {
 		return Config{}, err
 	}
+	if c.LoginRateWindow, err = duration("LOGIN_RATE_WINDOW", 5*time.Minute); err != nil {
+		return Config{}, err
+	}
 	bcryptCost, err := intValue("BCRYPT_COST", 12)
 	if err != nil {
 		return Config{}, err
@@ -110,8 +116,24 @@ func Load() (Config, error) {
 	if cashierDiscountPct < 0 || cashierDiscountPct > 100 {
 		return Config{}, fmt.Errorf("CASHIER_DISCOUNT_PCT must be between 0 and 100")
 	}
+	maxSessions, err := intValue("MAX_SESSIONS_PER_USER", 5)
+	if err != nil {
+		return Config{}, err
+	}
+	if maxSessions < 1 {
+		return Config{}, fmt.Errorf("MAX_SESSIONS_PER_USER must be at least 1")
+	}
+	loginRateMax, err := intValue("LOGIN_RATE_MAX", 5)
+	if err != nil {
+		return Config{}, err
+	}
+	if loginRateMax < 1 {
+		return Config{}, fmt.Errorf("LOGIN_RATE_MAX must be at least 1")
+	}
 	c.DBMaxConns, c.DBMinConns, c.RedisDB, c.BcryptCost = int32(maxConns), int32(minConns), redisDB, bcryptCost
 	c.CashierDiscountPct = cashierDiscountPct
+	c.MaxSessionsPerUser = maxSessions
+	c.LoginRateMax = loginRateMax
 	return c, nil
 }
 

@@ -5,9 +5,9 @@ import (
 	"encoding/hex"
 	"log/slog"
 	"net/http"
-	"sync"
 	"time"
 
+	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,19 +29,32 @@ func RequestLogger(logger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
-		logger.Info("http request",
+		args := []any{
 			"request_id", c.GetString(requestIDKey),
 			"method", c.Request.Method,
 			"path", c.Request.URL.Path,
 			"status", c.Writer.Status(),
 			"duration_ms", time.Since(start).Milliseconds(),
-		)
+		}
+		if claims, ok := Claims(c); ok {
+			args = append(args,
+				"tenant_id", claims.TenantID,
+				"user_id", claims.UserID,
+				"device_id", claims.DeviceID,
+				"role", claims.Role,
+			)
+		}
+		logger.Info("http request", args...)
 	}
 }
 
 func Recovery(logger *slog.Logger) gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, recovered any) {
-		logger.Error("panic recovered", "request_id", c.GetString(requestIDKey), "error", recovered)
+		args := []any{"request_id", c.GetString(requestIDKey), "error", recovered}
+		if claims, ok := Claims(c); ok {
+			args = append(args, "tenant_id", claims.TenantID, "user_id", claims.UserID)
+		}
+		logger.Error("panic recovered", args...)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": gin.H{
 			"code": "internal_error", "message": "internal server error", "request_id": c.GetString(requestIDKey),
 		}})
@@ -81,59 +94,25 @@ func SecurityHeaders() gin.HandlerFunc {
 	}
 }
 
-type loginRateLimiter struct {
-	mu       sync.Mutex
-	attempts map[string][]time.Time
-	limit    int
-	window   time.Duration
-}
-
-func newLoginRateLimiter(limit int, window time.Duration) *loginRateLimiter {
-	return &loginRateLimiter{
-		attempts: make(map[string][]time.Time),
-		limit:    limit,
-		window:   window,
-	}
-}
-
-func (rl *loginRateLimiter) isAllowed(key string) bool {
-	rl.mu.Lock()
-	defer rl.mu.Unlock()
-
-	now := time.Now()
-	cutoff := now.Add(-rl.window)
-
-	timestamps := rl.attempts[key]
-	valid := make([]time.Time, 0, len(timestamps))
-	for _, t := range timestamps {
-		if t.After(cutoff) {
-			valid = append(valid, t)
-		}
-	}
-	rl.attempts[key] = valid
-
-	if len(valid) >= rl.limit {
-		return false
-	}
-	rl.attempts[key] = append(rl.attempts[key], now)
-	return true
-}
-
-func LoginRateLimit(limit int, window time.Duration) gin.HandlerFunc {
-	limiter := newLoginRateLimiter(limit, window)
+func LoginRateLimitWith(l ratelimit.Limiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.ClientIP()
-		if !limiter.isAllowed(key) {
+		if !l.Allow(key) {
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
 				"error": gin.H{
-					"code":    "rate_limited",
-					"message": "too many login attempts, please try again later",
+					"code":       "rate_limited",
+					"message":    "too many login attempts, please try again later",
+					"request_id": c.GetString(requestIDKey),
 				},
 			})
 			return
 		}
 		c.Next()
 	}
+}
+
+func LoginRateLimit(limit int, window time.Duration) gin.HandlerFunc {
+	return LoginRateLimitWith(ratelimit.NewMemory(limit, window))
 }
 
 func randomID() string {

@@ -14,9 +14,10 @@ import (
 )
 
 type Handler struct {
-	pool   *pgxpool.Pool
-	tokens security.TokenManager
-	cost   int
+	pool        *pgxpool.Pool
+	tokens      security.TokenManager
+	cost        int
+	maxSessions int
 }
 
 func NewHandler(pool *pgxpool.Pool, cfg config.Config) *Handler {
@@ -26,7 +27,8 @@ func NewHandler(pool *pgxpool.Pool, cfg config.Config) *Handler {
 			Issuer: cfg.JWTIssuer, AccessSecret: []byte(cfg.JWTAccessSecret), RefreshSecret: []byte(cfg.JWTRefreshSecret),
 			AccessTTL: cfg.JWTAccessTTL, RefreshTTL: cfg.JWTRefreshTTL,
 		},
-		cost: cfg.BcryptCost,
+		cost:        cfg.BcryptCost,
+		maxSessions: cfg.MaxSessionsPerUser,
 	}
 }
 
@@ -185,6 +187,22 @@ func (h *Handler) login(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to create session")
 		return
 	}
+	// AUTH-010: cap active sessions per user, evicting the oldest (explicit ordering).
+	if h.maxSessions > 0 {
+		if _, err = tx.Exec(ctx, `
+			UPDATE sessions AS s SET revoked_at = now()
+			FROM (
+				SELECT id FROM sessions
+				WHERE tenant_id = $1 AND user_id = $2 AND revoked_at IS NULL
+				ORDER BY created_at DESC, id DESC
+				OFFSET $3
+			) AS evicted
+			WHERE s.id = evicted.id`,
+			tenantID, userID, h.maxSessions); err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to enforce session limit")
+			return
+		}
+	}
 	if _, err = tx.Exec(ctx, `UPDATE users SET last_login_at = now() WHERE id = $1`, userID); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to update login state")
 		return
@@ -250,10 +268,12 @@ func (h *Handler) refresh(c *gin.Context) {
 		return
 	}
 	if result.RowsAffected() != 1 {
+		// AUTH-007 replay detection: the presented refresh token has already
+		// been rotated, so all sessions for this user+device are compromised.
 		_, revokeErr := tx.Exec(ctx, `
 			UPDATE sessions SET revoked_at = now()
-			WHERE id = $1::uuid AND tenant_id = $2::uuid AND user_id = $3::uuid AND device_id = $4::uuid
-			AND revoked_at IS NULL`, claims.SessionID, claims.TenantID, claims.UserID, claims.DeviceID)
+			WHERE tenant_id = $1::uuid AND user_id = $2::uuid AND device_id = $3::uuid
+			AND revoked_at IS NULL`, claims.TenantID, claims.UserID, claims.DeviceID)
 		if revokeErr != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to revoke reused session")
 			return

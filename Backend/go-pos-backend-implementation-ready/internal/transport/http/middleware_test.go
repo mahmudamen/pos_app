@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	"github.com/gin-gonic/gin"
 )
 
@@ -59,10 +60,10 @@ func TestSecurityHeaders(t *testing.T) {
 	}
 	headers := map[string]string{
 		"X-Content-Type-Options": "nosniff",
-		"X-Frame-Options":       "DENY",
-		"X-XSS-Protection":      "1; mode=block",
-		"Referrer-Policy":       "strict-origin-when-cross-origin",
-		"Cache-Control":         "no-store",
+		"X-Frame-Options":        "DENY",
+		"X-XSS-Protection":       "1; mode=block",
+		"Referrer-Policy":        "strict-origin-when-cross-origin",
+		"Cache-Control":          "no-store",
 	}
 	for key, expected := range headers {
 		if got := recorder.Header().Get(key); got != expected {
@@ -85,6 +86,23 @@ func TestLoginRateLimitAllowsRequests(t *testing.T) {
 		if recorder.Code != http.StatusOK {
 			t.Fatalf("request %d: expected 200, got %d", i, recorder.Code)
 		}
+	}
+}
+
+func TestLoginRateLimitWithCustomLimiter(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(LoginRateLimitWith(ratelimit.NewMemory(1, time.Minute)))
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusOK) })
+	first := httptest.NewRecorder()
+	router.ServeHTTP(first, httptest.NewRequest(http.MethodPost, "/login", nil))
+	second := httptest.NewRecorder()
+	router.ServeHTTP(second, httptest.NewRequest(http.MethodPost, "/login", nil))
+	if first.Code != http.StatusOK {
+		t.Fatalf("expected 200 for first request, got %d", first.Code)
+	}
+	if second.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected 429 for blocked request, got %d", second.Code)
 	}
 }
 

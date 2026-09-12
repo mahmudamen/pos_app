@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestLoadReturnsDefaultsWhenNoEnv(t *testing.T) {
@@ -198,6 +199,9 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 	os.Setenv("CASHIER_DISCOUNT_PCT", "7")
 	os.Setenv("DB_MAX_CONNS", "10")
 	os.Setenv("DB_MIN_CONNS", "1")
+	os.Setenv("MAX_SESSIONS_PER_USER", "2")
+	os.Setenv("LOGIN_RATE_MAX", "9")
+	os.Setenv("LOGIN_RATE_WINDOW", "90s")
 	defer func() {
 		os.Unsetenv("APP_NAME")
 		os.Unsetenv("HTTP_ADDR")
@@ -205,6 +209,9 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 		os.Unsetenv("CASHIER_DISCOUNT_PCT")
 		os.Unsetenv("DB_MAX_CONNS")
 		os.Unsetenv("DB_MIN_CONNS")
+		os.Unsetenv("MAX_SESSIONS_PER_USER")
+		os.Unsetenv("LOGIN_RATE_MAX")
+		os.Unsetenv("LOGIN_RATE_WINDOW")
 	}()
 	cfg, err := Load()
 	if err != nil {
@@ -227,6 +234,45 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 	}
 	if cfg.DBMinConns != 1 {
 		t.Errorf("DBMinConns: got %d, want 1", cfg.DBMinConns)
+	}
+	if cfg.MaxSessionsPerUser != 2 {
+		t.Errorf("MaxSessionsPerUser: got %d, want 2", cfg.MaxSessionsPerUser)
+	}
+	if cfg.LoginRateMax != 9 {
+		t.Errorf("LoginRateMax: got %d, want 9", cfg.LoginRateMax)
+	}
+	if cfg.LoginRateWindow != 90*time.Second {
+		t.Errorf("LoginRateWindow: got %v, want 90s", cfg.LoginRateWindow)
+	}
+}
+
+func TestLoadRejectsZeroMaxSessions(t *testing.T) {
+	clearEnv()
+	os.Setenv("MAX_SESSIONS_PER_USER", "0")
+	defer os.Unsetenv("MAX_SESSIONS_PER_USER")
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for MAX_SESSIONS_PER_USER=0")
+	}
+}
+
+func TestLoadRejectsInvalidMaxSessions(t *testing.T) {
+	clearEnv()
+	os.Setenv("MAX_SESSIONS_PER_USER", "abc")
+	defer os.Unsetenv("MAX_SESSIONS_PER_USER")
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for invalid MAX_SESSIONS_PER_USER")
+	}
+}
+
+func TestLoadRejectsZeroLoginRateMax(t *testing.T) {
+	clearEnv()
+	os.Setenv("LOGIN_RATE_MAX", "0")
+	defer os.Unsetenv("LOGIN_RATE_MAX")
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for LOGIN_RATE_MAX=0")
 	}
 }
 

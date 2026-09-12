@@ -11,6 +11,7 @@ import (
 
 	"github.com/example/pos-api/internal/config"
 	"github.com/example/pos-api/internal/infrastructure/database"
+	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	redisinfra "github.com/example/pos-api/internal/infrastructure/redis"
 	authtransport "github.com/example/pos-api/internal/transport/auth"
 	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
@@ -56,6 +57,17 @@ func main() {
 		}
 	}
 
+	// Login rate limiting: Redis-backed when Redis is up (multi-instance),
+	// falling back to an in-memory limiter otherwise.
+	var loginLimiter ratelimit.Limiter
+	if redisClient != nil {
+		loginLimiter = ratelimit.NewRedis(redisClient, cfg.LoginRateMax, cfg.LoginRateWindow)
+		logger.Info("login rate limiting uses redis", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
+	} else {
+		loginLimiter = ratelimit.NewMemory(cfg.LoginRateMax, cfg.LoginRateWindow)
+		logger.Info("login rate limiting uses in-memory limiter", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
+	}
+
 	router := gin.New()
 	router.Use(
 		httptransport.CORS(),
@@ -82,7 +94,7 @@ func main() {
 	authHandler := authtransport.NewHandler(pool, cfg)
 	// Register auth routes with rate limiting on login
 	authGroup := api.Group("/auth")
-	authGroup.POST("/login", httptransport.LoginRateLimit(5, 5*time.Minute), authHandler.Login())
+	authGroup.POST("/login", httptransport.LoginRateLimitWith(loginLimiter), authHandler.Login())
 	authGroup.POST("/refresh", authHandler.Refresh())
 	authGroup.POST("/logout", authHandler.Logout())
 	catalogtransport.NewHandler(pool, authHandler.Tokens()).Register(api)
