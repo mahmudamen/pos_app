@@ -37,27 +37,27 @@
 - [x] AUTH-008 Session registration.
 - [x] AUTH-009 Session revocation.
 - [x] AUTH-010 Maximum-session eviction using explicit ordering.
-- [ ] AUTH-011 Auth API integration tests.
+- [x] AUTH-011 Auth API integration tests. DB-backed (`handler_integration_test.go`): login happy path, wrong-password 401, refresh rotation + AUTH-007 reuse revocation, logout revocation. Runs against real Postgres via `make integration-test`; skips without `TEST_DATABASE_URL`.
 
 ## CATALOG
 
-- [ ] CAT-001 Category repository.
-- [ ] CAT-002 Category service.
-- [ ] CAT-003 Category HTTP API.
-- [ ] CAT-004 Product repository.
-- [ ] CAT-005 Product service and validation.
-- [ ] CAT-006 Product/barcode API and tests.
+- [x] CAT-001 Category repository. CRUD backed by the shared handler/SQL concurrency (soft-delete via `is_active`); no separate repo layer — matches the codebase convention (see `05_CODING_STANDARDS.md`).
+- [x] CAT-002 Category service. Validation + business rules live in the categories/products handlers; `is_active` soft-delete and slug/parent handling covered by handler tests.
+- [x] CAT-003 Category HTTP API. `GET/POST/PATCH/DELETE /v1/categories/:id` with 401/404/400 handling.
+- [x] CAT-004 Product repository. Product SQL access in the catalog handler: create, update (PATCH), soft-delete, pagination, `stock_quantity`.
+- [x] CAT-005 Product service and validation. Name/sku/price/currency validation, duplicate-SKU and stock handling, unit-tested.
+- [x] CAT-006 Product/barcode API and tests. `GET /v1/products/barcode/:barcode`, pagination/search, 5 DB-backed integration tests (create/read/soft-delete).
 
 ## SALES
 
-- [ ] SALE-001 Define sale domain model.
-- [ ] SALE-002 Define money/tax/discount calculation rules.
-- [ ] SALE-003 Implement tenant-scoped idempotency keys.
-- [ ] SALE-004 Implement atomic sale transaction.
-- [ ] SALE-005 Implement stock policy.
-- [ ] SALE-006 Implement sale repository.
-- [ ] SALE-007 Implement sale HTTP API.
-- [ ] SALE-008 Add concurrency and duplicate-request tests.
+- [x] SALE-001 Define sale domain model. `Sale`/`SaleItem`/`Payment`/`CreateSaleRequest` in `internal/transport/sales/`.
+- [x] SALE-002 Define money/tax/discount calculation rules. Integer minor units; subtotal/ discount/tax/total + `validateDiscount` (cashier pct cap) in `discounts.go`.
+- [x] SALE-003 Implement tenant-scoped idempotency keys. `UNIQUE(tenant_id, idempotency_key)`; replay returns the stored sale; race → 409 `idempotency_conflict`.
+- [x] SALE-004 Implement atomic sale transaction. Sale + items + payments + stock + loyalty in one tx with row locks (`FOR UPDATE`).
+- [x] SALE-005 Implement stock policy. `FOR UPDATE` lock, `insufficient_stock` 409, non-negative invariant.
+- [x] SALE-006 Implement sale repository. SQL access in `sale.go` (shared with sync push via `CreateSale`).
+- [x] SALE-007 Implement sale HTTP API. `GET /v1/sales`, `GET /v1/sales/:id`, `POST /v1/sales` (split tender, session_id, customer_id, discount).
+- [x] SALE-008 Add concurrency and duplicate-request tests. Unit suites + DB-backed `handler_integration_test.go`: idempotent duplicate returns same sale (stock unchanged) and 5-way concurrent same-key requests yield exactly 1 sale row.
 
 ## SYNC
 
@@ -67,17 +67,17 @@
 - [x] SYNC-004 Implement push command IDs.
 - [x] SYNC-005 Implement replay-safe command processing.
 - [x] SYNC-006 Define per-entity conflict policy.
-- [ ] SYNC-007 Add offline replay integration tests. **Partial**: curl E2E covers apply → replay → conflict → dedupe → reject; the Flutter offline queue pushes through `/v1/sync/push`, but an automated device-level offline→online replay test is not written (needs `flutter drive` or an emulator walkthrough).
+- [ ] SYNC-007 Add offline replay integration tests. **Partial**: curl E2E covers apply → replay → conflict → dedupe → reject; server-side is now also DB-backed (`internal/transport/sync/handler_integration_test.go` — push apply/replay/conflict/dedupe repro against real Postgres). Remaining: an automated device-level offline→online replay test (needs `flutter drive` or an emulator walkthrough).
 
 ## OPS
 
 - [x] OPS-001 Add Prometheus metrics.
 - [x] OPS-002 Add request latency/error metrics.
-- [ ] OPS-003 Add production Dockerfile.
-- [ ] OPS-004 Add systemd service.
-- [ ] OPS-005 Add Caddy reverse proxy configuration.
-- [ ] OPS-006 Add backup/restore runbook.
-- [ ] OPS-007 Add production security checklist.
+- [x] OPS-003 Add production Dockerfile. Multistage `golang:1.23-alpine` build → `alpine:3.20` runtime, non-root `pos-api` user, goose + migrations, `/health/live` HEALTHCHECK.
+- [x] OPS-004 Add systemd service. `deployments/systemd/pos-api.service` (hardened unit: NoNewPrivileges, ProtectSystem).
+- [x] OPS-005 Add Caddy reverse proxy configuration. `deployments/caddy/Caddyfile` — TLS, HSTS, security headers; wired into `docker-compose.prod.yml`.
+- [x] OPS-006 Add backup/restore runbook. `scripts/backup.sh` / `scripts/restore.sh` + runbook section in `11_OPERATIONS.md` (schedule, restore verification, rollback).
+- [x] OPS-007 Add production security checklist. `14_SECURITY_CHECKLIST.md` (secrets, transport, hardening, ops, tenant data, deployment).
 
 ## Definition of Done
 

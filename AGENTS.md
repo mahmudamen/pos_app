@@ -79,25 +79,33 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **Granular RBAC (B1)**: static `resource.action` matrix in `internal/transport/http/permissions.go` (`HasPermission`) — `pos.read|open|close|sale|discount`, `inventory.adjust` (manager/owner/saas_admin), `dashboard.read`, `saas.admin`; enforced on registers (read/open/close → 403 `permission_denied` otherwise) and inventory create
 - **Server-enforced discount limits (B1)**: `POST /v1/sales` accepts optional `discount_minor`; total = subtotal − discount and payments must sum to the discounted total; non-zero discounts require `pos.discount`; cashiers capped at `CASHIER_DISCOUNT_PCT` (config, default 5% of subtotal), managers/owners uncapped; pure helpers `validateDiscount` (`internal/transport/sales/discounts.go`)
 - **Prometheus HTTP metrics (OPS-001/002)**: `internal/infrastructure/metrics/` — `Registry` owns `pos_api_http_requests_total` (CounterVec by method/route/status_class), `pos_api_http_request_duration_seconds` (HistogramVec by method/route), `pos_api_http_requests_inflight` (Gauge). `NewScoped()` returns fresh unregistered vectors; `Register(reg, gather)` wires them onto a caller-chosen registerer+gatherer (main: DefaultRegisterer; tests: private `prometheus.NewRegistry()`). `Middleware()` records count/latency/inflight; `Handler()` serves `promhttp` exposition from the captured gatherer. `statusClass` buckets codes into hundreds-digit labels (`2xx`/`4xx`/`5xx`) for stable cardinality. Registered in `cmd/api/main.go` alongside the `/metrics` route.
+- **Shared route table (E5)**: `internal/transport/server/router.go` (`server.Register(engine, Deps{...})`) is the single place all middleware, `/health/*`, `/metrics`, and `/v1/*` routes are wired. `cmd/api/main.go` and the OpenAPI generator both use it, so the spec cannot drift from the served routes.
+- **OpenAPI generation (E5)**: `cmd/openapi` builds the engine via `server.Register` with a nil pool + bare config (runs offline, no DB), walks the live Gin route table, and emits `docs/openapi.json` (29 paths; `{id}` params; bearerAuth security except `/v1/auth/login` + `/v1/meta/*` + `/health/*`; shared data/error `Envelope`). `make openapi` regenerates it.
+- **Integration test env (E3)**: `deployments/docker/docker-compose.integration.yml` (ephemeral Postgres on 127.0.0.1:15432 + Redis on :16379) + `scripts/integration-test.sh` (boots with `--wait`, exports `TEST_DATABASE_URL`, runs `go test ./...` or `RACE=1 go test -race`, tears down) + `make integration-test`. DB-backed suites (database, catalog, auth, sales, sync) skip without `TEST_DATABASE_URL`/`DATABASE_URL`, so `make test` stays green offline.
+- **DB-backed integration suites (AUTH-011/SYNC-007/SALE-008)**: `internal/testutil.Seed` now also exposes `ManagerEmail`/`CashierEmail` (emails are generated deterministically). New suites: `auth/handler_integration_test.go` (login 200 + user/tenant echo, wrong-password 401, refresh rotation + AUTH-007 reuse-revocation of the whole family, logout→session revoked), `sync/handler_integration_test.go` (push apply → stock -2 → replay (same command_id+payload, stock unchanged) → `command_conflict` on changed payload → dedupe on new command_id → `unknown_command` reject), `sales/handler_integration_test.go` (idempotent duplicate returns the same sale id with stock unchanged + 5-way concurrent same-key POST → exactly 1 sale row, 201 or 409 `idempotency_conflict`, stock decremented once).
+- **Backup/restore runbook (OPS-006)**: `scripts/backup.sh` (pg_dump | gzip, `--no-owner/--no-privileges`, retention `BACKUP_KEEP_DAYS`=14) + `scripts/restore.sh` (gunzip → psql `ON_ERROR_STOP`); runbook in `docs/11_OPERATIONS.md` (cron schedule, mandatory restore verification, app-only vs schema rollback).
+- **Production security checklist (OPS-007)**: `docs/14_SECURITY_CHECKLIST.md` — go/no-go gates for secrets (JWT ≥32B, least-privilege DB role), TLS/Caddy + HSTS, request hardening (CORS allowlist, max body, rate limit, RLS FORCE), operations (verified backups, `/health`, metrics-collector-only `/metrics`), tenant data, deploy hygiene (forward-only migrations, pinned image, non-root `pos-api` user).
 
-### Backend — tests (241 total, `go vet` clean)
+### Backend — tests (258 test functions; 239 pass + 19 skip offline, `go vet` clean)
+
 | Package | Tests | Coverage |
 |---------|-------|----------|
-| `config` | 17 | env parsing, defaults, durations, overrides, `CASHIER_DISCOUNT_PCT` bounds/parse |
+| `config` | 20 | env parsing, defaults, durations, overrides, `CASHIER_DISCOUNT_PCT` bounds/parse |
 | `errors` | 7 | New/Wrap, error string, Unwrap, codes |
 | `database` | 2 | nil pool, close without connect, `TestRLSIsolatesTenants` runs against a real Postgres when `DATABASE_URL` set (DB-010: proves cross-tenant reads are filtered/denied). Needs `.env` exported (skips otherwise) |
 | `security` | 11 | issue/parse, expired, wrong issuer, short secret, role, passwords |
-| `auth` handler | 13 | login/refresh/logout happy paths, invalid JSON, missing fields, bad email, unavailable, route registration |
+| `ratelimit` | 6 | memory + Redis limiter, window/attempts semantics |
+| `auth` handler | 17 | 13 unit (login/refresh/logout happy paths, invalid JSON, missing fields, bad email, unavailable, route registration) + 4 DB-backed integration (AUTH-011: login happy path/wrong-password 401, refresh rotation + reuse revocation, logout session revocation) |
 | `catalog` handler | 49 | CRUD, pagination, search, barcode, validation, PATCH, category PATCH/DELETE, product soft-delete, errors, 5 integration DB tests (run when `DATABASE_URL` set; soft-delete keeps `is_active=false` viewable — the sync-pull `delete` decode) |
 | `customers` handler | 14 | routes, 401s, 403s (cashier write, guest read), 503 without DB, validation 400s (missing/blank name, bad email, long fields, bad uuid), invalid-body-vs-pool ordering |
 | `dashboard` handler | 3 | route registration, auth required, unavailable without DB (summary math covered E2E) |
-| `http` middleware | 21 | CORS, SecurityHeaders, RateLimit, RequestID, Recovery, MaxBodySize, Claims, `HasPermission` RBAC matrix |
+| `http` middleware | 22 | CORS, SecurityHeaders, RateLimit, RequestID, Recovery, MaxBodySize, Claims, `HasPermission` RBAC matrix |
 | `inventory` handler | 11 | route registration, auth required, unavailable without DB, invalid reason/zero-delta/bad-uuid/long-note 400, `inventory.adjust` 403 for cashier, `validReason` |
 | `metrics` | 3 | exposition serves core family names + route/status_class/method labels, statusClass hundreds-digit bucketing, in-flight gauge returns to zero after a request |
 | `registers` handler | 14 | current/open/close/list/detail happy paths + validation (starting cash, counted cash, balance on private balance board, conflict/404s), summary aggregation math, `pos.*` RBAC → 403 |
-| `sales` handler | 29 | list/get/create, auth required, unavailable, pagination, validation, writeSale/writeError, normalizePayments/primaryPaymentMethod (split tender) + `validateDiscount` role caps (discount >0 gated/required, cashier cap, manager uncapped, negative/exceeds/forbidden) + `saleCustomerID`, `loyaltyRateFromValue`, `pointsForTotal` (6 skips: validation-order — 503-before-400 asserts that skip when the pool is nil) |
+| `sales` handler | 31 | 29 unit (list/get/create, auth required, unavailable, pagination, validation, writeSale/writeError, normalizePayments/primaryPaymentMethod (split tender) + `validateDiscount` role caps + `saleCustomerID`, `loyaltyRateFromValue`, `pointsForTotal`; 6 skips: validation-order — 503-before-400 asserts that skip when the pool is nil) + 2 DB-backed integration (SALE-008: idempotent duplicate + 5-way concurrent → exactly 1 sale row, stock once) |
 | `settings` handler | 14 | get/update, defaults, validation, auth required, unavailable |
-| `sync` handler | 13 | pull: route registration, auth, unavailable, cursor validation (invalid/negative → 400, default 0 reaches pool check); push: route registration, auth, invalid body 400, unavailable, invalid command_id rejected, unknown operation, payload-hash determinism, status mapping |
+| `sync` handler | 14 | 13 unit (pull: route registration, auth, unavailable, cursor validation, default 0 reaches pool check; push: route registration, auth, invalid body 400, unavailable, invalid command_id rejected, unknown operation, payload-hash determinism, status mapping) + 1 DB-backed integration (SYNC-007: push apply → replay → conflict → dedupe against real Postgres) |
 | `users` handler | 20 | list/create, auth required, unavailable, pagination, validation (email, password, role, display_name), route registration |
 
 ### Flutter — features
@@ -157,6 +165,6 @@ Phase A ("close the checkout gap") is the active workstream. Short status:
 - **Structured logging**: tenant-scoped JSON logs (E2 — shipped, see decision log)
 - **Password hashing**: bcrypt vs SaaS-kit's Argon2id — deviation recorded in roadmap decision log; Argon2id swap affects stored hashes (hardening backlog)
 - **Rate limiting**: in-memory → Redis-backed for multi-instance (E1 — shipped, see decision log)
-- **Integration tests**: Docker Compose env with real Postgres + Redis
-- **Flutter integration tests**: `flutter drive` for login → sale → history
-- **OpenAPI spec**: auto-generate from Gin routes, publish for frontend codegen
+- **Integration tests**: Docker Compose env with real Postgres + Redis (E3 — shipped: `make integration-test`, DB-backed auth/sync/sales suites)
+- **Flutter integration tests**: `flutter drive` for login → sale → history (E4 — blocked: no unlocked device/emulator in this environment)
+- **OpenAPI spec**: auto-generate from Gin routes, publish for frontend codegen (E5 — shipped: `make openapi` → `docs/openapi.json`; schemas for write bodies are hand-augmented as the contract grows)

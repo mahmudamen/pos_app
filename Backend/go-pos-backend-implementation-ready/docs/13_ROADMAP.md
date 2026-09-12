@@ -43,9 +43,9 @@ Status legend:
 
 - [x] E1 Rate limiting: move in-memory → Redis-backed (multi-instance). Already in AGENTS.
 - [x] E2 Structured logging: tenant-scoped JSON logs.
-- [ ] E3 Integration tests: Docker Compose env w/ real Postgres + Redis.
-- [ ] E4 Flutter `flutter drive` / integration tests: login → sale → history.
-- [ ] E5 OpenAPI spec generation from Gin routes for frontend codegen.
+- [x] E3 Integration tests: Docker Compose env w/ real Postgres + Redis. `deployments/docker/docker-compose.integration.yml` (throwaway Postgres on :15432 + Redis on :16379) + `scripts/integration-test.sh` (boots, `--wait`, runs `go test ./...` or `RACE=1 go test -race`, tears down) + `make integration-test`. DB-backed suites now include AUTH-011, SYNC-007 (push apply/replay/conflict/dedupe), SALE-008 (duplicate + concurrent), plus the existing RLS + catalog suites.
+- [ ] E4 Flutter `flutter drive` / integration tests: login → sale → history. *Blocked: no unlocked device/emulator in the environment; requires `flutter drive` harness.*
+- [x] E5 OpenAPI spec generation from Gin routes for frontend codegen. `cmd/openapi` assembles the engine via `internal/transport/server.Register` (same path as `cmd/api`), walks the live Gin route table, and emits `docs/openapi.json` (29 paths, bearer security, data/error envelope) — `make openapi`. No drift possible: the generator shares main's route table.
 
 ## Definition of done
 
