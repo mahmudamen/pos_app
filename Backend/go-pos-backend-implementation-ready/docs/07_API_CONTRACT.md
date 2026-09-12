@@ -6,6 +6,17 @@ Base path:
 /v1
 ```
 
+## OpenAPI
+
+`docs/openapi.json` is generated from the Gin route table by
+`go run ./cmd/openapi` (Makefile: `make openapi`) — the routes are the source
+of truth, so the spec cannot drift from what the server serves. The generator
+assembles the engine through the same `internal/transport/server.Register`
+path the API binary uses, with a nil pool and no rate limiter, so it runs
+offline with no database. Path items carry tags, operationIds and the shared
+data/error envelope; add request/response schemas for new write endpoints as
+the contract grows.
+
 ## Success envelope
 
 ```json

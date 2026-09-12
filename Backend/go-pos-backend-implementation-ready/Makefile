@@ -1,7 +1,7 @@
 APP=pos-api
 GOOSE=go run github.com/pressly/goose/v3/cmd/goose@v3.21.1
 
-.PHONY: db-up db-down migrate migrate-down run build test race vet fmt lint security check docker-dev docker-prod docker-ubuntu
+.PHONY: db-up db-down migrate migrate-down run build test race vet fmt lint security check docker-dev docker-prod docker-ubuntu integration-test openapi
 
 db-up:
 	docker compose -f deployments/docker/docker-compose.yml up -d postgres redis
@@ -48,5 +48,11 @@ lint:
 
 security:
 	gosec ./...
+
+integration-test: ## DB-backed tests against a real Postgres+Redis via Docker Compose
+	./scripts/integration-test.sh
+
+openapi: ## Regenerate docs/openapi.json from the Gin route table
+	go run ./cmd/openapi
 
 check: fmt vet test

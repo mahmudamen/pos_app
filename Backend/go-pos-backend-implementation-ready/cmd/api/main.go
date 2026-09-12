@@ -14,19 +14,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/metrics"
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	redisinfra "github.com/example/pos-api/internal/infrastructure/redis"
-	authtransport "github.com/example/pos-api/internal/transport/auth"
-	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
-	customertransport "github.com/example/pos-api/internal/transport/customers"
-	dashboardtransport "github.com/example/pos-api/internal/transport/dashboard"
-	httptransport "github.com/example/pos-api/internal/transport/http"
-	inventorytransport "github.com/example/pos-api/internal/transport/inventory"
-	metatransport "github.com/example/pos-api/internal/transport/meta"
-	registerstransport "github.com/example/pos-api/internal/transport/registers"
-	saastransport "github.com/example/pos-api/internal/transport/saas"
-	salestransport "github.com/example/pos-api/internal/transport/sales"
-	settingsTransport "github.com/example/pos-api/internal/transport/settings"
-	synctransport "github.com/example/pos-api/internal/transport/sync"
-	usertransport "github.com/example/pos-api/internal/transport/users"
+	"github.com/example/pos-api/internal/transport/server"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/prometheus/client_golang/prometheus"
@@ -77,48 +65,14 @@ func main() {
 		logger.Warn("metrics registry already registered", "err", err)
 	}
 	router := gin.New()
-	router.Use(
-		metricsRegistry.Middleware(),
-		httptransport.CORS(),
-		httptransport.SecurityHeaders(),
-		httptransport.RequestID(),
-		httptransport.RequestLogger(logger),
-		httptransport.Recovery(logger),
-		httptransport.MaxBodySize(cfg.HTTPMaxBodyBytes),
-	)
-
-	router.GET("/metrics", metricsRegistry.Handler())
-
-	router.GET("/health/live", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	server.Register(router, server.Deps{
+		Pool:         pool,
+		Config:       cfg,
+		LoginLimiter: loginLimiter,
+		Metrics:      metricsRegistry,
+		Logger:       logger,
+		Readiness:    func() bool { return pool != nil && redisClient != nil },
 	})
-
-	router.GET("/health/ready", func(c *gin.Context) {
-		ready := pool != nil && redisClient != nil
-		status := http.StatusOK
-		if !ready {
-			status = http.StatusServiceUnavailable
-		}
-		c.JSON(status, gin.H{"status": map[bool]string{true: "ready", false: "not_ready"}[ready]})
-	})
-	api := router.Group("/v1")
-	authHandler := authtransport.NewHandler(pool, cfg)
-	// Register auth routes with rate limiting on login
-	authGroup := api.Group("/auth")
-	authGroup.POST("/login", httptransport.LoginRateLimitWith(loginLimiter), authHandler.Login())
-	authGroup.POST("/refresh", authHandler.Refresh())
-	authGroup.POST("/logout", authHandler.Logout())
-	catalogtransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	customertransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	dashboardtransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	salestransport.NewHandlerWithDiscountLimit(pool, authHandler.Tokens(), cfg.CashierDiscountPct).Register(api)
-	registerstransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	inventorytransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	usertransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	settingsTransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	synctransport.NewHandler(pool, authHandler.Tokens()).Register(api)
-	metatransport.NewHandler(pool).Register(api)
-	saastransport.NewHandler(pool, authHandler.Tokens()).Register(api)
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
