@@ -29,6 +29,7 @@ import (
 	usertransport "github.com/example/pos-api/internal/transport/users"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -69,7 +70,12 @@ func main() {
 		logger.Info("login rate limiting uses in-memory limiter", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
 	}
 
-	metricsRegistry := metrics.New()
+	metricsRegistry := metrics.NewScoped()
+	if err := metricsRegistry.Register(prometheus.DefaultRegisterer, prometheus.DefaultGatherer); err != nil {
+		// Already registered (duplicate main run) — keep serving; the vectors
+		// middleware feeds are the same ones /metrics gathers either way.
+		logger.Warn("metrics registry already registered", "err", err)
+	}
 	router := gin.New()
 	router.Use(
 		metricsRegistry.Middleware(),
