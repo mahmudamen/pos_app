@@ -102,13 +102,15 @@ func moduleRoot() (string, error) {
 
 // Seed is the tenant fixture used across auth, catalog, sales, and sync tests.
 type Seed struct {
-	TenantID   string
-	Slug       string
-	ManagerID  string
-	CashierID  string
-	DeviceID   string
-	Password   string
-	DeviceCode string
+	TenantID     string
+	Slug         string
+	ManagerID    string
+	CashierID    string
+	ManagerEmail string
+	CashierEmail string
+	DeviceID     string
+	Password     string
+	DeviceCode   string
 }
 
 // SeedTenant inserts a tenant, an active manager and cashier, and one device.
@@ -141,8 +143,10 @@ func SeedTenant(t *testing.T, pool *pgxpool.Pool) Seed {
 	}
 	for _, role := range []string{"manager", "cashier"} {
 		target := &seed.ManagerID
+		emailTarget := &seed.ManagerEmail
 		if role == "cashier" {
 			target = &seed.CashierID
+			emailTarget = &seed.CashierEmail
 		}
 		email := role + "-" + shortID() + "@example.com"
 		if err := tx.QueryRow(ctx,
@@ -151,6 +155,7 @@ func SeedTenant(t *testing.T, pool *pgxpool.Pool) Seed {
 			seed.TenantID, email, hash, role, role).Scan(target); err != nil {
 			t.Fatalf("seed user: %v", err)
 		}
+		*emailTarget = email
 	}
 	if err := tx.QueryRow(ctx,
 		`INSERT INTO devices (tenant_id, client_device_id, name)
