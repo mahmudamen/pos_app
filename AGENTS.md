@@ -78,8 +78,9 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 - **Dashboard/analytics (D1)**: `GET /v1/dashboard/summary` — `today` (revenue/sales/avg/items), `top_products`, `recent_sales`, `per_cashier`, `payment_mix`; one tx with per-tenant RLS context
 - **Granular RBAC (B1)**: static `resource.action` matrix in `internal/transport/http/permissions.go` (`HasPermission`) — `pos.read|open|close|sale|discount`, `inventory.adjust` (manager/owner/saas_admin), `dashboard.read`, `saas.admin`; enforced on registers (read/open/close → 403 `permission_denied` otherwise) and inventory create
 - **Server-enforced discount limits (B1)**: `POST /v1/sales` accepts optional `discount_minor`; total = subtotal − discount and payments must sum to the discounted total; non-zero discounts require `pos.discount`; cashiers capped at `CASHIER_DISCOUNT_PCT` (config, default 5% of subtotal), managers/owners uncapped; pure helpers `validateDiscount` (`internal/transport/sales/discounts.go`)
+- **Prometheus HTTP metrics (OPS-001/002)**: `internal/infrastructure/metrics/` — `Registry` owns `pos_api_http_requests_total` (CounterVec by method/route/status_class), `pos_api_http_request_duration_seconds` (HistogramVec by method/route), `pos_api_http_requests_inflight` (Gauge). `NewScoped()` returns fresh unregistered vectors; `Register(reg, gather)` wires them onto a caller-chosen registerer+gatherer (main: DefaultRegisterer; tests: private `prometheus.NewRegistry()`). `Middleware()` records count/latency/inflight; `Handler()` serves `promhttp` exposition from the captured gatherer. `statusClass` buckets codes into hundreds-digit labels (`2xx`/`4xx`/`5xx`) for stable cardinality. Registered in `cmd/api/main.go` alongside the `/metrics` route.
 
-### Backend — tests (238 total, `go vet` clean)
+### Backend — tests (241 total, `go vet` clean)
 | Package | Tests | Coverage |
 |---------|-------|----------|
 | `config` | 17 | env parsing, defaults, durations, overrides, `CASHIER_DISCOUNT_PCT` bounds/parse |
@@ -92,6 +93,7 @@ Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'
 | `dashboard` handler | 3 | route registration, auth required, unavailable without DB (summary math covered E2E) |
 | `http` middleware | 21 | CORS, SecurityHeaders, RateLimit, RequestID, Recovery, MaxBodySize, Claims, `HasPermission` RBAC matrix |
 | `inventory` handler | 11 | route registration, auth required, unavailable without DB, invalid reason/zero-delta/bad-uuid/long-note 400, `inventory.adjust` 403 for cashier, `validReason` |
+| `metrics` | 3 | exposition serves core family names + route/status_class/method labels, statusClass hundreds-digit bucketing, in-flight gauge returns to zero after a request |
 | `registers` handler | 14 | current/open/close/list/detail happy paths + validation (starting cash, counted cash, balance on private balance board, conflict/404s), summary aggregation math, `pos.*` RBAC → 403 |
 | `sales` handler | 29 | list/get/create, auth required, unavailable, pagination, validation, writeSale/writeError, normalizePayments/primaryPaymentMethod (split tender) + `validateDiscount` role caps (discount >0 gated/required, cashier cap, manager uncapped, negative/exceeds/forbidden) + `saleCustomerID`, `loyaltyRateFromValue`, `pointsForTotal` (6 skips: validation-order — 503-before-400 asserts that skip when the pool is nil) |
 | `settings` handler | 14 | get/update, defaults, validation, auth required, unavailable |
@@ -152,9 +154,9 @@ Phase A ("close the checkout gap") is the active workstream. Short status:
 - **SaaS control plane** (`Backend/saas/*.md`): tenants/subscriptions/plans/backups/restore — reference spec; out of current scope
 
 ### Tech debt
-- **Rate limiting**: in-memory → Redis-backed for multi-instance
-- **Structured logging**: tenant-scoped JSON logs
+- **Structured logging**: tenant-scoped JSON logs (E2 — shipped, see decision log)
 - **Password hashing**: bcrypt vs SaaS-kit's Argon2id — deviation recorded in roadmap decision log; Argon2id swap affects stored hashes (hardening backlog)
+- **Rate limiting**: in-memory → Redis-backed for multi-instance (E1 — shipped, see decision log)
 - **Integration tests**: Docker Compose env with real Postgres + Redis
 - **Flutter integration tests**: `flutter drive` for login → sale → history
 - **OpenAPI spec**: auto-generate from Gin routes, publish for frontend codegen
