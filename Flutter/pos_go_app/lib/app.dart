@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/api_client.dart';
+import 'core/focus_mode.dart';
 import 'core/session_store.dart';
 import 'core/storage/local_database.dart';
 import 'features/auth/login_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
 import 'features/pos/pos_screen.dart';
 import 'features/splash/splash_screen.dart';
 import 'l10n/strings.dart';
@@ -23,6 +25,7 @@ class _PosAppState extends State<PosApp> {
   Session? _session;
   bool _restoring = true;
   bool _splashDone = false;
+  bool _showLogin = false;
   Locale _locale = const Locale('ar');
   bool _languageCustomized = false;
 
@@ -87,7 +90,7 @@ class _PosAppState extends State<PosApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff0f766e)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff00adee)),
         scaffoldBackgroundColor: const Color(0xfff4f7f6),
         useMaterial3: true,
       ),
@@ -100,7 +103,23 @@ class _PosAppState extends State<PosApp> {
                   if (mounted) setState(() => _splashDone = true);
                 },
               )
-            : _session == null
+            : _session == null && !_showLogin
+                ? OnboardingScreen(
+                    key: const ValueKey('onboarding'),
+                    apiClient: _apiClient,
+                    sessionStore: _sessionStore,
+                    onLanguageChanged: _setLanguage,
+                    onAuthenticated: _authenticated,
+                    onOpenLogin: () {
+                      if (mounted) {
+                        setState(() {
+                          _showLogin = true;
+                          _splashDone = true;
+                        });
+                      }
+                    },
+                  )
+                : _session == null
                 ? LoginScreen(
                     key: const ValueKey('login'),
                     apiClient: _apiClient,
@@ -113,8 +132,10 @@ class _PosAppState extends State<PosApp> {
                     session: _session!,
                   apiClient: _apiClient,
                   localDatabase: _localDatabase,
+                  sessionStore: _sessionStore,
                   onLanguageChanged: _setLanguage,
                   onSignOut: () async {
+                    await FocusMode.apply(false);
                     try {
                       await _apiClient.logout(_session!);
                     } catch (_) {

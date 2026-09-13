@@ -64,13 +64,11 @@ SELECT * FROM (
 	       row_to_json(product_lots)::text
 	FROM product_lots WHERE change_seq > $1
 	UNION ALL
-	SELECT 'floors', id::text, change_seq,
-	       CASE WHEN is_active THEN 'upsert' ELSE 'delete' END,
+	SELECT 'floors', id::text, change_seq, 'upsert',
 	       row_to_json(floors)::text
 	FROM floors WHERE change_seq > $1
 	UNION ALL
-	SELECT 'restaurant_tables', id::text, change_seq,
-	       CASE WHEN is_active THEN 'upsert' ELSE 'delete' END,
+	SELECT 'restaurant_tables', id::text, change_seq, 'upsert',
 	       row_to_json(restaurant_tables)::text
 	FROM restaurant_tables WHERE change_seq > $1
 	UNION ALL

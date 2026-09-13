@@ -114,6 +114,7 @@ class _StubApiClient extends ApiClient {
     String? idempotencyKey,
     List<PaymentInput>? payments,
     String? sessionId,
+    String? tableId,
   }) async {
     final id = 'sale-${createdSaleIds.length + 1}';
     createdSaleIds.add(id);

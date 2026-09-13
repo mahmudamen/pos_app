@@ -32,11 +32,46 @@ Gotchas:
 - No Docker? Run `scripts/bootstrap_local.sql` once as a Postgres administrator, then `make migrate`/`make run` as usual. Redis is optional for basic login; if absent, `/health/ready` reports not ready but `/health/live` stays OK.
 - Health probes: `curl 127.0.0.1:8080/health/live` and `/health/ready`.
 - `make test` (`go test ./...`) needs **no database** — handler tests assert "unavailable" with a nil pool. CI runs gofmt-check → `go vet` → `go test` → `go test -race`; `make check` = fmt + vet + test, `make lint` = golangci-lint, `make security` = gosec.
-- Migrations are goose files in `internal/infrastructure/database/migrations/` (single-file `.sql`, numbered `001_extensions`, `003_core`, `004_permissions`, `005_sync`, `006_tenant_type`, `007_localization`, `008_payments`, `010_settings`, `011_registers`, `012_inventory_adjustments`, `013_loyalty`, `014_sync_pull`, `015_sync_push_rls`, `016_tenant_plan`, `017_restaurant`, `018_lots`, `019_variants`, `020_refunds`, `021_users_pin`, `022_tenant_address`); apply with `make migrate`, roll back `make migrate-down`.
+- Migrations are goose files in `internal/infrastructure/database/migrations/` (single-file `.sql`, numbered `001_extensions` … `026_store_emails` — catalog: `017_floors_tables`, `018_lot_tracking`, `019_variants`, `023_product_images`, `024_allow_negative_stock`, `025_merchant_signup`, `026_store_emails`); apply with `make migrate`, roll back `make migrate-down`.
+- **Migrations may NOT use `DO $$…$$` blocks** — goose (`pressly/goose`) cannot parse multi-line PL/pgSQL (SQLSTATE 42601). Role/ACL provisioning belongs in `scripts/grants_prod.sql` (run via psql), which may use `DO $$` fine.
+- New tables that the API writes to **must get grants for the app roles** (dev: owner `pos_app`; prod: least-privilege `pos_app_rls` via `scripts/grants_prod.sql`), otherwise prod-only failures appear (e.g. signup's `permission denied for table store_emails`).
 - API: everything under `/v1`; auth (`/auth/login|refresh|logout`, `POST /users/:id/pin` set/verify/remove), catalog (`/categories`, `/categories/:id`, `/products`, `/products/:id`, `/products/barcode/:barcode`, PATCH `/products/:id`), sales (`GET /v1/sales` list, `GET /v1/sales/:id` detail with items + payments, `POST /v1/sales` with idempotency, stock locking, RLS, split tender, tips, `table_id`, split bills, `GET /v1/sales/:id/receipt` + `/receipt/print`, `POST /v1/sales/:id/refund` — idempotent, restocks/lots/variants, releases split-bill members + occupied tables, loyalty clawback), users (`GET /users`, `POST /users`), sync (`GET /v1/sync/pull` change feed, `POST /v1/sync/push` replay-safe commands), verticals (`/restaurants/floors`, `/restaurants/tables`, `/products/:id/lots`, `/products/:id/variants`, `/variants/:id`), meta (`/meta/countries`, `/meta/currencies` — public), platform (`/saas/summary`, `/saas/tenants`, `/saas/tenants/:id/analytics` — require `saas_admin` role exactly). Money is integer minor units (`price_minor`, `subtotal_minor`, `amount_minor`).
 - RLS is FORCE-enabled on all tenant tables (`FORCE ROW LEVEL SECURITY`), so **even table owners see nothing without** `SET app.current_tenant`. The SaaS handler aggregates cross-tenant by looping tenants inside one tx and calling `SELECT set_config('app.current_tenant', $1, true)` per tenant. Platform-level ad-hoc SQL must set tenant context similarly (`SELECT set_config('app.current_tenant', <uuid>, false)` in psql).
 - SaaS demo seed: `scripts/seed_demo.sql` (idempotent) creates 5 typed demo tenants (restaurant, book_store, mobile_shop, computer_shop, grocery) + `demo-store` + `saas` platform tenant. All demo logins password `admin`: `admin@demo-<slug>.com` (manager/demo), `guest@demo-<slug>.com` (guest), and SaaS staff `admin@posgo.saas` / `support@posgo.saas` (`saas_admin`). `GET /v1/saas/summary` currently returns `total_users` = 20 (3 users × 6 demo tenants + 2 SaaS staff).
 - `docs/*.md` (esp. `05_CODING_STANDARDS.md`, `09_SYNC.md`) are the source of truth for architecture; `speckit.*` and `.specify/` are SpecKit workflow scaffolding, `.github/skills/speckit-*` are GitHub skills.
+- Release/deploy facts: `docs/19_RELEASE_NOTES.md` (v1.0) and `docs/20_DELIVERY_PLAN.md` (runbook, rollout procedure, pending DNS/certbot + optional SSH hardening).
+
+## Production deployment (VPS 197.44.6.42)
+
+The POS v1.0 release is **live on production** as Docker `pos-prod-*` services:
+
+- SSH: `root@197.44.6.42` — key auth from the dev box via `~/.ssh/id_ed25519`
+  (`ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 root@197.44.6.42`). fail2ban active.
+  Root password auth is still enabled (user's own login path).
+- Code: `/opt/pos/Backend/go-pos-backend-implementation-ready` (rsync from the dev
+  checkout, excluding `.git`/`.env*`/`bin/`). Compose:
+  `docker compose --env-file .env.prod -f deployments/docker/docker-compose.prod.yml`.
+  Services: `postgres` (postgres:16-alpine, private net, strong random password),
+  `redis`, `migrate` (runs goose embedded at `/app/migrations`), `api`
+  (`pos-api:latest`, bound **127.0.0.1:8080** — no external exposure).
+- `.env.prod`: `HOST_IP=127.0.0.1`, `APP_DB_USER=pos_app_rls` (least privilege).
+- DB: postgres DB `pos` at goose version 26. The app role `pos_app_rls` is a
+  limited-grant role — new tables must get grants via `scripts/grants_prod.sql`
+  (see Backend gotchas) or prod-only `permission denied` errors appear.
+- HTTPS: host nginx terminates TLS for `api.xamltech.com` (443, self-signed
+  placeholder cert; HTTP→HTTPS 301). **DNS `A api.xamltech.com → 197.44.6.42`
+  is still unset by the user** — once added, run `certbot --nginx -d
+  api.xamltech.com` on the VPS to swap in a trusted certificate.
+- API reachable from the dev box for emulator E2E via an SSH tunnel:
+  `ssh -f -N -L 127.0.0.1:8080:127.0.0.1:8080 root@197.44.6.42` then
+  `flutter test integration_test/... --dart-define=API_BASE_URL=http://10.0.2.2:8080`.
+- Deploy flow (code + migration change): rsync → `compose build migrate api` →
+  `compose run --rm migrate` → `compose up -d api`. The migrate image must be
+  rebuilt whenever migration files change (they're baked into the image).
+- Merchant onboarding is live: `POST /v1/auth/register` provisions a trial
+  tenant (plan `trial`, 15-day `trial_ends_at`), 7 business verticals, seeded
+  demo catalog (10 products/vertical, EAN-13 barcodes, images, descriptions),
+  duplicate email → 409 `email_taken`, expired trial login → 403 `trial_expired`.
 
 ## Flutter client (`Flutter/pos_go_app/`)
 

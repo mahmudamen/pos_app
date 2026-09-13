@@ -19,27 +19,37 @@ enum PaymentMethod {
 }
 
 class PaymentInput {
-  const PaymentInput({required this.method, required this.amountMinor});
+  const PaymentInput({
+    required this.method,
+    required this.amountMinor,
+    this.tipMinor = 0,
+  });
 
   factory PaymentInput.fromJson(Map<String, dynamic> json) => PaymentInput(
         method: PaymentMethod.fromWire(json['method'] as String?),
         amountMinor: (json['amount_minor'] as num?)?.toInt() ?? 0,
+        tipMinor: (json['tip_minor'] as num?)?.toInt() ?? 0,
       );
 
   final PaymentMethod method;
   final int amountMinor;
+  final int tipMinor;
 
-  Map<String, Object> toJson() =>
-      {'method': method.wireName, 'amount_minor': amountMinor};
+  Map<String, Object> toJson() => {
+        'method': method.wireName,
+        'amount_minor': amountMinor,
+        if (tipMinor > 0) 'tip_minor': tipMinor,
+      };
 
   @override
   bool operator ==(Object other) =>
       other is PaymentInput &&
       other.method == method &&
-      other.amountMinor == amountMinor;
+      other.amountMinor == amountMinor &&
+      other.tipMinor == tipMinor;
 
   @override
-  int get hashCode => Object.hash(method, amountMinor);
+  int get hashCode => Object.hash(method, amountMinor, tipMinor);
 }
 
 class PaymentSplit {

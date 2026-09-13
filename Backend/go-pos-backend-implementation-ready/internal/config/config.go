@@ -38,6 +38,9 @@ type Config struct {
 	MaxSessionsPerUser  int
 	LoginRateMax        int
 	LoginRateWindow     time.Duration
+	ApiRateLimitEnabled bool
+	ApiRateLimitMax     int
+	ApiRateLimitWindow  time.Duration
 	MetricsEnabled      bool
 }
 
@@ -80,6 +83,9 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	if c.LoginRateWindow, err = duration("LOGIN_RATE_WINDOW", 5*time.Minute); err != nil {
+		return Config{}, err
+	}
+	if c.ApiRateLimitWindow, err = duration("RATE_LIMIT_WINDOW", 1*time.Minute); err != nil {
 		return Config{}, err
 	}
 	bcryptCost, err := intValue("BCRYPT_COST", 12)
@@ -140,6 +146,17 @@ func Load() (Config, error) {
 	if loginRateMax < 1 {
 		return Config{}, fmt.Errorf("LOGIN_RATE_MAX must be at least 1")
 	}
+	apiRateLimitMax, err := intValue("RATE_LIMIT_MAX", 300)
+	if err != nil {
+		return Config{}, err
+	}
+	if apiRateLimitMax < 1 {
+		return Config{}, fmt.Errorf("RATE_LIMIT_MAX must be at least 1")
+	}
+	apiRateLimitEnabled, err := boolValue("RATE_LIMIT_ENABLED", false)
+	if err != nil {
+		return Config{}, err
+	}
 	// #nosec G115 -- all four values are range-checked above
 	// (maxConns <= math.MaxInt32, minConns <= maxConns, redisDB <= MaxInt32,
 	// bcryptCost in 4..31).
@@ -147,6 +164,8 @@ func Load() (Config, error) {
 	c.CashierDiscountPct = cashierDiscountPct
 	c.MaxSessionsPerUser = maxSessions
 	c.LoginRateMax = loginRateMax
+	c.ApiRateLimitMax = apiRateLimitMax
+	c.ApiRateLimitEnabled = apiRateLimitEnabled
 	c.CORSAllowedOrigins = stringList("CORS_ALLOWED_ORIGINS", []string{"*"})
 	metricsEnabled, err := boolValue("METRICS_ENABLED", true)
 	if err != nil {

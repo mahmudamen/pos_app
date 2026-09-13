@@ -32,7 +32,7 @@ class LocalDatabase {
     _database = await _factory.openDatabase(
       databasesPath,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 2,
         onCreate: (db, _) async {
           await db.execute('''
             CREATE TABLE cached_products (
@@ -43,7 +43,8 @@ class LocalDatabase {
               price_minor INTEGER NOT NULL,
               cost_minor INTEGER NOT NULL DEFAULT 0,
               currency TEXT NOT NULL,
-              stock_quantity INTEGER NOT NULL
+              stock_quantity INTEGER NOT NULL,
+              image_url TEXT NOT NULL DEFAULT ''
             )
           ''');
           await db.execute('''
@@ -57,6 +58,12 @@ class LocalDatabase {
               created_at INTEGER NOT NULL
             )
           ''');
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            await db.execute(
+                'ALTER TABLE cached_products ADD COLUMN image_url TEXT NOT NULL DEFAULT \'\'');
+          }
         },
       ),
     );
@@ -77,6 +84,7 @@ class LocalDatabase {
         'cost_minor': p.costMinor,
         'currency': p.currency,
         'stock_quantity': p.stockQuantity,
+        'image_url': p.imageUrl,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
@@ -94,6 +102,7 @@ class LocalDatabase {
               costMinor: row['cost_minor'] as int,
               currency: row['currency'] as String,
               stockQuantity: row['stock_quantity'] as int,
+              imageUrl: row['image_url'] as String? ?? '',
             ))
         .toList();
   }

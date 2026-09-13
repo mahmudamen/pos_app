@@ -41,6 +41,7 @@ type Deps struct {
 	Pool         *pgxpool.Pool
 	Config       config.Config
 	LoginLimiter ratelimit.Limiter // nil → login is registered without rate limiting
+	ApiLimiter   ratelimit.Limiter // nil → /v1/saas is registered without rate limiting
 	Metrics      *metrics.Registry // nil → /metrics middleware + route are omitted
 	Logger       *slog.Logger      // nil → slog.Default()
 	Readiness    func() bool       // health/ready probe; nil → pool != nil
@@ -88,6 +89,7 @@ func Register(engine *gin.Engine, d Deps) {
 	api := engine.Group("/v1")
 	authHandler := authtransport.NewHandler(d.Pool, d.Config)
 	authGroup := api.Group("/auth")
+	authGroup.POST("/register", authHandler.Signup)
 	if d.LoginLimiter != nil {
 		authGroup.POST("/login", httptransport.LoginRateLimitWith(d.LoginLimiter), authHandler.Login())
 	} else {
@@ -107,7 +109,11 @@ func Register(engine *gin.Engine, d Deps) {
 	settingsTransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	synctransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	metatransport.NewHandler(d.Pool).Register(api)
-	saastransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	saasGroup := api.Group("/saas")
+	if d.ApiLimiter != nil {
+		saasGroup.Use(httptransport.ApiRateLimitWith(d.ApiLimiter))
+	}
+	saastransport.NewHandler(d.Pool, authHandler.Tokens()).Register(saasGroup)
 	restauranttransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	lotstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	variantstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)

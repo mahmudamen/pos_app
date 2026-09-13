@@ -8,6 +8,7 @@ import (
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
+	"github.com/example/pos-api/internal/transport/settings"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -130,7 +131,15 @@ func (h *Handler) create(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load product")
 		return
 	}
-	if stock+request.QuantityDelta < 0 {
+	var allowNegative bool
+	if err = tx.QueryRow(ctx, `
+		SELECT COALESCE((SELECT value FROM tenant_settings
+		                 WHERE tenant_id = $1 AND key = $2), 'false') = 'true'`,
+		tenantID, settings.KeyAllowNegativeStock).Scan(&allowNegative); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to read inventory settings")
+		return
+	}
+	if !allowNegative && stock+request.QuantityDelta < 0 {
 		writeError(c, http.StatusConflict, "insufficient_stock", "adjustment would make stock negative")
 		return
 	}

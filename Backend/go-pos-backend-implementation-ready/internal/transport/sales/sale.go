@@ -135,6 +135,20 @@ type lockedItem struct {
 	variantName string
 }
 
+// allowNegativeStock reports whether the tenant permits the on-hand counter
+// to go below zero. Defaults to false (strict stock) when unset.
+func allowNegativeStock(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID) (bool, error) {
+	var allowed bool
+	err := tx.QueryRow(ctx, `
+		SELECT COALESCE((SELECT value FROM tenant_settings
+		                 WHERE tenant_id = $1 AND key = 'inventory.allow_negative_stock'), 'false') = 'true'`,
+		tenantID).Scan(&allowed)
+	if err != nil {
+		return false, err
+	}
+	return allowed, nil
+}
+
 func createSale(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -147,6 +161,10 @@ func createSale(
 ) (Sale, error) {
 	var subtotal int64
 	currency := ""
+	allowNegative, err := allowNegativeStock(ctx, tx, tenantID)
+	if err != nil {
+		return Sale{}, newSaleError(500, "internal_error", "unable to read inventory settings")
+	}
 	lockedItems := make([]lockedItem, 0, len(request.Items))
 	for _, item := range request.Items {
 		productID, parseErr := uuid.Parse(item.ProductID)
@@ -185,7 +203,7 @@ func createSale(
 			if err != nil {
 				return Sale{}, newSaleError(500, "internal_error", "unable to load variant")
 			}
-			if vStock < item.Quantity {
+			if vStock < item.Quantity && !allowNegative {
 				return Sale{}, newSaleError(409, "insufficient_stock", "insufficient variant stock")
 			}
 			product.variantID = &variantID
@@ -193,7 +211,13 @@ func createSale(
 			if item.VariantID != "" {
 				return Sale{}, newSaleError(400, "validation_error", "product does not have variants")
 			}
-			if stock < item.Quantity {
+			// Lot-tracked stock is consumed physically lot-by-lot (FEFO), so
+			// it can never be oversold even when backorders are enabled.
+			if product.trackLots {
+				if stock < item.Quantity {
+					return Sale{}, newSaleError(409, "insufficient_stock", "insufficient stock")
+				}
+			} else if stock < item.Quantity && !allowNegative {
 				return Sale{}, newSaleError(409, "insufficient_stock", "insufficient stock")
 			}
 		}

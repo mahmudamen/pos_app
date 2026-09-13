@@ -143,7 +143,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                             })
                                         : null,
                                     items: [
-                                      for (final method in PaymentMethod.values)
+                                      for (final method
+                                          in PaymentMethod.values)
                                         DropdownMenuItem(
                                           value: method,
                                           child: Text(_paymentLabel(s, method)),
@@ -192,6 +193,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                    ),
+                    _sectionHeader(s, s.advancedInventory),
+                    Card(
+                      child: settings == null
+                          ? const SizedBox()
+                          : ListTile(
+                              leading: Icon(Icons.assignment_late_outlined,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary),
+                              title: Text(s.allowNegativeStock),
+                              subtitle: Text(s.allowNegativeStockHint),
+                              trailing: Switch(
+                                value: settings.allowNegativeStock,
+                                onChanged: _canEdit
+                                    ? (value) => setState(() {
+                                          _settings = settings.copyWith(
+                                              allowNegativeStock: value);
+                                        })
+                                    : null,
+                              ),
                             ),
                     ),
                     if (!_canEdit)

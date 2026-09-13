@@ -12,6 +12,9 @@ func TestDefaultSettingValues(t *testing.T) {
 	if got := defaultSettingValue(KeyReceiptFooter); got != "" {
 		t.Errorf("default receipt_footer = %q, want empty", got)
 	}
+	if got := defaultSettingValue(KeyAllowNegativeStock); got != "false" {
+		t.Errorf("default allow_negative_stock = %q, want false", got)
+	}
 	if got := defaultSettingValue("unknown.key"); got != "" {
 		t.Errorf("default unknown = %q, want empty", got)
 	}
@@ -33,6 +36,9 @@ func TestValidateSetting(t *testing.T) {
 		{KeyReceiptFooter, "", false},
 		{KeyReceiptFooter, "thank you for shopping", false},
 		{KeyReceiptFooter, string(make([]rune, 501)), true},
+		{KeyAllowNegativeStock, "true", false},
+		{KeyAllowNegativeStock, "false", false},
+		{KeyAllowNegativeStock, "yes", true},
 		{"not.a.key", "anything", true},
 	}
 	for _, c := range cases {

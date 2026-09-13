@@ -181,6 +181,31 @@ func TokenManager() security.TokenManager {
 	}
 }
 
+// SetTenantSetting upserts a key/value pair on the seeded tenant's settings,
+// running inside the tenant's RLS context so the write is allowed.
+func SetTenantSetting(t *testing.T, pool *pgxpool.Pool, tenantID, key, value string) {
+	t.Helper()
+	ctx := context.Background()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin setting upsert: %v", err)
+	}
+	defer tx.Rollback(ctx)
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID); err != nil {
+		t.Fatalf("set tenant context: %v", err)
+	}
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO tenant_settings (tenant_id, key, value)
+		VALUES ($1::uuid, $2, $3)
+		ON CONFLICT (tenant_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+		tenantID, key, value); err != nil {
+		t.Fatalf("upsert tenant setting: %v", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit setting upsert: %v", err)
+	}
+}
+
 // MintAccess issues an access token carrying the given claims without touching
 // the database, for handler-level integration tests.
 func MintAccess(t *testing.T, tenantID, userID, deviceID, sessionID, role string) string {

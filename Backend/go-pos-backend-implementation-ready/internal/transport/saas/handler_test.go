@@ -31,13 +31,13 @@ func mintToken(t *testing.T, role string) string {
 func setup() (*gin.Engine, *gin.RouterGroup) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	return router, router.Group("/v1")
+	return router, router.Group("/v1/saas")
 }
 
 func TestRoutesRegistered(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	NewHandler(nil, testTokens()).Register(router.Group("/v1/saas"))
 	want := []string{"/v1/saas/summary", "/v1/saas/tenants", "/v1/saas/tenants/:id/analytics"}
 	for _, path := range want {
 		found := false

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/api_client.dart';
+import '../../core/focus_mode.dart';
 import '../../core/payments.dart';
 import '../../core/registers.dart';
 import '../../core/session_store.dart';
@@ -12,6 +13,9 @@ import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
 import '../customers/customers_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../inventory/inventory_screen.dart';
+import '../restaurants/split_bill_screen.dart';
+import '../restaurants/table_picker_sheet.dart';
 import '../sales/sale_history_screen.dart';
 import '../settings/settings_screen.dart';
 import 'session_screen.dart';
@@ -23,12 +27,14 @@ class PosScreen extends StatefulWidget {
       required this.apiClient,
       required this.onSignOut,
       this.localDatabase,
+      this.sessionStore,
       this.onLanguageChanged});
 
   final Session session;
   final ApiClient apiClient;
   final VoidCallback onSignOut;
   final LocalDatabase? localDatabase;
+  final SessionStore? sessionStore;
   final ValueChanged<String>? onLanguageChanged;
 
   @override
@@ -43,10 +49,24 @@ class _CartLine {
   int quantity = 1;
 }
 
+class _OpenOrder {
+  _OpenOrder(this.number);
+  final int number;
+  final List<_CartLine> items = [];
+  String? tableId;
+  String? tableName;
+
+  int get total =>
+      items.fold(0, (sum, line) => sum + line.price * line.quantity);
+  bool get isEmpty => items.isEmpty;
+}
+
 class _PosScreenState extends State<PosScreen> {
   static const _pendingBatchLimit = 10;
   final _searchController = TextEditingController();
-  final List<_CartLine> _cart = [];
+  final List<_OpenOrder> _orders = [];
+  int _selectedOrder = 0;
+  int _orderCounter = 0;
   List<Product> _products = [];
   List<Category> _categories = [];
   String? _selectedCategoryId;
@@ -56,11 +76,53 @@ class _PosScreenState extends State<PosScreen> {
   TenantSettings _settings = const TenantSettings();
   RegisterSession? _registerSession;
   bool _sessionLoading = true;
+  bool _focusMode = false;
+
+  _OpenOrder get _activeOrder => _orders[_selectedOrder];
 
   @override
   void initState() {
     super.initState();
+    _orders.add(_OpenOrder(++_orderCounter));
     _bootstrap();
+    _restoreFocusMode();
+  }
+
+  Future<void> _restoreFocusMode() async {
+    final enabled = await widget.sessionStore?.readFocusMode() ?? false;
+    if (!mounted || !enabled) return;
+    await FocusMode.apply(enabled);
+    if (mounted) setState(() => _focusMode = enabled);
+  }
+
+  Future<void> _toggleFocusMode(BuildContext context) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final enabled = !_focusMode;
+    setState(() => _focusMode = enabled);
+    await widget.sessionStore?.saveFocusMode(enabled);
+    final dndActive = await FocusMode.apply(enabled);
+    if (!mounted) return;
+    if (enabled) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(dndActive ? s.focusModeOn : s.focusModeDndHint),
+        action: dndActive
+            ? null
+            : SnackBarAction(
+                label: s.focusModeGrant,
+                onPressed: FocusMode.openDndSettings,
+              ),
+        duration: const Duration(seconds: 4),
+      ));
+    } else {
+      messenger.showSnackBar(SnackBar(content: Text(s.focusModeOff)));
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _bootstrap() async {
@@ -93,14 +155,7 @@ class _PosScreenState extends State<PosScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  int get _total =>
-      _cart.fold(0, (sum, line) => sum + line.price * line.quantity);
+  int get _total => _activeOrder.total;
 
   Future<void> _loadData() async {
     try {
@@ -144,18 +199,91 @@ class _PosScreenState extends State<PosScreen> {
   void _add(Product product) {
     setState(() {
       _CartLine? existing;
-      for (final line in _cart) {
+      for (final line in _activeOrder.items) {
         if (line.productId == product.id) {
           existing = line;
           break;
         }
       }
       if (existing == null) {
-        _cart.add(_CartLine(product.id, product.name, product.priceMinor));
+        _activeOrder.items.add(_CartLine(product.id, product.name, product.priceMinor));
       } else {
         existing.quantity++;
       }
     });
+  }
+
+  void _increase(_CartLine line) => setState(() => line.quantity++);
+
+  void _decrease(_CartLine line) {
+    setState(() {
+      if (line.quantity > 1) {
+        line.quantity--;
+      } else {
+        _activeOrder.items.remove(line);
+      }
+    });
+  }
+
+  void _newOrder() {
+    setState(() {
+      _orders.add(_OpenOrder(++_orderCounter));
+      _selectedOrder = _orders.length - 1;
+    });
+  }
+
+  void _selectOrder(int index) => setState(() => _selectedOrder = index);
+
+  void _closeOrder(int index) {
+    setState(() {
+      if (_orders.length == 1) {
+        final order = _orders[0];
+        order.items.clear();
+        order.tableId = null;
+        order.tableName = null;
+        _selectedOrder = 0;
+        return;
+      }
+      _orders.removeAt(index);
+      if (_selectedOrder >= _orders.length) {
+        _selectedOrder = _orders.length - 1;
+      } else if (_selectedOrder >= index && _selectedOrder > 0) {
+        _selectedOrder--;
+      }
+    });
+  }
+
+  Future<void> _pickTable(BuildContext context) async {
+    final active = _activeOrder;
+    final result = await TablePickerSheet.pick(
+      context: context,
+      apiClient: widget.apiClient,
+      session: widget.session,
+      currentTableId: active.tableId,
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      if (result.cleared) {
+        active.tableId = null;
+        active.tableName = null;
+      } else if (result.table != null) {
+        active.tableId = result.table!.id;
+        active.tableName = result.table!.name;
+      }
+    });
+  }
+
+  void _openSplitBill(BuildContext context, String saleId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SplitBillScreen(
+          session: widget.session,
+          apiClient: widget.apiClient,
+          saleId: saleId,
+          currencyCode: widget.session.currencyCode,
+        ),
+      ),
+    );
   }
 
   void _openSettings(BuildContext context) {
@@ -227,6 +355,26 @@ class _PosScreenState extends State<PosScreen> {
             tooltip: s.customers,
             icon: const Icon(Icons.groups_outlined),
           ),
+          if (widget.session.isManager)
+            IconButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => InventoryScreen(
+                    session: widget.session,
+                    apiClient: widget.apiClient,
+                  ),
+                ),
+              ),
+              tooltip: s.inventory,
+              icon: const Icon(Icons.inventory_2),
+            ),
+          IconButton(
+            onPressed: () => _toggleFocusMode(context),
+            tooltip: s.focusMode,
+            icon: Icon(_focusMode
+                ? Icons.center_focus_weak
+                : Icons.center_focus_strong),
+          ),
           Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(child: Text(widget.session.displayName))),
@@ -266,12 +414,18 @@ class _PosScreenState extends State<PosScreen> {
                       setState(() => _selectedCategoryId = id),
                   onAdd: _add);
               final cart = _CartPanel(
-                  cart: _cart,
-                  total: _total,
+                  orders: _orders,
+                  selectedOrder: _selectedOrder,
                   strings: s,
                   currency: widget.session.currencyCode,
-                  onRemove: (line) => setState(() => _cart.remove(line)),
-                  onCheckout: _cart.isEmpty || _checkingOut
+                  tableName: _activeOrder.tableName,
+                  onPickTable: () => _pickTable(context),
+                  onSelect: _selectOrder,
+                  onNewOrder: _newOrder,
+                  onIncrease: _increase,
+                  onDecrease: _decrease,
+                  onRemove: (line) => setState(() => _activeOrder.items.remove(line)),
+                  onCheckout: _activeOrder.isEmpty || _checkingOut
                       ? null
                       : () => _checkout(context));
               return wide
@@ -281,7 +435,9 @@ class _PosScreenState extends State<PosScreen> {
                     ])
                   : Column(children: [
                       Expanded(child: catalog),
-                      SizedBox(height: 300, child: cart)
+                      SizedBox(
+                          height: (constraints.maxHeight * 0.42).clamp(360, 520),
+                          child: cart)
                     ]);
             }),
           ),
@@ -432,6 +588,7 @@ class _PosScreenState extends State<PosScreen> {
   Future<void> _checkout(BuildContext context) async {
     final s = AppStrings.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final tableId = _activeOrder.tableId;
     final payments = await showModalBottomSheet<List<PaymentInput>>(
       context: context,
       isScrollControlled: true,
@@ -441,16 +598,18 @@ class _PosScreenState extends State<PosScreen> {
         totalMinor: _total,
         defaultMethod: _settings.defaultPaymentMethod,
         receiptFooter: _settings.receiptFooter,
+        tableName: _activeOrder.tableName,
       ),
     );
     if (payments == null || !mounted) return;
     final idempotencyKey = const Uuid().v4();
-    final items = _cart
+    final items = _activeOrder.items
         .map((line) => SaleItemInput(
               productId: line.productId,
               quantity: line.quantity,
             ))
         .toList();
+    final paidOrderIndex = _selectedOrder;
     setState(() => _checkingOut = true);
     try {
       final result = await widget.apiClient.createSale(
@@ -459,15 +618,22 @@ class _PosScreenState extends State<PosScreen> {
         idempotencyKey: idempotencyKey,
         payments: payments,
         sessionId: _registerSession?.id,
+        tableId: tableId,
       );
       if (!mounted) return;
-      setState(() => _cart.clear());
+      _closeOrder(paidOrderIndex);
       if (_registerSession != null) {
         await _loadRegisterSession();
       }
-      messenger.showSnackBar(
-        SnackBar(content: Text('${s.saleCompleted}: ${result.id}')),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text('${s.saleCompleted}: ${result.id}'),
+        action: tableId != null
+            ? SnackBarAction(
+                label: s.splitBill,
+                onPressed: () => _openSplitBill(context, result.id),
+              )
+            : null,
+      ));
     } catch (error) {
       if (error is ApiException) {
         if (!mounted) return;
@@ -490,10 +656,11 @@ class _PosScreenState extends State<PosScreen> {
                 'payments': payments.map((p) => p.toJson()).toList(),
               if (_registerSession != null)
                 'session_id': _registerSession!.id,
+              if (tableId != null) 'table_id': tableId,
             }),
           ));
           if (!mounted) return;
-          setState(() => _cart.clear());
+          _closeOrder(paidOrderIndex);
           messenger.showSnackBar(
             SnackBar(content: Text(s.offlineSaved)),
           );
@@ -664,10 +831,8 @@ class _Catalog extends StatelessWidget {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Icon(Icons.inventory_2_outlined,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary),
+                                          _ProductImage(
+                                              imageUrl: product.imageUrl),
                                           Text(product.name,
                                               style: Theme.of(context)
                                                   .textTheme
@@ -682,22 +847,36 @@ class _Catalog extends StatelessWidget {
 }
 
 class _CartPanel extends StatelessWidget {
-  const _CartPanel(
-      {required this.cart,
-      required this.total,
-      required this.strings,
-      required this.currency,
-      required this.onRemove,
-      required this.onCheckout});
-  final List<_CartLine> cart;
-  final int total;
+  const _CartPanel({
+    required this.orders,
+    required this.selectedOrder,
+    required this.strings,
+    required this.currency,
+    required this.tableName,
+    required this.onPickTable,
+    required this.onSelect,
+    required this.onNewOrder,
+    required this.onIncrease,
+    required this.onDecrease,
+    required this.onRemove,
+    required this.onCheckout,
+  });
+  final List<_OpenOrder> orders;
+  final int selectedOrder;
   final AppStrings strings;
   final String currency;
+  final String? tableName;
+  final VoidCallback onPickTable;
+  final ValueChanged<int> onSelect;
+  final VoidCallback onNewOrder;
+  final ValueChanged<_CartLine> onIncrease;
+  final ValueChanged<_CartLine> onDecrease;
   final ValueChanged<_CartLine> onRemove;
   final VoidCallback? onCheckout;
 
   @override
   Widget build(BuildContext context) {
+    final active = orders[selectedOrder];
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -707,23 +886,76 @@ class _CartPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(strings.currentSale,
-              style: Theme.of(context).textTheme.headlineSmall),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (var i = 0; i < orders.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text(strings.orderLabel(orders[i].number)),
+                      selected: i == selectedOrder,
+                      onSelected: (_) => onSelect(i),
+                      avatar: orders[i].items.isNotEmpty
+                          ? CircleAvatar(
+                              radius: 12,
+                              child: Text('${orders[i].items.fold<int>(0, (s, l) => s + l.quantity)}',
+                                  style: const TextStyle(fontSize: 11)),
+                            )
+                          : null,
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.add, size: 18),
+                    label: Text(strings.newOrder),
+                    onPressed: onNewOrder,
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
           Expanded(
-            child: cart.isEmpty
+            child: active.isEmpty
                 ? Center(child: Text(strings.tapToAdd))
                 : ListView(
-                    children: cart
+                    children: active.items
                         .map(
                           (line) => ListTile(
                             title: Text(line.name),
                             subtitle: Text(
-                              '${line.quantity} × ${strings.formatMoney(line.price, currency)}',
+                              strings.formatMoney(line.price * line.quantity, currency),
                             ),
-                            trailing: IconButton(
-                              onPressed: () => onRemove(line),
-                              icon: const Icon(Icons.delete_outline),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => onDecrease(line),
+                                  icon: const Icon(Icons.remove_circle_outline, size: 22),
+                                ),
+                                SizedBox(
+                                  width: 28,
+                                  child: Text(
+                                    '${line.quantity}',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                ),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => onIncrease(line),
+                                  icon: const Icon(Icons.add_circle_outline, size: 22),
+                                ),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => onRemove(line),
+                                  icon: const Icon(Icons.delete_outline, size: 20),
+                                ),
+                              ],
                             ),
                           ),
                         )
@@ -736,10 +968,18 @@ class _CartPanel extends StatelessWidget {
             children: [
               Text(strings.total),
               Text(
-                strings.formatMoney(total, currency),
+                strings.formatMoney(active.total, currency),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          ActionChip(
+            avatar: Icon(tableName != null
+                ? Icons.table_restaurant
+                : Icons.table_restaurant_outlined),
+            label: Text(tableName ?? strings.pickTable),
+            onPressed: onPickTable,
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
@@ -761,6 +1001,7 @@ class PaymentSheet extends StatefulWidget {
     required this.totalMinor,
     this.defaultMethod = PaymentMethod.cash,
     this.receiptFooter = '',
+    this.tableName,
   });
 
   final AppStrings strings;
@@ -768,6 +1009,7 @@ class PaymentSheet extends StatefulWidget {
   final int totalMinor;
   final PaymentMethod defaultMethod;
   final String receiptFooter;
+  final String? tableName;
 
   @override
   State<PaymentSheet> createState() => _PaymentSheetState();
@@ -777,6 +1019,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
   late final TextEditingController _cashController;
   late final TextEditingController _cardController;
   late final TextEditingController _mobileController;
+  late final TextEditingController _tipController;
   String? _error;
 
   @override
@@ -789,6 +1032,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
         TextEditingController(text: widget.defaultMethod == PaymentMethod.card ? full : '');
     _mobileController =
         TextEditingController(text: widget.defaultMethod == PaymentMethod.mobile ? full : '');
+    _tipController = TextEditingController();
   }
 
   @override
@@ -796,6 +1040,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
     _cashController.dispose();
     _cardController.dispose();
     _mobileController.dispose();
+    _tipController.dispose();
     super.dispose();
   }
 
@@ -803,12 +1048,13 @@ class _PaymentSheetState extends State<PaymentSheet> {
     final cashMinor = minorFromInput(_cashController.text);
     final cardMinor = minorFromInput(_cardController.text);
     final mobileMinor = minorFromInput(_mobileController.text);
+    final tipMinor = minorFromInput(_tipController.text) ?? 0;
     if (cashMinor == null || cardMinor == null || mobileMinor == null) {
       setState(() => _error = widget.strings.paymentRequired);
       return;
     }
     try {
-      final payments = PaymentSplit.allocate(
+      var payments = PaymentSplit.allocate(
         totalMinor: widget.totalMinor,
         parts: {
           PaymentMethod.cash: cashMinor,
@@ -816,13 +1062,24 @@ class _PaymentSheetState extends State<PaymentSheet> {
           PaymentMethod.mobile: mobileMinor,
         },
       );
+      if (tipMinor > 0 && payments.isNotEmpty) {
+        payments = [
+          PaymentInput(
+            method: payments.first.method,
+            amountMinor: payments.first.amountMinor,
+            tipMinor: tipMinor,
+          ),
+          ...payments.skip(1),
+        ];
+      }
       Navigator.of(context).pop(payments);
     } on ArgumentError {
       setState(() => _error = widget.strings.paymentRequired);
     }
   }
 
-  Widget _methodRow(AppStrings s, String label, TextEditingController controller) {
+  Widget _methodRow(AppStrings s, String label, TextEditingController controller,
+      {ValueChanged<String>? onChanged}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -831,6 +1088,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
           Expanded(
             child: TextField(
               controller: controller,
+              onChanged: onChanged,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
@@ -859,12 +1117,33 @@ class _PaymentSheetState extends State<PaymentSheet> {
               const SizedBox(height: 4),
               Text(s.formatMoney(widget.totalMinor, widget.currency),
                   style: Theme.of(context).textTheme.titleMedium),
+              if (widget.tableName != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.table_restaurant, size: 16),
+                    const SizedBox(width: 6),
+                    Text(widget.tableName!,
+                        style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
               _methodRow(s, s.cash, _cashController),
               _methodRow(s, s.card, _cardController),
               _methodRow(s, s.mobilePayment, _mobileController),
+              _methodRow(s, s.tip, _tipController,
+                  onChanged: (_) => setState(() {})),
               Text(s.remainingLabel,
                   style: Theme.of(context).textTheme.bodySmall),
+              Text(s.grandTotal,
+                  style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                s.formatMoney(
+                    widget.totalMinor + (minorFromInput(_tipController.text) ?? 0),
+                    widget.currency),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               if (widget.receiptFooter.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(widget.receiptFooter,
@@ -998,31 +1277,82 @@ class _StockBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final negative = quantity < 0;
     final out = quantity <= 0;
-    final background =
-        out ? colorScheme.errorContainer : colorScheme.surfaceContainerHighest;
+    final background = out
+        ? colorScheme.errorContainer
+        : colorScheme.surfaceContainerHighest;
     final foreground =
         out ? colorScheme.onErrorContainer : colorScheme.onSurfaceVariant;
-    final label = out ? strings.outOfStock : '$quantity';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(out ? Icons.remove_shopping_cart : Icons.inventory_2,
-              size: 14, color: foreground),
-          const SizedBox(width: 4),
-          Text(label,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: foreground)),
-        ],
+    final label = negative
+        ? '$quantity'
+        : out
+            ? strings.outOfStock
+            : '$quantity';
+    return Tooltip(
+      message: negative ? strings.backorderHint : '',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(out ? Icons.remove_shopping_cart : Icons.inventory_2,
+                size: 14, color: foreground),
+            const SizedBox(width: 4),
+            Text(label,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(color: foreground)),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _ProductImage extends StatelessWidget {
+  const _ProductImage({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return _fallback(context);
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        imageUrl,
+        height: 44,
+        width: 44,
+        fit: BoxFit.cover,
+        errorBuilder: (_, error, stackTrace) => _fallback(context),
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const SizedBox(
+            height: 44,
+            width: 44,
+            child: Center(
+              child: SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _fallback(BuildContext cx) {
+    return Icon(Icons.inventory_2_outlined,
+        size: 32, color: Theme.of(cx).colorScheme.primary);
   }
 }

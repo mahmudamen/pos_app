@@ -5,8 +5,10 @@ import 'package:uuid/uuid.dart';
 
 import 'customers.dart';
 import 'dashboard.dart';
+import 'inventory.dart';
 import 'payments.dart';
 import 'receipts.dart';
+import 'restaurants.dart';
 import 'registers.dart';
 import 'session_store.dart';
 
@@ -40,7 +42,42 @@ class ApiClient {
       }),
     );
     if (response.statusCode != 200) {
-      throw ApiException(_message(response));
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
+    return Session.fromJson(data);
+  }
+
+  Future<Session> register({
+    required String storeName,
+    required String businessType,
+    required String email,
+    required String password,
+    required String displayName,
+    required String deviceId,
+    required String deviceName,
+    String countryCode = 'EG',
+    String currencyCode = 'EGP',
+    String language = 'ar',
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/v1/auth/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'store_name': storeName,
+        'business_type': businessType,
+        'email': email,
+        'password': password,
+        'display_name': displayName,
+        'country_code': countryCode,
+        'currency_code': currencyCode,
+        'default_language': language,
+        'device_id': deviceId,
+        'device_name': deviceName,
+      }),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response), code: _errorCode(response));
     }
     final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
     return Session.fromJson(data);
@@ -156,6 +193,7 @@ class ApiClient {
     int stockQuantity = 0,
     String? barcode,
     String? categoryId,
+    String? imageUrl,
   }) async {
     final response = await _authenticatedRequest(
       session,
@@ -175,6 +213,7 @@ class ApiClient {
           'stock_quantity': stockQuantity,
           if (barcode != null) 'barcode': barcode,
           if (categoryId != null) 'category_id': categoryId,
+          if (imageUrl != null) 'image_url': imageUrl,
         }),
       ),
     );
@@ -193,6 +232,7 @@ class ApiClient {
     int? stockQuantity,
     String? barcode,
     String? categoryId,
+    String? imageUrl,
     bool? isActive,
   }) async {
     final response = await _authenticatedRequest(
@@ -213,6 +253,7 @@ class ApiClient {
           if (stockQuantity != null) 'stock_quantity': stockQuantity,
           if (barcode != null) 'barcode': barcode,
           if (categoryId != null) 'category_id': categoryId,
+          if (imageUrl != null) 'image_url': imageUrl,
           if (isActive != null) 'is_active': isActive,
         }),
       ),
@@ -227,6 +268,7 @@ class ApiClient {
     String? idempotencyKey,
     List<PaymentInput>? payments,
     String? sessionId,
+    String? tableId,
   }) async {
     final requestIdempotencyKey = idempotencyKey ?? const Uuid().v4();
     final response = await _authenticatedRequest(
@@ -249,6 +291,7 @@ class ApiClient {
           if (payments != null && payments.isNotEmpty)
             'payments': payments.map((p) => p.toJson()).toList(),
           if (sessionId != null) 'session_id': sessionId,
+          if (tableId != null && tableId.isNotEmpty) 'table_id': tableId,
         }),
       ),
     );
@@ -414,6 +457,59 @@ class ApiClient {
         jsonDecode(respond.body)['data'] as Map<String, dynamic>);
   }
 
+  Future<AdjustmentResult> createInventoryAdjustment(
+    Session session, {
+    required String productId,
+    required String reason,
+    required int quantityDelta,
+    String note = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/inventory/adjustments'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'product_id': productId,
+          'reason': reason,
+          'quantity_delta': quantityDelta,
+          if (note.isNotEmpty) 'note': note,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond));
+    }
+    return AdjustmentResult.fromJson(
+        jsonDecode(respond.body) as Map<String, dynamic>);
+  }
+
+  Future<InventoryAdjustmentPage> listInventoryAdjustments(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/inventory/adjustments?page=$page&limit=$limit'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return InventoryAdjustmentPage.fromJson(
+        jsonDecode(respond.body) as Map<String, dynamic>);
+  }
+
   Future<SyncPullPage> syncPull(
     Session session, {
     int cursor = 0,
@@ -530,6 +626,24 @@ class ApiClient {
     }
     final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
     return SaleReceipt.fromJson(data);
+  }
+
+  Future<SaleDetail> saleDetail(Session session, String saleId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/sales/$saleId'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
+    return SaleDetail.fromJson(data);
   }
 
   Future<TenantSettings> settings(Session session) async {
@@ -691,6 +805,77 @@ class ApiClient {
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
   }
 
+  Future<List<Floor>> floors(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/floors'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data
+        .map((item) => Floor.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<RestaurantTable>> tables(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/tables'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data
+        .map((item) => RestaurantTable.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SplitBillResult> splitSale(
+    Session session,
+    String saleId,
+    List<List<SplitBillLine>> children,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/sales/$saleId/split'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          'Idempotency-Key': 'split:${const Uuid().v4()}',
+        },
+        body: jsonEncode({
+          'children': children
+              .map((child) => {
+                    'lines': child.map((line) => line.toJson()).toList(),
+                  })
+              .toList(),
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    return SplitBillResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
   Future<http.Response> _authenticatedRequest(
     Session session,
     Future<http.Response> Function(String accessToken) request,
@@ -729,6 +914,15 @@ class ApiClient {
       return 'Request failed (${response.statusCode})';
     }
   }
+
+  String? _errorCode(http.Response response) {
+    try {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['error']?['code'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 class Product {
@@ -742,6 +936,8 @@ class Product {
     required this.stockQuantity,
     this.categoryId = '',
     this.costMinor = 0,
+    this.imageUrl = '',
+    this.description = '',
     this.isActive = true,
   });
 
@@ -755,6 +951,8 @@ class Product {
         stockQuantity: (json['stock_quantity'] as num).toInt(),
         categoryId: json['category_id'] as String? ?? '',
         costMinor: (json['cost_minor'] as num?)?.toInt() ?? 0,
+        imageUrl: json['image_url'] as String? ?? '',
+        description: json['description'] as String? ?? '',
         isActive: json['is_active'] as bool? ?? true,
       );
 
@@ -767,6 +965,8 @@ class Product {
   final int stockQuantity;
   final String categoryId;
   final int costMinor;
+  final String imageUrl;
+  final String description;
   final bool isActive;
 }
 
@@ -832,8 +1032,11 @@ class RefundResult {
 }
 
 class ApiException implements Exception {
-  const ApiException(this.message);
+  const ApiException(this.message, {this.code});
   final String message;
+  final String? code;
+
+  bool get isTrialExpired => code == 'trial_expired';
 
   @override
   String toString() => message;
@@ -855,6 +1058,53 @@ class Category {
   final String id;
   final String name;
   final String slug;
+}
+
+class SaleDetail {
+  const SaleDetail({
+    required this.id,
+    required this.status,
+    required this.currency,
+    required this.items,
+  });
+
+  factory SaleDetail.fromJson(Map<String, dynamic> json) => SaleDetail(
+        id: json['id'] as String,
+        status: json['status'] as String? ?? 'completed',
+        currency: json['currency'] as String? ?? 'EGP',
+        items: (json['items'] as List<dynamic>? ?? [])
+            .map((item) => SaleDetailItem.fromJson(item as Map<String, dynamic>))
+            .toList(),
+      );
+
+  final String id;
+  final String status;
+  final String currency;
+  final List<SaleDetailItem> items;
+}
+
+class SaleDetailItem {
+  const SaleDetailItem({
+    required this.id,
+    required this.productName,
+    required this.quantity,
+    required this.unitPriceMinor,
+    required this.totalMinor,
+  });
+
+  factory SaleDetailItem.fromJson(Map<String, dynamic> json) => SaleDetailItem(
+        id: json['id'] as String? ?? '',
+        productName: json['product_name'] as String? ?? '',
+        quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+        unitPriceMinor: (json['unit_price_minor'] as num?)?.toInt() ?? 0,
+        totalMinor: (json['total_minor'] as num?)?.toInt() ?? 0,
+      );
+
+  final String id;
+  final String productName;
+  final int quantity;
+  final int unitPriceMinor;
+  final int totalMinor;
 }
 
 class SaleSummary {
@@ -1151,6 +1401,7 @@ class TenantSettings {
     this.defaultPaymentMethod = PaymentMethod.cash,
     this.showStockBadges = true,
     this.receiptFooter = '',
+    this.allowNegativeStock = false,
   });
 
   factory TenantSettings.fromJson(Map<String, dynamic> json) => TenantSettings(
@@ -1159,28 +1410,34 @@ class TenantSettings {
         showStockBadges:
             (json['pos.show_stock_badges'] as String?) != 'false',
         receiptFooter: json['pos.receipt_footer'] as String? ?? '',
+        allowNegativeStock:
+            (json['inventory.allow_negative_stock'] as String?) == 'true',
       );
 
   final PaymentMethod defaultPaymentMethod;
   final bool showStockBadges;
   final String receiptFooter;
+  final bool allowNegativeStock;
 
   TenantSettings copyWith({
     PaymentMethod? defaultPaymentMethod,
     bool? showStockBadges,
     String? receiptFooter,
+    bool? allowNegativeStock,
   }) =>
       TenantSettings(
         defaultPaymentMethod:
             defaultPaymentMethod ?? this.defaultPaymentMethod,
         showStockBadges: showStockBadges ?? this.showStockBadges,
         receiptFooter: receiptFooter ?? this.receiptFooter,
+        allowNegativeStock: allowNegativeStock ?? this.allowNegativeStock,
       );
 
   Map<String, String> toUpdateMap() => {
         'pos.default_payment_method': defaultPaymentMethod.wireName,
         'pos.show_stock_badges': '$showStockBadges',
         'pos.receipt_footer': receiptFooter,
+        'inventory.allow_negative_stock': '$allowNegativeStock',
       };
 }
 

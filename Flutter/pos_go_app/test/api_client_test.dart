@@ -6,9 +6,11 @@ import 'package:http/http.dart' as http;
 import 'package:pos_go_app/core/api_client.dart';
 import 'package:pos_go_app/core/customers.dart';
 import 'package:pos_go_app/core/dashboard.dart';
+import 'package:pos_go_app/core/inventory.dart';
 import 'package:pos_go_app/core/payments.dart';
 import 'package:pos_go_app/core/receipts.dart';
 import 'package:pos_go_app/core/registers.dart';
+import 'package:pos_go_app/core/restaurants.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
 void main() {
@@ -98,6 +100,7 @@ void main() {
     expect(settings.defaultPaymentMethod, PaymentMethod.cash);
     expect(settings.showStockBadges, isTrue);
     expect(settings.receiptFooter, '');
+    expect(settings.allowNegativeStock, isFalse);
   });
 
   test('TenantSettings parses configured values', () {
@@ -105,14 +108,17 @@ void main() {
       'pos.default_payment_method': 'card',
       'pos.show_stock_badges': 'false',
       'pos.receipt_footer': 'Thanks!',
+      'inventory.allow_negative_stock': 'true',
     });
     expect(settings.defaultPaymentMethod, PaymentMethod.card);
     expect(settings.showStockBadges, isFalse);
     expect(settings.receiptFooter, 'Thanks!');
+    expect(settings.allowNegativeStock, isTrue);
     expect(settings.toUpdateMap(), {
       'pos.default_payment_method': 'card',
       'pos.show_stock_badges': 'false',
       'pos.receipt_footer': 'Thanks!',
+      'inventory.allow_negative_stock': 'true',
     });
   });
 
@@ -131,6 +137,7 @@ void main() {
     expect(settings.defaultPaymentMethod, PaymentMethod.card);
     expect(settings.showStockBadges, isFalse);
     expect(settings.receiptFooter, 'Welcome to Demo Restaurant');
+    expect(settings.allowNegativeStock, isTrue);
   });
 
   test('updateSettings sends the whitelisted payload', () async {
@@ -387,6 +394,65 @@ expect(() => client.dashboardSummary(session),
     );
     expect(customer.id, 'customer-1');
     expect(customer.loyaltyPoints, 0);
+  });
+
+  test('InventoryAdjustment parses the Go adjustment row', () {
+    final parsed = InventoryAdjustment.fromJson(const {
+      'id': 'adj-1',
+      'product_id': 'product-1',
+      'product_name': 'Cappuccino',
+      'sku': 'CAP-001',
+      'reason': 'restock',
+      'quantity_delta': 10,
+      'note': 'invoice #12',
+      'created_by': 'Restaurant Admin',
+      'created_at': '2026-09-14 12:00:00',
+    });
+    expect(parsed.id, 'adj-1');
+    expect(parsed.productId, 'product-1');
+    expect(parsed.productName, 'Cappuccino');
+    expect(parsed.reason, 'restock');
+    expect(parsed.quantityDelta, 10);
+    expect(parsed.isCredit, isTrue);
+    final loss =
+        InventoryAdjustment.fromJson(const {'quantity_delta': -3});
+    expect(loss.isCredit, isFalse);
+  });
+
+  test('createInventoryAdjustment posts /v1/inventory/adjustments', () async {
+    final client = ApiClient(client: _CreateAdjustmentClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Branch Manager',
+      tenantId: 'tenant-1',
+    );
+    final result = await client.createInventoryAdjustment(
+      session,
+      productId: 'product-1',
+      reason: 'restock',
+      quantityDelta: 12,
+      note: 'supplier drop',
+    );
+    expect(result.adjustment.id, 'adj-1');
+    expect(result.adjustment.reason, 'restock');
+    expect(result.newStock, 52);
+  });
+
+  test('listInventoryAdjustments fetches /v1/inventory/adjustments', () async {
+    final client = ApiClient(client: _AdjustmentsListClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Branch Manager',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.listInventoryAdjustments(session, page: 1);
+    expect(page.items, isNotEmpty);
+    expect(page.total, 2);
+    expect(page.items.first.quantityDelta, -2);
   });
 
   test('syncPull fetches /v1/sync/pull with cursor + limit params', () async {
@@ -956,6 +1022,46 @@ expect(() => client.dashboardSummary(session),
     });
   });
 
+  group('register', () {
+    test('creates a trial store and parses the trial session', () async {
+      final client = ApiClient(client: _RegisterClient());
+      final session = await client.register(
+        storeName: 'My Coffee',
+        businessType: 'coffee_shop',
+        email: 'owner@mycoffee.com',
+        password: 'secret-pass-1',
+        displayName: 'Owner',
+        deviceId: 'dev-1',
+        deviceName: 'Counter 1',
+      );
+      expect(session.tenantId, 'tenant-new');
+      expect(session.businessType, 'coffee_shop');
+      expect(session.plan, 'trial');
+      expect(session.trialEndsAt, '2026-09-29T00:00:00Z');
+      expect(session.isTrial, isTrue);
+      expect(session.role, 'owner');
+    });
+
+    test('maps a 403 trial_expired response onto the ApiException code',
+        () async {
+      final client = ApiClient(client: _TrialExpiredClient());
+      try {
+        await client.register(
+          storeName: 's',
+          businessType: 'coffee_shop',
+          email: 'e@example.com',
+          password: 'secret-123',
+          displayName: 'o',
+          deviceId: 'd',
+          deviceName: 'n',
+        );
+        fail('register should throw on trial_expired');
+      } on ApiException catch (error) {
+        expect(error.isTrialExpired, isTrue);
+      }
+    });
+  });
+
   group('logout', () {
     test('sends Bearer token and expects 204', () async {
       final client = ApiClient(client: _LogoutClient());
@@ -1020,6 +1126,7 @@ expect(() => client.dashboardSummary(session),
         'stock_quantity': 10,
         'category_id': 'cat-1',
         'cost_minor': 120,
+        'image_url': 'https://example.com/latte.png',
         'is_active': true,
       });
       expect(product.id, 'p-1');
@@ -1028,6 +1135,7 @@ expect(() => client.dashboardSummary(session),
       expect(product.priceMinor, 350);
       expect(product.categoryId, 'cat-1');
       expect(product.costMinor, 120);
+      expect(product.imageUrl, 'https://example.com/latte.png');
       expect(product.isActive, true);
     });
 
@@ -1043,6 +1151,7 @@ expect(() => client.dashboardSummary(session),
       expect(product.barcode, '');
       expect(product.categoryId, '');
       expect(product.costMinor, 0);
+      expect(product.imageUrl, '');
       expect(product.isActive, true);
     });
 
@@ -1111,6 +1220,78 @@ expect(() => client.dashboardSummary(session),
         expect(e.message, contains('Request failed'));
         expect(e.message, contains('502'));
       }
+    });
+
+    test('floors fetches the restaurant floors list', () async {
+      final client = ApiClient(client: _FloorsClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final floors = await client.floors(session);
+      expect(floors, hasLength(2));
+      expect(floors.first.name, 'Ground');
+      expect(floors.last.sortOrder, 1);
+    });
+
+    test('tables fetches tables with status and floor name', () async {
+      final client = ApiClient(client: _TablesClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final tables = await client.tables(session);
+      expect(tables, hasLength(2));
+      expect(tables.first.id, 'table-1');
+      expect(tables.first.name, 'T01');
+      expect(tables.first.floorName, 'Ground');
+      expect(tables.first.isAvailable, isFalse);
+      expect(tables.last.isAvailable, isTrue);
+    });
+
+    test('splitSale posts children and parses created ids', () async {
+      final client = ApiClient(client: _SplitRequestClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final result = await client.splitSale(session, 'sale-9', const [
+        [SplitBillLine(saleItemId: 'line-1', quantity: 2)],
+        [SplitBillLine(saleItemId: 'line-2', quantity: 1)],
+      ]);
+      expect(result.parentSaleId, 'sale-9');
+      expect(result.children, ['sale-9-a', 'sale-9-b']);
+      expect(result.currency, 'EGP');
+    });
+
+    test('createSale sends table_id and tip on the tender line', () async {
+      final client = ApiClient(client: _TableSaleClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final sale = await client.createSale(
+        session,
+        const [SaleItemInput(productId: 'product-1', quantity: 2)],
+        idempotencyKey: 'checkout-table',
+        payments: const [
+          PaymentInput(method: PaymentMethod.cash, amountMinor: 2000, tipMinor: 300),
+        ],
+        tableId: 'table-1',
+      );
+      expect(sale.id, 'sale-8');
     });
   });
 }
@@ -1269,6 +1450,34 @@ class _LoginClient extends http.BaseClient {
   }
 }
 
+class _RegisterClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.url.path, '/v1/auth/register');
+    expect(request.method, 'POST');
+    const body =
+        '{"data":{"access_token":"access-token","refresh_token":"refresh-token","expires_in":3600,"device_id":"dev-1","user":{"id":"u-1","display_name":"Owner","role":"owner","account_type":"standard"},"tenant":{"id":"tenant-new","business_type":"coffee_shop","country_code":"EG","currency_code":"EGP","default_language":"ar","plan":"trial","trial_ends_at":"2026-09-29T00:00:00Z"}}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _TrialExpiredClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.url.path, '/v1/auth/register');
+    return http.StreamedResponse(
+      Stream.value(
+          '{"error":{"code":"trial_expired","message":"trial has expired"}}'.codeUnits),
+      403,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
 class _LogoutClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -1339,7 +1548,7 @@ class _SettingsClient extends http.BaseClient {
     expect(request.url.path, '/v1/settings');
     expect(request.headers['Authorization'], 'Bearer access-token');
     const body =
-        '{"data":{"pos.default_payment_method":"card","pos.show_stock_badges":"false","pos.receipt_footer":"Welcome to Demo Restaurant"},"meta":{"request_id":"t"}}';
+        '{"data":{"pos.default_payment_method":"card","pos.show_stock_badges":"false","pos.receipt_footer":"Welcome to Demo Restaurant","inventory.allow_negative_stock":"true"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(body.codeUnits),
       200,
@@ -1361,10 +1570,11 @@ class _UpdateSettingsClient extends http.BaseClient {
         'pos.default_payment_method': 'mobile',
         'pos.show_stock_badges': 'true',
         'pos.receipt_footer': 'Thanks for visiting!',
+        'inventory.allow_negative_stock': 'false',
       }
     });
     const response =
-        '{"data":{"pos.default_payment_method":"mobile","pos.show_stock_badges":"true","pos.receipt_footer":"Thanks for visiting!"},"meta":{"request_id":"t"}}';
+        '{"data":{"pos.default_payment_method":"mobile","pos.show_stock_badges":"true","pos.receipt_footer":"Thanks for visiting!","inventory.allow_negative_stock":"false"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,
@@ -1547,6 +1757,46 @@ class _CreateCustomerClient extends http.BaseClient {
   }
 }
 
+class _CreateAdjustmentClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/inventory/adjustments');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = await request.finalize().bytesToString();
+    expect(jsonDecode(body), {
+      'product_id': 'product-1',
+      'reason': 'restock',
+      'quantity_delta': 12,
+      'note': 'supplier drop',
+    });
+    const response =
+        '{"data":{"id":"adj-1","product_id":"product-1","product_name":"Cappuccino","sku":"CAP-001","reason":"restock","quantity_delta":12,"note":"supplier drop","created_by":"Branch Manager","created_at":"2026-09-14 12:00:00"},"meta":{"request_id":"t","stock_quantity":52}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _AdjustmentsListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/inventory/adjustments');
+    expect(request.url.queryParameters['page'], '1');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response =
+        '{"data":[{"id":"adj-2","product_id":"product-2","product_name":"Croissant","sku":"CRN-001","reason":"damaged","quantity_delta":-2,"note":"","created_by":"Branch Manager","created_at":"2026-09-14 11:00:00"},{"id":"adj-1","product_id":"product-1","product_name":"Cappuccino","sku":"CAP-001","reason":"count","quantity_delta":5,"note":"","created_by":"Branch Manager","created_at":"2026-09-14 10:00:00"}],"meta":{"request_id":"t","page":1,"limit":50,"total":2}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
 class _SyncPullClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -1656,9 +1906,101 @@ class _SyncExpiredClient extends http.BaseClient {
     expect(request.url.path, '/v1/sync/pull');
     const response =
         '{"error":{"code":"cursor_expired","message":"cursor is older than the retention window"}}';
+return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+       409,
+       headers: {'content-type': 'application/json'},
+     );
+   }
+ }
+
+class _FloorsClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/floors');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const body =
+        '{"data":[{"id":"floor-1","name":"Ground"},'
+        '{"id":"floor-2","name":"First","sort_order":1}],'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _TablesClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/tables');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const body =
+        '{"data":[{"id":"table-1","floor_id":"floor-1","name":"T01","seats":4,'
+        '"status":"occupied","floor_name":"Ground"},'
+        '{"id":"table-2","floor_id":"floor-2","name":"T02","seats":2,'
+        '"status":"free","floor_name":"First"}],'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SplitRequestClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sales/sale-9/split');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    expect(request.headers['Idempotency-Key'], isNotNull);
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    final children = body['children'] as List<dynamic>;
+    expect(children, hasLength(2));
+    final lines =
+        (children.first as Map<String, dynamic>)['lines'] as List<dynamic>;
+    expect(lines.single, {'sale_item_id': 'line-1', 'quantity': 2});
+    const response =
+        '{"data":{"parent_sale_id":"sale-9",'
+        '"children":["sale-9-a","sale-9-b"],"currency":"EGP"},'
+        '"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
-      409,
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _TableSaleClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sales');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    expect(request.headers['Idempotency-Key'], 'checkout-table');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['table_id'], 'table-1');
+    final payments = body['payments'] as List<dynamic>;
+    expect(payments.single, {
+      'method': 'cash',
+      'amount_minor': 2000,
+      'tip_minor': 300,
+    });
+    const response =
+        '{"data":{"id":"sale-8","subtotal_minor":1700,"total_minor":1700,'
+        '"currency":"EGP","payment_method":"cash","tips_minor":300},'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
       headers: {'content-type': 'application/json'},
     );
   }

@@ -36,6 +36,19 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 -- the tables drive the rest; this covers future migrations' sequences too.
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pos_app;
 
+-- Merchant signup stores email uniqueness in store_emails, which is a plain
+-- (non-RLS) table so concurrent registrations across tenants are safe. Grant
+-- the app rows INSERT+SELECT; the least-privilege pos_app_rls role gets the
+-- same when it is provisioned (production only).
+GRANT SELECT, INSERT ON TABLE store_emails TO pos_app;
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT ON TABLE store_emails TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- The sync/analytics handlers call set_config with app.current_tenant; that is
 -- allowed for any role (it is a per-session GUC), verified by the RLS tests.
 -- No special grant required beyond the above.

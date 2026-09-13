@@ -62,6 +62,8 @@ type productRequest struct {
 	CostMinor     int64   `json:"cost_minor" binding:"gte=0"`
 	Currency      string  `json:"currency" binding:"required,len=3"`
 	StockQuantity int64   `json:"stock_quantity" binding:"gte=0"`
+	ImageURL      string  `json:"image_url"`
+	Description   string  `json:"description"`
 }
 
 type productPatchRequest struct {
@@ -73,6 +75,8 @@ type productPatchRequest struct {
 	CostMinor     *int64  `json:"cost_minor"`
 	Currency      *string `json:"currency"`
 	StockQuantity *int64  `json:"stock_quantity"`
+	ImageURL      *string `json:"image_url"`
+	Description   *string `json:"description"`
 	IsActive      *bool   `json:"is_active"`
 }
 
@@ -373,8 +377,8 @@ func (h *Handler) updateProduct(c *gin.Context) {
 	}
 	_, err = tx.Exec(c.Request.Context(), `
 		UPDATE products SET category_id = NULLIF($1, '')::uuid, name = $2, sku = $3, barcode = NULLIF($4, ''),
-		price_minor = $5, cost_minor = $6, currency = $7, stock_quantity = $8, is_active = $9
-		WHERE id = $10::uuid`, current.CategoryID, current.Name, current.SKU, current.Barcode, current.PriceMinor, current.CostMinor, current.Currency, current.StockQuantity, current.IsActive, c.Param("id"))
+		price_minor = $5, cost_minor = $6, currency = $7, stock_quantity = $8, image_url = $9, description = $10, is_active = $11
+		WHERE id = $12::uuid`, current.CategoryID, current.Name, current.SKU, current.Barcode, current.PriceMinor, current.CostMinor, current.Currency, current.StockQuantity, current.ImageURL, current.Description, current.IsActive, c.Param("id"))
 	if err != nil {
 		writeError(c, http.StatusConflict, "product_conflict", "product SKU or barcode is already in use")
 		return
@@ -433,7 +437,7 @@ func (h *Handler) listProducts(c *gin.Context) {
 	}
 
 	rows, err := tx.Query(c.Request.Context(), `
-		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity
+		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, '')
 		FROM products WHERE is_active
 		  AND ($1 = '' OR name ILIKE '%' || $1 || '%' OR sku ILIKE '%' || $1 || '%' OR barcode ILIKE '%' || $1 || '%')
 		ORDER BY name
@@ -446,7 +450,7 @@ func (h *Handler) listProducts(c *gin.Context) {
 	products := make([]Product, 0)
 	for rows.Next() {
 		var product Product
-		if err := rows.Scan(&product.ID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity); err != nil {
+		if err := rows.Scan(&product.ID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load products")
 			return
 		}
@@ -497,9 +501,9 @@ func (h *Handler) getByBarcode(c *gin.Context) {
 	}
 	var product Product
 	err = tx.QueryRow(c.Request.Context(), `
-		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity
+		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, '')
 		FROM products WHERE barcode = $1 AND is_active`, c.Param("barcode")).Scan(
-		&product.ID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity)
+		&product.ID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description)
 	if err != nil {
 		writeError(c, http.StatusNotFound, "product_not_found", "product not found")
 		return
@@ -535,6 +539,8 @@ type Product struct {
 	CostMinor     int64  `json:"cost_minor"`
 	Currency      string `json:"currency"`
 	StockQuantity int64  `json:"stock_quantity"`
+	ImageURL      string `json:"image_url"`
+	Description   string `json:"description"`
 	IsActive      bool   `json:"is_active"`
 }
 
@@ -568,20 +574,20 @@ func insertProduct(c *gin.Context, tx pgx.Tx, tenantID string, request productRe
 	}
 	var product Product
 	err := tx.QueryRow(c.Request.Context(), `
-		INSERT INTO products (tenant_id, category_id, name, sku, barcode, price_minor, cost_minor, currency, stock_quantity)
-		VALUES ($1::uuid, NULLIF($2, '')::uuid, $3, $4, NULLIF($5, ''), $6, $7, $8, $9)
-		RETURNING id, COALESCE(category_id::text, ''), name, sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, is_active`,
-		tenantID, categoryID, strings.TrimSpace(request.Name), strings.TrimSpace(request.SKU), strings.TrimSpace(request.Barcode), request.PriceMinor, request.CostMinor, strings.ToUpper(strings.TrimSpace(request.Currency)), request.StockQuantity).Scan(
-		&product.ID, &product.CategoryID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.IsActive)
+		INSERT INTO products (tenant_id, category_id, name, sku, barcode, price_minor, cost_minor, currency, stock_quantity, image_url, description)
+		VALUES ($1::uuid, NULLIF($2, '')::uuid, $3, $4, NULLIF($5, ''), $6, $7, $8, $9, $10, $11)
+		RETURNING id, COALESCE(category_id::text, ''), name, sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), is_active`,
+		tenantID, categoryID, strings.TrimSpace(request.Name), strings.TrimSpace(request.SKU), strings.TrimSpace(request.Barcode), request.PriceMinor, request.CostMinor, strings.ToUpper(strings.TrimSpace(request.Currency)), request.StockQuantity, strings.TrimSpace(request.ImageURL), strings.TrimSpace(request.Description)).Scan(
+		&product.ID, &product.CategoryID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.IsActive)
 	return product, err
 }
 
 func queryProduct(c *gin.Context, tx pgx.Tx, id string) (Product, error) {
 	var product Product
 	err := tx.QueryRow(c.Request.Context(), `
-		SELECT id, COALESCE(category_id::text, ''), name, sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, is_active
+		SELECT id, COALESCE(category_id::text, ''), name, sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), is_active
 		FROM products WHERE id = $1::uuid`, id).Scan(
-		&product.ID, &product.CategoryID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.IsActive)
+		&product.ID, &product.CategoryID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.IsActive)
 	return product, err
 }
 
@@ -609,6 +615,12 @@ func applyPatch(product *Product, request productPatchRequest) {
 	}
 	if request.StockQuantity != nil {
 		product.StockQuantity = *request.StockQuantity
+	}
+	if request.ImageURL != nil {
+		product.ImageURL = strings.TrimSpace(*request.ImageURL)
+	}
+	if request.Description != nil {
+		product.Description = strings.TrimSpace(*request.Description)
 	}
 	if request.IsActive != nil {
 		product.IsActive = *request.IsActive

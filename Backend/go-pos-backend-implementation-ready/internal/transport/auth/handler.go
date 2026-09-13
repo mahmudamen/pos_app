@@ -52,6 +52,7 @@ type refreshRequest struct {
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
+	router.POST("/auth/register", h.Signup)
 	router.POST("/auth/login", h.Login())
 	router.POST("/auth/refresh", h.Refresh())
 	router.POST("/auth/logout", h.Logout())
@@ -259,12 +260,18 @@ func (h *Handler) login(c *gin.Context) {
 	defer tx.Rollback(ctx)
 
 	var tenantID, businessType, countryCode, currencyCode, defaultLanguage string
+	var plan string
+	var trialEndsAt *time.Time
 	err = tx.QueryRow(ctx, `
-		SELECT id, business_type, country_code, currency_code, default_language
+		SELECT id, business_type, country_code, currency_code, default_language, plan, trial_ends_at
 		FROM tenants WHERE id::text = $1 OR slug = $1`, request.TenantID).
-		Scan(&tenantID, &businessType, &countryCode, &currencyCode, &defaultLanguage)
+		Scan(&tenantID, &businessType, &countryCode, &currencyCode, &defaultLanguage, &plan, &trialEndsAt)
 	if err != nil {
 		writeError(c, http.StatusUnauthorized, "invalid_credentials", "email or password is incorrect")
+		return
+	}
+	if plan == "trial" && trialEndsAt != nil && trialEndsAt.Before(time.Now()) {
+		writeError(c, http.StatusForbidden, "trial_expired", "the 15-day trial has ended; renew your plan to continue")
 		return
 	}
 	if _, err = tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID); err != nil {
@@ -343,6 +350,7 @@ func (h *Handler) login(c *gin.Context) {
 		"tenant": gin.H{
 			"id": tenantID, "business_type": businessType,
 			"country_code": countryCode, "currency_code": currencyCode, "default_language": defaultLanguage,
+			"plan": plan, "trial_ends_at": formatTrialEndsAt(trialEndsAt),
 		},
 	}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
@@ -424,4 +432,11 @@ func hashToken(token string) string {
 
 func writeError(c *gin.Context, status int, code, message string) {
 	c.JSON(status, gin.H{"error": gin.H{"code": code, "message": message, "request_id": c.GetString("request_id")}})
+}
+
+func formatTrialEndsAt(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+	return t.UTC().Format(time.RFC3339)
 }

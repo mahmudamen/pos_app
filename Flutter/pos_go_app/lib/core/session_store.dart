@@ -14,6 +14,8 @@ class Session {
     this.countryCode = 'EG',
     this.currencyCode = 'EGP',
     this.defaultLanguage = 'ar',
+    this.plan = '',
+    this.trialEndsAt,
   });
 
   factory Session.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,8 @@ class Session {
       countryCode: tenant['country_code'] as String? ?? 'EG',
       currencyCode: tenant['currency_code'] as String? ?? 'EGP',
       defaultLanguage: tenant['default_language'] as String? ?? 'ar',
+      plan: tenant['plan'] as String? ?? '',
+      trialEndsAt: tenant['trial_ends_at'] as String?,
     );
   }
 
@@ -47,6 +51,8 @@ class Session {
   final String countryCode;
   final String currencyCode;
   final String defaultLanguage;
+  final String plan;
+  final String? trialEndsAt;
 
   bool get isPlatformAdmin => role == 'saas_admin';
 
@@ -55,6 +61,8 @@ class Session {
   bool get isManager => role == 'owner' || role == 'manager';
 
   bool get canManageSettings => isManager || isPlatformAdmin;
+
+  bool get isTrial => plan == 'trial';
 
   Session copyWith({
     String? accessToken,
@@ -66,6 +74,8 @@ class Session {
     String? countryCode,
     String? currencyCode,
     String? defaultLanguage,
+    String? plan,
+    String? trialEndsAt,
   }) =>
       Session(
         accessToken: accessToken ?? this.accessToken,
@@ -80,6 +90,8 @@ class Session {
         countryCode: countryCode ?? this.countryCode,
         currencyCode: currencyCode ?? this.currencyCode,
         defaultLanguage: defaultLanguage ?? this.defaultLanguage,
+        plan: plan ?? this.plan,
+        trialEndsAt: trialEndsAt ?? this.trialEndsAt,
       );
 }
 
@@ -110,6 +122,8 @@ class SessionStore {
   static const _countryCodeKey = 'country_code';
   static const _currencyCodeKey = 'currency_code';
   static const _defaultLanguageKey = 'default_language';
+  static const _planKey = 'tenant_plan';
+  static const _trialEndsAtKey = 'tenant_trial_ends_at';
 
   static const _languageKey = 'app_language';
   static const _languageCustomizedKey = 'app_language_customized';
@@ -119,6 +133,8 @@ class SessionStore {
   static const _rememberEmailKey = 'remember_email';
   static const _rememberDeviceNameKey = 'remember_device_name';
   static const _rememberPasswordKey = 'remember_password';
+
+  static const _focusModeKey = 'focus_mode';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -171,6 +187,8 @@ class SessionStore {
       _storage.write(key: _countryCodeKey, value: session.countryCode),
       _storage.write(key: _currencyCodeKey, value: session.currencyCode),
       _storage.write(key: _defaultLanguageKey, value: session.defaultLanguage),
+      _storage.write(key: _planKey, value: session.plan),
+      _storage.write(key: _trialEndsAtKey, value: session.trialEndsAt ?? ''),
       if (session.deviceId.isNotEmpty)
         _storage.write(key: _deviceIdKey, value: session.deviceId),
     ]);
@@ -189,6 +207,8 @@ class SessionStore {
       _storage.delete(key: _countryCodeKey),
       _storage.delete(key: _currencyCodeKey),
       _storage.delete(key: _defaultLanguageKey),
+      _storage.delete(key: _planKey),
+      _storage.delete(key: _trialEndsAtKey),
       // Device id and app language preferences intentionally survive sign-out.
     ]);
   }
@@ -237,6 +257,9 @@ class SessionStore {
       countryCode: await _storage.read(key: _countryCodeKey) ?? 'EG',
       currencyCode: await _storage.read(key: _currencyCodeKey) ?? 'EGP',
       defaultLanguage: await _storage.read(key: _defaultLanguageKey) ?? 'ar',
+      plan: await _storage.read(key: _planKey) ?? '',
+      trialEndsAt: await _storage.read(key: _trialEndsAtKey).then((v) =>
+          (v == null || v.isEmpty) ? null : v),
     );
   }
 
@@ -249,5 +272,14 @@ class SessionStore {
 
   Future<void> saveSyncCursor(String tenantId, int cursor) async {
     await _storage.write(key: _syncKey(tenantId), value: '$cursor');
+  }
+
+  Future<bool> readFocusMode() async {
+    return await _storage.read(key: _focusModeKey) == '1';
+  }
+
+  Future<void> saveFocusMode(bool enabled) async {
+    await _storage.write(
+        key: _focusModeKey, value: enabled ? '1' : '0');
   }
 }

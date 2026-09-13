@@ -53,6 +53,8 @@ void main() {
         'country_code': 'EG',
         'currency_code': 'EGP',
         'default_language': 'ar',
+        'plan': 'trial',
+        'trial_ends_at': '2026-09-29T00:00:00Z',
       },
     });
 
@@ -62,6 +64,9 @@ void main() {
     expect(session.countryCode, 'EG');
     expect(session.currencyCode, 'EGP');
     expect(session.defaultLanguage, 'ar');
+    expect(session.plan, 'trial');
+    expect(session.trialEndsAt, '2026-09-29T00:00:00Z');
+    expect(session.isTrial, isTrue);
     expect(session.isPlatformAdmin, isTrue);
   });
 
@@ -171,6 +176,8 @@ void main() {
       countryCode: 'EG',
       currencyCode: 'EGP',
       defaultLanguage: 'ar',
+      plan: 'trial',
+      trialEndsAt: '2026-09-29T00:00:00Z',
     );
     await store.save(session);
 
@@ -186,6 +193,9 @@ void main() {
     expect(restored.accountType, 'standard');
     expect(restored.businessType, 'grocery');
     expect(restored.defaultLanguage, 'ar');
+    expect(restored.plan, 'trial');
+    expect(restored.trialEndsAt, '2026-09-29T00:00:00Z');
+    expect(restored.isTrial, isTrue);
   });
 
   test('session clear drops tokens but keeps device and language', () async {

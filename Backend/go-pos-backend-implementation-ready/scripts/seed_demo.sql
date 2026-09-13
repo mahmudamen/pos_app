@@ -187,8 +187,8 @@ BEGIN
     SELECT id FROM tenants WHERE slug IN
       ('demo-restaurant', 'demo-book-store', 'demo-mobile-shop', 'demo-computer-shop', 'demo-grocery', 'demo-store')
   LOOP
+    PERFORM set_config('app.current_tenant', tid::text, true);
     IF NOT EXISTS (SELECT 1 FROM users WHERE tenant_id = tid AND role = 'owner') THEN
-      PERFORM set_config('app.current_tenant', tid::text, true);
       INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type)
       SELECT tid, 'owner@' || slug || '.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2',
              (SELECT name FROM tenants WHERE id = tid) || ' Owner', 'owner', 'demo'

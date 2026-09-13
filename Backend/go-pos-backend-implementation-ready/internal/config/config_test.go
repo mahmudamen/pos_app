@@ -336,6 +336,68 @@ func TestLoadRejectsZeroLoginRateMax(t *testing.T) {
 	}
 }
 
+func TestLoadApiRateLimitDefaults(t *testing.T) {
+	clearEnv()
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.ApiRateLimitEnabled {
+		t.Error("ApiRateLimitEnabled: expected false by default")
+	}
+	if cfg.ApiRateLimitMax != 300 {
+		t.Errorf("ApiRateLimitMax: got %d, want 300", cfg.ApiRateLimitMax)
+	}
+	if cfg.ApiRateLimitWindow != time.Minute {
+		t.Errorf("ApiRateLimitWindow: got %v, want 1m", cfg.ApiRateLimitWindow)
+	}
+}
+
+func TestLoadCustomApiRateLimit(t *testing.T) {
+	clearEnv()
+	os.Setenv("RATE_LIMIT_ENABLED", "true")
+	os.Setenv("RATE_LIMIT_MAX", "100")
+	os.Setenv("RATE_LIMIT_WINDOW", "30s")
+	defer func() {
+		os.Unsetenv("RATE_LIMIT_ENABLED")
+		os.Unsetenv("RATE_LIMIT_MAX")
+		os.Unsetenv("RATE_LIMIT_WINDOW")
+	}()
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.ApiRateLimitEnabled {
+		t.Error("ApiRateLimitEnabled: expected true")
+	}
+	if cfg.ApiRateLimitMax != 100 {
+		t.Errorf("ApiRateLimitMax: got %d, want 100", cfg.ApiRateLimitMax)
+	}
+	if cfg.ApiRateLimitWindow != 30*time.Second {
+		t.Errorf("ApiRateLimitWindow: got %v, want 30s", cfg.ApiRateLimitWindow)
+	}
+}
+
+func TestLoadRejectsZeroApiRateLimitMax(t *testing.T) {
+	clearEnv()
+	os.Setenv("RATE_LIMIT_MAX", "0")
+	defer os.Unsetenv("RATE_LIMIT_MAX")
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for RATE_LIMIT_MAX=0")
+	}
+}
+
+func TestLoadRejectsInvalidApiRateLimitBoolean(t *testing.T) {
+	clearEnv()
+	os.Setenv("RATE_LIMIT_ENABLED", "maybe")
+	defer os.Unsetenv("RATE_LIMIT_ENABLED")
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for invalid RATE_LIMIT_ENABLED")
+	}
+}
+
 func TestLoadCustomDurations(t *testing.T) {
 	clearEnv()
 	os.Setenv("HTTP_READ_TIMEOUT", "30s")
@@ -368,6 +430,7 @@ func clearEnv() {
 		"HTTP_IDLE_TIMEOUT", "HTTP_SHUTDOWN_TIMEOUT", "HTTP_MAX_BODY_BYTES",
 		"DB_MAX_CONNS", "DB_MIN_CONNS", "DB_MAX_CONN_LIFETIME", "DB_MAX_CONN_IDLE_TIME",
 		"REDIS_DB", "BCRYPT_COST", "JWT_ACCESS_TTL", "JWT_REFRESH_TTL",
+		"RATE_LIMIT_ENABLED", "RATE_LIMIT_MAX", "RATE_LIMIT_WINDOW",
 	}
 	for _, k := range keys {
 		os.Unsetenv(k)

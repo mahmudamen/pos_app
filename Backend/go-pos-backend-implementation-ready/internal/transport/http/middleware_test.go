@@ -154,6 +154,40 @@ func TestLoginRateLimitWithCustomLimiter(t *testing.T) {
 	}
 }
 
+func TestApiRateLimitBlocksAfterLimit(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(ApiRateLimitWith(ratelimit.NewMemory(2, time.Minute)))
+	router.GET("/v1/saas/summary", func(c *gin.Context) { c.Status(http.StatusOK) })
+	for i := 0; i < 2; i++ {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("request %d: expected 200, got %d", i, recorder.Code)
+		}
+	}
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
+	if recorder.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected 429, got %d", recorder.Code)
+	}
+}
+
+func TestApiRateLimitResetsAfterWindow(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(ApiRateLimitWith(ratelimit.NewMemory(1, 50*time.Millisecond)))
+	router.GET("/v1/saas/summary", func(c *gin.Context) { c.Status(http.StatusOK) })
+	first := httptest.NewRecorder()
+	router.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
+	time.Sleep(60 * time.Millisecond)
+	second := httptest.NewRecorder()
+	router.ServeHTTP(second, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
+	if first.Code != http.StatusOK || second.Code != http.StatusOK {
+		t.Fatalf("expected both 200 after window reset, got %d then %d", first.Code, second.Code)
+	}
+}
+
 func TestLoginRateLimitBlocksAfterLimit(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()

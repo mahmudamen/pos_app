@@ -29,6 +29,23 @@ void main() {
       expect(input.toJson(), {'method': 'card', 'amount_minor': 1250});
     });
 
+    test('toJson omits tip when zero and emits it when set', () {
+      const plain = PaymentInput(method: PaymentMethod.cash, amountMinor: 1000);
+      expect(plain.toJson(), {'method': 'cash', 'amount_minor': 1000});
+      const tipped = PaymentInput(
+          method: PaymentMethod.cash, amountMinor: 1000, tipMinor: 150);
+      expect(tipped.toJson(),
+          {'method': 'cash', 'amount_minor': 1000, 'tip_minor': 150});
+    });
+
+    test('fromJson carries tip_minor and defaults it to zero', () {
+      final tipped =
+          PaymentInput.fromJson({'method': 'cash', 'amount_minor': 1000, 'tip_minor': 150});
+      expect(tipped.tipMinor, 150);
+      final plain = PaymentInput.fromJson({'method': 'cash', 'amount_minor': 1000});
+      expect(plain.tipMinor, 0);
+    });
+
     test('fromJson parses payment lines', () {
       final input = PaymentInput.fromJson({'method': 'mobile', 'amount_minor': 500});
       expect(input.method, PaymentMethod.mobile);
@@ -39,6 +56,17 @@ void main() {
       final input = PaymentInput.fromJson({});
       expect(input.method, PaymentMethod.cash);
       expect(input.amountMinor, 0);
+    });
+
+    test('equality includes tipMinor', () {
+      const a =
+          PaymentInput(method: PaymentMethod.cash, amountMinor: 1000, tipMinor: 150);
+      const b =
+          PaymentInput(method: PaymentMethod.cash, amountMinor: 1000, tipMinor: 150);
+      const c =
+          PaymentInput(method: PaymentMethod.cash, amountMinor: 1000, tipMinor: 0);
+      expect(a, b);
+      expect(a, isNot(c));
     });
   });
 

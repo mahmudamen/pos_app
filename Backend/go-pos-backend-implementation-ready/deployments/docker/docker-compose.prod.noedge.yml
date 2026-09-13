@@ -1,0 +1,14 @@
+# Compose override: run the stack WITHOUT the Caddy edge on hosts where another
+# web server (e.g. nginx) already owns ports 80/443. The API then needs to be
+# reachable directly — set HOST_IP=0.0.0.0 and open API_PORT in the firewall.
+#
+# Use with:
+#   docker compose --env-file .env.prod \
+#     -f deployments/docker/docker-compose.prod.yml \
+#     -f deployments/docker/docker-compose.prod.noedge.yml \
+#     up -d
+name: pos-prod-noedge
+
+services:
+  caddy:
+    profiles: ["edge-off"]

@@ -16,6 +16,9 @@ const (
 	KeyShowStockBadges = "pos.show_stock_badges"
 	// KeyReceiptFooter is the message appended to receipts.
 	KeyReceiptFooter = "pos.receipt_footer"
+	// KeyAllowNegativeStock permits checkout and adjustments to drive the
+	// on-hand counter below zero (backorders).
+	KeyAllowNegativeStock = "inventory.allow_negative_stock"
 )
 
 var settingDefinitions = map[string]validator{
@@ -38,6 +41,12 @@ var settingDefinitions = map[string]validator{
 		}
 		return nil
 	},
+	KeyAllowNegativeStock: func(v string) error {
+		if v == "true" || v == "false" {
+			return nil
+		}
+		return errors.New("must be true or false")
+	},
 }
 
 // defaultSettingValue is returned for keys the tenant has never configured.
@@ -47,6 +56,8 @@ func defaultSettingValue(key string) string {
 		return "cash"
 	case KeyShowStockBadges:
 		return "true"
+	case KeyAllowNegativeStock:
+		return "false"
 	default:
 		return ""
 	}

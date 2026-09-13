@@ -25,9 +25,9 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
-	router.GET("/saas/summary", h.requirePlatformRole, h.summary)
-	router.GET("/saas/tenants", h.requirePlatformRole, h.listTenants)
-	router.GET("/saas/tenants/:id/analytics", h.requirePlatformRole, h.tenantAnalytics)
+	router.GET("/summary", h.requirePlatformRole, h.summary)
+	router.GET("/tenants", h.requirePlatformRole, h.listTenants)
+	router.GET("/tenants/:id/analytics", h.requirePlatformRole, h.tenantAnalytics)
 }
 
 // summary returns platform-wide counts broken down by business type and country.

@@ -29,7 +29,7 @@ func setupSaaSIntegration(t *testing.T) (*gin.Engine, testutil.Seed, *pgxpool.Po
 	router := gin.New()
 	tokens := testutil.TokenManager()
 	api := router.Group("/v1")
-	NewHandler(pool, tokens).Register(api)
+	NewHandler(pool, tokens).Register(api.Group("/saas"))
 	usertransport.NewHandler(pool, tokens).Register(api)
 	catalogtransport.NewHandler(pool, tokens).Register(api)
 	return router, seed, pool

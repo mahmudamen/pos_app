@@ -147,7 +147,12 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       if (mounted) widget.onAuthenticated(session);
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) {
+        final s = AppStrings.of(context);
+        setState(() => _error = (error is ApiException && error.isTrialExpired)
+            ? s.trialExpired
+            : error.toString());
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -181,7 +186,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const Icon(Icons.point_of_sale, size: 54),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/xamltech_logo.png',
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Text('POS Go',
                       style: Theme.of(context).textTheme.displaySmall,

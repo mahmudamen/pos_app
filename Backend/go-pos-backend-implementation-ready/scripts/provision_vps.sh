@@ -101,7 +101,7 @@ SKIP_DEPLOY="${SKIP_DEPLOY:-0}"
 if [ "$SKIP_PKGS" != "1" ]; then
     step "Installing baseline packages"
     $SUDO apt-get update
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -y \
         ca-certificates curl gnupg git lsb-release \
         ufw unattended-upgrades \
         python3 python3-pip python3-venv \
@@ -142,23 +142,41 @@ fi
 # --- 4. Docker Engine + Compose v2 --------------------------------------------
 if [ "$SKIP_DOCKER" != "1" ]; then
     step "Installing Docker Engine + Compose v2"
+    CODENAME="${VERSION_CODENAME:-$(lsb_release -cs)}"
+    DOCKER_KEY=/etc/apt/keyrings/docker.asc
     if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
         log "Docker $("docker --version") with Compose v2 already installed."
     else
-        $SUDO apt-get update
-        $SUDO apt-get install -y ca-certificates curl gnupg
         $SUDO install -m 0755 -d /etc/apt/keyrings
-        if [ ! -f /etc/apt/keyrings/docker.asc ]; then
-            tmp_keys=/tmp/docker-gpg.asc
-            curl -fsSL "https://download.docker.com/linux/${ID}/gpg" -o "$tmp_keys"
-            $SUDO gpg --dearmor -o /etc/apt/keyrings/docker.asc "$tmp_keys" 2>/dev/null || \
-                $SUDO gpg --batch --dearmor -o /etc/apt/keyrings/docker.asc "$tmp_keys"
-            rm -f "$tmp_keys"
-        fi
-        CODENAME="${VERSION_CODENAME:-$(lsb_release -cs)}"
-        if [ ! -f /etc/apt/sources.list.d/docker.list ]; then
-            echo "deb [arch=${ARCH} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} ${CODENAME} stable" | \
-                $SUDO tee /etc/apt/sources.list.d/docker.list >/dev/null
+        # Docker rotated its repo signing subkey; the /gpg endpoint can lag behind
+        # the signer used by apt InRelease. Fetch the armored key, validate, and if
+        # apt reports NO_PUBKEY, append the requested key from a keyserver.
+        curl -fsSL "https://download.docker.com/linux/${ID}/gpg" -o "${DOCKER_KEY}"
+        $SUDO chmod a+r "${DOCKER_KEY}"
+        DOCKER_ERR=/tmp/docker-apt-update.log
+        for _try in 1 2 3; do
+            if $SUDO apt-get update 2>"${DOCKER_ERR}" | grep -qE "Err:|NO_PUBKEY"; then
+                NO_PUBKEY=$(grep -oE 'NO_PUBKEY [0-9A-F]+' "${DOCKER_ERR}" | awk '{print $2}' | sort -u | head -1)
+            else
+                NO_PUBKEY=""
+            fi
+            if [ -z "$NO_PUBKEY" ]; then break; fi
+            log "apt needs docker key ${NO_PUBKEY} — fetching from keyserver and appending"
+            GOPG=/tmp/docker-extra-key
+            rm -f "${GOPG}"
+            gpg --no-default-keyring --keyring "${GOPG}" --keyserver keyserver.ubuntu.com \
+                --recv-keys "${NO_PUBKEY}" >/dev/null 2>&1
+            if gpg --no-default-keyring --keyring "${GOPG}" --list-keys "${NO_PUBKEY}" >/dev/null 2>&1; then
+                gpg --no-default-keyring --keyring "${GOPG}" --export --armor "${NO_PUBKEY}" >> "${DOCKER_KEY}"
+                $SUDO chmod a+r "${DOCKER_KEY}"
+            else
+                warn "Could not fetch ${NO_PUBKEY} from keyserver — apt may still fail."
+                break
+            fi
+        done
+        if [ ! -f /etc/apt/sources.list.d/docker.sources ] && [ ! -f /etc/apt/sources.list.d/docker.list ]; then
+            printf 'Types: deb\nURIs: https://download.docker.com/linux/%s\nSuites: %s\nComponents: stable\nArchitectures: %s\nSigned-By: %s\n' \
+                "$ID" "$CODENAME" "$ARCH" "$DOCKER_KEY" | $SUDO tee /etc/apt/sources.list.d/docker.sources >/dev/null
         fi
         $SUDO apt-get update
         $SUDO apt-get install -y docker-ce docker-ce-cli containerd.io \

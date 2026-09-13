@@ -137,6 +137,24 @@ func LoginRateLimit(limit int, window time.Duration) gin.HandlerFunc {
 	return LoginRateLimitWith(ratelimit.NewMemory(limit, window))
 }
 
+// ApiRateLimitWith throttles a route (or group) per client IP using the shared
+// ratelimit.Limiter. Used for the /v1/saas control-plane surface.
+func ApiRateLimitWith(l ratelimit.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !l.Allow(c.ClientIP()) {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+				"error": gin.H{
+					"code":       "rate_limited",
+					"message":    "too many requests, please try again later",
+					"request_id": c.GetString(requestIDKey),
+				},
+			})
+			return
+		}
+		c.Next()
+	}
+}
+
 func randomID() string {
 	var value [16]byte
 	if _, err := rand.Read(value[:]); err != nil {

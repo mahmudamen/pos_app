@@ -58,6 +58,19 @@ func main() {
 		logger.Info("login rate limiting uses in-memory limiter", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
 	}
 
+	// SaaS control-plane rate limit: Redis-backed when Redis is up, else
+	// in-memory. Only wired when RATE_LIMIT_ENABLED=true.
+	var apiLimiter ratelimit.Limiter
+	if cfg.ApiRateLimitEnabled {
+		if redisClient != nil {
+			apiLimiter = ratelimit.NewRedis(redisClient, cfg.ApiRateLimitMax, cfg.ApiRateLimitWindow)
+			logger.Info("api rate limiting uses redis", "max", cfg.ApiRateLimitMax, "window", cfg.ApiRateLimitWindow)
+		} else {
+			apiLimiter = ratelimit.NewMemory(cfg.ApiRateLimitMax, cfg.ApiRateLimitWindow)
+			logger.Info("api rate limiting uses in-memory limiter", "max", cfg.ApiRateLimitMax, "window", cfg.ApiRateLimitWindow)
+		}
+	}
+
 	var metricsRegistry *metrics.Registry
 	if cfg.MetricsEnabled {
 		metricsRegistry = metrics.NewScoped()
@@ -72,6 +85,7 @@ func main() {
 		Pool:         pool,
 		Config:       cfg,
 		LoginLimiter: loginLimiter,
+		ApiLimiter:   apiLimiter,
 		Metrics:      metricsRegistry,
 		Logger:       logger,
 		Readiness:    func() bool { return pool != nil && redisClient != nil },

@@ -16,10 +16,9 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  static const _ink = Color(0xff032931);
-  static const _mid = Color(0xff0a4a4e);
-  static const _teal = Color(0xff14b8a6);
-  static const _gold = Color(0xffe6c06c);
+  static const _ink = Color(0xff0a1628);
+  static const _mid = Color(0xff003355);
+  static const _blue = Color(0xff00adee);
 
   late final AnimationController _enter = AnimationController(
     vsync: this,
@@ -96,8 +95,8 @@ class _SplashScreenState extends State<SplashScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _gold.withValues(alpha: 0.22),
-                    _gold.withValues(alpha: 0.0),
+                    _blue.withValues(alpha: 0.18),
+                    _blue.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -113,8 +112,8 @@ class _SplashScreenState extends State<SplashScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _teal.withValues(alpha: 0.26),
-                    _teal.withValues(alpha: 0.0),
+                    _blue.withValues(alpha: 0.22),
+                    _blue.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -142,7 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: _teal.withValues(alpha: 0.55),
+                          color: _blue.withValues(alpha: 0.55),
                           blurRadius: 42,
                           spreadRadius: 4,
                         ),
@@ -151,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const SizedBox(height: 42),
-                _XamltechMark(scale: _scale, gold: _gold, teal: _teal),
+                _XamltechLogo(scale: _scale, blue: _blue),
                 const SizedBox(height: 34),
                 FadeTransition(
                   opacity: _fadeIn,
@@ -187,7 +186,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const Spacer(),
-                _LoadingDots(teal: _teal, gold: _gold, glow: _glow),
+                _LoadingDots(blue: _blue, glow: _glow),
                 const SizedBox(height: 18),
                 FadeTransition(
                   opacity: _fadeIn,
@@ -207,7 +206,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Text(
                     'xamltech.com',
                     style: TextStyle(
-                      color: _gold.withValues(alpha: 0.85),
+                      color: _blue.withValues(alpha: 0.85),
                       fontSize: 12,
                       letterSpacing: 1.6,
                       fontWeight: FontWeight.w600,
@@ -224,53 +223,40 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class _XamltechMark extends StatelessWidget {
-  const _XamltechMark({
+class _XamltechLogo extends StatelessWidget {
+  const _XamltechLogo({
     required this.scale,
-    required this.gold,
-    required this.teal,
+    required this.blue,
   });
 
   final Animation<double> scale;
-  final Color gold;
-  final Color teal;
+  final Color blue;
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: ScaleTransition(
-        scale: scale,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xff1cbfa9), Color(0xff0b6e6b)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: teal.withValues(alpha: 0.45),
-                    blurRadius: 26,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: const CustomPaint(painter: _XMarkPainter()),
+    return ScaleTransition(
+      scale: scale,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              'assets/xamltech_logo.png',
+              width: 100,
+              height: 100,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 14),
-            Row(
+          ),
+          const SizedBox(height: 14),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(
+                const Text(
                   'XAML',
                   style: TextStyle(
                     color: Colors.white,
@@ -278,19 +264,13 @@ class _XamltechMark extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                     letterSpacing: 3.5,
                     height: 1,
-                    shadows: [
-                      Shadow(
-                        color: gold.withValues(alpha: 0.35),
-                        blurRadius: 16,
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   'tech',
                   style: TextStyle(
-                    color: gold,
+                    color: blue,
                     fontSize: 26,
                     fontWeight: FontWeight.w300,
                     letterSpacing: 1.5,
@@ -299,28 +279,27 @@ class _XamltechMark extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              'xamltech.com',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 12,
-                letterSpacing: 3.0,
-                fontWeight: FontWeight.w500,
-              ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'xamltech.com',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 12,
+              letterSpacing: 3.0,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _LoadingDots extends StatelessWidget {
-  const _LoadingDots({required this.teal, required this.gold, required this.glow});
+  const _LoadingDots({required this.blue, required this.glow});
 
-  final Color teal;
-  final Color gold;
+  final Color blue;
   final Animation<double> glow;
 
   @override
@@ -333,8 +312,8 @@ class _LoadingDots extends StatelessWidget {
           children: List.generate(3, (i) {
             final t = (glow.value + i * 0.28) % 1.0;
             final color = Color.lerp(
-              teal.withValues(alpha: 0.25),
-              gold,
+              blue.withValues(alpha: 0.25),
+              Colors.white,
               t,
             )!;
             return Container(
@@ -353,42 +332,6 @@ class _LoadingDots extends StatelessWidget {
   }
 }
 
-class _XMarkPainter extends CustomPainter {
-  const _XMarkPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final thick = Paint()
-      ..color = Colors.white
-      ..strokeWidth = size.width * 0.17
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final thin = Paint()
-      ..color = Colors.white.withValues(alpha: 0.85)
-      ..strokeWidth = size.width * 0.10
-      ..strokeCap = StrokeCap.round;
-
-    final m = size.width * 0.20;
-    final a = Offset(m, m);
-    final b = Offset(size.width - m, size.height - m);
-    final c = Offset(size.width - m, m);
-    final d = Offset(m, size.height - m);
-
-    canvas.drawLine(a, b, thick);
-    canvas.drawLine(c, d, thin);
-
-    final dot = Paint()..color = const Color(0xffe6c06c);
-    canvas.drawCircle(
-      Offset(size.width * 0.72, size.height * 0.30),
-      size.width * 0.07,
-      dot,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_XMarkPainter oldDelegate) => false;
-}
-
 class _MotifPainter extends CustomPainter {
   const _MotifPainter();
 
@@ -397,7 +340,7 @@ class _MotifPainter extends CustomPainter {
     final arc = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = Colors.white.withValues(alpha: 0.06);
+      ..color = Colors.white.withValues(alpha: 0.04);
     final center = Offset(size.width * 1.02, size.height * 0.16);
     for (var i = 0; i < 5; i++) {
       canvas.drawArc(
@@ -410,7 +353,7 @@ class _MotifPainter extends CustomPainter {
     }
     final col = Paint()
       ..strokeWidth = 1
-      ..color = Colors.white.withValues(alpha: 0.05);
+      ..color = Colors.white.withValues(alpha: 0.03);
     for (var x = 0.0; x < size.width * 0.22; x += 38) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), col);
     }
