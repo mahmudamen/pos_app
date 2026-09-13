@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/example/pos-api/internal/testutil"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -72,8 +72,16 @@ func pushJSON(t *testing.T, router http.Handler, token string, body string) (*ht
 	return rec, data
 }
 
-func commandPayload(prodID, qty string) string {
-	return `{"commands":[{"command_id":"00000000-0000-0000-0000-000000000010","operation":"sale.create","payload":{"items":[{"product_id":"` + prodID + `","quantity":` + qty + `}]}}]}`
+func commandPayload(prodID, qty, commandID string) string {
+	return `{"commands":[{"command_id":"` + commandID + `","operation":"sale.create","payload":{"items":[{"product_id":"` + prodID + `","quantity":` + qty + `}]}}]}`
+}
+
+// freshCommandID returns a random command id so the lifecycle steps (apply →
+// replay → conflict → dedupe) are independent of any earlier run against a
+// shared test database.
+func freshCommandID(t *testing.T) string {
+	t.Helper()
+	return uuid.NewString()
 }
 
 func resultsOf(t *testing.T, resp map[string]any) []map[string]any {
@@ -97,9 +105,10 @@ func TestSyncIntegration_PushApplyReplayConflict(t *testing.T) {
 	router, seed, pool := setupSyncIntegration(t)
 	token := pushToken(t, seed)
 	prodID := insertProduct(t, seed, pool)
+	cmdA := freshCommandID(t)
 
 	// 1) First push applies the sale and consumes stock.
-	rec, resp := pushJSON(t, router, token, commandPayload(prodID, "2"))
+	rec, resp := pushJSON(t, router, token, commandPayload(prodID, "2", cmdA))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("push apply: expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
@@ -115,7 +124,7 @@ func TestSyncIntegration_PushApplyReplayConflict(t *testing.T) {
 	}
 
 	// 2) Same command_id + same payload replays the stored outcome, no re-apply.
-	rec2, resp2 := pushJSON(t, router, token, commandPayload(prodID, "2"))
+	rec2, resp2 := pushJSON(t, router, token, commandPayload(prodID, "2", cmdA))
 	if rec2.Code != http.StatusOK {
 		t.Fatalf("push replay: expected 200, got %d", rec2.Code)
 	}
@@ -128,7 +137,7 @@ func TestSyncIntegration_PushApplyReplayConflict(t *testing.T) {
 	}
 
 	// 3) Same command_id + DIFFERENT payload is a command conflict.
-	rec3, resp3 := pushJSON(t, router, token, commandPayload(prodID, "3"))
+	rec3, resp3 := pushJSON(t, router, token, commandPayload(prodID, "3", cmdA))
 	if rec3.Code != http.StatusOK {
 		t.Fatalf("push conflict: expected 200, got %d", rec3.Code)
 	}
@@ -139,9 +148,8 @@ func TestSyncIntegration_PushApplyReplayConflict(t *testing.T) {
 
 	// 4) New command_id with the SAME device+operation+payload is deduped: the
 	// sale is NOT applied twice (stock stays at 8).
-	dedupeBody := strings.Replace(commandPayload(prodID, "2"),
-		"00000000-0000-0000-0000-000000000010",
-		"00000000-0000-0000-0000-000000000011", 1)
+	cmdB := freshCommandID(t)
+	dedupeBody := commandPayload(prodID, "2", cmdB)
 	rec4, resp4 := pushJSON(t, router, token, dedupeBody)
 	if rec4.Code != http.StatusOK {
 		t.Fatalf("push dedupe: expected 200, got %d", rec4.Code)
@@ -156,7 +164,7 @@ func TestSyncIntegration_PushApplyReplayConflict(t *testing.T) {
 
 	// 5) Unknown operation is rejected with a typed error code.
 	rec5, resp5 := pushJSON(t, router, token,
-		`{"commands":[{"command_id":"00000000-0000-0000-0000-000000000012","operation":"nope","payload":{}}]}`)
+		`{"commands":[{"command_id":"`+freshCommandID(t)+`","operation":"nope","payload":{}}]}`)
 	if rec5.Code != http.StatusOK {
 		t.Fatalf("push unknown op: expected 200, got %d", rec5.Code)
 	}

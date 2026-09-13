@@ -544,6 +544,62 @@ expect(() => client.dashboardSummary(session),
     expect(receipt.items, hasLength(1));
   });
 
+  test('RefundResult parses the refund payload', () {
+    final refund = RefundResult.fromJson(const {
+      'id': 'refund-1',
+      'sale_id': 'sale-42',
+      'refund_minor': 2000,
+      'reason': 'defective item',
+      'status': 'completed',
+      'created_by': 'Restaurant Admin',
+      'created_at': '2026-09-13 12:00:00',
+    });
+    expect(refund.id, 'refund-1');
+    expect(refund.saleId, 'sale-42');
+    expect(refund.refundMinor, 2000);
+    expect(refund.reason, 'defective item');
+    expect(refund.status, 'completed');
+    expect(refund.createdBy, 'Restaurant Admin');
+  });
+
+  test('refundSale POSTs to the refund endpoint with an idempotency key',
+      () async {
+    final client = ApiClient(client: _RefundClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final refund = await client.refundSale(
+      session,
+      'sale-42',
+      reason: 'defective item',
+      managerPin: '1234',
+      idempotencyKey: 'refund-key-1',
+    );
+    expect(refund.saleId, 'sale-42');
+    expect(refund.refundMinor, 2000);
+    expect(refund.status, 'completed');
+  });
+
+  test('refundSale surfaces a non-201 as ApiException', () async {
+    final client = ApiClient(client: _RefundForbiddenClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+    await expectLater(
+      client.refundSale(session, 'sale-42', idempotencyKey: 'refund-key-2'),
+      throwsA(isA<ApiException>()
+          .having((e) => e.message, 'message', contains('refunds'))),
+    );
+  });
+
   test('RegisterSession parses an open session with its live summary', () {
     final session = RegisterSession.fromJson(const {
       'id': 'session-1',
@@ -1551,6 +1607,44 @@ class _ReceiptClient extends http.BaseClient {
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _RefundClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sales/sale-42/refund');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    expect(request.headers['Idempotency-Key'], 'refund-key-1');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['reason'], 'defective item');
+    expect(body['manager_pin'], '1234');
+    const response =
+        '{"data":{"id":"refund-1","sale_id":"sale-42","refund_minor":2000,'
+        '"reason":"defective item","status":"completed",'
+        '"created_by":"Restaurant Admin","created_at":"2026-09-13 12:00:00"},'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _RefundForbiddenClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.url.path, '/v1/sales/sale-42/refund');
+    const response =
+        '{"error":{"code":"permission_denied","message":"refunds not allowed for this role"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      403,
       headers: {'content-type': 'application/json'},
     );
   }

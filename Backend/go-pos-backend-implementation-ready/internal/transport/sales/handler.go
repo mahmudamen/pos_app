@@ -37,6 +37,7 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/sales", h.listSales)
 	router.GET("/sales/:id", h.getSale)
 	router.POST("/sales", h.createSale)
+	router.POST("/sales/:id/refund", h.refundSale)
 }
 
 type createSaleRequest struct {
@@ -343,6 +344,66 @@ func (h *Handler) createSale(c *gin.Context) {
 		return
 	}
 	writeSale(c, sale)
+}
+
+func (h *Handler) refundSale(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	idempotencyKey := strings.TrimSpace(c.GetHeader("Idempotency-Key"))
+	if idempotencyKey == "" || len(idempotencyKey) > 128 {
+		writeError(c, http.StatusBadRequest, "validation_error", "Idempotency-Key is required")
+		return
+	}
+	saleID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid sale id")
+		return
+	}
+	var request RefundRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid refund request")
+		return
+	}
+	tenantID, err := uuid.Parse(claims.TenantID)
+	if err != nil {
+		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
+		return
+	}
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
+		return
+	}
+
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+
+	refund, applyErr := RefundSale(ctx, tx, tenantID, userID, claims.Role, saleID, idempotencyKey, request)
+	if applyErr != nil {
+		status, code, message := SaleError(applyErr)
+		writeError(c, status, code, message)
+		return
+	}
+	if err = tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit refund")
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"data": refund, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
 func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {

@@ -73,6 +73,10 @@ SELECT * FROM (
 	       CASE WHEN is_active THEN 'upsert' ELSE 'delete' END,
 	       row_to_json(restaurant_tables)::text
 	FROM restaurant_tables WHERE change_seq > $1
+	UNION ALL
+	SELECT 'sale_refunds', id::text, change_seq, 'upsert',
+	       row_to_json(sale_refunds)::text
+	FROM sale_refunds WHERE change_seq > $1
 ) changes
 ORDER BY change_seq ASC
 LIMIT $2`
@@ -91,6 +95,7 @@ SELECT MIN(m) FROM (
 	UNION ALL SELECT MIN(change_seq) FROM product_lots
 	UNION ALL SELECT MIN(change_seq) FROM floors
 	UNION ALL SELECT MIN(change_seq) FROM restaurant_tables
+	UNION ALL SELECT MIN(change_seq) FROM sale_refunds
 ) seq`
 
 type Handler struct {

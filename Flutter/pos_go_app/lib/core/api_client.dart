@@ -483,6 +483,37 @@ class ApiClient {
   /// Fetches the printable receipt payload for a sale as JSON. Clients can
   /// either render their own preview or hit /v1/sales/:id/receipt/print for
   /// the ESC/POS byte stream.
+  Future<RefundResult> refundSale(
+    Session session,
+    String saleId, {
+    String reason = '',
+    String managerPin = '',
+    String? idempotencyKey,
+  }) async {
+    final key = idempotencyKey ?? const Uuid().v4();
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/sales/$saleId/refund'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+          'Idempotency-Key': key,
+        },
+        body: jsonEncode({
+          if (reason.trim().isNotEmpty) 'reason': reason.trim(),
+          if (managerPin.trim().isNotEmpty) 'manager_pin': managerPin.trim(),
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
+    return RefundResult.fromJson(data);
+  }
+
   Future<SaleReceipt> fetchReceipt(Session session, String saleId) async {
     final respond = await _authenticatedRequest(
       session,
@@ -768,6 +799,36 @@ class SaleResult {
   final int totalMinor;
   final String currency;
   final PaymentMethod paymentMethod;
+}
+
+class RefundResult {
+  const RefundResult({
+    required this.id,
+    required this.saleId,
+    required this.refundMinor,
+    required this.status,
+    this.reason = '',
+    this.createdBy = '',
+    this.createdAt = '',
+  });
+
+  factory RefundResult.fromJson(Map<String, dynamic> json) => RefundResult(
+        id: json['id'] as String,
+        saleId: json['sale_id'] as String,
+        refundMinor: (json['refund_minor'] as num).toInt(),
+        status: json['status'] as String? ?? 'completed',
+        reason: json['reason'] as String? ?? '',
+        createdBy: json['created_by'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+      );
+
+  final String id;
+  final String saleId;
+  final int refundMinor;
+  final String status;
+  final String reason;
+  final String createdBy;
+  final String createdAt;
 }
 
 class ApiException implements Exception {

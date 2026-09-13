@@ -158,6 +158,56 @@
         }
       }
     },
+    "/v1/auth/set-pin": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "PostV1AuthSet-pin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/auth/verify-pin": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "PostV1AuthVerify-pin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/categories": {
       "get": {
         "tags": [
@@ -1082,6 +1132,31 @@
           "sales"
         ],
         "operationId": "GetV1SalesIdReceiptPrint",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/sales/{id}/refund": {
+      "post": {
+        "tags": [
+          "sales"
+        ],
+        "operationId": "PostV1SalesIdRefund",
         "security": [
           {
             "bearerAuth": []

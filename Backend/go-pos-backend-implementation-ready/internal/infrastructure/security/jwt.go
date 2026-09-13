@@ -1,6 +1,8 @@
 package security
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -48,14 +50,29 @@ func (m TokenManager) IssueWithRole(now time.Time, tokenType TokenType, tenantID
 		return "", fmt.Errorf("%s secret must be at least 32 bytes", tokenType)
 	}
 	now = now.UTC()
+	// NumericDate serializes iat/exp at whole-second precision, so two issues in
+	// the same second share a payload; a unique jti guarantees rotation yields a
+	// genuinely new token (and makes every issued token opaque to replay).
+	jti, err := newTokenID()
+	if err != nil {
+		return "", fmt.Errorf("generate token id: %w", err)
+	}
 	claims := Claims{
 		TenantID: tenantID, UserID: userID, DeviceID: deviceID, SessionID: sessionID, TokenType: tokenType, Role: role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer: m.Issuer, Subject: userID, IssuedAt: jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)), ID: sessionID,
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)), ID: jti,
 		},
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(secret)
+}
+
+func newTokenID() (string, error) {
+	var raw [16]byte
+	if _, err := rand.Read(raw[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(raw[:]), nil
 }
 
 func (m TokenManager) Parse(raw string, expectedType TokenType) (Claims, error) {

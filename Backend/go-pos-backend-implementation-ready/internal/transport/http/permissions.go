@@ -24,6 +24,7 @@ func init() {
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "pos", "close")
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "pos", "sale")
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "pos", "discount")
+	grant([]string{"owner", "manager", "saas_admin"}, "pos", "refund")
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "customers", "read")
 	grant([]string{"owner", "manager", "saas_admin"}, "customers", "write")
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "catalog", "read")

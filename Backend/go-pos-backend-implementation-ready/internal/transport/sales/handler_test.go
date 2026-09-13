@@ -280,3 +280,25 @@ func TestWriteErrorReturnsCorrectJSON(t *testing.T) {
 		t.Errorf("expected error message in response: %s", body)
 	}
 }
+
+func TestNewHandlerDefaultsAndClampsDiscountLimit(t *testing.T) {
+	if got := NewHandler(nil, testTokens()).discountLimitPct; got != 5 {
+		t.Fatalf("NewHandler discountLimitPct = %d, want 5", got)
+	}
+	cases := []struct {
+		in   int
+		want int
+	}{
+		{0, 0},
+		{100, 100},
+		{-1, 0},
+		{101, 100},
+		{7, 7},
+	}
+	for _, c := range cases {
+		h := NewHandlerWithDiscountLimit(nil, testTokens(), c.in)
+		if h.discountLimitPct != c.want {
+			t.Errorf("NewHandlerWithDiscountLimit(limit=%d) = %d, want %d", c.in, h.discountLimitPct, c.want)
+		}
+	}
+}

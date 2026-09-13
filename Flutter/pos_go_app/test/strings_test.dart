@@ -58,6 +58,13 @@ void main() {
     expect(ar.customers, 'العملاء');
     expect(ar.addCustomer, 'إضافة عميل');
     expect(ar.loyaltyPoints, 'نقاط الولاء');
+    expect(ar.refund, 'استرداد');
+    expect(ar.refundSale, 'استرداد البيع');
+    expect(ar.refundReason, isNotEmpty);
+    expect(ar.refundPin, isNotEmpty);
+    expect(ar.refundProcessing, isNotEmpty);
+    expect(ar.refundSuccess, isNotEmpty);
+    expect(ar.refundedStatus, 'مُسترجع');
   });
 
   test('English strings are provided for core labels', () {
@@ -107,6 +114,12 @@ void main() {
     expect(en.customers, 'Customers');
     expect(en.addCustomer, 'Add customer');
     expect(en.loyaltyPoints, 'Loyalty points');
+    expect(en.refund, 'Refund');
+    expect(en.refundSale, 'Refund sale');
+    expect(en.refundReason, isNotEmpty);
+    expect(en.refundPin, isNotEmpty);
+    expect(en.offlineNeedsAttention, isNotEmpty);
+    expect(en.refundedStatus, 'Refunded');
   });
 
   test('money formatted with EGP symbol', () {

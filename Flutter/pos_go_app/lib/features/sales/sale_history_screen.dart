@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/api_client.dart';
 import '../../core/payments.dart';
@@ -52,6 +53,36 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
         _error = e.toString();
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _confirmRefund(SaleSummary sale) async {
+    final s = AppStrings.of(context);
+    final result = await showDialog<_RefundDialogResult>(
+      context: context,
+      builder: (_) => _RefundDialog(
+        total: sale.totalMinor,
+        currencyCode: widget.session.currencyCode,
+      ),
+    );
+    if (result == null) return;
+    try {
+      await widget.apiClient.refundSale(
+        widget.session,
+        sale.id,
+        reason: result.reason,
+        managerPin: result.managerPin,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(s.refundSuccess)),
+      );
+      await _loadSales(page: _currentPage);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${s.refundFailed}: ${e.message}')),
+      );
     }
   }
 
@@ -113,6 +144,13 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (widget.session.isManager &&
+                              sale.status == 'completed')
+                            IconButton(
+                              tooltip: s.refundSale,
+                              icon: const Icon(Icons.undo),
+                              onPressed: () => _confirmRefund(sale),
+                            ),
                           IconButton(
                             tooltip: s.receipt,
                             icon: const Icon(Icons.receipt_long_outlined),
@@ -178,6 +216,88 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
               ],
             ),
           ),
+      ],
+    );
+  }
+}
+
+class _RefundDialogResult {
+  const _RefundDialogResult({required this.reason, required this.managerPin});
+
+  final String reason;
+  final String managerPin;
+}
+
+class _RefundDialog extends StatefulWidget {
+  const _RefundDialog({required this.total, required this.currencyCode});
+
+  final int total;
+  final String currencyCode;
+
+  @override
+  State<_RefundDialog> createState() => _RefundDialogState();
+}
+
+class _RefundDialogState extends State<_RefundDialog> {
+  final _reason = TextEditingController();
+  final _pin = TextEditingController();
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    _pin.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+    return AlertDialog(
+      title: Text(strings.refundSale),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(strings.formatMoney(widget.total, widget.currencyCode)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _reason,
+              maxLength: 255,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: strings.refundReason,
+                hintText: strings.refundReasonHint,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _pin,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(8),
+              ],
+              decoration: InputDecoration(
+                labelText: strings.refundPin,
+                hintText: strings.refundPinHint,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(strings.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_RefundDialogResult(
+            reason: _reason.text.trim(),
+            managerPin: _pin.text.trim(),
+          )),
+          child: Text(strings.refund),
+        ),
       ],
     );
   }

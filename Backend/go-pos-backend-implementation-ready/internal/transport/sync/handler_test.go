@@ -2,6 +2,8 @@ package sync
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +13,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func testTokens() security.TokenManager {
@@ -197,6 +200,77 @@ func TestHashPayloadIsDeterministic(t *testing.T) {
 	}
 }
 
+func cmd(op string, payload map[string]any) pushCommand {
+	return pushCommand{
+		CommandID: "11111111-1111-1111-1111-111111111111",
+		Operation: op,
+		Payload:   payload,
+	}
+}
+
+func TestApplyRefundSaleRejectsInvalidSaleID(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("sale.refund", map[string]any{}), uuid.Nil, uuid.Nil, uuid.Nil, "manager")
+	if result.Status != "rejected" || result.ErrorCode != "validation_error" {
+		t.Fatalf("expected rejected/validation_error, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyRefundSaleRejectsNonManager(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("sale.refund", map[string]any{"sale_id": "00000000-0000-0000-0000-000000000001"}), uuid.Nil, uuid.Nil, uuid.Nil, "cashier")
+	if result.Status != "rejected" || result.ErrorCode != "permission_denied" {
+		t.Fatalf("expected rejected/permission_denied, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyInventoryAdjustRejectsInvalidReason(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("inventory.adjust", map[string]any{"product_id": "00000000-0000-0000-0000-000000000001", "reason": "mystery"}), uuid.Nil, uuid.Nil, uuid.Nil, "manager")
+	if result.Status != "rejected" || result.ErrorCode != "validation_error" {
+		t.Fatalf("expected rejected/validation_error, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyInventoryAdjustRejectsZeroDelta(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("inventory.adjust", map[string]any{"product_id": "00000000-0000-0000-0000-000000000001", "reason": "count", "quantity_delta": 0}), uuid.Nil, uuid.Nil, uuid.Nil, "manager")
+	if result.Status != "rejected" || result.ErrorCode != "validation_error" {
+		t.Fatalf("expected rejected/validation_error, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyInventoryAdjustRejectsCashier(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("inventory.adjust", map[string]any{"product_id": "00000000-0000-0000-0000-000000000001", "reason": "count", "quantity_delta": 1}), uuid.Nil, uuid.Nil, uuid.Nil, "cashier")
+	if result.Status != "rejected" || result.ErrorCode != "permission_denied" {
+		t.Fatalf("expected rejected/permission_denied, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyCategoryCreateRejectsBlankSlug(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("category.create", map[string]any{"name": "Drinks"}), uuid.Nil, uuid.Nil, uuid.Nil, "manager")
+	if result.Status != "rejected" || result.ErrorCode != "validation_error" {
+		t.Fatalf("expected rejected/validation_error, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyCategoryCreateRejectsCashier(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("category.create", map[string]any{"name": "Drinks", "slug": "drinks"}), uuid.Nil, uuid.Nil, uuid.Nil, "cashier")
+	if result.Status != "rejected" || result.ErrorCode != "permission_denied" {
+		t.Fatalf("expected rejected/permission_denied, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyProductCreateRejectsInvalidPrice(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("product.create", map[string]any{"name": "Cola", "sku": "COLA", "price_minor": -5}), uuid.Nil, uuid.Nil, uuid.Nil, "manager")
+	if result.Status != "rejected" || result.ErrorCode != "validation_error" {
+		t.Fatalf("expected rejected/validation_error, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
+func TestApplyProductCreateRejectsCashier(t *testing.T) {
+	result := apply(context.Background(), nil, &Handler{}, cmd("product.create", map[string]any{"name": "Cola", "sku": "COLA", "price_minor": 100, "currency": "EGP"}), uuid.Nil, uuid.Nil, uuid.Nil, "cashier")
+	if result.Status != "rejected" || result.ErrorCode != "permission_denied" {
+		t.Fatalf("expected rejected/permission_denied, got %q/%q", result.Status, result.ErrorCode)
+	}
+}
+
 func TestPushStatusFor(t *testing.T) {
 	cases := []struct {
 		http int
@@ -211,5 +285,31 @@ func TestPushStatusFor(t *testing.T) {
 		if got := pushStatusFor(c.http); got != c.want {
 			t.Fatalf("pushStatusFor(%d) = %q, want %q", c.http, got, c.want)
 		}
+	}
+}
+
+func TestIsUniqueViolation(t *testing.T) {
+	pgErr := &pgconn.PgError{Code: "23505", Message: "duplicate key value"}
+	if !isUniqueViolation(pgErr) {
+		t.Fatal("expected PgError 23505 to be a unique violation")
+	}
+	for _, other := range []error{
+		&pgconn.PgError{Code: "23503"},
+		&pgconn.PgError{Code: "23502"},
+		errors.New("some other error"),
+		nil,
+	} {
+		if other == nil {
+			if isUniqueViolation(nil) {
+				t.Fatal("expected nil error to not be a unique violation")
+			}
+			continue
+		}
+		if isUniqueViolation(other) {
+			t.Fatalf("expected %v to not be a unique violation", other)
+		}
+	}
+	if !isUniqueViolation(fmt.Errorf("wrapped: %w", &pgconn.PgError{Code: "23505"})) {
+		t.Fatal("expected a wrapped 23505 to be a unique violation")
 	}
 }

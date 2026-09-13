@@ -58,6 +58,7 @@ class AppStrings {
   String get outOfStock => isArabic ? 'نفد المخزون' : 'Out of stock';
   String get offlineSaved => isArabic ? 'تم حفظ البيع دون اتصال وسيُزامن عند توفر الاتصال' : 'Sale saved offline — will sync when online';
   String get offlineSynced => isArabic ? 'تمت مزامنة المبيعات المحفوظة دون اتصال' : 'Offline sales synced';
+  String get offlineNeedsAttention => isArabic ? 'تعذرت مزامنة بعض العمليات؛ راجع سجل المبيعات' : 'Some offline operations were not synced — check sales history';
   String get payment => isArabic ? 'طريقة الدفع' : 'Payment method';
   String get paymentRequired => isArabic ? 'الدفع لا يغطي قيمة المبلغ' : 'Payment does not cover the total';
   String get cash => isArabic ? 'نقدًا' : 'Cash';
@@ -132,6 +133,19 @@ class AppStrings {
   String get noCustomers => isArabic ? 'لا يوجد عملاء' : 'No customers found';
   String get searchCustomers => isArabic ? 'ابحث عن عميل...' : 'Search customers...';
   String get loyaltyPoints => isArabic ? 'نقاط الولاء' : 'Loyalty points';
+  String get refund => isArabic ? 'استرداد' : 'Refund';
+  String get refundSale => isArabic ? 'استرداد البيع' : 'Refund sale';
+  String get refundFromHistory => isArabic ? 'استرداد' : 'Refund';
+  String get refundReason => isArabic ? 'سبب الاسترداد (اختياري)' : 'Reason (optional)';
+  String get refundReasonHint => isArabic ? 'مثال: إرجاع منتج معيب' : 'e.g. defective item returned';
+  String get refundPin => isArabic ? 'رمز المدير (اختياري)' : 'Manager PIN (optional)';
+  String get refundPinHint => isArabic ? 'مطلوب فقط إذا كان حسابك يملك رمز مدير' : 'Only needed if your account has a manager PIN';
+  String get refundProcessing => isArabic ? 'جارٍ الاسترداد...' : 'Refunding...';
+  String get refundSuccess => isArabic ? 'تم استرداد البيع وإعادة الكمية للمخزون' : 'Sale refunded and stock restored';
+  String get refundFailed => isArabic ? 'تعذر استرداد البيع' : 'Could not refund sale';
+  String get refundNotAllowed => isArabic ? 'الاسترداد متاح للمدير أو المالك فقط' : 'Only managers and owners can refund';
+  String get onlyCompletedRefundable => isArabic ? 'المبيعات المكتملة فقط' : 'Only completed sales';
+  String get refundedStatus => isArabic ? 'مُسترجع' : 'Refunded';
 
   String methodLabel(String method) {
     switch (method) {

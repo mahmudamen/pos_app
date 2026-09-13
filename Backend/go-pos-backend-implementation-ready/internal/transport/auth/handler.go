@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/example/pos-api/internal/config"
@@ -12,6 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+var pinPattern = regexp.MustCompile(`^[0-9]{4,8}$`)
 
 type Handler struct {
 	pool        *pgxpool.Pool
@@ -52,6 +55,8 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	router.POST("/auth/login", h.Login())
 	router.POST("/auth/refresh", h.Refresh())
 	router.POST("/auth/logout", h.Logout())
+	router.POST("/auth/set-pin", h.SetPin())
+	router.POST("/auth/verify-pin", h.VerifyPin())
 }
 
 func (h *Handler) Login() gin.HandlerFunc {
@@ -64,6 +69,121 @@ func (h *Handler) Refresh() gin.HandlerFunc {
 
 func (h *Handler) Logout() gin.HandlerFunc {
 	return h.logout
+}
+
+type pinRequest struct {
+	Pin string `json:"pin" binding:"required"`
+}
+
+func validPIN(pin string) bool {
+	return pinPattern.MatchString(pin)
+}
+
+func (h *Handler) SetPin() gin.HandlerFunc {
+	return h.setPin
+}
+
+func (h *Handler) VerifyPin() gin.HandlerFunc {
+	return h.verifyPin
+}
+
+// setPin stores the acting manager's bcrypt-hashed PIN. Cashiers cannot set
+// one (they have no refund rights to gate anyway).
+func (h *Handler) setPin(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	if claims.Role != "manager" && claims.Role != "owner" && claims.Role != "saas_admin" {
+		writeError(c, http.StatusForbidden, "permission_denied", "only managers may set a PIN")
+		return
+	}
+	var request pinRequest
+	if err := c.ShouldBindJSON(&request); err != nil || !validPIN(request.Pin) {
+		writeError(c, http.StatusBadRequest, "validation_error", "pin must be 4-8 digits")
+		return
+	}
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	hash, err := security.HashPassword(request.Pin, h.cost)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to hash pin")
+		return
+	}
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, claims.TenantID); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+	result, err := tx.Exec(ctx, `
+		UPDATE users SET manager_pin_hash = $1, updated_at = now()
+		WHERE id = $2::uuid AND tenant_id = $3::uuid`,
+		hash, claims.UserID, claims.TenantID)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to save pin")
+		return
+	}
+	if result.RowsAffected() != 1 {
+		writeError(c, http.StatusUnauthorized, "user_not_found", "user no longer exists")
+		return
+	}
+	if err = tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit pin")
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+// verifyPin reports whether the submitted PIN matches the acting user's stored
+// manager PIN. Returns valid:false (never 401) so the client keeps the derived
+// state local.
+func (h *Handler) verifyPin(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	var request pinRequest
+	if err := c.ShouldBindJSON(&request); err != nil || !validPIN(request.Pin) {
+		writeError(c, http.StatusBadRequest, "validation_error", "pin must be 4-8 digits")
+		return
+	}
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, claims.TenantID); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+	var pinHash string
+	err = tx.QueryRow(ctx, `
+		SELECT COALESCE(manager_pin_hash, '') FROM users
+		WHERE id = $1::uuid AND tenant_id = $2::uuid`, claims.UserID, claims.TenantID).Scan(&pinHash)
+	if err != nil {
+		writeError(c, http.StatusUnauthorized, "user_not_found", "user no longer exists")
+		return
+	}
+	if err = tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit pin check")
+		return
+	}
+	valid := pinHash != "" && security.CheckPassword(pinHash, request.Pin)
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"valid": valid, "has_pin": pinHash != ""}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
 func (h *Handler) logout(c *gin.Context) {

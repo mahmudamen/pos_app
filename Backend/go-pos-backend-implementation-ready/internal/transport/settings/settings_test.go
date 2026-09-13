@@ -61,3 +61,28 @@ func TestCanManageSettings(t *testing.T) {
 		}
 	}
 }
+
+func TestSettingKeysCoversEveryDefinition(t *testing.T) {
+	keys := settingKeys()
+	if len(keys) != len(settingDefinitions) {
+		t.Fatalf("settingKeys returned %d keys, want %d", len(keys), len(settingDefinitions))
+	}
+	seen := map[string]bool{}
+	for _, k := range keys {
+		if k == "" {
+			t.Fatal("settingKeys returned a blank key")
+		}
+		if seen[k] {
+			t.Fatalf("settingKeys returned duplicate key %q", k)
+		}
+		seen[k] = true
+		if _, ok := settingDefinitions[k]; !ok {
+			t.Fatalf("settingKeys returned key %q not in settingDefinitions", k)
+		}
+	}
+	for key := range settingDefinitions {
+		if !seen[key] {
+			t.Fatalf("settingKeys missing definition key %q", key)
+		}
+	}
+}

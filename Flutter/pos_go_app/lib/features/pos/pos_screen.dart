@@ -514,6 +514,7 @@ class _PosScreenState extends State<PosScreen> {
     final queued = pending.where((c) => c.operation == 'create_sale').toList();
     if (queued.isEmpty) return;
     var synced = 0;
+    var attention = 0;
     for (final command in queued) {
       if (synced >= _pendingBatchLimit) break;
       try {
@@ -535,6 +536,10 @@ class _PosScreenState extends State<PosScreen> {
           synced++;
         } else if (result != null && result.rejected) {
           await db.markComplete(command.id);
+          attention++;
+        } else if (result != null && result.conflicted) {
+          await db.markComplete(command.id);
+          attention++;
         } else {
           break;
         }
@@ -542,9 +547,13 @@ class _PosScreenState extends State<PosScreen> {
         break;
       }
     }
-    if (synced > 0 && mounted) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.of(context).offlineSynced)),
+        SnackBar(
+          content: Text(attention > 0
+              ? AppStrings.of(context).offlineNeedsAttention
+              : AppStrings.of(context).offlineSynced),
+        ),
       );
     }
   }

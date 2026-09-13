@@ -200,9 +200,102 @@ func TestRegisterSetsUpRoutes(t *testing.T) {
 	for _, r := range routes {
 		paths[r.Method+" "+r.Path] = true
 	}
-	for _, expected := range []string{"POST /v1/auth/login", "POST /v1/auth/refresh", "POST /v1/auth/logout"} {
+	for _, expected := range []string{"POST /v1/auth/login", "POST /v1/auth/refresh", "POST /v1/auth/logout", "POST /v1/auth/set-pin", "POST /v1/auth/verify-pin"} {
 		if !paths[expected] {
 			t.Errorf("missing route: %s", expected)
 		}
+	}
+}
+
+func pinToken(t *testing.T, role string) string {
+	t.Helper()
+	tokens := NewHandler(nil, testConfig()).Tokens()
+	raw, err := tokens.IssueWithRole(time.Now(), security.AccessToken,
+		"00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002",
+		"00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000004", role)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw
+}
+
+func TestValidPINBounds(t *testing.T) {
+	for _, ok := range []string{"1234", "12345678", "0000"} {
+		if !validPIN(ok) {
+			t.Fatalf("validPIN(%q) = false, want true", ok)
+		}
+	}
+	for _, bad := range []string{"", "123", "123456789", "12a4", " 123", "१२३४"} {
+		if validPIN(bad) {
+			t.Fatalf("validPIN(%q) = true, want false", bad)
+		}
+	}
+}
+
+func TestSetPinRequiresAccessToken(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testConfig()).Register(router.Group("/v1"))
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/auth/set-pin", nil)
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", recorder.Code)
+	}
+}
+
+func TestSetPinRejectsCashier(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testConfig()).Register(router.Group("/v1"))
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/auth/set-pin", strings.NewReader(`{"pin":"1234"}`))
+	request.Header.Set("Authorization", "Bearer "+pinToken(t, "cashier"))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", recorder.Code)
+	}
+}
+
+func TestSetPinRejectsInvalidPIN(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testConfig()).Register(router.Group("/v1"))
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/auth/set-pin", strings.NewReader(`{"pin":"ab12"}`))
+	request.Header.Set("Authorization", "Bearer "+pinToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+}
+
+func TestSetPinReturnsUnavailableWithoutDatabase(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testConfig()).Register(router.Group("/v1"))
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/auth/set-pin", strings.NewReader(`{"pin":"1234"}`))
+	request.Header.Set("Authorization", "Bearer "+pinToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d", recorder.Code)
+	}
+}
+
+func TestVerifyPinReturnsUnavailableWithoutDatabase(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testConfig()).Register(router.Group("/v1"))
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/auth/verify-pin", strings.NewReader(`{"pin":"1234"}`))
+	request.Header.Set("Authorization", "Bearer "+pinToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d", recorder.Code)
 	}
 }

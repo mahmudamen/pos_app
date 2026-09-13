@@ -116,7 +116,7 @@ func loadReceipt(ctx context.Context, tx pgx.Tx, saleID uuid.UUID) (Receipt, err
 		       s.created_at::text, s.idempotency_key,
 		       COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = s.id), 0),
 		       COALESCE(s.created_by::text, ''), COALESCE(s.device_id::text, ''),
-		       COALESCE(cu.name, ''), COALESCE(tp.name, ''), COALESCE(fl.name, ''), COALESCE(rt.name, ''),
+		       COALESCE(cu.name, ''), COALESCE(rt.name, ''), COALESCE(fl.name, ''),
 		       COALESCE(t.name, ''), COALESCE(t.address, '')
 		FROM sales s
 		LEFT JOIN customers cu ON cu.id = s.customer_id

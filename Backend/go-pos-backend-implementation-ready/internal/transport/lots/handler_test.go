@@ -145,6 +145,52 @@ func TestParseIncludeEmpty(t *testing.T) {
 	}
 }
 
+func TestExpiryDateOrNull(t *testing.T) {
+	for _, tc := range []struct {
+		in   string
+		want any
+	}{
+		{"", nil},
+		{"   ", nil},
+		{"2026-12-31", "2026-12-31"},
+		{" 2026-12-31 ", "2026-12-31"},
+	} {
+		if got := expiryDateOrNull(tc.in); got != tc.want {
+			t.Errorf("expiryDateOrNull(%q) = %v, want %v", tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestIsExpired(t *testing.T) {
+	day := func(offset int) string {
+		return time.Now().AddDate(0, 0, offset).Format("2006-01-02")
+	}
+	for _, tc := range []struct {
+		in   string
+		want bool
+	}{
+		{"", false},
+		{day(-1), true},
+		{day(0), false},
+		{day(1), false},
+		{"not-a-date", false},
+		{"2026-13-40", false},
+	} {
+		if got := isExpired(tc.in); got != tc.want {
+			t.Errorf("isExpired(%q) = %v, want %v", tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestIncludeEmptySQL(t *testing.T) {
+	if got := includeEmptySQL(true); got != "" {
+		t.Errorf("includeEmptySQL(true) = %q, want empty", got)
+	}
+	if got := includeEmptySQL(false); got != " AND l.quantity > 0" {
+		t.Errorf("includeEmptySQL(false) = %q, want quantity filter", got)
+	}
+}
+
 func TestCreateLotValidatesPositiveQuantity(t *testing.T) {
 	router, group := setup()
 	NewHandler(nil, testTokens()).Register(group)

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"log/slog"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
+	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/gin-gonic/gin"
 )
 
@@ -306,3 +308,52 @@ func (d *dummyHandler) Enabled(_ context.Context, _ slog.Level) bool  { return t
 func (d *dummyHandler) Handle(_ context.Context, _ slog.Record) error { return nil }
 func (d *dummyHandler) WithAttrs(_ []slog.Attr) slog.Handler          { return d }
 func (d *dummyHandler) WithGroup(_ string) slog.Handler               { return d }
+
+func TestRequestLoggerEmitsRequestFields(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(RequestLogger(logger))
+	router.GET("/v1/health/live", func(c *gin.Context) { c.Status(http.StatusNoContent) })
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/health/live", nil))
+	if recorder.Code != http.StatusNoContent {
+		t.Fatalf("expected 204, got %d", recorder.Code)
+	}
+	out := buf.String()
+	if !strings.Contains(out, `msg="http request"`) {
+		t.Fatalf("expected request log line, got %q", out)
+	}
+	for _, want := range []string{"method=GET", "path=/v1/health/live", "status=204"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("expected %q in log output: %s", want, out)
+		}
+	}
+}
+
+func TestRequestLoggerIncludesClaimsWhenPresent(t *testing.T) {
+	var buf bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&buf, nil))
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(RequestLogger(logger))
+	router.Use(func(c *gin.Context) {
+		c.Set(claimsKey, security.Claims{
+			TenantID: "tenant-1", UserID: "user-1", DeviceID: "dev-1", Role: "manager",
+		})
+		c.Next()
+	})
+	router.GET("/v1/sales", func(c *gin.Context) { c.Status(http.StatusOK) })
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/sales", nil))
+	out := buf.String()
+	if !strings.Contains(out, `msg="http request"`) {
+		t.Fatalf("expected request log line, got %q", out)
+	}
+	for _, want := range []string{"tenant_id=tenant-1", "user_id=user-1", "device_id=dev-1", "role=manager"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("expected %q in log output: %s", want, out)
+		}
+	}
+}

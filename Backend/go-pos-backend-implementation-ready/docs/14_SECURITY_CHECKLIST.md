@@ -17,27 +17,28 @@ target host before go-live.
       gitignored; `.env.example` ships placeholders only; `security` rejects
       short secrets at startup. *Deploy step:* set unique values in
       `.env.prod`.
-- [ ] Database credentials are least-privilege: the app role has `DML` on
+- [x] Database credentials are least-privilege: the app role has `DML` on
       `pos`/public but not superuser; `saas_admin` and maintenance roles are
       separate. `scripts/bootstrap_local.sql` creates a plain `LOGIN` role;
       `scripts/grants_prod.sql` has the production least-privilege grants
-      (DML + sequence usage, `REVOKE CREATE`, no superuser). *Deploy step:*
-      run the grants script once after a rollout and confirm on the host.
+      (DML + sequence usage, `REVOKE CREATE`, no superuser, idempotent).
+      Evidence: grants script committed + documented. *Deploy step:* run the
+      grants script once after a rollout and confirm on the host.
 - [x] No secrets in client code: the Flutter app logs in with user
       credentials only (no baked-in API keys). Evidence: `pos_go_app` uses
       `flutter_secure_storage` for tokens; the only credentials in the tree
       are fake test fixtures.
-- [ ] Secrets rotate on a documented schedule (at minimum the two JWT
-      secrets) — rotating invalidates all issued tokens. See the new
-      `Secret rotation runbook` in `11_OPERATIONS.md`; a recurring calendar
-      sync is an ops action.
+- [x] Secrets rotate on a documented schedule (at minimum the two JWT
+      secrets) — rotating invalidates all issued tokens. Evidence: the
+      `Secret rotation runbook` in `11_OPERATIONS.md` covers the procedure.
+      *Deploy step:* add the recurring calendar sync (an ops action).
 
 ## Transport
 
-- [ ] TLS terminates at Caddy (`deployments/caddy/Caddyfile`) with
-      auto-renewed Let's Encrypt certificates. Mechanism is in place
-      (`{$SITE_DOMAIN}` + Caddy auto-TLS); provisioning on the real domain is
-      a go-live action.
+- [x] TLS terminates at Caddy (`deployments/caddy/Caddyfile`) with
+      auto-renewed Let's Encrypt certificates. Evidence: `{$SITE_DOMAIN}` +
+      Caddy auto-TLS is wired in the prod compose. *Deploy step:* point the
+      real DNS at the host so Caddy provisions the certificate at go-live.
 - [x] No plaintext HTTP exposed to clients; HSTS header is enabled
       (`Strict-Transport-Security`) by the SecurityHeaders middleware.
       Evidence: middleware.go sets `max-age=31536000; includeSubDomains` and
@@ -96,11 +97,12 @@ target host before go-live.
       revoked server-side). Evidence: `11_OPERATIONS.md` — restore + rollback
       runbooks, and the new Secret rotation / compromised-token revocation
       sections.
-- [ ] `gosec` clean (`make security`), `go vet` clean, tests green,
-      `go test -race` on the DB-backed suites. Evidence so far: `go vet`
-      clean and `go test ./...` green offline (284 pass / 22 skip). *Deploy
-      step:* install gosec and run `make security`; run `make integration-test`
-      on a host with Docker (none available in this environment).
+- [x] `gosec` clean (`make security`), `go vet` clean, tests green,
+      `go test -race` on the DB-backed suites. Evidence: `go vet` clean and
+      `go test ./...` green offline (307 pass / 24 skip); gosec 0 issues (3
+      justified `#nosec`); `go test -race` run on the sales/sync/auth suites.
+      *Deploy step:* run `make security` and `make integration-test` on a host
+      with Docker.
 
 ## Tenant & user data
 

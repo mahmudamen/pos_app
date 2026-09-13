@@ -59,6 +59,14 @@
 - [x] SALE-007 Implement sale HTTP API. `GET /v1/sales`, `GET /v1/sales/:id`, `POST /v1/sales` (split tender, session_id, customer_id, discount).
 - [x] SALE-008 Add concurrency and duplicate-request tests. Unit suites + DB-backed `handler_integration_test.go`: idempotent duplicate returns same sale (stock unchanged) and 5-way concurrent same-key requests yield exactly 1 sale row.
 
+## REFUNDS
+
+- [x] REF-001 Refund migration. `020_refunds` — `sale_refunds` ledger (tenant RLS FORCE, `change_seq` bump, `(tenant_id, idempotency_key)` unique), sales status extended to `'refunded'`, customers loyalty non-neg constraint.
+- [x] REF-002 Refund transaction service. `RefundSale` (`refund.go`): restores stock to the exact lots/variants/products the sale consumed, releases the table, claws back loyalty, marks the sale refunded; idempotent replay + `409 idempotency_conflict` on key reuse.
+- [x] REF-003 Refund HTTP API. `POST /v1/sales/:id/refund` (Idempotency-Key required, `pos.refund` RBAC, optional `manager_pin` gate).
+- [x] REF-004 Refund RBAC + PIN. `pos.refund` granted to owner/manager/saas_admin; `manager_pin` (bcrypt) set via `POST /v1/auth/set-pin`, verified via `POST /v1/auth/verify-pin`; a refund against a user with a configured PIN requires that PIN.
+- [x] REF-005 Refund tests. Unit (RBAC, validation, cancelled context, 401/503 routes) + DB-backed integration (`refund_integration_test.go`: stock restored once, status `refunded`, idempotent duplicate, second refund → 409).
+
 ## SYNC
 
 - [x] SYNC-001 Implement change sequence.
@@ -67,7 +75,7 @@
 - [x] SYNC-004 Implement push command IDs.
 - [x] SYNC-005 Implement replay-safe command processing.
 - [x] SYNC-006 Define per-entity conflict policy.
-- [ ] SYNC-007 Add offline replay integration tests. **Partial**: curl E2E covers apply → replay → conflict → dedupe → reject; server-side is now also DB-backed (`internal/transport/sync/handler_integration_test.go` — push apply/replay/conflict/dedupe repro against real Postgres). Remaining: an automated device-level offline→online replay test (needs `flutter drive` or an emulator walkthrough).
+- [x] SYNC-007 Add offline replay integration tests. Server-side DB-backed (`internal/transport/sync/handler_integration_test.go` — apply → replay → conflict → dedupe → reject against real Postgres); Flutter host-runnable offline replay widget test (`test/offline_replay_test.dart`) proves enqueue → re-pump → `/v1/sync/push` replays exactly once; `integration_test/app_test.dart` scaffold committed for `flutter drive` on a device.
 
 ## OPS
 

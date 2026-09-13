@@ -151,4 +151,117 @@ void main() {
     expect(refreshed.userId, session.userId);
     expect(refreshed.tenantId, session.tenantId);
   });
+
+  test('session round-trips through secure storage', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    expect(await store.read(), isNull);
+
+    const session = Session(
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+      deviceId: 'dev-abc',
+      role: 'manager',
+      accountType: 'standard',
+      businessType: 'grocery',
+      countryCode: 'EG',
+      currencyCode: 'EGP',
+      defaultLanguage: 'ar',
+    );
+    await store.save(session);
+
+    final restored = await store.read();
+    expect(restored, isNotNull);
+    expect(restored!.accessToken, 'access');
+    expect(restored.refreshToken, 'refresh');
+    expect(restored.userId, 'user-1');
+    expect(restored.displayName, 'Manager');
+    expect(restored.tenantId, 'tenant-1');
+    expect(restored.deviceId, 'dev-abc');
+    expect(restored.role, 'manager');
+    expect(restored.accountType, 'standard');
+    expect(restored.businessType, 'grocery');
+    expect(restored.defaultLanguage, 'ar');
+  });
+
+  test('session clear drops tokens but keeps device and language', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+    await store.save(const Session(
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      userId: 'u',
+      displayName: 'Cashier',
+      tenantId: 't',
+      deviceId: 'dev-keep',
+    ));
+    await store.saveDeviceId('dev-keep');
+    await store.applyTenantLanguage('en');
+
+    await store.clear();
+
+    expect(await store.read(), isNull);
+    expect(await store.readDeviceId(), 'dev-keep');
+    expect(await store.readLanguage(), 'en');
+  });
+
+  test('remembered login round-trips through secure storage', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    expect(await store.readRememberedLogin(), isNull);
+
+    await store.saveRememberedLogin(const RememberedLogin(
+      tenantId: 'demo-restaurant',
+      email: 'admin@demo-restaurant.com',
+      password: 'admin',
+      deviceName: 'Counter 1',
+    ));
+
+    final remembered = await store.readRememberedLogin();
+    expect(remembered, isNotNull);
+    expect(remembered!.tenantId, 'demo-restaurant');
+    expect(remembered.email, 'admin@demo-restaurant.com');
+    expect(remembered.password, 'admin');
+    expect(remembered.deviceName, 'Counter 1');
+
+    await store.clearRememberedLogin();
+    expect(await store.readRememberedLogin(), isNull);
+  });
+
+  test('remembered login falls back to defaults for partial writes', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{
+      'remember_login': '1',
+      'remember_tenant': 'demo-grocery',
+      'remember_email': 'cashier@demo-grocery.com',
+    });
+    final store = SessionStore();
+
+    final remembered = await store.readRememberedLogin();
+    expect(remembered, isNotNull);
+    expect(remembered!.tenantId, 'demo-grocery');
+    expect(remembered.email, 'cashier@demo-grocery.com');
+    expect(remembered.password, '');
+    expect(remembered.deviceName, 'Counter 1');
+  });
+
+  test('language defaults to Arabic until customized', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    expect(await store.readLanguage(), 'ar');
+    expect(await store.hasCustomizedLanguage(), isFalse);
+
+    await store.applyTenantLanguage('en');
+    expect(await store.readLanguage(), 'en');
+    expect(await store.hasCustomizedLanguage(), isFalse);
+
+    await store.saveLanguage('ar');
+    expect(await store.readLanguage(), 'ar');
+    expect(await store.hasCustomizedLanguage(), isTrue);
+  });
 }

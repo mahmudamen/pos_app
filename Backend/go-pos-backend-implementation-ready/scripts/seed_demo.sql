@@ -14,7 +14,7 @@ BEGIN
   -- 1. Demo Restaurant (cafe + food)
   -- --------------------------------------------------------------------------
   IF NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'demo-restaurant') THEN
-    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language) VALUES ('Demo Restaurant', 'demo-restaurant', 'restaurant') RETURNING id INTO tid;
+    INSERT INTO tenants (name, slug, business_type, address) VALUES ('Demo Restaurant', 'demo-restaurant', 'restaurant', '35 Nile Corniche, Cairo') RETURNING id INTO tid;
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
@@ -47,7 +47,7 @@ BEGIN
   -- 2. Demo Book Store
   -- --------------------------------------------------------------------------
   IF NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'demo-book-store') THEN
-    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language) VALUES ('Demo Book Store', 'demo-book-store', 'book_store') RETURNING id INTO tid;
+    INSERT INTO tenants (name, slug, business_type, address) VALUES ('Demo Book Store', 'demo-book-store', 'book_store', '12 Kasr El Eini St, Cairo') RETURNING id INTO tid;
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
@@ -77,7 +77,7 @@ BEGIN
   -- 3. Demo Mobile Shop
   -- --------------------------------------------------------------------------
   IF NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'demo-mobile-shop') THEN
-    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language) VALUES ('Demo Mobile Shop', 'demo-mobile-shop', 'mobile_shop') RETURNING id INTO tid;
+    INSERT INTO tenants (name, slug, business_type, address) VALUES ('Demo Mobile Shop', 'demo-mobile-shop', 'mobile_shop', '24 Tahrir Sq, Cairo') RETURNING id INTO tid;
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
@@ -107,7 +107,7 @@ BEGIN
   -- 4. Demo Computer Shop
   -- --------------------------------------------------------------------------
   IF NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'demo-computer-shop') THEN
-    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language) VALUES ('Demo Computer Shop', 'demo-computer-shop', 'computer_shop') RETURNING id INTO tid;
+    INSERT INTO tenants (name, slug, business_type, address) VALUES ('Demo Computer Shop', 'demo-computer-shop', 'computer_shop', '7 El-Thawra St, Alexandria') RETURNING id INTO tid;
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
@@ -137,7 +137,7 @@ BEGIN
   -- 5. Demo Grocery
   -- --------------------------------------------------------------------------
   IF NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'demo-grocery') THEN
-    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language) VALUES ('Demo Grocery', 'demo-grocery', 'grocery') RETURNING id INTO tid;
+    INSERT INTO tenants (name, slug, business_type, address) VALUES ('Demo Grocery', 'demo-grocery', 'grocery', '3 Zamalek St, Cairo') RETURNING id INTO tid;
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
@@ -170,8 +170,8 @@ BEGIN
   -- 6. SaaS platform tenant (internal staff role: saas_admin -> control panel)
   -- --------------------------------------------------------------------------
   IF NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'saas') THEN
-    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language)
-    VALUES ('POS Go SaaS Platform', 'saas', 'general', 'EG', 'EGP', 'ar') RETURNING id INTO tid;
+    INSERT INTO tenants (name, slug, business_type, country_code, currency_code, default_language, address)
+    VALUES ('POS Go SaaS Platform', 'saas', 'general', 'EG', 'EGP', 'ar', 'Cairo, Egypt') RETURNING id INTO tid;
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES

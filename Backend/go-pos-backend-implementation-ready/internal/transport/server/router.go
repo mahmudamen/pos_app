@@ -95,6 +95,8 @@ func Register(engine *gin.Engine, d Deps) {
 	}
 	authGroup.POST("/refresh", authHandler.Refresh())
 	authGroup.POST("/logout", authHandler.Logout())
+	authGroup.POST("/set-pin", authHandler.SetPin())
+	authGroup.POST("/verify-pin", authHandler.VerifyPin())
 	catalogtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	customertransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	dashboardtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)

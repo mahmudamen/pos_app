@@ -16,6 +16,16 @@ func TestSaleCustomerID(t *testing.T) {
 	}
 }
 
+func TestSaleTableID(t *testing.T) {
+	id := uuid.New()
+	if got := saleTableID(&id); got != id.String() {
+		t.Fatalf("expected %s, got %s", id, got)
+	}
+	if got := saleTableID(nil); got != "" {
+		t.Fatalf("expected empty, got %q", got)
+	}
+}
+
 func TestLoyaltyRateFromValue(t *testing.T) {
 	tests := []struct {
 		input string
