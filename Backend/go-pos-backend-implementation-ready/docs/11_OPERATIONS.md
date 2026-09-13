@@ -32,6 +32,27 @@ Redis failure should not corrupt business data.
 6. Roll back application if required.
 7. Never roll back destructive schema changes blindly.
 
+### Fresh Ubuntu VPS (first boot)
+
+One-shot provisioner: installs Docker+Compose v2, Go 1.23, python3, `psql`, ufw,
+clones `POS_BRANCH`, generates `.env.prod` (random JWT + DB secrets), starts the
+whole production stack and health-checks it. Idempotent.
+
+```bash
+# On the VPS, as root (recommended):
+POS_REPO_URL=https://github.com/<you>/pos.git POS_BRANCH=backend-deploy \
+    SITE_DOMAIN=pos.example.com \
+    sudo curl -fsSLo /tmp/provision_vps.sh \
+    https://raw.githubusercontent.com/<you>/pos/backend-deploy/Backend/go-pos-backend-implementation-ready/scripts/provision_vps.sh \
+  && sudo -E bash /tmp/provision_vps.sh
+```
+
+After that: set a real `SITE_DOMAIN` in `.env.prod` if not provided, confirm
+`/health/ready` (needs Redis — the stack runs it), schedule
+`scripts/backup.sh` on cron (`0 3 * * * ...`), and verify a restore once (below).
+
+See `scripts/provision_vps.sh` for the full env-var switches (`SKIP_*` etc.).
+
 ## Backups & Restore runbook (OPS-006)
 
 Backups must be automated and periodically restored into an isolated environment.
