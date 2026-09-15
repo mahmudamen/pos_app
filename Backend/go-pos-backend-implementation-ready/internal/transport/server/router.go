@@ -14,6 +14,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/metrics"
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	authtransport "github.com/example/pos-api/internal/transport/auth"
+	billingtransport "github.com/example/pos-api/internal/transport/billing"
 	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
 	customertransport "github.com/example/pos-api/internal/transport/customers"
 	dashboardtransport "github.com/example/pos-api/internal/transport/dashboard"
@@ -41,7 +42,6 @@ type Deps struct {
 	Pool         *pgxpool.Pool
 	Config       config.Config
 	LoginLimiter ratelimit.Limiter // nil → login is registered without rate limiting
-	ApiLimiter   ratelimit.Limiter // nil → /v1/saas is registered without rate limiting
 	Metrics      *metrics.Registry // nil → /metrics middleware + route are omitted
 	Logger       *slog.Logger      // nil → slog.Default()
 	Readiness    func() bool       // health/ready probe; nil → pool != nil
@@ -110,10 +110,11 @@ func Register(engine *gin.Engine, d Deps) {
 	synctransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	metatransport.NewHandler(d.Pool).Register(api)
 	saasGroup := api.Group("/saas")
-	if d.ApiLimiter != nil {
-		saasGroup.Use(httptransport.ApiRateLimitWith(d.ApiLimiter))
-	}
+	// The SaaS control plane is gated by the saas_admin role on every route, so
+	// it intentionally bypasses the API-wide rate limiter (the admin panel makes
+	// several parallel /v1/saas/* calls per page).
 	saastransport.NewHandler(d.Pool, authHandler.Tokens()).Register(saasGroup)
+	billingtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(saasGroup)
 	restauranttransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	lotstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	variantstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)

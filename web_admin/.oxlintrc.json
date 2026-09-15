@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "react/set-state-in-effect": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "react/only-export-components": "off"
+  }
+}

@@ -77,7 +77,7 @@ func (h *Handler) Signup(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Global uniqueness across tenants: store_emails lives outside RLS so the
 	// check is not hidden by the current tenant's row policy. Inserting in the

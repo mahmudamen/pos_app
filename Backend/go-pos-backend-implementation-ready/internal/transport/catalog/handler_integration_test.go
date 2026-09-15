@@ -9,16 +9,7 @@ import (
 
 	"github.com/example/pos-api/internal/testutil"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-func setupIntegration(t *testing.T) (*gin.Engine, testutil.Seed, *pgxpool.Pool) {
-	t.Helper()
-	pool := testutil.Pool(t)
-	testutil.Migrate(t, testutil.DatabaseURL(t))
-	seed := testutil.SeedTenant(t, pool)
-	return gin.New(), seed, pool
-}
 
 func authHeader(token string) string { return "Bearer " + token }
 

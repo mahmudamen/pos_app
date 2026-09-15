@@ -4,16 +4,14 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
+	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-const platformRole = "saas_admin"
 
 type Handler struct {
 	pool   *pgxpool.Pool
@@ -25,9 +23,10 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
-	router.GET("/summary", h.requirePlatformRole, h.summary)
-	router.GET("/tenants", h.requirePlatformRole, h.listTenants)
-	router.GET("/tenants/:id/analytics", h.requirePlatformRole, h.tenantAnalytics)
+	admin := httptransport.RequireSaasAdmin(h.tokens)
+	router.GET("/summary", admin, h.summary)
+	router.GET("/tenants", admin, h.listTenants)
+	router.GET("/tenants/:id/analytics", admin, h.tenantAnalytics)
 }
 
 // summary returns platform-wide counts broken down by business type and country.
@@ -44,7 +43,7 @@ func (h *Handler) summary(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	type tenantRow struct {
 		ID   string
@@ -139,7 +138,7 @@ func (h *Handler) listTenants(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	var total int64
 	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM tenants`).Scan(&total); err != nil {
@@ -224,7 +223,7 @@ func (h *Handler) tenantAnalytics(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	var name, slug, bType, country, currency, lang, plan string
 	var maxUsers, maxProducts int
@@ -393,27 +392,6 @@ func (h *Handler) tenantAnalytics(c *gin.Context) {
 		},
 		"meta": gin.H{"request_id": c.GetString("request_id")},
 	})
-}
-
-func (h *Handler) requirePlatformRole(c *gin.Context) {
-	header := c.GetHeader("Authorization")
-	if !strings.HasPrefix(header, "Bearer ") {
-		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is required")
-		c.Abort()
-		return
-	}
-	claims, err := h.tokens.Parse(strings.TrimSpace(strings.TrimPrefix(header, "Bearer ")), security.AccessToken)
-	if err != nil {
-		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
-		c.Abort()
-		return
-	}
-	if claims.Role != platformRole {
-		writeError(c, http.StatusForbidden, "forbidden", "saas_admin role is required")
-		c.Abort()
-		return
-	}
-	c.Next()
 }
 
 func writeError(c *gin.Context, status int, code, message string) {

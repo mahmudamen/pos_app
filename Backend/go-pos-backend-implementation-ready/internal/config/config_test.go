@@ -52,8 +52,7 @@ func TestLoadReturnsDefaultsWhenNoEnv(t *testing.T) {
 
 func TestLoadParsesCORSAllowedOrigins(t *testing.T) {
 	clearEnv()
-	os.Setenv("CORS_ALLOWED_ORIGINS", "  https://app.example.com , https://admin.example.com  ")
-	defer os.Unsetenv("CORS_ALLOWED_ORIGINS")
+	t.Setenv("CORS_ALLOWED_ORIGINS", "  https://app.example.com , https://admin.example.com  ")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
@@ -71,8 +70,7 @@ func TestLoadParsesCORSAllowedOrigins(t *testing.T) {
 
 func TestLoadParsesMetricsEnabledFalse(t *testing.T) {
 	clearEnv()
-	os.Setenv("METRICS_ENABLED", "false")
-	defer os.Unsetenv("METRICS_ENABLED")
+	t.Setenv("METRICS_ENABLED", "false")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
@@ -84,8 +82,7 @@ func TestLoadParsesMetricsEnabledFalse(t *testing.T) {
 
 func TestLoadRejectsInvalidMetricsEnabled(t *testing.T) {
 	clearEnv()
-	os.Setenv("METRICS_ENABLED", "sometimes")
-	defer os.Unsetenv("METRICS_ENABLED")
+	t.Setenv("METRICS_ENABLED", "sometimes")
 	if _, err := Load(); err == nil {
 		t.Fatalf("Load: expected error for METRICS_ENABLED=sometimes")
 	}
@@ -93,8 +90,7 @@ func TestLoadRejectsInvalidMetricsEnabled(t *testing.T) {
 
 func TestLoadKeepsWildcardDefaultWhenCORSBlank(t *testing.T) {
 	clearEnv()
-	os.Setenv("CORS_ALLOWED_ORIGINS", "   ")
-	defer os.Unsetenv("CORS_ALLOWED_ORIGINS")
+	t.Setenv("CORS_ALLOWED_ORIGINS", "   ")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
@@ -106,8 +102,7 @@ func TestLoadKeepsWildcardDefaultWhenCORSBlank(t *testing.T) {
 
 func TestLoadRejectsInvalidBcryptCost(t *testing.T) {
 	clearEnv()
-	os.Setenv("BCRYPT_COST", "2")
-	defer os.Unsetenv("BCRYPT_COST")
+	t.Setenv("BCRYPT_COST", "2")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for BCRYPT_COST=2")
@@ -116,8 +111,7 @@ func TestLoadRejectsInvalidBcryptCost(t *testing.T) {
 
 func TestLoadRejectsBcryptCostTooHigh(t *testing.T) {
 	clearEnv()
-	os.Setenv("BCRYPT_COST", "32")
-	defer os.Unsetenv("BCRYPT_COST")
+	t.Setenv("BCRYPT_COST", "32")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for BCRYPT_COST=32")
@@ -126,8 +120,7 @@ func TestLoadRejectsBcryptCostTooHigh(t *testing.T) {
 
 func TestLoadRejectsInvalidDuration(t *testing.T) {
 	clearEnv()
-	os.Setenv("HTTP_READ_TIMEOUT", "not-a-duration")
-	defer os.Unsetenv("HTTP_READ_TIMEOUT")
+	t.Setenv("HTTP_READ_TIMEOUT", "not-a-duration")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for invalid duration")
@@ -136,10 +129,8 @@ func TestLoadRejectsInvalidDuration(t *testing.T) {
 
 func TestLoadRejectsMinConnsGreaterThanMaxConns(t *testing.T) {
 	clearEnv()
-	os.Setenv("DB_MAX_CONNS", "2")
-	os.Setenv("DB_MIN_CONNS", "5")
-	defer os.Unsetenv("DB_MAX_CONNS")
-	defer os.Unsetenv("DB_MIN_CONNS")
+	t.Setenv("DB_MAX_CONNS", "2")
+	t.Setenv("DB_MIN_CONNS", "5")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error when min > max")
@@ -148,10 +139,8 @@ func TestLoadRejectsMinConnsGreaterThanMaxConns(t *testing.T) {
 
 func TestLoadRejectsRefreshTTLEqualToAccessTTL(t *testing.T) {
 	clearEnv()
-	os.Setenv("JWT_ACCESS_TTL", "15m")
-	os.Setenv("JWT_REFRESH_TTL", "15m")
-	defer os.Unsetenv("JWT_ACCESS_TTL")
-	defer os.Unsetenv("JWT_REFRESH_TTL")
+	t.Setenv("JWT_ACCESS_TTL", "15m")
+	t.Setenv("JWT_REFRESH_TTL", "15m")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error when refresh TTL <= access TTL")
@@ -160,10 +149,8 @@ func TestLoadRejectsRefreshTTLEqualToAccessTTL(t *testing.T) {
 
 func TestLoadRejectsRefreshTTLBeforeAccessTTL(t *testing.T) {
 	clearEnv()
-	os.Setenv("JWT_ACCESS_TTL", "1h")
-	os.Setenv("JWT_REFRESH_TTL", "5m")
-	defer os.Unsetenv("JWT_ACCESS_TTL")
-	defer os.Unsetenv("JWT_REFRESH_TTL")
+	t.Setenv("JWT_ACCESS_TTL", "1h")
+	t.Setenv("JWT_REFRESH_TTL", "5m")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error when refresh TTL < access TTL")
@@ -172,8 +159,7 @@ func TestLoadRejectsRefreshTTLBeforeAccessTTL(t *testing.T) {
 
 func TestLoadRejectsNegativeMaxBodyBytes(t *testing.T) {
 	clearEnv()
-	os.Setenv("HTTP_MAX_BODY_BYTES", "-1")
-	defer os.Unsetenv("HTTP_MAX_BODY_BYTES")
+	t.Setenv("HTTP_MAX_BODY_BYTES", "-1")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for negative max body bytes")
@@ -182,8 +168,7 @@ func TestLoadRejectsNegativeMaxBodyBytes(t *testing.T) {
 
 func TestLoadRejectsInvalidInt(t *testing.T) {
 	clearEnv()
-	os.Setenv("DB_MAX_CONNS", "not-a-number")
-	defer os.Unsetenv("DB_MAX_CONNS")
+	t.Setenv("DB_MAX_CONNS", "not-a-number")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for non-integer DB_MAX_CONNS")
@@ -192,8 +177,7 @@ func TestLoadRejectsInvalidInt(t *testing.T) {
 
 func TestLoadRejectsInvalidInt64(t *testing.T) {
 	clearEnv()
-	os.Setenv("HTTP_MAX_BODY_BYTES", "not-a-number")
-	defer os.Unsetenv("HTTP_MAX_BODY_BYTES")
+	t.Setenv("HTTP_MAX_BODY_BYTES", "not-a-number")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for non-int64 HTTP_MAX_BODY_BYTES")
@@ -202,8 +186,7 @@ func TestLoadRejectsInvalidInt64(t *testing.T) {
 
 func TestLoadRejectsZeroDBMaxConns(t *testing.T) {
 	clearEnv()
-	os.Setenv("DB_MAX_CONNS", "0")
-	defer os.Unsetenv("DB_MAX_CONNS")
+	t.Setenv("DB_MAX_CONNS", "0")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for DB_MAX_CONNS=0")
@@ -212,8 +195,7 @@ func TestLoadRejectsZeroDBMaxConns(t *testing.T) {
 
 func TestLoadRejectsNegativeDBMinConns(t *testing.T) {
 	clearEnv()
-	os.Setenv("DB_MIN_CONNS", "-1")
-	defer os.Unsetenv("DB_MIN_CONNS")
+	t.Setenv("DB_MIN_CONNS", "-1")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for negative DB_MIN_CONNS")
@@ -234,18 +216,16 @@ func TestLoadDefaultsCashierDiscountPct(t *testing.T) {
 func TestLoadRejectsCashierDiscountPctOutOfRange(t *testing.T) {
 	for _, value := range []string{"101", "-1"} {
 		clearEnv()
-		os.Setenv("CASHIER_DISCOUNT_PCT", value)
+		t.Setenv("CASHIER_DISCOUNT_PCT", value)
 		if _, err := Load(); err == nil {
 			t.Fatalf("expected error for CASHIER_DISCOUNT_PCT=%s", value)
 		}
-		os.Unsetenv("CASHIER_DISCOUNT_PCT")
 	}
 }
 
 func TestLoadRejectsInvalidCashierDiscountPct(t *testing.T) {
 	clearEnv()
-	os.Setenv("CASHIER_DISCOUNT_PCT", "abc")
-	defer os.Unsetenv("CASHIER_DISCOUNT_PCT")
+	t.Setenv("CASHIER_DISCOUNT_PCT", "abc")
 	if _, err := Load(); err == nil {
 		t.Fatal("expected error for CASHIER_DISCOUNT_PCT=abc")
 	}
@@ -253,26 +233,15 @@ func TestLoadRejectsInvalidCashierDiscountPct(t *testing.T) {
 
 func TestLoadOverridesFromEnv(t *testing.T) {
 	clearEnv()
-	os.Setenv("APP_NAME", "my-pos")
-	os.Setenv("HTTP_ADDR", ":9090")
-	os.Setenv("BCRYPT_COST", "8")
-	os.Setenv("CASHIER_DISCOUNT_PCT", "7")
-	os.Setenv("DB_MAX_CONNS", "10")
-	os.Setenv("DB_MIN_CONNS", "1")
-	os.Setenv("MAX_SESSIONS_PER_USER", "2")
-	os.Setenv("LOGIN_RATE_MAX", "9")
-	os.Setenv("LOGIN_RATE_WINDOW", "90s")
-	defer func() {
-		os.Unsetenv("APP_NAME")
-		os.Unsetenv("HTTP_ADDR")
-		os.Unsetenv("BCRYPT_COST")
-		os.Unsetenv("CASHIER_DISCOUNT_PCT")
-		os.Unsetenv("DB_MAX_CONNS")
-		os.Unsetenv("DB_MIN_CONNS")
-		os.Unsetenv("MAX_SESSIONS_PER_USER")
-		os.Unsetenv("LOGIN_RATE_MAX")
-		os.Unsetenv("LOGIN_RATE_WINDOW")
-	}()
+	t.Setenv("APP_NAME", "my-pos")
+	t.Setenv("HTTP_ADDR", ":9090")
+	t.Setenv("BCRYPT_COST", "8")
+	t.Setenv("CASHIER_DISCOUNT_PCT", "7")
+	t.Setenv("DB_MAX_CONNS", "10")
+	t.Setenv("DB_MIN_CONNS", "1")
+	t.Setenv("MAX_SESSIONS_PER_USER", "2")
+	t.Setenv("LOGIN_RATE_MAX", "9")
+	t.Setenv("LOGIN_RATE_WINDOW", "90s")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
@@ -308,8 +277,7 @@ func TestLoadOverridesFromEnv(t *testing.T) {
 
 func TestLoadRejectsZeroMaxSessions(t *testing.T) {
 	clearEnv()
-	os.Setenv("MAX_SESSIONS_PER_USER", "0")
-	defer os.Unsetenv("MAX_SESSIONS_PER_USER")
+	t.Setenv("MAX_SESSIONS_PER_USER", "0")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for MAX_SESSIONS_PER_USER=0")
@@ -318,8 +286,7 @@ func TestLoadRejectsZeroMaxSessions(t *testing.T) {
 
 func TestLoadRejectsInvalidMaxSessions(t *testing.T) {
 	clearEnv()
-	os.Setenv("MAX_SESSIONS_PER_USER", "abc")
-	defer os.Unsetenv("MAX_SESSIONS_PER_USER")
+	t.Setenv("MAX_SESSIONS_PER_USER", "abc")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for invalid MAX_SESSIONS_PER_USER")
@@ -328,8 +295,7 @@ func TestLoadRejectsInvalidMaxSessions(t *testing.T) {
 
 func TestLoadRejectsZeroLoginRateMax(t *testing.T) {
 	clearEnv()
-	os.Setenv("LOGIN_RATE_MAX", "0")
-	defer os.Unsetenv("LOGIN_RATE_MAX")
+	t.Setenv("LOGIN_RATE_MAX", "0")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for LOGIN_RATE_MAX=0")
@@ -355,14 +321,9 @@ func TestLoadApiRateLimitDefaults(t *testing.T) {
 
 func TestLoadCustomApiRateLimit(t *testing.T) {
 	clearEnv()
-	os.Setenv("RATE_LIMIT_ENABLED", "true")
-	os.Setenv("RATE_LIMIT_MAX", "100")
-	os.Setenv("RATE_LIMIT_WINDOW", "30s")
-	defer func() {
-		os.Unsetenv("RATE_LIMIT_ENABLED")
-		os.Unsetenv("RATE_LIMIT_MAX")
-		os.Unsetenv("RATE_LIMIT_WINDOW")
-	}()
+	t.Setenv("RATE_LIMIT_ENABLED", "true")
+	t.Setenv("RATE_LIMIT_MAX", "100")
+	t.Setenv("RATE_LIMIT_WINDOW", "30s")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
@@ -380,8 +341,7 @@ func TestLoadCustomApiRateLimit(t *testing.T) {
 
 func TestLoadRejectsZeroApiRateLimitMax(t *testing.T) {
 	clearEnv()
-	os.Setenv("RATE_LIMIT_MAX", "0")
-	defer os.Unsetenv("RATE_LIMIT_MAX")
+	t.Setenv("RATE_LIMIT_MAX", "0")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for RATE_LIMIT_MAX=0")
@@ -390,8 +350,7 @@ func TestLoadRejectsZeroApiRateLimitMax(t *testing.T) {
 
 func TestLoadRejectsInvalidApiRateLimitBoolean(t *testing.T) {
 	clearEnv()
-	os.Setenv("RATE_LIMIT_ENABLED", "maybe")
-	defer os.Unsetenv("RATE_LIMIT_ENABLED")
+	t.Setenv("RATE_LIMIT_ENABLED", "maybe")
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for invalid RATE_LIMIT_ENABLED")
@@ -400,16 +359,10 @@ func TestLoadRejectsInvalidApiRateLimitBoolean(t *testing.T) {
 
 func TestLoadCustomDurations(t *testing.T) {
 	clearEnv()
-	os.Setenv("HTTP_READ_TIMEOUT", "30s")
-	os.Setenv("HTTP_WRITE_TIMEOUT", "45s")
-	os.Setenv("JWT_ACCESS_TTL", "30m")
-	os.Setenv("JWT_REFRESH_TTL", "336h")
-	defer func() {
-		os.Unsetenv("HTTP_READ_TIMEOUT")
-		os.Unsetenv("HTTP_WRITE_TIMEOUT")
-		os.Unsetenv("JWT_ACCESS_TTL")
-		os.Unsetenv("JWT_REFRESH_TTL")
-	}()
+	t.Setenv("HTTP_READ_TIMEOUT", "30s")
+	t.Setenv("HTTP_WRITE_TIMEOUT", "45s")
+	t.Setenv("JWT_ACCESS_TTL", "30m")
+	t.Setenv("JWT_REFRESH_TTL", "336h")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)
@@ -433,6 +386,6 @@ func clearEnv() {
 		"RATE_LIMIT_ENABLED", "RATE_LIMIT_MAX", "RATE_LIMIT_WINDOW",
 	}
 	for _, k := range keys {
-		os.Unsetenv(k)
+		_ = os.Unsetenv(k)
 	}
 }

@@ -25,7 +25,7 @@ func TestRLSIsolatesTenants(t *testing.T) {
 		if err != nil {
 			t.Fatalf("begin: %v", err)
 		}
-		defer tx.Rollback(ctx)
+		defer func() { _ = tx.Rollback(ctx) }()
 		err = database.WithTenant(ctx, tx, mustParseUUID(t, tenantID), func() error {
 			_, err := tx.Exec(ctx, `
 				INSERT INTO products (tenant_id, category_id, name, sku, barcode, price_minor, currency, stock_quantity)
@@ -49,7 +49,7 @@ func TestRLSIsolatesTenants(t *testing.T) {
 		if err != nil {
 			t.Fatalf("begin: %v", err)
 		}
-		defer tx.Rollback(ctx)
+		defer func() { _ = tx.Rollback(ctx) }()
 		count := 0
 		err = database.WithTenant(ctx, tx, mustParseUUID(t, tenantID), func() error {
 			return tx.QueryRow(ctx, `SELECT count(*) FROM products`).Scan(&count)
@@ -75,7 +75,7 @@ func TestRLSIsolatesTenants(t *testing.T) {
 	if err != nil {
 		t.Fatalf("begin update: %v", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	var updated int64
 	err = database.WithTenant(ctx, tx, mustParseUUID(t, tenantB.TenantID), func() error {
 		result, err := tx.Exec(ctx, `UPDATE products SET stock_quantity = 999 WHERE sku = 'A-001'`)
@@ -100,7 +100,7 @@ func TestRLSIsolatesTenants(t *testing.T) {
 	if err != nil {
 		t.Fatalf("begin verify: %v", err)
 	}
-	defer txRead.Rollback(ctx)
+	defer func() { _ = txRead.Rollback(ctx) }()
 	var stock int64
 	err = database.WithTenant(ctx, txRead, mustParseUUID(t, tenantA.TenantID), func() error {
 		return txRead.QueryRow(ctx, `SELECT stock_quantity FROM products WHERE sku = 'A-001'`).Scan(&stock)

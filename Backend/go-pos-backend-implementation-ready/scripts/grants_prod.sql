@@ -63,6 +63,19 @@ BEGIN
 END
 $$;
 
+-- Billing tables (migration 028) are platform-level (plans, subscriptions,
+-- invoices): read/written by the saas_admin control plane endpoints. Grant the
+-- least-privilege role its DML like every other table the API touches.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE plans TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE subscriptions TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE invoices TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)
@@ -70,3 +83,15 @@ $$;
 
 REVOKE CREATE ON SCHEMA public FROM pos_app;
 REVOKE ALL PRIVILEGES ON DATABASE pos FROM PUBLIC;
+
+-- pos_app_rls is the least-privilege runtime role; it still needs CONNECT,
+-- which the REVOKE-from-PUBLIC above removes (the database ACL is non-empty,
+-- so PUBLIC's default CONNECT no longer applies). Without this the app works
+-- only until its connection pool recycles.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT CONNECT ON DATABASE pos TO pos_app_rls;
+    END IF;
+END
+$$;

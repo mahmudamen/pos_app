@@ -129,7 +129,7 @@ func (h *Handler) listSales(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return
@@ -208,7 +208,7 @@ func (h *Handler) getSale(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return
@@ -330,7 +330,7 @@ func (h *Handler) createSale(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return
@@ -390,7 +390,7 @@ func (h *Handler) refundSale(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return

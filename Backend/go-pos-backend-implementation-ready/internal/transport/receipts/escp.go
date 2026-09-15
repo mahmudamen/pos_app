@@ -105,10 +105,6 @@ func (p *printer) qr(url string) {
 	p.raw(gs, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30) // function 81 print
 }
 
-func (p *printer) cut() {
-	p.raw(gs, 0x56, 0x00)
-}
-
 // BuildBytes renders a Receipt to a byte slice usable by an ESC/POS printer.
 func BuildBytes(r Receipt) []byte {
 	p := &printer{}

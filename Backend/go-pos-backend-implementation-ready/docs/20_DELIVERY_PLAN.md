@@ -1,7 +1,7 @@
 # POS Go — Delivery Plan & Operations Runbook
 
-Status: **v1.0 deployed and verified green on production.** One manual action
-remains (DNS) before full public HTTPS.
+Status: **v1.0 deployed and verified green on production.** DNS live, trusted
+Let's Encrypt cert installed + auto-renewed.
 
 ## What is live on the VPS (197.44.6.42)
 
@@ -9,7 +9,7 @@ remains (DNS) before full public HTTPS.
 |------------------|-------|
 | Stack            | Docker Compose `pos-prod-*` (api, postgres:16-alpine, redis:7-alpine), all `unless-stopped` |
 | API              | `pos-api:latest` bound to **127.0.0.1:8080** (no external bypass) |
-| HTTPS            | nginx reverse proxy on :443 (self-signed placeholder cert) + HTTP→HTTPS 301 |
+| HTTPS            | nginx reverse proxy on :443 with trusted **Let's Encrypt** cert (auto-renew) + HTTP→HTTPS 301 |
 | Database         | migrate applied to v26 (`store_emails` added, `pos_app_rls` granted INSERT/SELECT) |
 | Firewall (ufw)   | default-deny; open **22, 80, 443**, Odoo 8070, xrdp 3389 (see pending) |
 | SSH brute force  | fail2ban active (5 tries / 10 min → 1h ban), key auth working for root |
@@ -31,18 +31,12 @@ remains (DNS) before full public HTTPS.
 
 See `docs/19_RELEASE_NOTES.md`.
 
-## Pending — requires YOU (DNS)
+## ~~Pending — requires YOU (DNS)~~ DONE
 
-1. Add DNS `A` record: `api.xamltech.com → 197.44.6.42`
-   (use *DNS only*, not the orange Cloudflare proxy, so certbot's HTTP-01 works
-   from origin port 80).
-2. After it propagates, on the VPS:
-   ```
-   certbot --nginx -d api.xamltech.com
-   ```
-   Certbot rewrites the nginx site with the real cert; then set
-   `add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always`
-   in `/etc/nginx/sites-available/api.xamltech.conf` and `systemctl reload nginx`.
+1. ~~Add DNS `A` record: `api.xamltech.com → 197.44.6.42`~~ ✅ Done (Cloudflare)
+2. ~~`certbot --nginx -d api.xamltech.com`~~ ✅ Done — Let's Encrypt cert
+   installed, auto-renewal configured; HSTS max-age set to 2 years by the Go
+   SecurityHeaders middleware; nginx adds no duplicate security headers.
 3. (Recommended) Stop root password login — add your personal SSH public key to
    `/root/.ssh/authorized_keys`, then:
    ```

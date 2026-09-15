@@ -131,7 +131,7 @@ func SeedTenant(t *testing.T, pool *pgxpool.Pool) Seed {
 	if err != nil {
 		t.Fatalf("begin seed transaction: %v", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if err := tx.QueryRow(ctx,
 		`INSERT INTO tenants (name, slug) VALUES ($1, $2) RETURNING id::text`,
 		"Test Store", seed.Slug).Scan(&seed.TenantID); err != nil {
@@ -190,7 +190,7 @@ func SetTenantSetting(t *testing.T, pool *pgxpool.Pool, tenantID, key, value str
 	if err != nil {
 		t.Fatalf("begin setting upsert: %v", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID); err != nil {
 		t.Fatalf("set tenant context: %v", err)
 	}
@@ -220,7 +220,7 @@ func SetManagerPIN(t *testing.T, pool *pgxpool.Pool, tenantID, userID, pin strin
 	if err != nil {
 		t.Fatalf("begin pin set: %v", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID); err != nil {
 		t.Fatalf("set tenant context: %v", err)
 	}

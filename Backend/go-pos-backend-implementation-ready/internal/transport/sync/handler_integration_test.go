@@ -43,7 +43,7 @@ func insertProduct(t *testing.T, seed testutil.Seed, pool *pgxpool.Pool) string 
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, seed.TenantID); err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +181,7 @@ func quantity(t *testing.T, seed testutil.Seed, pool *pgxpool.Pool, productID st
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, seed.TenantID); err != nil {
 		t.Fatal(err)
 	}

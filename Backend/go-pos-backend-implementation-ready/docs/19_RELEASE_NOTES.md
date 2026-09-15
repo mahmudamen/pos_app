@@ -37,8 +37,9 @@
 - Docker Compose stack: `pos-prod-api`, `pos-prod-postgres` (16-alpine),
   `pos-prod-redis` (7-alpine); API now bound to **127.0.0.1:8080** only.
 - nginx reverse proxy serves the API over **HTTPS (443)** with HTTP→HTTPS
-  redirect; self-signed certificate in place pending DNS
-  (`api.xamltech.com` A record) then `certbot --nginx`.
+  redirect; **trusted Let's Encrypt certificate installed + auto-renew**
+  (Cloudflare DNS `api.xamltech.com → 197.44.6.42` now live).
+  Security headers come from the Go middleware only; nginx adds none.
 - ufw default-deny; direct `:8080` exposure removed; fail2ban active.
 - DB migrations to **v26**: `store_emails` (+ least-privilege grants to
   `pos_app_rls` so the app role can enforce signup uniqueness).
@@ -55,7 +56,7 @@
   trial store → catalog → relogin → sale.
 
 ## Known limitations / next
-- Public HTTPS requires the `api.xamltech.com` DNS record (one manual step).
+- Public HTTPS is live (`https://api.xamltech.com`, trusted cert).
 - Android app currently built for debug distribution; release signing pending.
 - Billing / plan upgrades are API stubs (plan limits enforced); subscription
   billing integration is the next phase (see `docs/FLUTTER_WEB_SAAS_CONTROL_PLAN.md`).

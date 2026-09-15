@@ -313,7 +313,7 @@ func TestRandomIDReturnsHex(t *testing.T) {
 		t.Fatalf("expected 32 hex chars, got %d", len(id))
 	}
 	for _, c := range id {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') {
 			t.Fatalf("expected hex character, got %q", string(c))
 		}
 	}

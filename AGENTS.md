@@ -58,10 +58,13 @@ The POS v1.0 release is **live on production** as Docker `pos-prod-*` services:
 - DB: postgres DB `pos` at goose version 26. The app role `pos_app_rls` is a
   limited-grant role — new tables must get grants via `scripts/grants_prod.sql`
   (see Backend gotchas) or prod-only `permission denied` errors appear.
-- HTTPS: host nginx terminates TLS for `api.xamltech.com` (443, self-signed
-  placeholder cert; HTTP→HTTPS 301). **DNS `A api.xamltech.com → 197.44.6.42`
-  is still unset by the user** — once added, run `certbot --nginx -d
-  api.xamltech.com` on the VPS to swap in a trusted certificate.
+- HTTPS: host nginx terminates TLS for `api.xamltech.com`. DNS (via
+  Cloudflare) → `197.44.6.42` is live and a trusted **Let's Encrypt** cert is
+  installed + auto-renews (certbot in the HTTP `server` block serves
+  `/.well-known/acme-challenge/`). Security headers (HSTS, X-Frame-Options,
+  nosniff, XSS, Referrer-Policy) come **only** from the Go app's
+  SecurityHeaders middleware — nginx adds none (dedupe was already applied).
+  HTTP→HTTPS 301.
 - API reachable from the dev box for emulator E2E via an SSH tunnel:
   `ssh -f -N -L 127.0.0.1:8080:127.0.0.1:8080 root@197.44.6.42` then
   `flutter test integration_test/... --dart-define=API_BASE_URL=http://10.0.2.2:8080`.

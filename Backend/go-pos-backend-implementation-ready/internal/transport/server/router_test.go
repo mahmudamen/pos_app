@@ -4,11 +4,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/example/pos-api/internal/config"
 	"github.com/example/pos-api/internal/infrastructure/metrics"
-	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	"github.com/example/pos-api/internal/transport/server"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
@@ -82,32 +80,14 @@ func TestHealthLiveAnswersWithoutDatabase(t *testing.T) {
 	}
 }
 
-func TestSaasGroupRateLimitedWhenApiLimiterProvided(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	engine := gin.New()
-	server.Register(engine, server.Deps{
-		Config:     config.Config{},
-		ApiLimiter: ratelimit.NewMemory(1, time.Minute),
-	})
-	// First request passes the limiter and reaches auth (401 without a token).
-	first := httptest.NewRecorder()
-	engine.ServeHTTP(first, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
-	if first.Code != http.StatusUnauthorized {
-		t.Fatalf("expected 401 for unauthenticated first request, got %d", first.Code)
-	}
-	// Second request is throttled before auth.
-	second := httptest.NewRecorder()
-	engine.ServeHTTP(second, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
-	if second.Code != http.StatusTooManyRequests {
-		t.Fatalf("expected 429 for throttled request, got %d", second.Code)
-	}
-}
-
-func TestOtherRoutesNotRateLimitedWithoutApiLimiter(t *testing.T) {
+func TestSaasGroupNotRateLimited(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
 	server.Register(engine, server.Deps{Config: config.Config{}})
-	for i := 0; i < 5; i++ {
+	// The SaaS control plane is saas_admin role-gated on every route and must
+	// NOT be subject to the API limiter (the admin panel issues many parallel
+	// /v1/saas/* calls per page), so rapid unauthenticated hits are plain 401s.
+	for i := 0; i < 8; i++ {
 		rec := httptest.NewRecorder()
 		engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/v1/saas/summary", nil))
 		if rec.Code != http.StatusUnauthorized {
@@ -129,7 +109,7 @@ func TestMetricsRouteOnlyWhenRegistryProvided(t *testing.T) {
 
 	isolated := prometheus.NewRegistry()
 	reg := metrics.NewScoped()
-	reg.Register(isolated, isolated)
+	_ = reg.Register(isolated, isolated)
 
 	with := gin.New()
 	server.Register(with, server.Deps{Config: config.Config{}, Metrics: reg})

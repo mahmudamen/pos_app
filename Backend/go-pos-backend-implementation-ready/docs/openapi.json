@@ -978,6 +978,327 @@
         }
       }
     },
+    "/v1/saas/billing/summary": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasBillingSummary",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/invoices": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasInvoices",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/invoices/{id}/pay": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasInvoicesIdPay",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/invoices/{id}/refund": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasInvoicesIdRefund",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/invoices/{id}/void": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasInvoicesIdVoid",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/payment-providers": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasPayment-providers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/plans": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasPlans",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasPlans",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/plans/{id}": {
+      "delete": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "DeleteV1SaasPlansId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PatchV1SaasPlansId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/subscriptions": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasSubscriptions",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/subscriptions/{id}/change-plan": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasSubscriptionsIdChange-plan",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/subscriptions/{id}/status": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasSubscriptionsIdStatus",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/saas/summary": {
       "get": {
         "tags": [
@@ -1034,6 +1355,79 @@
           "saas"
         ],
         "operationId": "GetV1SaasTenantsIdAnalytics",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/tenants/{id}/invoices": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasTenantsIdInvoices",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/tenants/{id}/subscription": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasTenantsIdSubscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasTenantsIdSubscription",
         "security": [
           {
             "bearerAuth": []
@@ -1426,6 +1820,31 @@
           "users"
         ],
         "operationId": "PostV1Users",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/users/{id}/security": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "operationId": "PutV1UsersIdSecurity",
         "security": [
           {
             "bearerAuth": []

@@ -89,7 +89,7 @@ func (h *Handler) listCategories(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	rows, err := tx.Query(c.Request.Context(), `SELECT id, name, slug, is_active FROM categories WHERE is_active ORDER BY name`)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load categories")
@@ -130,7 +130,7 @@ func (h *Handler) createCategory(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	var category Category
 	err := tx.QueryRow(c.Request.Context(), `
 		INSERT INTO categories (tenant_id, name, slug) VALUES ($1::uuid, $2, $3)
@@ -168,7 +168,7 @@ func (h *Handler) updateCategory(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	var current Category
 	err := tx.QueryRow(c.Request.Context(),
 		`SELECT id, name, slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
@@ -213,7 +213,7 @@ func (h *Handler) deleteCategory(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	var category Category
 	err := tx.QueryRow(c.Request.Context(),
 		`SELECT id, name, slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
@@ -248,7 +248,7 @@ func (h *Handler) deleteProduct(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	product, err := queryProduct(c, tx, c.Param("id"))
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "product_not_found", "product not found")
@@ -286,7 +286,7 @@ func (h *Handler) createProduct(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 
 	// D2 plan limits: max_products = 0 means unlimited; the check runs inside
 	// the tenant tx so COUNT(*) is RLS-filtered to this tenant's rows.
@@ -329,7 +329,7 @@ func (h *Handler) getProduct(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	product, err := queryProduct(c, tx, c.Param("id"))
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "product_not_found", "product not found")
@@ -360,7 +360,7 @@ func (h *Handler) updateProduct(c *gin.Context) {
 	if !ok {
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	current, err := queryProduct(c, tx, c.Param("id"))
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "product_not_found", "product not found")
@@ -420,7 +420,7 @@ func (h *Handler) listProducts(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	if _, err = tx.Exec(c.Request.Context(), "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return
@@ -494,7 +494,7 @@ func (h *Handler) getByBarcode(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
-	defer tx.Rollback(c.Request.Context())
+	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	if _, err = tx.Exec(c.Request.Context(), "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return

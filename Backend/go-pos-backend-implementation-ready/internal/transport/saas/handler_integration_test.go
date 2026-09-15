@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -164,7 +163,7 @@ func TestSaaSIntegration_PlanLimitEnforcedOnProducts(t *testing.T) {
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("first product: expected 201, got %d: %s", rec.Code, rec.Body.String())
 	}
-	prod2 := fmt.Sprintf(`{"name":"Espresso","sku":"ESP-1","price_minor":300,"currency":"EGP","stock_quantity":5}`)
+	prod2 := `{"name":"Espresso","sku":"ESP-1","price_minor":300,"currency":"EGP","stock_quantity":5}`
 	rec = postJSON(t, router, "/v1/products", mgr, prod2)
 	if rec.Code != http.StatusConflict {
 		t.Fatalf("over-limit product: expected 409, got %d: %s", rec.Code, rec.Body.String())

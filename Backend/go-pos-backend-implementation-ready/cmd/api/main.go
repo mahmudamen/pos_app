@@ -58,18 +58,9 @@ func main() {
 		logger.Info("login rate limiting uses in-memory limiter", "max", cfg.LoginRateMax, "window", cfg.LoginRateWindow)
 	}
 
-	// SaaS control-plane rate limit: Redis-backed when Redis is up, else
-	// in-memory. Only wired when RATE_LIMIT_ENABLED=true.
-	var apiLimiter ratelimit.Limiter
-	if cfg.ApiRateLimitEnabled {
-		if redisClient != nil {
-			apiLimiter = ratelimit.NewRedis(redisClient, cfg.ApiRateLimitMax, cfg.ApiRateLimitWindow)
-			logger.Info("api rate limiting uses redis", "max", cfg.ApiRateLimitMax, "window", cfg.ApiRateLimitWindow)
-		} else {
-			apiLimiter = ratelimit.NewMemory(cfg.ApiRateLimitMax, cfg.ApiRateLimitWindow)
-			logger.Info("api rate limiting uses in-memory limiter", "max", cfg.ApiRateLimitMax, "window", cfg.ApiRateLimitWindow)
-		}
-	}
+	// The SaaS control plane is role-gated on every route (saas_admin) and
+	// intentionally bypasses the API-wide rate limiter; the admin panel fires
+	// several parallel /v1/saas/* calls per page, so no API limiter is wired.
 
 	var metricsRegistry *metrics.Registry
 	if cfg.MetricsEnabled {
@@ -85,7 +76,6 @@ func main() {
 		Pool:         pool,
 		Config:       cfg,
 		LoginLimiter: loginLimiter,
-		ApiLimiter:   apiLimiter,
 		Metrics:      metricsRegistry,
 		Logger:       logger,
 		Readiness:    func() bool { return pool != nil && redisClient != nil },
