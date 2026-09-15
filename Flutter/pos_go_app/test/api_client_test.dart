@@ -11,6 +11,7 @@ import 'package:pos_go_app/core/payments.dart';
 import 'package:pos_go_app/core/receipts.dart';
 import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/restaurants.dart';
+import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
 void main() {
@@ -664,6 +665,183 @@ expect(() => client.dashboardSummary(session),
       throwsA(isA<ApiException>()
           .having((e) => e.message, 'message', contains('refunds'))),
     );
+  });
+
+  test('verifyPin posts the PIN and parses a valid result', () async {
+    final client = ApiClient(client: _VerifyPinClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    final result = await client.verifyPin(session, pin: '1234');
+
+    expect(result.valid, isTrue);
+    expect(result.hasPin, isTrue);
+    expect(result.locked, isFalse);
+  });
+
+  test('verifyPin reports locked on a 423 pin_locked', () async {
+    final client = ApiClient(client: _VerifyPinLockedClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    final result = await client.verifyPin(session, pin: '9999');
+
+    expect(result.locked, isTrue);
+    expect(result.valid, isFalse);
+  });
+
+  test('verifyPin surfaces a server error as ApiException', () async {
+    final client = ApiClient(client: _VerifyPinErrorClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    await expectLater(
+      client.verifyPin(session, pin: '1234'),
+      throwsA(isA<ApiException>()),
+    );
+  });
+
+  test('unlockPin clears a cashier lockout with a 204', () async {
+    final client = ApiClient(client: _UnlockPinClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+    );
+
+    await client.unlockPin(session, userId: 'user-2');
+  });
+
+  test('closeSession sends manager_pin when manager-gated', () async {
+    final client = ApiClient(client: _CloseSessionPinClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    final closed = await client.closeSession(session, 'session-1',
+        closingCashMinor: 5300, managerPin: '1234');
+
+    expect(closed.isOpen, isFalse);
+    expect(closed.closingCashMinor, 5300);
+    expect(closed.cashDifferenceMinor, 100);
+  });
+
+  test('createSale sends discount_minor and manager_pin when provided',
+      () async {
+    final client = ApiClient(client: _DiscountSaleClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+    );
+
+    final sale = await client.createSale(
+      session,
+      const [SaleItemInput(productId: 'product-1', quantity: 1)],
+      idempotencyKey: 'checkout-9',
+      discountMinor: 50,
+      managerPin: '1234',
+    );
+
+    expect(sale.discountCapped, isTrue);
+  });
+
+  test('createSale omits discount and pin keys when absent', () async {
+    final client = ApiClient(client: _PlainSaleClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    final sale = await client.createSale(
+      session,
+      const [SaleItemInput(productId: 'product-1', quantity: 1)],
+      idempotencyKey: 'checkout-10',
+    );
+
+    expect(sale.discountCapped, isFalse);
+  });
+
+  test('SaleResult parses discount_capped and discount_warning', () {
+    final sale = SaleResult.fromJson({
+      'id': 'sale-1',
+      'subtotal_minor': 2000,
+      'total_minor': 1950,
+      'currency': 'EGP',
+      'discount_capped': true,
+      'discount_warning': 'capped at 5%',
+    });
+
+    expect(sale.discountCapped, isTrue);
+    expect(sale.discountWarning, 'capped at 5%');
+  });
+
+  test('TenantSettings parses the ma_pos security and stock keys', () {
+    final settings = TenantSettings.fromJson({
+      'pos.discount_mode': 'block',
+      'pos.max_discount_pct': '10',
+      'pos.manager.discount': 'false',
+      'pos.manager.close': 'false',
+      'pos.stock_type': 'available',
+      'pos.block_out_of_stock': 'true',
+      'pos.low_stock_threshold': '3',
+      'pos.low_stock_warning': 'true',
+      'pos.validate_stock_payment': 'false',
+      'pos.refresh_button': 'false',
+    });
+
+    expect(settings.discountMode, DiscountMode.block);
+    expect(settings.maxDiscountPct, 10);
+    expect(settings.managerDiscountOverride, isFalse);
+    expect(settings.managerClosePin, isFalse);
+    expect(settings.stockType, 'available');
+    expect(settings.blockOutOfStock, isTrue);
+    expect(settings.lowStockThreshold, 3);
+    expect(settings.lowStockWarning, isTrue);
+    expect(settings.validateStockPayment, isFalse);
+    expect(settings.refreshButton, isFalse);
+  });
+
+  test('TenantSettings ma_pos keys fall back to defaults', () {
+    const raw = <String, dynamic>{};
+    final settings = TenantSettings.fromJson(raw);
+
+    expect(settings.discountMode, DiscountMode.unknown);
+    expect(settings.maxDiscountPct, 0);
+    expect(settings.managerDiscountOverride, isTrue);
+    expect(settings.managerClosePin, isTrue);
+    expect(settings.stockType, 'on_hand');
+    expect(settings.blockOutOfStock, isTrue);
+    expect(settings.lowStockThreshold, 5);
+    expect(settings.lowStockWarning, isTrue);
+    expect(settings.validateStockPayment, isTrue);
+    expect(settings.refreshButton, isTrue);
   });
 
   test('RegisterSession parses an open session with its live summary', () {
@@ -1998,6 +2176,135 @@ class _TableSaleClient extends http.BaseClient {
         '{"data":{"id":"sale-8","subtotal_minor":1700,"total_minor":1700,'
         '"currency":"EGP","payment_method":"cash","tips_minor":300},'
         '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _VerifyPinClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/auth/verify-pin');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body, {'pin': '1234'});
+    const response =
+        '{"data":{"valid":true,"has_pin":true,"attempts_left":5,'
+        '"locked":false},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _VerifyPinLockedClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/auth/verify-pin');
+    const response =
+        '{"error":{"code":"pin_locked","message":"too many attempts",'
+        '"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      423,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _VerifyPinErrorClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.url.path, '/v1/auth/verify-pin');
+    const response =
+        '{"error":{"code":"server_error","message":"boom","request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      500,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _UnlockPinClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/auth/unlock-pin');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body, {'user_id': 'user-2'});
+    return http.StreamedResponse(const Stream.empty(), 204);
+  }
+}
+
+class _CloseSessionPinClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/registers/session-1/close');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body, {'closing_cash_minor': 5300, 'manager_pin': '1234'});
+    const response =
+        '{"data":{"id":"session-1","status":"closed","opening_cash_minor":5000,'
+        '"closing_cash_minor":5300,"expected_cash_minor":5200,'
+        '"cash_difference_minor":100,"opened_at":"2026-09-11 00:46:27",'
+        '"closed_at":"2026-09-11 00:47:21","opened_by":"Restaurant Admin",'
+        '"summary":{}},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _DiscountSaleClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sales');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    expect(request.headers['Idempotency-Key'], 'checkout-9');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['discount_minor'], 50);
+    expect(body['manager_pin'], '1234');
+    const response =
+        '{"data":{"id":"sale-9","subtotal_minor":2000,"total_minor":1950,'
+        '"currency":"EGP","payment_method":"cash","discount_capped":true,'
+        '"discount_warning":"capped at 5%"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _PlainSaleClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sales');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body.containsKey('discount_minor'), isFalse);
+    expect(body.containsKey('manager_pin'), isFalse);
+    const response =
+        '{"data":{"id":"sale-10","subtotal_minor":2000,"total_minor":2000,'
+        '"currency":"EGP","payment_method":"cash"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       201,

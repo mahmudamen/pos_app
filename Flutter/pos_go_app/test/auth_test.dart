@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
 void main() {
@@ -83,6 +84,113 @@ void main() {
     expect(session.defaultLanguage, 'ar');
     expect(session.role, '');
     expect(session.isPlatformAdmin, isFalse);
+  });
+
+  test('session parses the resolved permissions payload from login', () {
+    final session = Session.fromJson({
+      'access_token': 'access',
+      'refresh_token': 'refresh',
+      'user': {
+        'id': 'user-1',
+        'display_name': 'Manager',
+        'role': 'manager',
+        'permissions': {
+          'access_level': 'manager',
+          'max_discount_pct': 50,
+          'can_delete_order': true,
+          'can_delete_line': true,
+          'can_change_qty': true,
+          'can_negative_qty': false,
+          'can_price_change': true,
+          'can_discount': true,
+          'can_open_session': true,
+          'can_close_session': true,
+          'can_payment_modification': true,
+          'can_refund': true,
+          'can_negative_stock': false,
+        },
+      },
+      'tenant': {'id': 'tenant-1'},
+    });
+
+    expect(session.permissions, isNotNull);
+    expect(session.permissions!.accessLevel, PosAccessLevel.manager);
+    expect(session.permissions!.maxDiscountPct, 50);
+    expect(session.permissions!.canRefund, isTrue);
+    expect(session.permissions!.canNegativeStock, isFalse);
+    expect(session.isManagerLevel, isTrue);
+    expect(session.permissions!.effectiveDiscountPct(100), 50);
+  });
+
+  test('session falls back to the role when no permissions are present',
+      () {
+    final cashier = Session.fromJson({
+      'access_token': 'access',
+      'refresh_token': 'refresh',
+      'user': {'id': 'user-1', 'display_name': 'Cashier', 'role': 'cashier'},
+      'tenant': {'id': 'tenant-1'},
+    });
+
+    expect(cashier.permissions, isNull);
+    expect(cashier.isManagerLevel, isFalse);
+
+    final manager = Session.fromJson({
+      'access_token': 'access',
+      'refresh_token': 'refresh',
+      'user': {'id': 'user-2', 'display_name': 'Manager', 'role': 'manager'},
+      'tenant': {'id': 'tenant-1'},
+    });
+    expect(manager.isManagerLevel, isTrue);
+  });
+
+  test('session copyWith keeps permissions across a token refresh', () {
+    final session = Session.fromJson({
+      'access_token': 'old',
+      'refresh_token': 'old-refresh',
+      'user': {
+        'id': 'user-1',
+        'display_name': 'Cashier',
+        'role': 'cashier',
+        'permissions': {'access_level': 'advanced', 'max_discount_pct': 10},
+      },
+      'tenant': {'id': 'tenant-1'},
+    });
+
+    final refreshed = session.copyWith(
+      accessToken: 'new',
+      refreshToken: 'new-refresh',
+    );
+
+    expect(refreshed.permissions?.accessLevel, PosAccessLevel.advanced);
+    expect(refreshed.accessToken, 'new');
+    expect(refreshed.permissions!.effectiveDiscountPct(20), 10);
+  });
+
+  test('session permissions round-trip through secure storage', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    final session = Session.fromJson({
+      'access_token': 'access',
+      'refresh_token': 'refresh',
+      'user': {
+        'id': 'user-1',
+        'display_name': 'Cashier',
+        'role': 'cashier',
+        'permissions': {'access_level': 'advanced', 'max_discount_pct': 10},
+      },
+      'tenant': {'id': 'tenant-1'},
+    });
+    await store.save(session);
+
+    final restored = await store.read();
+    expect(restored, isNotNull);
+    expect(restored!.permissions, isNotNull);
+    expect(restored.permissions!.accessLevel, PosAccessLevel.advanced);
+    expect(restored.permissions!.maxDiscountPct, 10);
+
+    await store.clear();
+    expect(await store.read(), isNull);
   });
 
   test('session exposes the owner/manager/cashier role hierarchy', () {

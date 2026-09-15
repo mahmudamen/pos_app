@@ -794,69 +794,51 @@ Future<String?> _promptManagerPin({required String message}) async {
     final messenger = ScaffoldMessenger.of(context);
     final controller = TextEditingController();
     String? error;
-    try {
-      while (true) {
-        if (!mounted) return null;
-        final pin = await showDialog<String>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text(s.managerPin),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(message, style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 8,
-                  decoration: InputDecoration(
-                    labelText: s.managerPin,
-                    hintText: s.managerPinHint,
-                    counterText: '',
-                    errorText: error,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(s.cancel),
-              ),
-              FilledButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(controller.text.trim()),
-                child: Text(s.ok),
-              ),
+    while (true) {
+      if (!mounted) return null;
+      final pin = await showDialog<String>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(s.managerPin),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message, style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 16),
+              _PinTextField(controller: controller, error: error),
             ],
           ),
-        );
-        if (pin == null || pin.isEmpty || !mounted) return null;
-        final PinVerifyResult result;
-        try {
-          result = await widget.apiClient.verifyPin(widget.session, pin: pin);
-        } on ApiException catch (e) {
-          if (!mounted) return null;
-          messenger.showSnackBar(SnackBar(content: Text(e.toString())));
-          return null;
-        }
-        if (result.locked) {
-          if (!mounted) return null;
-          messenger.showSnackBar(SnackBar(content: Text(s.pinLocked)));
-          return null;
-        }
-        if (result.valid) return pin;
-        error = result.attemptsLeft > 0
-            ? s.attemptsLeft(result.attemptsLeft)
-            : s.pinWrong;
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(s.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+              child: Text(s.ok),
+            ),
+          ],
+        ),
+      );
+      if (pin == null || pin.isEmpty || !mounted) return null;
+      final PinVerifyResult result;
+      try {
+        result = await widget.apiClient.verifyPin(widget.session, pin: pin);
+      } on ApiException catch (e) {
+        if (!mounted) return null;
+        messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+        return null;
       }
-    } finally {
-      controller.dispose();
+      if (result.locked) {
+        if (!mounted) return null;
+        messenger.showSnackBar(SnackBar(content: Text(s.pinLocked)));
+        return null;
+      }
+      if (result.valid) return pin;
+      error = result.attemptsLeft > 0
+          ? s.attemptsLeft(result.attemptsLeft)
+          : s.pinWrong;
     }
   }
 
@@ -909,6 +891,45 @@ Future<void> _replayPending() async {
         ),
       );
     }
+  }
+}
+
+/// Owns the PIN controller so it is released only when the dialog — and its
+/// exit animation — has fully unmounted.
+class _PinTextField extends StatefulWidget {
+  const _PinTextField({required this.controller, required this.error});
+
+  final TextEditingController controller;
+  final String? error;
+
+  @override
+  State<_PinTextField> createState() => _PinTextFieldState();
+}
+
+class _PinTextFieldState extends State<_PinTextField> {
+  @override
+  void dispose() {
+    widget.controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    return TextField(
+      controller: widget.controller,
+      autofocus: true,
+      obscureText: true,
+      keyboardType: TextInputType.number,
+      maxLength: 8,
+      decoration: InputDecoration(
+        labelText: s.managerPin,
+        hintText: s.managerPinHint,
+        counterText: '',
+        errorText: widget.error,
+        border: const OutlineInputBorder(),
+      ),
+    );
   }
 }
 
