@@ -100,6 +100,17 @@ void main() {
     expect(ar.mobileShop, 'محل موبايل');
     expect(ar.computerShop, 'محل كمبيوتر');
     expect(ar.grocery, 'بقالة وسوبر ماركت');
+    expect(ar.bakery, 'مخبز');
+    expect(ar.shawerma, 'شاورما');
+    expect(ar.falafel, 'فول وفلافل');
+    expect(ar.pharmacy, 'صيدلية');
+    expect(ar.butcher, 'جزارة');
+    expect(ar.fruitsVeg, 'خضار وفاكهة');
+    expect(ar.clothing, 'ملابس');
+    expect(ar.sweets, 'حلويات');
+    expect(ar.jewelry, 'ذهب ومجوهرات');
+    expect(ar.hardware, 'عدد ومعدات');
+    expect(ar.unitLabel('kg'), 'كجم');
     expect(ar.createStore, 'إنشاء المتجر');
     expect(ar.storeName, 'اسم المتجر');
     expect(ar.ownerName, 'اسم المالك');
@@ -199,6 +210,17 @@ void main() {
     expect(en.mobileShop, 'Mobile shop');
     expect(en.computerShop, 'Computer shop');
     expect(en.grocery, 'Grocery');
+    expect(en.bakery, 'Bakery');
+    expect(en.shawerma, 'Shawerma');
+    expect(en.falafel, 'Falafel');
+    expect(en.pharmacy, 'Pharmacy');
+    expect(en.butcher, 'Butcher');
+    expect(en.fruitsVeg, 'Fruits & vegetables');
+    expect(en.clothing, 'Clothing');
+    expect(en.sweets, 'Sweets');
+    expect(en.jewelry, 'Jewelry');
+    expect(en.hardware, 'Hardware');
+    expect(en.unitLabel('liter'), 'liter');
     expect(en.createStore, 'Create store');
     expect(en.storeName, 'Store name');
     expect(en.ownerName, 'Owner name');
@@ -208,6 +230,45 @@ void main() {
     expect(en.passwordMin, isNotEmpty);
     expect(en.storeCreated, isNotEmpty);
     expect(en.trialExpired, contains('trial'));
+  });
+
+  test('onboarding interests and price-plan strings are provided', () {
+    final en = AppStrings(const Locale('en'));
+    expect(en.continueLabel, 'Continue');
+    expect(en.interestTitle, contains('store'));
+    expect(en.featureInventory, 'Inventory control');
+    expect(en.featureLoyalty, 'Customers & loyalty points');
+    expect(en.featureTables, 'Tables & split bills');
+    expect(en.featureDiscounts, 'Discounts & manager PIN');
+    expect(en.plansTitle, 'Choose your plan');
+    expect(en.planTrial, 'Free trial');
+    expect(en.planStandard, 'Standard');
+    expect(en.planPremium, 'Premium');
+    expect(en.planEnterprise, 'Enterprise');
+    expect(en.planPerMonth, '/month');
+    expect(en.trialBadge, contains('15 days'));
+    expect(en.trialLimitUsers, 'Up to 2 users');
+    expect(en.trialLimitProducts, 'Up to 150 products');
+    expect(en.startTrial, contains('15-day trial'));
+    expect(en.planAfterTrialLabel('Premium'), contains('Premium'));
+    expect(en.planLimitsLabel(5, 500), contains('5'));
+    expect(en.trialPlanNotice, contains('trial'));
+
+    final ar = AppStrings(const Locale('ar'));
+    expect(ar.continueLabel, 'متابعة');
+    expect(ar.interestsHint, isNotEmpty);
+    expect(ar.interestTitle, contains('يهمك'));
+    expect(ar.featureInventory, contains('المخزون'));
+    expect(ar.featureRefunds, contains('استرداد'));
+    expect(ar.plansTitle, contains('باقتك'));
+    expect(ar.planTrial, contains('تجربة'));
+    expect(ar.planPremium, contains('بريميوم'));
+    expect(ar.trialBadge, contains('15 يومًا'));
+    expect(ar.trialLimitNoCard, contains('بطاقة'));
+    expect(ar.startTrial, contains('15 يومًا'));
+    expect(ar.planAfterTrialLabel('بريميوم'), contains('بريميوم'));
+    expect(ar.trialLimitsTitle, contains('التجربة'));
+    expect(ar.trialPlanNotice, contains('تجربة'));
   });
 
   test('money formatted with EGP symbol', () {

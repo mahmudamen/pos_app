@@ -76,6 +76,19 @@ BEGIN
 END
 $$;
 
+-- Units + bundled Egyptian price catalog (migrations 029/030) are platform
+-- reference data: read-only for the runtime role. The price-refresh job reuses
+-- the products DML grant (already above) to update seeded rows.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT ON TABLE units TO pos_app_rls;
+        GRANT SELECT ON TABLE unit_conversions TO pos_app_rls;
+        GRANT SELECT ON TABLE egypt_price_catalog TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

@@ -32,6 +32,16 @@ var (
 		"mobile_shop":   true,
 		"computer_shop": true,
 		"grocery":       true,
+		"bakery":        true,
+		"shawerma":      true,
+		"falafel":       true,
+		"pharmacy":      true,
+		"butcher":       true,
+		"fruits_veg":    true,
+		"clothing":      true,
+		"sweets":        true,
+		"jewelry":       true,
+		"hardware":      true,
 	}
 	slugClean = regexp.MustCompile(`[^a-z0-9]+`)
 )
@@ -101,8 +111,8 @@ func (h *Handler) Signup(c *gin.Context) {
 	trialEndsAt := time.Now().Add(trialDays * 24 * time.Hour)
 	countryCode, currencyCode, language := defaults(request.CountryCode, request.CurrencyCode, request.Language)
 	_, err = tx.Exec(ctx, `
-		INSERT INTO tenants (id, name, slug, business_type, country_code, currency_code, default_language, plan, trial_ends_at, address)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 'trial', $8, '')`,
+		INSERT INTO tenants (id, name, slug, business_type, country_code, currency_code, default_language, plan, trial_ends_at, address, is_demo_seeded)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'trial', $8, '', TRUE)`,
 		tenantID, request.StoreName, slugFor(request.StoreName), request.BusinessType,
 		countryCode, currencyCode, language, trialEndsAt)
 	if err != nil {

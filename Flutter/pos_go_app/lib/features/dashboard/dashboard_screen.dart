@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
 import '../../core/dashboard.dart';
+import '../../core/layout.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 
@@ -75,36 +76,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 )
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Text(summary?.date ?? '',
-                          style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 12),
-                      if (summary != null) ...[
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            _StatCard(
-                                label: s.revenueToday,
-                                value: s.formatMoney(summary.today.revenueMinor,
-                                    widget.session.currencyCode)),
-                            _StatCard(
-                              label: s.salesCount,
-                              value: '${summary.today.salesCount}',
-                            ),
-                            _StatCard(
-                              label: s.avgSale,
-                              value: s.formatMoney(summary.today.avgSaleMinor,
-                                  widget.session.currencyCode),
-                            ),
-                            _StatCard(
-                                label: s.itemsSold,
-                                value: '${summary.today.itemsSold}'),
-                          ],
-                        ),
+                  child: MaxWidthBox(
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        Text(summary?.date ?? '',
+                            style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 12),
+                        if (summary != null) ...[
+                          LayoutBuilder(builder: (context, constraints) {
+                            final cardWidth =
+                                ((constraints.maxWidth - 36) / 4)
+                                    .clamp(150.0, 320.0);
+                            return Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                _StatCard(
+                                    width: cardWidth,
+                                    label: s.revenueToday,
+                                    value: s.formatMoney(
+                                        summary.today.revenueMinor,
+                                        widget.session.currencyCode)),
+                                _StatCard(
+                                    width: cardWidth,
+                                    label: s.salesCount,
+                                    value: '${summary.today.salesCount}'),
+                                _StatCard(
+                                    width: cardWidth,
+                                    label: s.avgSale,
+                                    value: s.formatMoney(
+                                        summary.today.avgSaleMinor,
+                                        widget.session.currencyCode)),
+                                _StatCard(
+                                    width: cardWidth,
+                                    label: s.itemsSold,
+                                    value: '${summary.today.itemsSold}'),
+                              ],
+                            );
+                          }),
                         if (summary.paymentMix.isNotEmpty) ...[
                           const SizedBox(height: 20),
                           Text(s.paymentMix,
@@ -171,6 +182,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
+              ),
     );
   }
 }
@@ -187,15 +199,16 @@ IconData _methodIcon(String method) {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
+  const _StatCard({required this.width, required this.label, required this.value});
 
+  final double width;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 150,
+      width: width,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16),

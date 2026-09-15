@@ -1305,6 +1305,7 @@ expect(() => client.dashboardSummary(session),
         'category_id': 'cat-1',
         'cost_minor': 120,
         'image_url': 'https://example.com/latte.png',
+        'unit': 'liter',
         'is_active': true,
       });
       expect(product.id, 'p-1');
@@ -1314,6 +1315,7 @@ expect(() => client.dashboardSummary(session),
       expect(product.categoryId, 'cat-1');
       expect(product.costMinor, 120);
       expect(product.imageUrl, 'https://example.com/latte.png');
+      expect(product.unit, 'liter');
       expect(product.isActive, true);
     });
 
@@ -1330,6 +1332,7 @@ expect(() => client.dashboardSummary(session),
       expect(product.categoryId, '');
       expect(product.costMinor, 0);
       expect(product.imageUrl, '');
+      expect(product.unit, 'piece');
       expect(product.isActive, true);
     });
 

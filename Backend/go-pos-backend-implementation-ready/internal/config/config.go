@@ -10,38 +10,41 @@ import (
 )
 
 type Config struct {
-	AppName             string
-	HTTPAddr            string
-	HTTPReadTimeout     time.Duration
-	HTTPWriteTimeout    time.Duration
-	HTTPIdleTimeout     time.Duration
-	HTTPShutdownTimeout time.Duration
-	HTTPMaxBodyBytes    int64
-	DatabaseURL         string
-	DBMaxConns          int32
-	DBMinConns          int32
-	DBMaxConnLifetime   time.Duration
-	DBMaxConnIdleTime   time.Duration
-	RedisAddr           string
-	RedisPassword       string
-	RedisDB             int
-	JWTIssuer           string
-	JWTAccessSecret     string
-	JWTRefreshSecret    string
-	JWTAccessTTL        time.Duration
-	JWTRefreshTTL       time.Duration
-	BcryptCost          int
-	CashierDiscountPct  int
-	CORSAllowedOrigins  []string
-	LogLevel            string
-	LogFormat           string
-	MaxSessionsPerUser  int
-	LoginRateMax        int
-	LoginRateWindow     time.Duration
-	ApiRateLimitEnabled bool
-	ApiRateLimitMax     int
-	ApiRateLimitWindow  time.Duration
-	MetricsEnabled      bool
+	AppName               string
+	HTTPAddr              string
+	HTTPReadTimeout       time.Duration
+	HTTPWriteTimeout      time.Duration
+	HTTPIdleTimeout       time.Duration
+	HTTPShutdownTimeout   time.Duration
+	HTTPMaxBodyBytes      int64
+	DatabaseURL           string
+	DBMaxConns            int32
+	DBMinConns            int32
+	DBMaxConnLifetime     time.Duration
+	DBMaxConnIdleTime     time.Duration
+	RedisAddr             string
+	RedisPassword         string
+	RedisDB               int
+	JWTIssuer             string
+	JWTAccessSecret       string
+	JWTRefreshSecret      string
+	JWTAccessTTL          time.Duration
+	JWTRefreshTTL         time.Duration
+	BcryptCost            int
+	CashierDiscountPct    int
+	CORSAllowedOrigins    []string
+	LogLevel              string
+	LogFormat             string
+	MaxSessionsPerUser    int
+	LoginRateMax          int
+	LoginRateWindow       time.Duration
+	ApiRateLimitEnabled   bool
+	ApiRateLimitMax       int
+	ApiRateLimitWindow    time.Duration
+	MetricsEnabled        bool
+	PriceCronEnabled      bool
+	PriceCronInterval     time.Duration
+	PriceCronVariationPct int
 }
 
 func Load() (Config, error) {
@@ -172,6 +175,26 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	c.MetricsEnabled = metricsEnabled
+
+	priceCronEnabled, err := boolValue("PRICE_CRON_ENABLED", false)
+	if err != nil {
+		return Config{}, err
+	}
+	if c.PriceCronInterval, err = duration("PRICE_CRON_INTERVAL", 6*time.Hour); err != nil {
+		return Config{}, err
+	}
+	if c.PriceCronInterval <= 0 {
+		return Config{}, fmt.Errorf("PRICE_CRON_INTERVAL must be positive")
+	}
+	priceCronVariation, err := intValue("PRICE_CRON_VARIATION_PCT", 3)
+	if err != nil {
+		return Config{}, err
+	}
+	if priceCronVariation < 0 || priceCronVariation > 25 {
+		return Config{}, fmt.Errorf("PRICE_CRON_VARIATION_PCT must be between 0 and 25")
+	}
+	c.PriceCronEnabled = priceCronEnabled
+	c.PriceCronVariationPct = priceCronVariation
 	return c, nil
 }
 

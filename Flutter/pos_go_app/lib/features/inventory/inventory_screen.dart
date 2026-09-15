@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
 import '../../core/inventory.dart';
+import '../../core/layout.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 
@@ -235,51 +236,53 @@ class _InventoryScreenState extends State<InventoryScreen> {
     if (_products.isEmpty) {
       return Center(child: Text(s.products));
     }
-    return ListView.separated(
-      itemCount: _products.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final product = _products[index];
-        final negative = product.stockQuantity < 0;
-        final out = product.stockQuantity <= 0;
-        return ListTile(
-          leading: _ProductThumb(product: product),
-          title: Text(product.name),
-          subtitle: Text(product.sku),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('${s.onHand}: ',
-                      style: Theme.of(context).textTheme.bodySmall),
-                  Text('${product.stockQuantity}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: out
-                              ? Theme.of(context).colorScheme.error
-                              : null,
-                          fontWeight: FontWeight.bold)),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                negative
-                    ? s.backorder
-                    : out
-                        ? s.outOfStock
-                        : s.adjustStock,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: out
-                        ? Theme.of(context).colorScheme.error
-                        : Theme.of(context).colorScheme.primary),
-              ),
-            ],
-          ),
-          onTap: () => _openAdjustSheet(product),
-        );
-      },
+    return MaxWidthBox(
+      child: ListView.separated(
+        itemCount: _products.length,
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final product = _products[index];
+          final negative = product.stockQuantity < 0;
+          final out = product.stockQuantity <= 0;
+          return ListTile(
+            leading: _ProductThumb(product: product),
+            title: Text(product.name),
+            subtitle: Text(product.sku),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${s.onHand}: ',
+                        style: Theme.of(context).textTheme.bodySmall),
+                    Text('${product.stockQuantity}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: out
+                                ? Theme.of(context).colorScheme.error
+                                : null,
+                            fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  negative
+                      ? s.backorder
+                      : out
+                          ? s.outOfStock
+                          : s.adjustStock,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: out
+                          ? Theme.of(context).colorScheme.error
+                          : Theme.of(context).colorScheme.primary),
+                ),
+              ],
+            ),
+            onTap: () => _openAdjustSheet(product),
+          );
+        },
+      ),
     );
   }
 
@@ -310,12 +313,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final total = _history?.total ?? 0;
     final limit = _history?.limit ?? 50;
     final totalPages = limit > 0 ? (total / limit).ceil() : 1;
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.separated(
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+    return MaxWidthBox(
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView.separated(
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final item = items[index];
               return ListTile(
@@ -375,6 +379,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           ),
       ],
+      ),
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/layout.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 
@@ -178,47 +179,49 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: s.searchCustomers,
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                isDense: true,
+      body: MaxWidthBox(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: s.searchCustomers,
+                  prefixIcon: const Icon(Icons.search),
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onSubmitted: (value) {
+                  _query = value.trim();
+                  _currentPage = 1;
+                  _loadCustomers();
+                },
               ),
-              onSubmitted: (value) {
-                _query = value.trim();
-                _currentPage = 1;
-                _loadCustomers();
-              },
             ),
-          ),
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(_error!,
-                                style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.error)),
-                            const SizedBox(height: 12),
-                            FilledButton(
-                                onPressed: () =>
-                                    _loadCustomers(page: _currentPage),
-                                child: Text(s.retry)),
-                          ],
-                        ),
-                      )
-                    : _buildList(context),
-          ),
-        ],
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(_error!,
+                                  style: TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.error)),
+                              const SizedBox(height: 12),
+                              FilledButton(
+                                  onPressed: () =>
+                                      _loadCustomers(page: _currentPage),
+                                  child: Text(s.retry)),
+                            ],
+                          ),
+                        )
+                      : _buildList(context),
+            ),
+          ],
+        ),
       ),
     );
   }

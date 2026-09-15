@@ -35,6 +35,69 @@ class AppStrings {
   String get mobileShop => isArabic ? 'محل موبايل' : 'Mobile shop';
   String get computerShop => isArabic ? 'محل كمبيوتر' : 'Computer shop';
   String get grocery => isArabic ? 'بقالة وسوبر ماركت' : 'Grocery';
+  String get bakery => isArabic ? 'مخبز' : 'Bakery';
+  String get shawerma => isArabic ? 'شاورما' : 'Shawerma';
+  String get falafel => isArabic ? 'فول وفلافل' : 'Falafel';
+  String get pharmacy => isArabic ? 'صيدلية' : 'Pharmacy';
+  String get butcher => isArabic ? 'جزارة' : 'Butcher';
+  String get fruitsVeg => isArabic ? 'خضار وفاكهة' : 'Fruits & vegetables';
+  String get clothing => isArabic ? 'ملابس' : 'Clothing';
+  String get sweets => isArabic ? 'حلويات' : 'Sweets';
+  String get jewelry => isArabic ? 'ذهب ومجوهرات' : 'Jewelry';
+  String get hardware => isArabic ? 'عدد ومعدات' : 'Hardware';
+  String get unit => isArabic ? 'الوحدة' : 'Unit';
+  String unitLabel(String code) {
+    if (isArabic) {
+      switch (code) {
+        case 'piece':
+          return 'قطعة';
+        case 'dozen':
+          return 'درزن';
+        case 'box':
+          return 'علبة';
+        case 'pack':
+          return 'عبوة';
+        case 'kg':
+          return 'كجم';
+        case 'g':
+          return 'جرام';
+        case 'liter':
+          return 'لتر';
+        case 'ml':
+          return 'مل';
+        case 'm':
+          return 'متر';
+        case 'qm':
+          return 'م²';
+        default:
+          return code;
+      }
+    }
+    switch (code) {
+      case 'piece':
+        return 'piece';
+      case 'dozen':
+        return 'dozen';
+      case 'box':
+        return 'box';
+      case 'pack':
+        return 'pack';
+      case 'kg':
+        return 'kg';
+      case 'g':
+        return 'g';
+      case 'liter':
+        return 'liter';
+      case 'ml':
+        return 'ml';
+      case 'm':
+        return 'm';
+      case 'qm':
+        return 'm²';
+      default:
+        return code;
+    }
+  }
   String get createStore => isArabic ? 'إنشاء المتجر' : 'Create store';
   String get storeName => isArabic ? 'اسم المتجر' : 'Store name';
   String get ownerName => isArabic ? 'اسم المالك' : 'Owner name';
@@ -44,6 +107,46 @@ class AppStrings {
   String get passwordMin => isArabic ? 'كلمة المرور 8 أحرف على الأقل' : 'Use at least 8 characters';
   String get storeCreated => isArabic ? 'متجرك جاهز للبيع!' : 'Your store is ready to sell!';
   String get trialExpired => isArabic ? 'انتهت الفترة التجريبية لمتجرك. جدد الاشتراك للمتابعة.' : 'Your store trial has ended. Renew to continue.';
+  String get continueLabel => isArabic ? 'متابعة' : 'Continue';
+  String get skipLabel => isArabic ? 'لاحقًا' : 'Skip';
+  String get interestTitle => isArabic ? 'ما الذي يهمك في متجرك؟' : 'What matters most for your store?';
+  String get interestSubtitle => isArabic ? 'اختر الميزات التي تهمك — كلها مشمولة في التجربة المجانية' : 'Pick the features you care about — they are all included in the free trial';
+  String get interestsHint => isArabic ? 'يمكنك التخطي وتحديد الخيارات لاحقًا' : 'You can skip and refine your choices later';
+  String get featureInventory => isArabic ? 'إدارة المخزون' : 'Inventory control';
+  String get featureLoyalty => isArabic ? 'العملاء ونقاط الولاء' : 'Customers & loyalty points';
+  String get featureTables => isArabic ? 'طاولات وتقسيم الفواتير' : 'Tables & split bills';
+  String get featureAnalytics => isArabic ? 'تقارير ولوحة معلومات' : 'Reports & dashboard';
+  String get featureReceipts => isArabic ? 'إيصالات حرارية' : 'Thermal receipts';
+  String get featureDiscounts => isArabic ? 'خصومات ورمز المدير' : 'Discounts & manager PIN';
+  String get featureSync => isArabic ? 'مزامنة متعددة الأجهزة' : 'Multi-device sync';
+  String get featureRefunds => isArabic ? 'الاستردادات' : 'Refunds';
+  String get plansTitle => isArabic ? 'اختر باقتك' : 'Choose your plan';
+  String get plansSubtitle => isArabic ? 'ابدأ مجانًا ورقِّم عندما تكبر' : 'Start free, upgrade when you grow';
+  String get planTrial => isArabic ? 'تجربة مجانية' : 'Free trial';
+  String get planStandard => isArabic ? 'قياسي' : 'Standard';
+  String get planPremium => isArabic ? 'بريميوم' : 'Premium';
+  String get planEnterprise => isArabic ? 'مؤسسات' : 'Enterprise';
+  String get planPerMonth => isArabic ? '/شهر' : '/month';
+  String get planPopular => isArabic ? 'الأكثر شيوعًا' : 'Most popular';
+  String get startTrial => isArabic ? 'ابدأ التجربة المجانية لمدة 15 يومًا' : 'Start free 15-day trial';
+  String get trialBadge => isArabic ? '15 يومًا مجانًا — كل الميزات مفعّلة' : '15 days free — every feature unlocked';
+  String get trialLimitsTitle => isArabic ? 'حدود التجربة المجانية' : 'Free trial limits';
+  String get trialLimitDays => isArabic ? '15 يومًا وصول كامل لجميع الميزات' : 'Full access to every feature for 15 days';
+  String get trialLimitUsers => isArabic ? 'حتى 2 مستخدم' : 'Up to 2 users';
+  String get trialLimitProducts => isArabic ? 'حتى 150 منتج' : 'Up to 150 products';
+  String get trialLimitNoCard => isArabic ? 'بدون بطاقة — اختر باقتك لاحقًا من الإعدادات' : 'No card required — choose your plan later in Settings';
+  String get planStandardDesc => isArabic ? 'لمتجرك الصغير الناشئ' : 'For your small, growing store';
+  String get planPremiumDesc => isArabic ? 'للأعمال التي تنمو بسرعة' : 'For fast-growing businesses';
+  String get planEnterpriseDesc => isArabic ? 'لتعدد الفروع والمؤسسات' : 'For multi-branch & enterprise';
+  String get planUnlimitedUsers => isArabic ? 'مستخدمون غير محدودين' : 'Unlimited users';
+  String get planUnlimitedProducts => isArabic ? 'منتجات غير محدودة' : 'Unlimited products';
+  String get planExtraSupport => isArabic ? 'دعم أولوي' : 'Priority support';
+  String get planAnyFeat => isArabic ? 'كل ميزات الخطة السابقة' : 'Everything in the previous plan';
+  String planAfterTrialLabel(String plan) => isArabic ? 'بعد التجربة يمكنك الترقية إلى خطة $plan' : 'After the trial you can upgrade to the $plan plan';
+  String planLimitsLabel(int users, int products) =>
+      isArabic ? 'حتى $users مستخدمَين و$products منتج' : 'Up to $users users & $products products';
+  String get trialPlanNotice => isArabic ? 'ستبدأ بتجربة مجانية محدودة: كل الميزات لمدة 15 يومًا، ثم اختر باقتك للمتابعة' : 'You will start on the free limited trial: every feature for 15 days, then choose a plan to continue';
+  String get interestsShort => isArabic ? 'اهتمام' : 'interests';
   String get required => isArabic ? 'مطلوب' : 'Required';
   String get language => isArabic ? 'اللغة' : 'Language';
   String get arabic => isArabic ? 'العربية' : 'Arabic';

@@ -6,7 +6,8 @@ import (
 )
 
 func TestValidBusinessTypesIncludeSignupVerticals(t *testing.T) {
-	for _, vt := range []string{"coffee_shop", "restaurant", "retail", "book_store", "mobile_shop", "computer_shop", "grocery"} {
+	for _, vt := range []string{"coffee_shop", "restaurant", "retail", "book_store", "mobile_shop", "computer_shop", "grocery",
+		"bakery", "shawerma", "falafel", "pharmacy", "butcher", "fruits_veg", "clothing", "sweets", "jewelry", "hardware"} {
 		if !validBusinessTypes[vt] {
 			t.Fatalf("expected %q to be a valid signup business type", vt)
 		}

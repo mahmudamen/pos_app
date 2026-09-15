@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/api_client.dart';
+import '../../core/layout.dart';
 import '../../core/payments.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
@@ -92,24 +93,26 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
     final s = AppStrings.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(s.salesHistory)),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!,
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.error)),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                          onPressed: () => _loadSales(page: _currentPage),
-                          child: Text(s.retry)),
-                    ],
-                  ),
-                )
-              : _buildList(context),
+      body: MaxWidthBox(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_error!,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error)),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                            onPressed: () => _loadSales(page: _currentPage),
+                            child: Text(s.retry)),
+                      ],
+                    ),
+                  )
+                : _buildList(context),
+      ),
     );
   }
 

@@ -196,6 +196,12 @@ BEGIN
     END IF;
   END LOOP;
 
+  -- Demo tenants seeded from bundled data: the price-refresh job may re-price
+  -- their products by barcode.
+  UPDATE tenants SET is_demo_seeded = TRUE
+  WHERE slug IN ('demo-restaurant', 'demo-book-store', 'demo-mobile-shop',
+                 'demo-computer-shop', 'demo-grocery');
+
   -- --------------------------------------------------------------------------
   -- Summary (printed per tenant; queries run inside tenant RLS context)
   -- --------------------------------------------------------------------------

@@ -456,6 +456,7 @@ class _PosScreenState extends State<PosScreen> {
                   searchController: _searchController,
                   strings: s,
                   currency: widget.session.currencyCode,
+                  wide: wide,
                   showStockBadges: _settings.showStockBadges,
                   lowStockOnly: _lowStockOnly,
                   lowStockEnabled: _settings.lowStockWarning,
@@ -484,7 +485,10 @@ class _PosScreenState extends State<PosScreen> {
               return wide
                   ? Row(children: [
                       Expanded(child: catalog),
-                      SizedBox(width: 360, child: cart)
+                      SizedBox(
+                          width:
+                              (constraints.maxWidth * 0.30).clamp(360.0, 440.0),
+                          child: cart)
                     ])
                   : Column(children: [
                       Expanded(child: catalog),
@@ -943,6 +947,7 @@ class _Catalog extends StatelessWidget {
       required this.searchController,
       required this.strings,
       required this.currency,
+      required this.wide,
       required this.showStockBadges,
       required this.lowStockOnly,
       required this.lowStockEnabled,
@@ -959,6 +964,7 @@ class _Catalog extends StatelessWidget {
   final TextEditingController searchController;
   final AppStrings strings;
   final String currency;
+  final bool wide;
   final bool showStockBadges;
   final bool lowStockOnly;
   final bool lowStockEnabled;
@@ -1033,9 +1039,9 @@ class _Catalog extends StatelessWidget {
             Expanded(
                 child: GridView.builder(
                     gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 220,
-                            childAspectRatio: 1.25,
+                        SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: wide ? 280 : 220,
+                            childAspectRatio: wide ? 1.2 : 1.25,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12),
                     itemCount: products.length,
@@ -1070,7 +1076,19 @@ class _Catalog extends StatelessWidget {
                                                   .textTheme
                                                   .titleMedium),
                                           Text(strings.formatMoney(
-                                              product.priceMinor, currency))
+                                              product.priceMinor, currency)),
+                                          if (product.unit.isNotEmpty &&
+                                              product.unit != 'piece')
+                                            Text(
+                                                strings
+                                                    .unitLabel(product.unit),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurfaceVariant)),
                                         ]),
                                   ]))));
                     }))

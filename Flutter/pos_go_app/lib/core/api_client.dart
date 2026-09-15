@@ -60,6 +60,8 @@ class ApiClient {
     String countryCode = 'EG',
     String currencyCode = 'EGP',
     String language = 'ar',
+    List<String> interests = const [],
+    String plan = 'trial',
   }) async {
     final response = await _client.post(
       Uri.parse('$baseUrl/v1/auth/register'),
@@ -75,6 +77,8 @@ class ApiClient {
         'default_language': language,
         'device_id': deviceId,
         'device_name': deviceName,
+        'interests': interests,
+        'plan': plan,
       }),
     );
     if (response.statusCode != 201) {
@@ -994,6 +998,7 @@ class Product {
     this.costMinor = 0,
     this.imageUrl = '',
     this.description = '',
+    this.unit = 'piece',
     this.isActive = true,
   });
 
@@ -1009,6 +1014,7 @@ class Product {
         costMinor: (json['cost_minor'] as num?)?.toInt() ?? 0,
         imageUrl: json['image_url'] as String? ?? '',
         description: json['description'] as String? ?? '',
+        unit: json['unit'] as String? ?? 'piece',
         isActive: json['is_active'] as bool? ?? true,
       );
 
@@ -1023,6 +1029,7 @@ class Product {
   final int costMinor;
   final String imageUrl;
   final String description;
+  final String unit;
   final bool isActive;
 }
 

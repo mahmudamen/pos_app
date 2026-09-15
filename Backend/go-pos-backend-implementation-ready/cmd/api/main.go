@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +15,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/metrics"
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	redisinfra "github.com/example/pos-api/internal/infrastructure/redis"
+	"github.com/example/pos-api/internal/pricing"
 	"github.com/example/pos-api/internal/transport/server"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -81,6 +83,18 @@ func main() {
 		Readiness:    func() bool { return pool != nil && redisClient != nil },
 	})
 
+	// Demo price refresher: nudges the seeded Egyptian catalog prices for
+	// demo-seeded tenants on an interval so the storefront feels live. It
+	// touches only tenants flagged is_demo_seeded, never a real merchant.
+	var pricer *pricing.Scheduler
+	if cfg.PriceCronEnabled && pool != nil {
+		rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+		pricer = pricing.Start(pool, cfg.PriceCronInterval, cfg.PriceCronVariationPct, rng, logger)
+		logger.Info("price refresh scheduler started",
+			"interval", cfg.PriceCronInterval.String(),
+			"variation_pct", cfg.PriceCronVariationPct)
+	}
+
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           router,
@@ -108,6 +122,10 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		slog.Error("HTTP server shutdown failed", "error", err)
 		os.Exit(1)
+	}
+
+	if pricer != nil {
+		pricer.Stop()
 	}
 
 	if pool != nil {

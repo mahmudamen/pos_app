@@ -100,6 +100,61 @@ func TestLoadKeepsWildcardDefaultWhenCORSBlank(t *testing.T) {
 	}
 }
 
+func TestLoadDefaultsPriceCron(t *testing.T) {
+	clearEnv()
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.PriceCronEnabled {
+		t.Fatal("price cron should default to disabled")
+	}
+	if cfg.PriceCronInterval != 6*time.Hour {
+		t.Fatalf("expected default 6h interval, got %s", cfg.PriceCronInterval)
+	}
+	if cfg.PriceCronVariationPct != 3 {
+		t.Fatalf("expected default 3 pct variation, got %d", cfg.PriceCronVariationPct)
+	}
+}
+
+func TestLoadParsesPriceCron(t *testing.T) {
+	clearEnv()
+	t.Setenv("PRICE_CRON_ENABLED", "true")
+	t.Setenv("PRICE_CRON_INTERVAL", "30m")
+	t.Setenv("PRICE_CRON_VARIATION_PCT", "7")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.PriceCronEnabled || cfg.PriceCronInterval != 30*time.Minute || cfg.PriceCronVariationPct != 7 {
+		t.Fatalf("price cron parse mismatch: %+v", cfg)
+	}
+}
+
+func TestLoadRejectsInvalidPriceCronInterval(t *testing.T) {
+	clearEnv()
+	t.Setenv("PRICE_CRON_INTERVAL", "0s")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected error for zero interval")
+	}
+}
+
+func TestLoadRejectsInvalidPriceCronEnabled(t *testing.T) {
+	clearEnv()
+	t.Setenv("PRICE_CRON_ENABLED", "maybe")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected error for PRICE_CRON_ENABLED=maybe")
+	}
+}
+
+func TestLoadRejectsPriceCronVariationOutOfRange(t *testing.T) {
+	clearEnv()
+	t.Setenv("PRICE_CRON_VARIATION_PCT", "99")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected error for variation out of range")
+	}
+}
+
 func TestLoadRejectsInvalidBcryptCost(t *testing.T) {
 	clearEnv()
 	t.Setenv("BCRYPT_COST", "2")
