@@ -2,6 +2,7 @@ package restaurants
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -506,10 +507,11 @@ func (h *Handler) splitSale(c *gin.Context) {
 		var childSubtotal int64
 		childID := uuid.New()
 		_, err = tx.Exec(ctx, `
-			INSERT INTO sales (id, tenant_id, device_id, created_by, subtotal_minor, total_minor, currency, payment_method, parent_sale_id)
-			VALUES ($1, $2, (SELECT device_id FROM sales WHERE id = $3), (SELECT created_by FROM sales WHERE id = $3), $4, $4, (SELECT currency FROM sales WHERE id = $3), 'cash', $3)`,
-			childID, tenantID, saleID, 0)
+			INSERT INTO sales (id, tenant_id, device_id, created_by, subtotal_minor, total_minor, currency, payment_method, parent_sale_id, idempotency_key)
+			VALUES ($1, $2, (SELECT device_id FROM sales WHERE id = $3), (SELECT created_by FROM sales WHERE id = $3), $4, $4, (SELECT currency FROM sales WHERE id = $3), 'cash', $3, $5)`,
+			childID, tenantID, saleID, 0, "split-of:"+saleID.String()+":"+childID.String())
 		if err != nil {
+			slog.Error("split sale: create child sale failed", "sale_id", saleID.String(), "error", err)
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to create split sale")
 			return
 		}

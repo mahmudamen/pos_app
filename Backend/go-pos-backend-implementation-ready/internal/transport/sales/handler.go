@@ -47,6 +47,7 @@ type createSaleRequest struct {
 	DiscountMinor     int64             `json:"discount_minor"`
 	CustomerID        string            `json:"customer_id"`
 	TableID           string            `json:"table_id"`
+	ManagerPIN        string            `json:"manager_pin"`
 }
 
 type saleItemRequest struct {
@@ -69,6 +70,8 @@ type Sale struct {
 	TipsMinor           int64  `json:"tips_minor"`
 	TableID             string `json:"table_id"`
 	CreatedAt           string `json:"created_at"`
+	DiscountCapped      bool   `json:"discount_capped,omitempty"`
+	DiscountWarning     string `json:"discount_warning,omitempty"`
 }
 
 type SaleItem struct {

@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
+	"github.com/example/pos-api/internal/infrastructure/security"
+	"github.com/example/pos-api/internal/transport/access"
 	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -149,6 +152,52 @@ func allowNegativeStock(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID) (boo
 	return allowed, nil
 }
 
+// discountPolicy holds the tenant-wide discount enforcement inputs.
+type discountPolicy struct {
+	Mode            DiscountMode
+	GlobalMaxPct    int
+	ManagerRequired bool
+}
+
+// loadDiscountPolicy reads the ma_pos_base discount settings. Defaults match
+// the settings module: cap mode, no global ceiling, manager PIN required for
+// blocked over-limit discounts.
+func loadDiscountPolicy(ctx context.Context, tx pgx.Tx, tenantID uuid.UUID) (discountPolicy, error) {
+	var mode, maxPct, managerRequired string
+	rows, err := tx.Query(ctx, `
+		SELECT key, value FROM tenant_settings WHERE tenant_id = $1
+		AND key IN ('pos.discount_mode', 'pos.max_discount_pct', 'pos.manager.discount')`, tenantID)
+	if err != nil {
+		return discountPolicy{}, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var k, v string
+		if err := rows.Scan(&k, &v); err != nil {
+			return discountPolicy{}, err
+		}
+		switch k {
+		case "pos.discount_mode":
+			mode = v
+		case "pos.max_discount_pct":
+			maxPct = v
+		case "pos.manager.discount":
+			managerRequired = v
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return discountPolicy{}, err
+	}
+	policy := discountPolicy{Mode: ParseDiscountMode(mode), ManagerRequired: true}
+	if managerRequired == "false" {
+		policy.ManagerRequired = false
+	}
+	if n, parseErr := strconv.Atoi(maxPct); parseErr == nil && n > 0 && n <= 100 {
+		policy.GlobalMaxPct = n
+	}
+	return policy, nil
+}
+
 func createSale(
 	ctx context.Context,
 	tx pgx.Tx,
@@ -228,15 +277,40 @@ func createSale(
 
 	discount := request.DiscountMinor
 	total := subtotal
+	var discountCapped bool
+	var discountWarning string
 	if discount > 0 {
 		if !httptransport.HasPermission(role, "pos", "discount") {
 			return Sale{}, newSaleError(403, "permission_denied", "discount not allowed for this role")
 		}
-		validated, err := validateDiscount(role, subtotal, discount, limitPct)
+		perms := access.ResolveFromDB(ctx, tx, tenantID.String(), userID.String(), role)
+		policy, err := loadDiscountPolicy(ctx, tx, tenantID)
+		if err != nil {
+			return Sale{}, newSaleError(500, "internal_error", "unable to read discount policy")
+		}
+		decision, err := EvaluateDiscount(perms, policy.Mode, policy.GlobalMaxPct, subtotal, discount)
 		if err != nil {
 			return Sale{}, newSaleError(400, "discount_error", err.Error())
 		}
-		total = validated
+		if decision.NeedsManager {
+			if !policy.ManagerRequired {
+				return Sale{}, newSaleError(403, ErrDiscountOverLimit.Error(), ErrDiscountOverLimit.Error())
+			}
+			if request.ManagerPIN == "" {
+				return Sale{}, newSaleError(403, "discount_manager_pin_required", ErrDiscountManagerPINRequired.Error())
+			}
+			var pinHash string
+			if err = tx.QueryRow(ctx, `SELECT COALESCE(manager_pin_hash, '') FROM users WHERE id = $1::uuid`, userID).Scan(&pinHash); err != nil {
+				return Sale{}, newSaleError(500, "internal_error", "unable to verify manager PIN")
+			}
+			if pinHash == "" || !security.CheckPassword(pinHash, request.ManagerPIN) {
+				return Sale{}, newSaleError(403, "invalid_pin", ErrInvalidManagerPIN.Error())
+			}
+		}
+		total = decision.TotalAfter
+		discount = decision.AppliedDiscount
+		discountCapped = decision.Capped
+		discountWarning = decision.Warning
 	} else if discount < 0 {
 		return Sale{}, newSaleError(400, "discount_error", ErrNegativeDiscount.Error())
 	}
@@ -364,6 +438,8 @@ func createSale(
 		LoyaltyPointsEarned: loyaltyPoints,
 		TipsMinor:           tipsMinor,
 		TableID:             saleTableID(requestTableID),
+		DiscountCapped:      discountCapped,
+		DiscountWarning:     discountWarning,
 	}, nil
 }
 

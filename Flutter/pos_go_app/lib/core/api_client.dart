@@ -10,6 +10,7 @@ import 'payments.dart';
 import 'receipts.dart';
 import 'restaurants.dart';
 import 'registers.dart';
+import 'security.dart';
 import 'session_store.dart';
 
 class ApiClient {
@@ -93,6 +94,55 @@ class ApiClient {
     );
     if (response.statusCode != 204) {
       throw ApiException(_message(response));
+    }
+  }
+
+  /// Verifies the acting user's manager PIN. Returns the result including the
+  /// remaining attempts; a 423 `pin_locked` yields a locked result so the UI
+  /// can show the lockout rather than a generic failure.
+  Future<PinVerifyResult> verifyPin(
+    Session session, {
+    required String pin,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/auth/verify-pin'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'pin': pin}),
+      ),
+    );
+    if (response.statusCode == 423) return const PinVerifyResult.locked();
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return PinVerifyResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Clears another user's PIN lockout (managers may only unlock cashiers).
+  Future<void> unlockPin(
+    Session session, {
+    required String userId,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/auth/unlock-pin'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'user_id': userId}),
+      ),
+    );
+    if (response.statusCode != 204) {
+      throw ApiException(_message(response), code: _errorCode(response));
     }
   }
 
@@ -269,6 +319,8 @@ class ApiClient {
     List<PaymentInput>? payments,
     String? sessionId,
     String? tableId,
+    int discountMinor = 0,
+    String managerPin = '',
   }) async {
     final requestIdempotencyKey = idempotencyKey ?? const Uuid().v4();
     final response = await _authenticatedRequest(
@@ -292,6 +344,8 @@ class ApiClient {
             'payments': payments.map((p) => p.toJson()).toList(),
           if (sessionId != null) 'session_id': sessionId,
           if (tableId != null && tableId.isNotEmpty) 'table_id': tableId,
+          if (discountMinor > 0) 'discount_minor': discountMinor,
+          if (managerPin.trim().isNotEmpty) 'manager_pin': managerPin.trim(),
         }),
       ),
     );
@@ -734,6 +788,7 @@ class ApiClient {
     Session session,
     String sessionId, {
     int? closingCashMinor,
+    String managerPin = '',
   }) async {
     final response = await _authenticatedRequest(
       session,
@@ -747,6 +802,7 @@ class ApiClient {
         body: jsonEncode({
           if (closingCashMinor != null)
             'closing_cash_minor': closingCashMinor,
+          if (managerPin.trim().isNotEmpty) 'manager_pin': managerPin.trim(),
         }),
       ),
     );
@@ -984,6 +1040,8 @@ class SaleResult {
     required this.totalMinor,
     required this.currency,
     required this.paymentMethod,
+    this.discountCapped = false,
+    this.discountWarning = '',
   });
 
   factory SaleResult.fromJson(Map<String, dynamic> json) => SaleResult(
@@ -992,6 +1050,8 @@ class SaleResult {
         totalMinor: (json['total_minor'] as num).toInt(),
         currency: json['currency'] as String,
         paymentMethod: PaymentMethod.fromWire(json['payment_method'] as String?),
+        discountCapped: json['discount_capped'] as bool? ?? false,
+        discountWarning: json['discount_warning'] as String? ?? '',
       );
 
   final String id;
@@ -999,6 +1059,8 @@ class SaleResult {
   final int totalMinor;
   final String currency;
   final PaymentMethod paymentMethod;
+  final bool discountCapped;
+  final String discountWarning;
 }
 
 class RefundResult {
@@ -1402,6 +1464,16 @@ class TenantSettings {
     this.showStockBadges = true,
     this.receiptFooter = '',
     this.allowNegativeStock = false,
+    this.discountMode = DiscountMode.cap,
+    this.maxDiscountPct = 0,
+    this.managerDiscountOverride = true,
+    this.managerClosePin = true,
+    this.stockType = 'on_hand',
+    this.blockOutOfStock = true,
+    this.lowStockThreshold = 5,
+    this.lowStockWarning = true,
+    this.validateStockPayment = true,
+    this.refreshButton = true,
   });
 
   factory TenantSettings.fromJson(Map<String, dynamic> json) => TenantSettings(
@@ -1412,12 +1484,43 @@ class TenantSettings {
         receiptFooter: json['pos.receipt_footer'] as String? ?? '',
         allowNegativeStock:
             (json['inventory.allow_negative_stock'] as String?) == 'true',
+        discountMode: DiscountMode.fromSetting(
+            json['pos.discount_mode'] as String?),
+        maxDiscountPct: _intSetting(json['pos.max_discount_pct']) ?? 0,
+        managerDiscountOverride:
+            (json['pos.manager.discount'] as String?) != 'false',
+        managerClosePin: (json['pos.manager.close'] as String?) != 'false',
+        stockType: json['pos.stock_type'] as String? ?? 'on_hand',
+        blockOutOfStock:
+            (json['pos.block_out_of_stock'] as String?) != 'false',
+        lowStockThreshold:
+            _intSetting(json['pos.low_stock_threshold']) ?? 5,
+        lowStockWarning:
+            (json['pos.low_stock_warning'] as String?) != 'false',
+        validateStockPayment:
+            (json['pos.validate_stock_payment'] as String?) != 'false',
+        refreshButton: (json['pos.refresh_button'] as String?) != 'false',
       );
 
   final PaymentMethod defaultPaymentMethod;
   final bool showStockBadges;
   final String receiptFooter;
   final bool allowNegativeStock;
+  final DiscountMode discountMode;
+  final int maxDiscountPct;
+  final bool managerDiscountOverride;
+
+  /// When true the backend requires the manager PIN to close a register
+  /// session opened by a cashier-level user.
+  final bool managerClosePin;
+  final String stockType;
+  final bool blockOutOfStock;
+  final int lowStockThreshold;
+  final bool lowStockWarning;
+  final bool validateStockPayment;
+  final bool refreshButton;
+
+  bool get stockBadgeOnHand => stockType != 'available';
 
   TenantSettings copyWith({
     PaymentMethod? defaultPaymentMethod,
@@ -1431,6 +1534,16 @@ class TenantSettings {
         showStockBadges: showStockBadges ?? this.showStockBadges,
         receiptFooter: receiptFooter ?? this.receiptFooter,
         allowNegativeStock: allowNegativeStock ?? this.allowNegativeStock,
+        discountMode: discountMode,
+        maxDiscountPct: maxDiscountPct,
+        managerDiscountOverride: managerDiscountOverride,
+        managerClosePin: managerClosePin,
+        stockType: stockType,
+        blockOutOfStock: blockOutOfStock,
+        lowStockThreshold: lowStockThreshold,
+        lowStockWarning: lowStockWarning,
+        validateStockPayment: validateStockPayment,
+        refreshButton: refreshButton,
       );
 
   Map<String, String> toUpdateMap() => {
@@ -1439,6 +1552,11 @@ class TenantSettings {
         'pos.receipt_footer': receiptFooter,
         'inventory.allow_negative_stock': '$allowNegativeStock',
       };
+}
+
+int? _intSetting(dynamic v) {
+  if (v is num) return v.toInt();
+  return int.tryParse(v as String? ?? '');
 }
 
 int _toIntValue(dynamic v) {

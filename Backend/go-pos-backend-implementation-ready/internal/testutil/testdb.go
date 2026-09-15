@@ -206,6 +206,32 @@ func SetTenantSetting(t *testing.T, pool *pgxpool.Pool, tenantID, key, value str
 	}
 }
 
+// SetManagerPIN assigns a manager PIN directly to a user, the way the auth
+// set-pin route would, so lockout/override flows can be tested without driving
+// that route. Runs in the tenant RLS context.
+func SetManagerPIN(t *testing.T, pool *pgxpool.Pool, tenantID, userID, pin string) {
+	t.Helper()
+	hash, err := security.HashPassword(pin, 4)
+	if err != nil {
+		t.Fatalf("hash pin: %v", err)
+	}
+	ctx := context.Background()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin pin set: %v", err)
+	}
+	defer tx.Rollback(ctx)
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID); err != nil {
+		t.Fatalf("set tenant context: %v", err)
+	}
+	if _, err := tx.Exec(ctx, `UPDATE users SET manager_pin_hash = $1 WHERE id = $2::uuid`, hash, userID); err != nil {
+		t.Fatalf("set manager pin: %v", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit pin set: %v", err)
+	}
+}
+
 // MintAccess issues an access token carrying the given claims without touching
 // the database, for handler-level integration tests.
 func MintAccess(t *testing.T, tenantID, userID, deviceID, sessionID, role string) string {

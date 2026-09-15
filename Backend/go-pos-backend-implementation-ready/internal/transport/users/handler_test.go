@@ -339,3 +339,99 @@ func TestCreateUserAllowedOwnerCreatesOwner(t *testing.T) {
 		t.Fatalf("expected 503 (no DB), got %d: %s", recorder.Code, recorder.Body.String())
 	}
 }
+
+func TestUpdateSecurityRouteRegistered(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut,
+		"/v1/users/00000000-0000-0000-0000-000000000002/security", nil))
+	if recorder.Code == http.StatusNotFound {
+		t.Fatal("PUT /v1/users/:id/security route not registered")
+	}
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 without auth, got %d", recorder.Code)
+	}
+}
+
+func TestUpdateSecurityForbiddenForCashier(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	body := `{"access_level":"advanced","use_custom_permissions":true}`
+	request := httptest.NewRequest(http.MethodPut,
+		"/v1/users/00000000-0000-0000-0000-000000000002/security", strings.NewReader(body))
+	request.Header.Set("Authorization", "Bearer "+roleToken(t, "cashier"))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestUpdateSecurityBadJSON(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	request := httptest.NewRequest(http.MethodPut,
+		"/v1/users/00000000-0000-0000-0000-000000000002/security", strings.NewReader("not json"))
+	request.Header.Set("Authorization", "Bearer "+roleToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestUpdateSecurityRejectsInvalidLevel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	body := `{"access_level":"superuser"}`
+	request := httptest.NewRequest(http.MethodPut,
+		"/v1/users/00000000-0000-0000-0000-000000000002/security", strings.NewReader(body))
+	request.Header.Set("Authorization", "Bearer "+roleToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestUpdateSecurityRejectsOutOfRangeDiscount(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	body := `{"access_level":"manager","max_discount_pct":101}`
+	request := httptest.NewRequest(http.MethodPut,
+		"/v1/users/00000000-0000-0000-0000-000000000002/security", strings.NewReader(body))
+	request.Header.Set("Authorization", "Bearer "+roleToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestUpdateSecurityAcceptedByManagerReachesDB(t *testing.T) {
+	// A valid request from an allowed role must pass validation and only fail
+	// on the missing database pool — proving the RBAC ordering.
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	NewHandler(nil, testTokens()).Register(router.Group("/v1"))
+	body := `{"access_level":"advanced","max_discount_pct":5,"use_custom_permissions":true,"can_delete_line":true}`
+	request := httptest.NewRequest(http.MethodPut,
+		"/v1/users/00000000-0000-0000-0000-000000000002/security", strings.NewReader(body))
+	request.Header.Set("Authorization", "Bearer "+roleToken(t, "manager"))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 (no DB), got %d: %s", recorder.Code, recorder.Body.String())
+	}
+}

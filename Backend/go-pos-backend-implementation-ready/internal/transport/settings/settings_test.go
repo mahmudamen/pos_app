@@ -15,6 +15,41 @@ func TestDefaultSettingValues(t *testing.T) {
 	if got := defaultSettingValue(KeyAllowNegativeStock); got != "false" {
 		t.Errorf("default allow_negative_stock = %q, want false", got)
 	}
+	if got := defaultSettingValue(KeyDiscountMode); got != "cap" {
+		t.Errorf("default discount_mode = %q, want cap", got)
+	}
+	if got := defaultSettingValue(KeyMaxDiscountPct); got != "0" {
+		t.Errorf("default max_discount_pct = %q, want 0 (no global limit)", got)
+	}
+	for _, key := range []string{KeyManagerRefund, KeyManagerDiscount} {
+		if got := defaultSettingValue(key); got != "true" {
+			t.Errorf("default %s = %q, want true", key, got)
+		}
+	}
+	for _, key := range []string{KeyManagerClose, KeyManagerDelete, KeyManagerNegative} {
+		if got := defaultSettingValue(key); got != "false" {
+			t.Errorf("default %s = %q, want false", key, got)
+		}
+	}
+	for _, key := range []string{KeyShowCustomer, KeyShowDiscount, KeyShowPrice, KeyShowQty, KeyShowNumpad, KeyShowDelete} {
+		if got := defaultSettingValue(key); got != "true" {
+			t.Errorf("default %s = %q, want true", key, got)
+		}
+	}
+	if got := defaultSettingValue(KeyStockType); got != "on_hand" {
+		t.Errorf("default stock_type = %q, want on_hand", got)
+	}
+	if got := defaultSettingValue(KeyBlockOutOfStock); got != "true" {
+		t.Errorf("default block_out_of_stock = %q, want true", got)
+	}
+	if got := defaultSettingValue(KeyLowStockThreshold); got != "5" {
+		t.Errorf("default low_stock_threshold = %q, want 5", got)
+	}
+	for _, key := range []string{KeyLowStockWarning, KeyValidateStockPayment, KeyRefreshButton} {
+		if got := defaultSettingValue(key); got != "true" {
+			t.Errorf("default %s = %q, want true", key, got)
+		}
+	}
 	if got := defaultSettingValue("unknown.key"); got != "" {
 		t.Errorf("default unknown = %q, want empty", got)
 	}
@@ -39,6 +74,58 @@ func TestValidateSetting(t *testing.T) {
 		{KeyAllowNegativeStock, "true", false},
 		{KeyAllowNegativeStock, "false", false},
 		{KeyAllowNegativeStock, "yes", true},
+
+		// ma_pos_base parity keys.
+		{KeyDiscountMode, "cap", false},
+		{KeyDiscountMode, "block", false},
+		{KeyDiscountMode, "warn", false},
+		{KeyDiscountMode, "off", true},
+		{KeyDiscountMode, "", true},
+		{KeyMaxDiscountPct, "0", false},
+		{KeyMaxDiscountPct, "100", false},
+		{KeyMaxDiscountPct, "50", false},
+		{KeyMaxDiscountPct, "101", true},
+		{KeyMaxDiscountPct, "-1", true},
+		{KeyMaxDiscountPct, "abc", true},
+		{KeyMaxDiscountPct, "05", true},
+		{KeyManagerRefund, "true", false},
+		{KeyManagerRefund, "false", false},
+		{KeyManagerRefund, "1", true},
+		{KeyManagerDiscount, "true", false},
+		{KeyManagerDelete, "false", false},
+		{KeyManagerNegative, "true", false},
+		{KeyManagerClose, "false", false},
+		{KeyShowCustomer, "true", false},
+		{KeyShowCustomer, "false", false},
+		{KeyShowCustomer, "on", true},
+		{KeyShowDiscount, "true", false},
+		{KeyShowPrice, "true", false},
+		{KeyShowQty, "false", false},
+		{KeyShowNumpad, "true", false},
+		{KeyShowDelete, "true", false},
+
+		// ma_rs_pos_stock parity keys.
+		{KeyStockType, "on_hand", false},
+		{KeyStockType, "available", false},
+		{KeyStockType, "none", true},
+		{KeyStockType, "", true},
+		{KeyBlockOutOfStock, "true", false},
+		{KeyBlockOutOfStock, "false", false},
+		{KeyBlockOutOfStock, "1", true},
+		{KeyLowStockThreshold, "0", false},
+		{KeyLowStockThreshold, "5", false},
+		{KeyLowStockThreshold, "99999", false},
+		{KeyLowStockThreshold, "100000", true},
+		{KeyLowStockThreshold, "-1", true},
+		{KeyLowStockThreshold, "ten", true},
+		{KeyLowStockWarning, "false", false},
+		{KeyLowStockWarning, "true", false},
+		{KeyLowStockWarning, "yes", true},
+		{KeyValidateStockPayment, "false", false},
+		{KeyValidateStockPayment, "true", false},
+		{KeyValidateStockPayment, "", true},
+		{KeyRefreshButton, "false", false},
+		{KeyRefreshButton, "true", false},
 		{"not.a.key", "anything", true},
 	}
 	for _, c := range cases {

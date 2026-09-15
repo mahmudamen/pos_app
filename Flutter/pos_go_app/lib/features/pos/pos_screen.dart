@@ -8,6 +8,7 @@ import '../../core/api_client.dart';
 import '../../core/focus_mode.dart';
 import '../../core/payments.dart';
 import '../../core/registers.dart';
+import '../../core/security.dart';
 import '../../core/session_store.dart';
 import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
@@ -72,6 +73,7 @@ class _PosScreenState extends State<PosScreen> {
   String? _selectedCategoryId;
   bool _loading = true;
   bool _checkingOut = false;
+  bool _lowStockOnly = false;
   String? _catalogError;
   TenantSettings _settings = const TenantSettings();
   RegisterSession? _registerSession;
@@ -196,7 +198,18 @@ class _PosScreenState extends State<PosScreen> {
     }
   }
 
+  bool _isLowStock(Product product) =>
+      _settings.lowStockWarning &&
+      product.stockQuantity >= 0 &&
+      product.stockQuantity <= _settings.lowStockThreshold;
+
   void _add(Product product) {
+    final s = AppStrings.of(context);
+    if (_settings.blockOutOfStock && product.stockQuantity <= 0) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.blockedOutOfStock)));
+      return;
+    }
     setState(() {
       _CartLine? existing;
       for (final line in _activeOrder.items) {
@@ -206,14 +219,39 @@ class _PosScreenState extends State<PosScreen> {
         }
       }
       if (existing == null) {
-        _activeOrder.items.add(_CartLine(product.id, product.name, product.priceMinor));
+        _activeOrder.items
+            .add(_CartLine(product.id, product.name, product.priceMinor));
       } else {
-        existing.quantity++;
+        _bumpQuantity(existing, product, s);
       }
     });
   }
 
-  void _increase(_CartLine line) => setState(() => line.quantity++);
+  void _bumpQuantity(_CartLine line, Product product, AppStrings s) {
+    if (_settings.blockOutOfStock &&
+        product.stockQuantity >= 0 &&
+        line.quantity >= product.stockQuantity) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.maxStockReached)));
+      return;
+    }
+    line.quantity++;
+  }
+
+  void _increase(_CartLine line) {
+    Product? product;
+    for (final candidate in _products) {
+      if (candidate.id == line.productId) {
+        product = candidate;
+        break;
+      }
+    }
+    if (product != null) {
+      setState(() => _bumpQuantity(line, product!, AppStrings.of(context)));
+    } else {
+      setState(() => line.quantity++);
+    }
+  }
 
   void _decrease(_CartLine line) {
     setState(() {
@@ -309,6 +347,7 @@ class _PosScreenState extends State<PosScreen> {
     final query = _searchController.text.toLowerCase();
     final products = _products
         .where((item) =>
+            (!_lowStockOnly || _isLowStock(item)) &&
             (_selectedCategoryId == null ||
                 item.categoryId == _selectedCategoryId) &&
             (item.name.toLowerCase().contains(query) ||
@@ -375,6 +414,15 @@ class _PosScreenState extends State<PosScreen> {
                 ? Icons.center_focus_weak
                 : Icons.center_focus_strong),
           ),
+          if (_settings.refreshButton)
+            IconButton(
+              onPressed: () {
+                setState(() => _loading = true);
+                _loadData();
+              },
+              tooltip: s.refresh,
+              icon: const Icon(Icons.refresh),
+            ),
           Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(child: Text(widget.session.displayName))),
@@ -409,6 +457,11 @@ class _PosScreenState extends State<PosScreen> {
                   strings: s,
                   currency: widget.session.currencyCode,
                   showStockBadges: _settings.showStockBadges,
+                  lowStockOnly: _lowStockOnly,
+                  lowStockEnabled: _settings.lowStockWarning,
+                  lowStockThreshold: _settings.lowStockThreshold,
+                  onToggleLowStock: () =>
+                      setState(() => _lowStockOnly = !_lowStockOnly),
                   onChanged: (_) => setState(() {}),
                   onCategorySelected: (id) =>
                       setState(() => _selectedCategoryId = id),
@@ -561,11 +614,19 @@ class _PosScreenState extends State<PosScreen> {
       ),
     );
     if (countedMinor == null || !mounted) return;
+    String managerPin = '';
+    if (_settings.managerClosePin && !widget.session.isManagerLevel) {
+      final pin =
+          await _promptManagerPin(message: s.closeNeedsManagerPin);
+      if (pin == null || !context.mounted) return;
+      managerPin = pin;
+    }
     try {
       final closed = await widget.apiClient.closeSession(
         widget.session,
         session.id,
         closingCashMinor: countedMinor,
+        managerPin: managerPin,
       );
       if (!context.mounted) return;
       setState(() => _registerSession = null);
@@ -589,7 +650,30 @@ class _PosScreenState extends State<PosScreen> {
     final s = AppStrings.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final tableId = _activeOrder.tableId;
-    final payments = await showModalBottomSheet<List<PaymentInput>>(
+
+    if (_settings.validateStockPayment) {
+      for (final line in _activeOrder.items) {
+        Product? product;
+        for (final candidate in _products) {
+          if (candidate.id == line.productId) {
+            product = candidate;
+            break;
+          }
+        }
+        if (product != null &&
+            product.stockQuantity >= 0 &&
+            line.quantity > product.stockQuantity) {
+          messenger.showSnackBar(SnackBar(content: Text(s.stockExceeded)));
+          return;
+        }
+      }
+    }
+
+    final sessionPerms = widget.session.permissions;
+    final effectiveCap = sessionPerms == null
+        ? _settings.maxDiscountPct
+        : sessionPerms.effectiveDiscountPct(_settings.maxDiscountPct);
+    final sheetResult = await showModalBottomSheet<PaymentSheetResult>(
       context: context,
       isScrollControlled: true,
       builder: (_) => PaymentSheet(
@@ -599,10 +683,33 @@ class _PosScreenState extends State<PosScreen> {
         defaultMethod: _settings.defaultPaymentMethod,
         receiptFooter: _settings.receiptFooter,
         tableName: _activeOrder.tableName,
+        discountMode: _settings.discountMode,
+        effectiveMaxDiscountPct: effectiveCap,
+        actorIsManagerLevel: widget.session.isManagerLevel,
+        managerOverrideEnabled: _settings.managerDiscountOverride,
       ),
     );
-    if (payments == null || !mounted) return;
+    if (sheetResult == null || !mounted) return;
+
+    final discountMinor = sheetResult.discountMinor;
+    final decision = sheetResult.decision;
+    if (decision != null &&
+        (decision.kind == DiscountDecisionKind.invalidNegative ||
+            decision.kind == DiscountDecisionKind.invalidAboveTotal ||
+            decision.kind == DiscountDecisionKind.prohibited)) {
+      messenger.showSnackBar(SnackBar(content: Text(s.discountProhibited)));
+      return;
+    }
+
+    String managerPin = '';
+    if (decision?.kind == DiscountDecisionKind.needsManagerPin) {
+      final pin = await _promptManagerPin(message: s.discountNeedsPin);
+      if (pin == null || !context.mounted) return;
+      managerPin = pin;
+    }
+
     final idempotencyKey = const Uuid().v4();
+    final payments = sheetResult.payments;
     final items = _activeOrder.items
         .map((line) => SaleItemInput(
               productId: line.productId,
@@ -619,14 +726,21 @@ class _PosScreenState extends State<PosScreen> {
         payments: payments,
         sessionId: _registerSession?.id,
         tableId: tableId,
+        discountMinor: discountMinor,
+        managerPin: managerPin,
       );
       if (!mounted) return;
       _closeOrder(paidOrderIndex);
       if (_registerSession != null) {
         await _loadRegisterSession();
       }
+      final notice = decision?.kind == DiscountDecisionKind.capped
+          ? s.discountCapped
+          : decision?.kind == DiscountDecisionKind.warned
+              ? s.discountWarning
+              : '${s.saleCompleted}: ${result.id}';
       messenger.showSnackBar(SnackBar(
-        content: Text('${s.saleCompleted}: ${result.id}'),
+        content: Text(notice),
         action: tableId != null
             ? SnackBarAction(
                 label: s.splitBill,
@@ -657,6 +771,7 @@ class _PosScreenState extends State<PosScreen> {
               if (_registerSession != null)
                 'session_id': _registerSession!.id,
               if (tableId != null) 'table_id': tableId,
+              if (discountMinor > 0) 'discount_minor': discountMinor,
             }),
           ));
           if (!mounted) return;
@@ -674,7 +789,78 @@ class _PosScreenState extends State<PosScreen> {
     }
   }
 
-  Future<void> _replayPending() async {
+Future<String?> _promptManagerPin({required String message}) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final controller = TextEditingController();
+    String? error;
+    try {
+      while (true) {
+        if (!mounted) return null;
+        final pin = await showDialog<String>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text(s.managerPin),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(message, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  maxLength: 8,
+                  decoration: InputDecoration(
+                    labelText: s.managerPin,
+                    hintText: s.managerPinHint,
+                    counterText: '',
+                    errorText: error,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(s.cancel),
+              ),
+              FilledButton(
+                onPressed: () =>
+                    Navigator.of(context).pop(controller.text.trim()),
+                child: Text(s.ok),
+              ),
+            ],
+          ),
+        );
+        if (pin == null || pin.isEmpty || !mounted) return null;
+        final PinVerifyResult result;
+        try {
+          result = await widget.apiClient.verifyPin(widget.session, pin: pin);
+        } on ApiException catch (e) {
+          if (!mounted) return null;
+          messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+          return null;
+        }
+        if (result.locked) {
+          if (!mounted) return null;
+          messenger.showSnackBar(SnackBar(content: Text(s.pinLocked)));
+          return null;
+        }
+        if (result.valid) return pin;
+        error = result.attemptsLeft > 0
+            ? s.attemptsLeft(result.attemptsLeft)
+            : s.pinWrong;
+      }
+    } finally {
+      controller.dispose();
+    }
+  }
+
+Future<void> _replayPending() async {
     final db = widget.localDatabase;
     if (db == null) return;
     final pending = await db.pendingCommands();
@@ -737,6 +923,10 @@ class _Catalog extends StatelessWidget {
       required this.strings,
       required this.currency,
       required this.showStockBadges,
+      required this.lowStockOnly,
+      required this.lowStockEnabled,
+      required this.lowStockThreshold,
+      required this.onToggleLowStock,
       required this.onChanged,
       required this.onCategorySelected,
       required this.onAdd});
@@ -749,6 +939,10 @@ class _Catalog extends StatelessWidget {
   final AppStrings strings;
   final String currency;
   final bool showStockBadges;
+  final bool lowStockOnly;
+  final bool lowStockEnabled;
+  final int lowStockThreshold;
+  final VoidCallback onToggleLowStock;
   final ValueChanged<String> onChanged;
   final ValueChanged<String?> onCategorySelected;
   final ValueChanged<Product> onAdd;
@@ -789,6 +983,22 @@ class _Catalog extends StatelessWidget {
                               selectedCategoryId == cat.id ? null : cat.id),
                         ),
                       )),
+                  if (lowStockEnabled) ...[
+                    const SizedBox(width: 12),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        avatar: Icon(
+                            lowStockOnly
+                                ? Icons.filter_alt
+                                : Icons.filter_alt_outlined,
+                            size: 18),
+                        label: Text(strings.lowStockOnly),
+                        selected: lowStockOnly,
+                        onSelected: (_) => onToggleLowStock(),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -823,6 +1033,7 @@ class _Catalog extends StatelessWidget {
                                         right: 0,
                                         child: _StockBadge(
                                             quantity: product.stockQuantity,
+                                            threshold: lowStockThreshold,
                                             strings: strings),
                                       ),
                                     Column(
@@ -1002,6 +1213,10 @@ class PaymentSheet extends StatefulWidget {
     this.defaultMethod = PaymentMethod.cash,
     this.receiptFooter = '',
     this.tableName,
+    this.discountMode = DiscountMode.cap,
+    this.effectiveMaxDiscountPct = 0,
+    this.actorIsManagerLevel = false,
+    this.managerOverrideEnabled = true,
   });
 
   final AppStrings strings;
@@ -1010,9 +1225,29 @@ class PaymentSheet extends StatefulWidget {
   final PaymentMethod defaultMethod;
   final String receiptFooter;
   final String? tableName;
+  final DiscountMode discountMode;
+  final int effectiveMaxDiscountPct;
+  final bool actorIsManagerLevel;
+  final bool managerOverrideEnabled;
 
   @override
   State<PaymentSheet> createState() => _PaymentSheetState();
+}
+
+class PaymentSheetResult {
+  const PaymentSheetResult({
+    required this.payments,
+    required this.discountMinor,
+    this.decision,
+  });
+
+  final List<PaymentInput> payments;
+
+  /// The discount to actually submit (already clamped in cap mode).
+  final int discountMinor;
+
+  /// Policy verdict for the entered discount; governs the checkout flow.
+  final DiscountDecision? decision;
 }
 
 class _PaymentSheetState extends State<PaymentSheet> {
@@ -1020,7 +1255,10 @@ class _PaymentSheetState extends State<PaymentSheet> {
   late final TextEditingController _cardController;
   late final TextEditingController _mobileController;
   late final TextEditingController _tipController;
+  late final TextEditingController _discountController;
   String? _error;
+
+  DiscountMode get _mode => widget.discountMode;
 
   @override
   void initState() {
@@ -1033,6 +1271,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
     _mobileController =
         TextEditingController(text: widget.defaultMethod == PaymentMethod.mobile ? full : '');
     _tipController = TextEditingController();
+    _discountController = TextEditingController();
   }
 
   @override
@@ -1041,7 +1280,44 @@ class _PaymentSheetState extends State<PaymentSheet> {
     _cardController.dispose();
     _mobileController.dispose();
     _tipController.dispose();
+    _discountController.dispose();
     super.dispose();
+  }
+
+  DiscountDecision _evaluate(int discountMinor) => evaluateDiscount(
+        mode: _mode,
+        subtotalMinor: widget.totalMinor,
+        discountMinor: discountMinor,
+        effectiveMaxDiscountPct: widget.effectiveMaxDiscountPct,
+        actorIsManagerLevel: widget.actorIsManagerLevel,
+        managerOverrideEnabled: widget.managerOverrideEnabled,
+      );
+
+  int get _discountMinorInput =>
+      minorFromInput(_discountController.text) ?? 0;
+
+  int get _discountDecisionNet =>
+      _discountMinorInput > 0 ? _evaluate(_discountMinorInput).effectiveMinor : 0;
+
+  String? get _discountHint {
+    if (_discountMinorInput <= 0) return null;
+    final decision = _evaluate(_discountMinorInput);
+    switch (decision.kind) {
+      case DiscountDecisionKind.capped:
+        return '${widget.strings.discountCapped} '
+            '(${widget.strings.formatMoney(decision.effectiveMinor, widget.currency)})';
+      case DiscountDecisionKind.warned:
+        return widget.strings.discountWarning;
+      case DiscountDecisionKind.needsManagerPin:
+        return widget.strings.discountNeedsPin;
+      case DiscountDecisionKind.prohibited:
+        return widget.strings.discountProhibited;
+      case DiscountDecisionKind.invalidAboveTotal:
+        return widget.strings.paymentRequired;
+      case DiscountDecisionKind.invalidNegative:
+      case DiscountDecisionKind.allowed:
+        return null;
+    }
   }
 
   void _confirm() {
@@ -1053,9 +1329,25 @@ class _PaymentSheetState extends State<PaymentSheet> {
       setState(() => _error = widget.strings.paymentRequired);
       return;
     }
+    final discountMinor = _discountMinorInput;
+    final decision = _evaluate(discountMinor);
+    switch (decision.kind) {
+      case DiscountDecisionKind.invalidNegative:
+      case DiscountDecisionKind.invalidAboveTotal:
+        setState(() => _error = widget.strings.paymentRequired);
+        return;
+      case DiscountDecisionKind.prohibited:
+        setState(() => _error = widget.strings.discountProhibited);
+        return;
+      case DiscountDecisionKind.capped:
+      case DiscountDecisionKind.warned:
+      case DiscountDecisionKind.needsManagerPin:
+      case DiscountDecisionKind.allowed:
+        break;
+    }
     try {
       var payments = PaymentSplit.allocate(
-        totalMinor: widget.totalMinor,
+        totalMinor: widget.totalMinor - decision.effectiveMinor,
         parts: {
           PaymentMethod.cash: cashMinor,
           PaymentMethod.card: cardMinor,
@@ -1072,7 +1364,11 @@ class _PaymentSheetState extends State<PaymentSheet> {
           ...payments.skip(1),
         ];
       }
-      Navigator.of(context).pop(payments);
+      Navigator.of(context).pop(PaymentSheetResult(
+        payments: payments,
+        discountMinor: decision.effectiveMinor,
+        decision: decision,
+      ));
     } on ArgumentError {
       setState(() => _error = widget.strings.paymentRequired);
     }
@@ -1134,13 +1430,23 @@ class _PaymentSheetState extends State<PaymentSheet> {
               _methodRow(s, s.mobilePayment, _mobileController),
               _methodRow(s, s.tip, _tipController,
                   onChanged: (_) => setState(() {})),
+              _methodRow(s, s.discountAmount, _discountController,
+                  onChanged: (_) => setState(() {})),
+              if (_discountHint != null) ...[
+                const SizedBox(height: 4),
+                Text(_discountHint!,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Theme.of(context).colorScheme.tertiary)),
+              ],
               Text(s.remainingLabel,
                   style: Theme.of(context).textTheme.bodySmall),
-              Text(s.grandTotal,
+              Text(s.netTotal,
                   style: Theme.of(context).textTheme.bodySmall),
               Text(
                 s.formatMoney(
-                    widget.totalMinor + (minorFromInput(_tipController.text) ?? 0),
+                    widget.totalMinor - _discountDecisionNet + (minorFromInput(_tipController.text) ?? 0),
                     widget.currency),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -1269,9 +1575,14 @@ class _SessionBar extends StatelessWidget {
 }
 
 class _StockBadge extends StatelessWidget {
-  const _StockBadge({required this.quantity, required this.strings});
+  const _StockBadge({
+    required this.quantity,
+    this.threshold = 5,
+    required this.strings,
+  });
 
   final int quantity;
+  final int threshold;
   final AppStrings strings;
 
   @override
@@ -1279,16 +1590,20 @@ class _StockBadge extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final negative = quantity < 0;
     final out = quantity <= 0;
-    final background = out
-        ? colorScheme.errorContainer
-        : colorScheme.surfaceContainerHighest;
-    final foreground =
-        out ? colorScheme.onErrorContainer : colorScheme.onSurfaceVariant;
-    final label = negative
-        ? '$quantity'
-        : out
-            ? strings.outOfStock
-            : '$quantity';
+    final low = !out && quantity <= threshold;
+    final (Color background, Color foreground, String label, IconData icon) =
+        negative
+            ? (colorScheme.errorContainer, colorScheme.onErrorContainer,
+                '$quantity', Icons.remove_shopping_cart)
+            : out
+                ? (colorScheme.errorContainer, colorScheme.onErrorContainer,
+                    strings.outOfStock, Icons.remove_shopping_cart)
+                : low
+                    ? (Colors.amber.shade100, Colors.brown.shade700,
+                        '$quantity', Icons.inventory_2)
+                    : (colorScheme.surfaceContainerHighest,
+                        colorScheme.onSurfaceVariant, '$quantity',
+                        Icons.inventory_2);
     return Tooltip(
       message: negative ? strings.backorderHint : '',
       child: Container(
@@ -1300,8 +1615,7 @@ class _StockBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(out ? Icons.remove_shopping_cart : Icons.inventory_2,
-                size: 14, color: foreground),
+            Icon(icon, size: 14, color: foreground),
             const SizedBox(width: 4),
             Text(label,
                 style: Theme.of(context)

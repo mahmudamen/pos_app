@@ -57,6 +57,8 @@ class _FakeApiClient extends ApiClient {
     List<PaymentInput>? payments,
     String? sessionId,
     String? tableId,
+    int discountMinor = 0,
+    String managerPin = '',
   }) async {
     if (offline) {
       throw const NetworkException('offline');

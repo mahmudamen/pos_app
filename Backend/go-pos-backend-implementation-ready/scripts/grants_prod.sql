@@ -53,6 +53,16 @@ $$;
 -- allowed for any role (it is a per-session GUC), verified by the RLS tests.
 -- No special grant required beyond the above.
 
+-- users_pos_security (migration 027) is written by the users manager and read
+-- by auth/login + the sales checkout; the least-privilege role needs its DML.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE users_pos_security TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

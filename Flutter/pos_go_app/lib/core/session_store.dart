@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'security.dart';
 
 class Session {
   const Session({
@@ -16,11 +20,13 @@ class Session {
     this.defaultLanguage = 'ar',
     this.plan = '',
     this.trialEndsAt,
+    this.permissions,
   });
 
   factory Session.fromJson(Map<String, dynamic> json) {
     final user = json['user'] as Map<String, dynamic>? ?? const {};
     final tenant = json['tenant'] as Map<String, dynamic>? ?? const {};
+    final permissions = user['permissions'];
     return Session(
       accessToken: json['access_token'] as String,
       refreshToken: json['refresh_token'] as String,
@@ -36,6 +42,9 @@ class Session {
       defaultLanguage: tenant['default_language'] as String? ?? 'ar',
       plan: tenant['plan'] as String? ?? '',
       trialEndsAt: tenant['trial_ends_at'] as String?,
+      permissions: permissions is Map<String, dynamic>
+          ? UserPermissions.fromJson(permissions)
+          : null,
     );
   }
 
@@ -53,12 +62,17 @@ class Session {
   final String defaultLanguage;
   final String plan;
   final String? trialEndsAt;
+  final UserPermissions? permissions;
 
   bool get isPlatformAdmin => role == 'saas_admin';
 
   bool get isOwner => role == 'owner';
 
   bool get isManager => role == 'owner' || role == 'manager';
+
+  /// True when the user's resolved POS access level can act as a manager
+  /// (e.g. overriding discounts or closing sessions without a manager PIN).
+  bool get isManagerLevel => permissions?.isManagerLevel ?? isManager;
 
   bool get canManageSettings => isManager || isPlatformAdmin;
 
@@ -76,6 +90,7 @@ class Session {
     String? defaultLanguage,
     String? plan,
     String? trialEndsAt,
+    UserPermissions? permissions,
   }) =>
       Session(
         accessToken: accessToken ?? this.accessToken,
@@ -92,6 +107,7 @@ class Session {
         defaultLanguage: defaultLanguage ?? this.defaultLanguage,
         plan: plan ?? this.plan,
         trialEndsAt: trialEndsAt ?? this.trialEndsAt,
+        permissions: permissions ?? this.permissions,
       );
 }
 
@@ -124,6 +140,7 @@ class SessionStore {
   static const _defaultLanguageKey = 'default_language';
   static const _planKey = 'tenant_plan';
   static const _trialEndsAtKey = 'tenant_trial_ends_at';
+  static const _permissionsKey = 'user_permissions';
 
   static const _languageKey = 'app_language';
   static const _languageCustomizedKey = 'app_language_customized';
@@ -189,6 +206,10 @@ class SessionStore {
       _storage.write(key: _defaultLanguageKey, value: session.defaultLanguage),
       _storage.write(key: _planKey, value: session.plan),
       _storage.write(key: _trialEndsAtKey, value: session.trialEndsAt ?? ''),
+      if (session.permissions != null)
+        _storage.write(
+            key: _permissionsKey,
+            value: jsonEncode(session.permissions!.toJson())),
       if (session.deviceId.isNotEmpty)
         _storage.write(key: _deviceIdKey, value: session.deviceId),
     ]);
@@ -209,6 +230,7 @@ class SessionStore {
       _storage.delete(key: _defaultLanguageKey),
       _storage.delete(key: _planKey),
       _storage.delete(key: _trialEndsAtKey),
+      _storage.delete(key: _permissionsKey),
       // Device id and app language preferences intentionally survive sign-out.
     ]);
   }
@@ -244,6 +266,16 @@ class SessionStore {
     final access = await _storage.read(key: _accessTokenKey);
     final refresh = await _storage.read(key: _refreshTokenKey);
     if (access == null || refresh == null) return null;
+    final permissionsRaw = await _storage.read(key: _permissionsKey);
+    UserPermissions? permissions;
+    if (permissionsRaw != null) {
+      try {
+        permissions = UserPermissions.fromJson(
+            jsonDecode(permissionsRaw) as Map<String, dynamic>);
+      } catch (_) {
+        permissions = null;
+      }
+    }
     return Session(
       accessToken: access,
       refreshToken: refresh,
@@ -260,6 +292,7 @@ class SessionStore {
       plan: await _storage.read(key: _planKey) ?? '',
       trialEndsAt: await _storage.read(key: _trialEndsAtKey).then((v) =>
           (v == null || v.isEmpty) ? null : v),
+      permissions: permissions,
     );
   }
 

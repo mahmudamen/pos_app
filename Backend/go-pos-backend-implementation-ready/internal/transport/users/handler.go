@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
+	"github.com/example/pos-api/internal/transport/access"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -23,15 +24,17 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/users", h.listUsers)
 	router.POST("/users", h.createUser)
+	router.PUT("/users/:id/security", h.updateSecurity)
 }
 
 type User struct {
-	ID          string `json:"id"`
-	Email       string `json:"email"`
-	DisplayName string `json:"display_name"`
-	Role        string `json:"role"`
-	AccountType string `json:"account_type"`
-	IsActive    bool   `json:"is_active"`
+	ID          string             `json:"id"`
+	Email       string             `json:"email"`
+	DisplayName string             `json:"display_name"`
+	Role        string             `json:"role"`
+	AccountType string             `json:"account_type"`
+	IsActive    bool               `json:"is_active"`
+	Permissions access.Permissions `json:"permissions"`
 }
 
 type createUserRequest struct {
@@ -87,8 +90,17 @@ func (h *Handler) listUsers(c *gin.Context) {
 	}
 
 	rows, err := tx.Query(ctx, `
-		SELECT id, email, display_name, role, account_type, is_active
-		FROM users ORDER BY display_name
+		SELECT u.id, u.email, u.display_name, u.role, u.account_type, u.is_active,
+		       s.access_level, s.max_discount_pct, COALESCE(s.use_custom_permissions, FALSE),
+		       COALESCE(s.can_delete_order, FALSE), COALESCE(s.can_delete_line, FALSE),
+		       COALESCE(s.can_change_qty, FALSE), COALESCE(s.can_negative_qty, FALSE),
+		       COALESCE(s.can_price_change, FALSE), COALESCE(s.can_discount, FALSE),
+		       COALESCE(s.can_open_session, FALSE), COALESCE(s.can_close_session, FALSE),
+		       COALESCE(s.can_payment_modification, FALSE), COALESCE(s.can_refund, FALSE),
+		       COALESCE(s.can_negative_stock, FALSE)
+		FROM users u
+		LEFT JOIN users_pos_security s ON s.tenant_id = u.tenant_id AND s.user_id = u.id
+		ORDER BY u.display_name
 		LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load users")
@@ -99,10 +111,19 @@ func (h *Handler) listUsers(c *gin.Context) {
 	users := make([]User, 0)
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.AccountType, &u.IsActive); err != nil {
+		var level *string
+		var maxDiscount *int
+		var custom, do, dl, cq, nq, pc, d, os, cs, pm, r, ns bool
+		if err := rows.Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.AccountType, &u.IsActive,
+			&level, &maxDiscount, &custom, &do, &dl, &cq, &nq, &pc, &d, &os, &cs, &pm, &r, &ns); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load users")
 			return
 		}
+		var row *access.Row
+		if level != nil {
+			row = access.ScanRow(*level, maxDiscount, custom, do, dl, cq, nq, pc, d, os, cs, pm, r, ns)
+		}
+		u.Permissions = access.Resolve(u.Role, row)
 		users = append(users, u)
 	}
 	if err := rows.Err(); err != nil {
@@ -208,11 +229,144 @@ func (h *Handler) createUser(c *gin.Context) {
 		writeError(c, http.StatusConflict, "user_conflict", "email is already in use")
 		return
 	}
+	level := access.DefaultLevelForRole(user.Role)
+	if _, err = tx.Exec(ctx, `
+		INSERT INTO users_pos_security (tenant_id, user_id, access_level)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id) DO NOTHING`,
+		tenantID.String(), user.ID, level); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to provision user security")
+		return
+	}
+	user.Permissions = access.Resolve(user.Role, &access.Row{AccessLevel: level})
 	if err := tx.Commit(ctx); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to create user")
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"data": user, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+type updateSecurityRequest struct {
+	AccessLevel            string `json:"access_level" binding:"required"`
+	MaxDiscountPct         *int   `json:"max_discount_pct"`
+	UseCustomPermissions   bool   `json:"use_custom_permissions"`
+	CanDeleteOrder         bool   `json:"can_delete_order"`
+	CanDeleteLine          bool   `json:"can_delete_line"`
+	CanChangeQty           bool   `json:"can_change_qty"`
+	CanNegativeQty         bool   `json:"can_negative_qty"`
+	CanPriceChange         bool   `json:"can_price_change"`
+	CanDiscount            bool   `json:"can_discount"`
+	CanOpenSession         bool   `json:"can_open_session"`
+	CanCloseSession        bool   `json:"can_close_session"`
+	CanPaymentModification bool   `json:"can_payment_modification"`
+	CanRefund              bool   `json:"can_refund"`
+	CanNegativeStock       bool   `json:"can_negative_stock"`
+}
+
+// updateSecurity upserts a user's POS security profile (ma_pos_base parity):
+// 5-tier access level, optional per-user discount cap and granular operation
+// overrides. Owner/saas_admin may edit anyone; managers may only edit
+// cashiers (mirrors canCreateRole). Returns the resolved effective permissions.
+func (h *Handler) updateSecurity(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	if claims.Role != "owner" && claims.Role != "manager" && claims.Role != "saas_admin" {
+		writeError(c, http.StatusForbidden, "permission_denied", "owner or manager role is required")
+		return
+	}
+	var request updateSecurityRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid security request")
+		return
+	}
+	level, err := access.ParseLevel(request.AccessLevel)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", err.Error())
+		return
+	}
+	if request.MaxDiscountPct != nil && (*request.MaxDiscountPct < 0 || *request.MaxDiscountPct > 100) {
+		writeError(c, http.StatusBadRequest, "validation_error", "max_discount_pct must be between 0 and 100")
+		return
+	}
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	tenantID, err := uuid.Parse(claims.TenantID)
+	if err != nil {
+		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
+		return
+	}
+	targetID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "user id is invalid")
+		return
+	}
+
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer tx.Rollback(ctx)
+	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+	var targetRole string
+	if err = tx.QueryRow(ctx, `SELECT role FROM users WHERE id = $1 AND tenant_id = $2`,
+		targetID.String(), tenantID.String()).Scan(&targetRole); err != nil {
+		writeError(c, http.StatusNotFound, "user_not_found", "user not found")
+		return
+	}
+	if claims.Role == "manager" && targetRole != "cashier" {
+		writeError(c, http.StatusForbidden, "permission_denied", "managers may only configure cashiers")
+		return
+	}
+
+	if _, err = tx.Exec(ctx, `
+		INSERT INTO users_pos_security
+			(tenant_id, user_id, access_level, max_discount_pct, use_custom_permissions,
+			 can_delete_order, can_delete_line, can_change_qty, can_negative_qty,
+			 can_price_change, can_discount, can_open_session, can_close_session,
+			 can_payment_modification, can_refund, can_negative_stock, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, now())
+		ON CONFLICT (user_id) DO UPDATE SET
+			access_level = EXCLUDED.access_level,
+			max_discount_pct = EXCLUDED.max_discount_pct,
+			use_custom_permissions = EXCLUDED.use_custom_permissions,
+			can_delete_order = EXCLUDED.can_delete_order,
+			can_delete_line = EXCLUDED.can_delete_line,
+			can_change_qty = EXCLUDED.can_change_qty,
+			can_negative_qty = EXCLUDED.can_negative_qty,
+			can_price_change = EXCLUDED.can_price_change,
+			can_discount = EXCLUDED.can_discount,
+			can_open_session = EXCLUDED.can_open_session,
+			can_close_session = EXCLUDED.can_close_session,
+			can_payment_modification = EXCLUDED.can_payment_modification,
+			can_refund = EXCLUDED.can_refund,
+			can_negative_stock = EXCLUDED.can_negative_stock,
+			updated_at = now()`,
+		tenantID.String(), targetID.String(), level, request.MaxDiscountPct, request.UseCustomPermissions,
+		request.CanDeleteOrder, request.CanDeleteLine, request.CanChangeQty, request.CanNegativeQty,
+		request.CanPriceChange, request.CanDiscount, request.CanOpenSession, request.CanCloseSession,
+		request.CanPaymentModification, request.CanRefund, request.CanNegativeStock); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to save user security")
+		return
+	}
+	row := access.ScanRow(level, request.MaxDiscountPct, request.UseCustomPermissions,
+		request.CanDeleteOrder, request.CanDeleteLine, request.CanChangeQty, request.CanNegativeQty,
+		request.CanPriceChange, request.CanDiscount, request.CanOpenSession, request.CanCloseSession,
+		request.CanPaymentModification, request.CanRefund, request.CanNegativeStock)
+	permissions := access.Resolve(targetRole, row)
+	if err = tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to save user security")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"user_id": targetID.String(), "permissions": permissions}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
 func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {

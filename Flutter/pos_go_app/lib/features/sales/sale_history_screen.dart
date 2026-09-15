@@ -5,6 +5,7 @@ import '../../core/api_client.dart';
 import '../../core/payments.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
+import '../restaurants/split_bill_screen.dart';
 import 'receipt_screen.dart';
 
 class SaleHistoryScreen extends StatefulWidget {
@@ -150,6 +151,21 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                               tooltip: s.refundSale,
                               icon: const Icon(Icons.undo),
                               onPressed: () => _confirmRefund(sale),
+                            ),
+                          if (sale.status == 'completed')
+                            IconButton(
+                              tooltip: s.splitBill,
+                              icon: const Icon(Icons.call_split),
+                              onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => SplitBillScreen(
+                                    session: widget.session,
+                                    apiClient: widget.apiClient,
+                                    saleId: sale.id,
+                                    currencyCode: widget.session.currencyCode,
+                                  ),
+                                ),
+                              ),
                             ),
                           IconButton(
                             tooltip: s.receipt,

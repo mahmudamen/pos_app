@@ -37,6 +37,7 @@ type openRequest struct {
 
 type closeRequest struct {
 	ClosingCashMinor *int64 `json:"closing_cash_minor"`
+	ManagerPIN       string `json:"manager_pin"`
 }
 
 // RegisterSession is one cashier shift on one terminal.
@@ -285,6 +286,29 @@ func (h *Handler) close(c *gin.Context) {
 	if row.status != "open" {
 		writeError(c, http.StatusConflict, "session_not_open", "session is already closed")
 		return
+	}
+
+	// ma_pos_customization parity: "Session Close: Manager Required". When the
+	// tenant enables pos.manager.close, closing a register needs a valid
+	// manager PIN (owners and saas_admin always bypass).
+	var requireManagerClose bool
+	if err = tx.QueryRow(ctx, `
+		SELECT COALESCE((SELECT value FROM tenant_settings
+		                 WHERE tenant_id = $1 AND key = 'pos.manager.close'), 'false') = 'true'`,
+		tenantID).Scan(&requireManagerClose); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to read session policy")
+		return
+	}
+	if requireManagerClose && claims.Role != "owner" && claims.Role != "saas_admin" {
+		var pinHash string
+		if err = tx.QueryRow(ctx, `SELECT COALESCE(manager_pin_hash, '') FROM users WHERE id = $1::uuid`, claims.UserID).Scan(&pinHash); err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to verify manager PIN")
+			return
+		}
+		if pinHash == "" || !security.CheckPassword(pinHash, request.ManagerPIN) {
+			writeError(c, http.StatusForbidden, "manager_pin_required", "a valid manager PIN is required to close the session")
+			return
+		}
 	}
 
 	totals, err := queryTotals(ctx, tx, row.id)

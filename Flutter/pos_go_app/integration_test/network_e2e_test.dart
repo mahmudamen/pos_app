@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 
 import 'package:pos_go_app/core/api_client.dart';
 import 'package:pos_go_app/core/payments.dart';
 import 'package:pos_go_app/core/registers.dart';
+import 'package:pos_go_app/core/restaurants.dart';
+import 'package:pos_go_app/core/session_store.dart';
 
 /// Real-backend E2E on the device (E4). Logs in against the live backend and
 /// drives the checkout loop over the network:
@@ -21,6 +26,28 @@ import 'package:pos_go_app/core/registers.dart';
 /// tenant is not seeded on the target instance.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  const apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:8080',
+  );
+
+  Future<Map<String, dynamic>> postJson(
+    Session session,
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl$path'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${session.accessToken}',
+      },
+      body: jsonEncode(body),
+    );
+    expect(response.statusCode, 201, reason: '$path returned ${response.statusCode}');
+    return jsonDecode(response.body)['data'] as Map<String, dynamic>;
+  }
 
   test('network E2E: login, browse, sell, receipt, logout', () async {
     final api = ApiClient();
@@ -131,5 +158,82 @@ void main() {
     );
     expect(sale.id, isNotEmpty);
     expect(sale.totalMinor, product.priceMinor);
+  });
+
+  test('network E2E: restaurant table, tip and split bill', () async {
+    final api = ApiClient();
+    final session = await api.login(
+      tenantId: 'demo-restaurant',
+      email: 'admin@demo-restaurant.com',
+      password: 'admin',
+      deviceId: 'integration-test-device',
+      deviceName: 'Network E2E',
+    );
+    expect(session.accessToken, isNotEmpty);
+
+    // Seed a fresh floor + table for this run so the flow never clashes with
+    // an already-occupied table from a previous run.
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final floor =
+        await postJson(session, '/v1/floors', {'name': 'E2E Floor $ts', 'sort_order': 99});
+    final table = await postJson(session, '/v1/tables', {
+      'floor_id': floor['id'],
+      'name': 'E2E-$ts',
+      'seats': 4,
+    });
+    final tableId = table['id'] as String;
+
+    final tables = await api.tables(session);
+    expect(tables.any((t) => t.id == tableId), isTrue);
+
+    RegisterSession? current;
+    try {
+      current = await api.currentSession(session);
+    } on ApiException {
+      current = null;
+    }
+    final register =
+        current ?? await api.openSession(session, openingCashMinor: 0);
+    expect(register.id, isNotEmpty);
+
+    final products = await api.products(session);
+    final withStock =
+        products.where((p) => p.stockQuantity > 0).take(2).toList();
+    expect(withStock.length, 2);
+
+    final sale = await api.createSale(
+      session,
+      [for (final p in withStock) SaleItemInput(productId: p.id, quantity: 1)],
+      idempotencyKey: 'e2e-restaurant-$ts',
+      payments: [
+        PaymentInput(
+          method: PaymentMethod.cash,
+          amountMinor: withStock.fold(
+              0, (sum, p) => sum + p.priceMinor),
+          tipMinor: 500,
+        ),
+      ],
+      sessionId: register.id,
+      tableId: tableId,
+    );
+    expect(sale.id, isNotEmpty);
+
+    final detail = await api.saleDetail(session, sale.id);
+    expect(detail.items, hasLength(2));
+    final lines = detail.items;
+    final split = await api.splitSale(session, sale.id, [
+      [SplitBillLine(saleItemId: lines[0].id, quantity: 1)],
+      [SplitBillLine(saleItemId: lines[1].id, quantity: 1)],
+    ]);
+    expect(split.parentSaleId, sale.id);
+    expect(split.children, hasLength(2));
+    expect(split.currency, 'EGP');
+
+    // The table is now tied to the original (parent) sale until it refunds.
+    final tablesAfter = await api.tables(session);
+    final tableAfter = tablesAfter.firstWhere((t) => t.id == tableId);
+    expect(tableAfter.status, 'occupied');
+
+    await api.logout(session);
   });
 }
