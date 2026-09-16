@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'printers.dart';
 import 'security.dart';
 
 class Session {
@@ -314,5 +315,24 @@ class SessionStore {
   Future<void> saveFocusMode(bool enabled) async {
     await _storage.write(
         key: _focusModeKey, value: enabled ? '1' : '0');
+  }
+
+  static const _printerConfigKey = 'printer_config';
+
+  Future<PrinterConfig?> readPrinterConfig() async {
+    try {
+      final raw = await _storage.read(key: _printerConfigKey);
+      if (raw == null || raw.isEmpty) return null;
+      return PrinterConfig.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> savePrinterConfig(PrinterConfig config) async {
+    await _storage.write(
+      key: _printerConfigKey,
+      value: jsonEncode(config.toJson()),
+    );
   }
 }

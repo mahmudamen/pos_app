@@ -110,7 +110,7 @@ func TestReceiptRejectsInvalidSaleID(t *testing.T) {
 func TestBuildBytesEmptyTenantName(t *testing.T) {
 	r := sampleReceipt()
 	r.TenantName = ""
-	out := BuildBytes(r)
+	out := BuildBytes(r, ReceiptOptions{Cols: cols80, Cut: true})
 	if !strings.Contains(string(out), "Sale     sale-123") {
 		t.Fatal("expected sale id block even without tenant name")
 	}

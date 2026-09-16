@@ -14,10 +14,12 @@ class SaleHistoryScreen extends StatefulWidget {
     super.key,
     required this.session,
     required this.apiClient,
+    this.sessionStore,
   });
 
   final Session session;
   final ApiClient apiClient;
+  final SessionStore? sessionStore;
 
   @override
   State<SaleHistoryScreen> createState() => _SaleHistoryScreenState();
@@ -180,8 +182,12 @@ class _SaleHistoryScreenState extends State<SaleHistoryScreen> {
                                 if (!context.mounted) return;
                                 await Navigator.of(context).push(
                                   MaterialPageRoute<void>(
-                                    builder: (_) =>
-                                        ReceiptScreen(receipt: receipt),
+                                    builder: (_) => ReceiptScreen(
+                                      receipt: receipt,
+                                      apiClient: widget.apiClient,
+                                      session: widget.session,
+                                      sessionStore: widget.sessionStore,
+                                    ),
                                   ),
                                 );
                               } catch (e) {

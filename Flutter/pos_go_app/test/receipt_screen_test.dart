@@ -54,8 +54,9 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Print'));
     await tester.pump();
-    expect(find.text('Printing needs a thermal printer; ESC/POS bytes are '
-        'available from the print endpoint'), findsOneWidget);
+    expect(
+        find.text('Enable printing from the printer settings, then try again'),
+        findsOneWidget);
   });
 }
 

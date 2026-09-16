@@ -1,17 +1,66 @@
 import 'package:flutter/material.dart';
 
+import '../../core/api_client.dart';
+import '../../core/printer_service.dart';
+import '../../core/printers.dart';
+import '../../core/session_store.dart';
 import '../../core/receipts.dart';
 import '../../l10n/strings.dart';
 
 /// A printer-style on-screen receipt. It mirrors the ESC/POS layout served by
 /// the backend: dashed rules at the thermal width, item rows, totals, and a
-/// QR block. Actual printing is hardware-installation dependent; the wire
-/// contract (JSON here, ESC/POS bytes at /sales/:id/receipt/print) is what is
-/// stable across devices.
+/// QR block. When [apiClient], [session], [sessionStore] and [printerService]
+/// are supplied, the print button emits the same layout to a configured
+/// thermal printer; otherwise it falls back to a hint.
 class ReceiptScreen extends StatelessWidget {
-  const ReceiptScreen({super.key, required this.receipt});
+  const ReceiptScreen({
+    super.key,
+    required this.receipt,
+    this.apiClient,
+    this.session,
+    this.sessionStore,
+    this.printerService,
+  });
 
   final SaleReceipt receipt;
+  final ApiClient? apiClient;
+  final Session? session;
+  final SessionStore? sessionStore;
+  final PrinterService? printerService;
+
+  Future<void> _print(BuildContext context) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final apiClient = this.apiClient;
+    final session = this.session;
+    final store = sessionStore;
+    if (apiClient == null || session == null || store == null) {
+      messenger.showSnackBar(SnackBar(content: Text(s.receiptPrintHint)));
+      return;
+    }
+    final config = await store.readPrinterConfig() ?? const PrinterConfig();
+    if (!config.enabled || !config.hasDefault) {
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(s.receiptPrintHint)));
+      return;
+    }
+    try {
+      await printSaleReceipt(
+        config: config,
+        service: printerService ?? PrinterService(),
+        apiClient: apiClient,
+        session: session,
+        saleId: receipt.saleId,
+        roleAllowsPrint: session.isManagerLevel,
+      );
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(s.receiptSentToPrinter)));
+    } catch (e) {
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+          SnackBar(content: Text('${s.printFailed}: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,15 +93,7 @@ class ReceiptScreen extends StatelessWidget {
                   alignment: MainAxisAlignment.center,
                   children: [
                     TextButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              s.receiptPrintHint,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: () => _print(context),
                       icon: const Icon(Icons.local_printshop_outlined),
                       label: Text(s.printReceipt),
                     ),

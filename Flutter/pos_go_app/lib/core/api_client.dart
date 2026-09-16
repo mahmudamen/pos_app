@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -684,6 +685,34 @@ class ApiClient {
     }
     final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
     return SaleReceipt.fromJson(data);
+  }
+
+  /// Fetches the ESC/POS byte stream for a sale's receipt. [cols] selects the
+  /// backend layout width (24 for 58mm, 32 for 80mm); [cut] toggles the
+  /// trailing paper-cut command (multi-copy jobs disable it and cut once);
+  /// [compact] requests the denser narrow-paper layout.
+  Future<Uint8List> fetchReceiptPrint(
+    Session session,
+    String saleId, {
+    int cols = 32,
+    bool cut = true,
+    bool compact = false,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/sales/$saleId/receipt/print?cols=$cols&cut=${cut ? 1 : 0}&compact=${compact ? 1 : 0}'),
+        headers: {
+          'Accept': 'application/vnd.escpos',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return respond.bodyBytes;
   }
 
   Future<SaleDetail> saleDetail(Session session, String saleId) async {

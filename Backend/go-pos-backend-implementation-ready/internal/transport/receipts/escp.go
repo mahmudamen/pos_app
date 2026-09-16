@@ -1,6 +1,9 @@
 package receipts
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // escposEnc is the core ESC/POS byte encoder. It is deliberately pure Go with
 // no hardware dependency so the printer-agnostic receipt pipeline can be unit
@@ -10,12 +13,21 @@ import "fmt"
 const (
 	esc = byte(0x1B)
 	gs  = byte(0x1D)
+
+	// cols80 is the 80mm-column width (also the QR/layout default) used for text
+	// wrapping and dashed separators. cols58 is the narrower 58mm layout.
+	cols80 = 32
+	cols58 = 24
 )
 
-// printableWidth is the 80mm-column width used for text wrapping and dashed
-// separators. Bluetooth 58mm printers commonly accept 32 columns; the width is
-// a constant here and can become a query/config knob later.
-const printableWidth = 32
+// receiptCols validates a requested column width, falling back to the 80mm
+// default for anything that is not the supported 58mm narrow width.
+func receiptCols(cols int) int {
+	if cols == cols58 {
+		return cols58
+	}
+	return cols80
+}
 
 // ReceiptLine is a single itemized row on the receipt.
 type ReceiptLine struct {
@@ -55,6 +67,18 @@ type Receipt struct {
 	Payments       []ReceiptPayment `json:"payments"`
 	LoyaltyPoints  int64            `json:"loyalty_points_earned"`
 	IdempotencyKey string           `json:"idempotency_key"`
+}
+
+// ReceiptOptions tunes how BuildBytes lays out the receipt stream. The zero
+// value is the standard 80mm layout with a trailing cut.
+type ReceiptOptions struct {
+	// Cols is the printable width (cols80 default, cols58 narrow). Zero uses
+	// the 80mm layout.
+	Cols int
+	// Cut appends GS V 0 (full paper cut). Zero omits the cut command.
+	Cut bool
+	// Compact skips the inter-line feeds for a denser 58mm receipt.
+	Compact bool
 }
 
 // printer wraps a growing byte slice with the ES/POS command stream.
@@ -106,20 +130,30 @@ func (p *printer) qr(url string) {
 }
 
 // BuildBytes renders a Receipt to a byte slice usable by an ESC/POS printer.
-func BuildBytes(r Receipt) []byte {
+// opts selects the print width (cols80 = 32, default, for 80mm paper; cols58 =
+// 24 for 58mm — anything else falls back to 32), whether the GS V 0 paper-cut
+// command is appended (multi-copy jobs send one cut after the last copy rather
+// than cutting between copies), and a compact layout that skips the inter-line
+// feeds for denser printing on narrow paper.
+func BuildBytes(r Receipt, opts ReceiptOptions) []byte {
+	width := receiptCols(opts.Cols)
 	p := &printer{}
 	p.init()
-	p.feed(1)
+	if !opts.Compact {
+		p.feed(1)
+	}
 	p.align(1)
 	p.emphasize(true)
-	p.text(center(r.TenantName, printableWidth))
+	p.text(center(r.TenantName, width))
 	p.emphasize(false)
 	p.align(0)
 	if r.TenantAddress != "" {
 		p.text(r.TenantAddress)
-		p.feed(1)
+		if !opts.Compact {
+			p.feed(1)
+		}
 	}
-	p.text(dashes())
+	p.text(dashes(width))
 	id := r.SaleID
 	if runes := []rune(id); len(runes) > 26 {
 		id = string(runes[:26])
@@ -138,33 +172,33 @@ func BuildBytes(r Receipt) []byte {
 	if r.CustomerName != "" {
 		p.text(fmt.Sprintf("Customer %s", r.CustomerName))
 	}
-	p.text(dashes())
+	p.text(dashes(width))
 	for _, line := range r.Lines {
 		name := line.Name
 		if line.Sku != "" {
 			name = name + " [" + line.Sku + "]"
 		}
-		p.text(truncate(name, printableWidth))
+		p.text(truncate(name, width))
 		p.text(fmt.Sprintf("%d x %s", line.Qty, money(line.Price, r.Currency)) +
 			" ... " + money(line.Total, r.Currency))
 	}
-	p.text(dashes())
-	p.text(pair("Subtotal", money(r.SubtotalMinor, r.Currency)))
+	p.text(dashes(width))
+	p.text(pair("Subtotal", money(r.SubtotalMinor, r.Currency), width))
 	if r.DiscountMinor > 0 {
-		p.text(pair("Discount", "-"+money(r.DiscountMinor, r.Currency)))
+		p.text(pair("Discount", "-"+money(r.DiscountMinor, r.Currency), width))
 	}
 	if r.TipsMinor > 0 {
-		p.text(pair("Tip", money(r.TipsMinor, r.Currency)))
+		p.text(pair("Tip", money(r.TipsMinor, r.Currency), width))
 	}
 	if len(r.Payments) > 0 {
 		for _, pay := range r.Payments {
-			p.text(pair("Paid("+pay.Method+")", money(pay.Amount, r.Currency)))
+			p.text(pair("Paid("+pay.Method+")", money(pay.Amount, r.Currency), width))
 		}
 	}
-	p.text(dashes())
+	p.text(dashes(width))
 	p.align(1)
 	p.emphasize(true)
-	p.text(center("TOTAL "+money(r.TotalMinor, r.Currency), printableWidth))
+	p.text(center("TOTAL "+money(r.TotalMinor, r.Currency), width))
 	p.emphasize(false)
 	p.align(0)
 	if r.LoyaltyPoints > 0 {
@@ -174,7 +208,9 @@ func BuildBytes(r Receipt) []byte {
 	p.feed(1)
 	p.qr("posgo:sale:" + r.SaleID)
 	p.feed(3)
-	p.raw(gs, 0x56, 0x00) // GS V 0 full cut
+	if opts.Cut {
+		p.raw(gs, 0x56, 0x00) // GS V 0 full cut
+	}
 	return p.b
 }
 
@@ -220,7 +256,7 @@ func spaces(n int) string {
 	if n <= 0 {
 		return ""
 	}
-	// n is bounded by printableWidth (32)
+	// n is bounded by the widest layout (cols80, 32)
 	const block = 32
 	var buf [block]byte
 	for i := range buf {
@@ -229,8 +265,8 @@ func spaces(n int) string {
 	return string(buf[:n])
 }
 
-func dashes() string {
-	return "--------------------------------"
+func dashes(width int) string {
+	return strings.Repeat("-", width)
 }
 
 func truncate(s string, width int) string {
@@ -241,8 +277,11 @@ func truncate(s string, width int) string {
 	return string(runes[:width])
 }
 
-func pair(label, value string) string {
+func pair(label, value string, width int) string {
 	labelWidth := 14
+	if width < cols80 {
+		labelWidth = 10
+	}
 	pad := labelWidth - len([]rune(label))
 	if pad < 1 {
 		pad = 1

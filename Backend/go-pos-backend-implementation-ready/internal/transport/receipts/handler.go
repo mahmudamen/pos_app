@@ -106,7 +106,16 @@ func (h *Handler) print(c *gin.Context) {
 	c.Header("Content-Type", "application/vnd.escpos")
 	c.Header("Cache-Control", "no-store")
 	c.Writer.WriteHeader(http.StatusOK)
-	_, _ = c.Writer.Write(BuildBytes(receipt))
+	cols := cols80
+	if c.Query("cols") == "24" {
+		cols = cols58
+	}
+	opts := ReceiptOptions{
+		Cols:    cols,
+		Cut:     c.Query("cut") != "0",
+		Compact: c.Query("compact") == "1",
+	}
+	_, _ = c.Writer.Write(BuildBytes(receipt, opts))
 }
 
 func loadReceipt(ctx context.Context, tx pgx.Tx, saleID uuid.UUID) (Receipt, error) {

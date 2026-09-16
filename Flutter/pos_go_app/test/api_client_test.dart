@@ -611,6 +611,38 @@ expect(() => client.dashboardSummary(session),
     expect(receipt.items, hasLength(1));
   });
 
+  test('fetchReceiptPrint GETs ESC/POS bytes with layout knobs', () async {
+    final client = ApiClient(client: _ReceiptPrintClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final bytes =
+        await client.fetchReceiptPrint(session, 'sale-42', cols: 24, cut: false, compact: true);
+    expect(bytes, [0x1B, 0x40, 0x1D, 0x56, 0x00]);
+  });
+
+  test('fetchReceiptPrint throws on non-200', () async {
+    final client =
+        ApiClient(client: _RawErrorClient(500, '{"error":{"message":"printer boom"}}'));
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    try {
+      await client.fetchReceiptPrint(session, 'sale-42');
+      fail('should throw');
+    } on ApiException catch (e) {
+      expect(e.message, 'printer boom');
+    }
+  });
+
   test('RefundResult parses the refund payload', () {
     final refund = RefundResult.fromJson(const {
       'id': 'refund-1',
@@ -2017,6 +2049,25 @@ class _SyncPushClient extends http.BaseClient {
       Stream.value(response.codeUnits),
       200,
       headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _ReceiptPrintClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/sales/sale-42/receipt/print');
+    expect(request.url.queryParameters['cols'], '24');
+    expect(request.url.queryParameters['cut'], '0');
+    expect(request.url.queryParameters['compact'], '1');
+    expect(request.headers['Accept'], 'application/vnd.escpos');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const bytes = [0x1B, 0x40, 0x1D, 0x56, 0x00];
+    return http.StreamedResponse(
+      Stream.value(bytes),
+      200,
+      headers: {'content-type': 'application/vnd.escpos'},
     );
   }
 }

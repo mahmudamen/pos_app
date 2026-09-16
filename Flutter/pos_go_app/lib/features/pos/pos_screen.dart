@@ -7,6 +7,8 @@ import 'package:uuid/uuid.dart';
 import '../../core/api_client.dart';
 import '../../core/focus_mode.dart';
 import '../../core/payments.dart';
+import '../../core/printer_service.dart';
+import '../../core/printers.dart';
 import '../../core/registers.dart';
 import '../../core/security.dart';
 import '../../core/session_store.dart';
@@ -15,6 +17,7 @@ import '../../l10n/strings.dart';
 import '../customers/customers_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../inventory/inventory_screen.dart';
+import '../printers/printers_screen.dart';
 import '../restaurants/split_bill_screen.dart';
 import '../restaurants/table_picker_sheet.dart';
 import '../sales/sale_history_screen.dart';
@@ -29,7 +32,8 @@ class PosScreen extends StatefulWidget {
       required this.onSignOut,
       this.localDatabase,
       this.sessionStore,
-      this.onLanguageChanged});
+      this.onLanguageChanged,
+      this.printerService});
 
   final Session session;
   final ApiClient apiClient;
@@ -37,6 +41,7 @@ class PosScreen extends StatefulWidget {
   final LocalDatabase? localDatabase;
   final SessionStore? sessionStore;
   final ValueChanged<String>? onLanguageChanged;
+  final PrinterService? printerService;
 
   @override
   State<PosScreen> createState() => _PosScreenState();
@@ -77,6 +82,9 @@ class _PosScreenState extends State<PosScreen> {
   String? _catalogError;
   TenantSettings _settings = const TenantSettings();
   RegisterSession? _registerSession;
+  PrinterStatus _printerStatus = PrinterStatus.noPrinter;
+  late final PrinterService _printerService =
+      widget.printerService ?? PrinterService();
   bool _sessionLoading = true;
   bool _focusMode = false;
 
@@ -88,6 +96,19 @@ class _PosScreenState extends State<PosScreen> {
     _orders.add(_OpenOrder(++_orderCounter));
     _bootstrap();
     _restoreFocusMode();
+    _loadPrinterStatus();
+  }
+
+  Future<void> _loadPrinterStatus() async {
+    final store = widget.sessionStore;
+    if (store == null) return;
+    final config = await store.readPrinterConfig() ?? const PrinterConfig();
+    if (!mounted) return;
+    final status = config.defaultDevice == null
+        ? PrinterStatus.noPrinter
+        : await _printerService.statusOf(config);
+    if (!mounted) return;
+    setState(() => _printerStatus = status);
   }
 
   Future<void> _restoreFocusMode() async {
@@ -341,6 +362,47 @@ class _PosScreenState extends State<PosScreen> {
         });
   }
 
+  void _openPrinters() {
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute<void>(
+            builder: (_) => PrintersScreen(
+              session: widget.session,
+              sessionStore: widget.sessionStore ?? SessionStore(),
+              printerService: _printerService,
+            ),
+          ),
+        )
+        .then((_) {
+          if (mounted) _loadPrinterStatus();
+        });
+  }
+
+  /// Best-effort receipt output after a successful sale. Never blocks or fails
+  /// the checkout; the printed status is reflected by the app-bar icon.
+  Future<void> _printAfterSale(String saleId) async {
+    final store = widget.sessionStore;
+    if (store == null) return;
+    final config = await store.readPrinterConfig() ?? const PrinterConfig();
+    if (!config.enabled) return;
+    try {
+      final outcome = await printSaleReceipt(
+        config: config,
+        service: _printerService,
+        apiClient: widget.apiClient,
+        session: widget.session,
+        saleId: saleId,
+        roleAllowsPrint: widget.session.isManagerLevel,
+      );
+      if (!mounted || outcome != PrintOutcome.sent) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.of(context).receiptSentToPrinter)),
+      );
+    } catch (_) {
+      // Transport failure is expected when offline; keep the sale moving.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
@@ -376,6 +438,7 @@ class _PosScreenState extends State<PosScreen> {
                 builder: (_) => SaleHistoryScreen(
                   session: widget.session,
                   apiClient: widget.apiClient,
+                  sessionStore: widget.sessionStore,
                 ),
               ),
             ),
@@ -413,6 +476,20 @@ class _PosScreenState extends State<PosScreen> {
             icon: Icon(_focusMode
                 ? Icons.center_focus_weak
                 : Icons.center_focus_strong),
+          ),
+          IconButton(
+            onPressed: _openPrinters,
+            tooltip: s.printers,
+            icon: Icon(
+              switch (_printerStatus) {
+                PrinterStatus.online => Icons.print,
+                PrinterStatus.offline => Icons.print_disabled,
+                PrinterStatus.noPrinter => Icons.local_printshop_outlined,
+              },
+              color: _printerStatus == PrinterStatus.offline
+                  ? Theme.of(context).colorScheme.error
+                  : null,
+            ),
           ),
           if (_settings.refreshButton)
             IconButton(
@@ -738,6 +815,7 @@ class _PosScreenState extends State<PosScreen> {
       if (_registerSession != null) {
         await _loadRegisterSession();
       }
+      unawaited(_printAfterSale(result.id));
       final notice = decision?.kind == DiscountDecisionKind.capped
           ? s.discountCapped
           : decision?.kind == DiscountDecisionKind.warned
