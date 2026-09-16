@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POS Go — Release Notes</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6; color: #1f2328; background: #ffffff; padding: 0 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e6edf3; background: #0d1117; }
+    code, pre { background: #161b22; }
+    .sub { color: #9198a1; }
+    th, td { border-color: #30363d; }
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 48px 0 80px; }
+  header { margin-bottom: 32px; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  .sub { color: #57606a; }
+  hr { border: 0; border-top: 1px solid #d0d7de; margin: 24px 0; }
+  @media (prefers-color-scheme: dark) { hr { border-top-color: #30363d; } }
+  h2 { font-size: 20px; margin: 32px 0 8px; }
+  ul { margin: 8px 0 16px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px; border-radius: 6px; padding: 2px 6px; }
+  pre { padding: 12px; overflow-x: auto; }
+  .chip {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    background: #ddf4ff; color: #0969da; font-size: 13px; font-weight: 600;
+  }
+  @media (prefers-color-scheme: dark) { .chip { background: #0c2d6b; color: #79c0ff; } }
+  footer { margin-top: 48px; color: #57606a; font-size: 13px; }
+  @media (prefers-color-scheme: dark) { footer { color: #9198a1; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>POS Go</h1>
+    <div class="sub">Point-of-sale SaaS — Go backend, Flutter client</div>
+    <p><span class="chip">v1.0</span> <span class="chip" style="background:#dafbe1;color:#1a7f37;">stable</span></p>
+  </header>
+
+  <h1 style="font-size:22px;">Release Notes — POS Go v1.0</h1>
+  <p class="sub"><strong>Date:</strong> 2026-09-15 · <strong>Scope:</strong> first public release, deployed to production on the VPS.</p>
+
+  <h2>Merchant onboarding (new)</h2>
+  <ul>
+    <li>First-use flow: welcome → pick a business vertical (7: coffee_shop, restaurant, retail, book_store, mobile_shop, computer_shop, grocery) → signup → <strong>immediate auto-login</strong> with remember-me.</li>
+    <li>New store is provisioned instantly: owner account (<code>owner</code>/<code>standard</code>), tenant on a <strong>15-day trial</strong> (<code>plan=trial</code>, <code>trial_ends_at</code>), demo catalog seeded with <strong>10 real products per vertical</strong> — EGP prices, curated images, product descriptions, and check-digit-valid <strong>EAN-13 barcodes</strong> (<code>622</code> prefix + vertical class + running number), plus matching categories.</li>
+    <li>Cross-tenant email uniqueness via the <code>store_emails</code> table, enforced transactionally in the same commit — duplicate registrations return <strong>409 <code>email_taken</code></strong>. Unsupported business types return 400.</li>
+    <li><strong>Trial expiry enforcement:</strong> logins for a tenant past <code>trial_ends_at</code> are blocked with <strong>403 <code>trial_expired</code></strong> and a renewal message. Admin can extend the trial by updating the tenant row.</li>
+  </ul>
+
+  <h2>Checkout &amp; operations (already shipped, surfaced in this release)</h2>
+  <ul>
+    <li>Full POS loop validated on-device: register open → split payments (cash/card/mobile) → sale (idempotent) → receipt (JSON + ESC/POS print).</li>
+    <li>Offline sale queue revisited via <code>/v1/sync/push</code> (replay-safe, batching ≤10).</li>
+    <li>Refunds, discount caps w/ manager PIN, loyalty accrual, register Z-report.</li>
+  </ul>
+
+  <h2>Catalog data fix</h2>
+  <ul>
+    <li>Product responses now include <code>description</code> on <strong>all</strong> read paths (list, barcode lookup, create, get, patch) — previously seeded but not returned. Flutter <code>Product</code> model parses it.</li>
+    <li>Demo catalogs regenerated with valid 13-digit EAN-13 barcodes.</li>
+  </ul>
+
+  <h2>Platform / deployment (VPS 197.44.6.42)</h2>
+  <ul>
+    <li>Docker Compose stack: <code>pos-prod-api</code>, <code>pos-prod-postgres</code> (16-alpine), <code>pos-prod-redis</code> (7-alpine); API now bound to <strong>127.0.0.1:8080</strong> only.</li>
+    <li>nginx reverse proxy serves the API over <strong>HTTPS (443)</strong> with HTTP→HTTPS redirect; <strong>trusted Let's Encrypt certificate installed + auto-renew</strong> (Cloudflare DNS <code>api.xamltech.com → 197.44.6.42</code> now live). Security headers come from the Go middleware only; nginx adds none.</li>
+    <li>ufw default-deny; direct <code>:8080</code> exposure removed; fail2ban active.</li>
+    <li>DB migrations to <strong>v26</strong>: <code>store_emails</code> (+ least-privilege grants to <code>pos_app_rls</code> so the app role can enforce signup uniqueness).</li>
+    <li>Bug fixed during rollout: signup failed under the least-privilege DB role (<code>permission denied for table store_emails</code>) — resolved by granting INSERT/SELECT to <code>pos_app_rls</code> in <code>scripts/grants_prod.sql</code>.</li>
+  </ul>
+
+  <h2>Backend quality gates for this release</h2>
+  <ul>
+    <li><code>gofmt</code> clean, <code>go vet</code> clean, full Go test suite green (DB-backed integration incl. auth/sales/sync/saas).</li>
+    <li>Flutter: <code>flutter analyze</code> 0 issues, 135 unit tests passing.</li>
+    <li>On-device integration E2E green against production through an SSH tunnel: login → browse → sell → receipt → logout, plus onboarding → trial store → catalog → relogin → sale.</li>
+  </ul>
+
+  <h2>Known limitations / next</h2>
+  <ul>
+    <li>Public HTTPS is live (<code>https://api.xamltech.com</code>, trusted cert).</li>
+    <li>Android app currently built for debug distribution; release signing pending.</li>
+    <li>Billing / plan upgrades are API stubs (plan limits enforced); subscription billing integration is the next phase.</li>
+  </ul>
+
+  <footer>POS Go · <a href="https://github.com/mahmudamen/pos_app">github.com/mahmudamen/pos_app</a></footer>
+</main>
+</body>
+</html>
