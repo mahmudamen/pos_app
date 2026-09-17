@@ -47,6 +47,16 @@ GET /health/live
 GET /health/ready
 ```
 
+## Public HTML pages (no auth, no DB)
+
+```text
+GET /        text/html — branded POS.Go landing (icon, Admin sign-in → /admin/, privacy link)
+GET /private text/html — privacy policy (linked from the Android app login footer)
+```
+
+Both are served by `registerSitePages` in `internal/transport/server/pages.go`
+and appear in the generated spec without bearer security.
+
 ## Authentication
 
 ```text

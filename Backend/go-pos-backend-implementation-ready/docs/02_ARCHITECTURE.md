@@ -28,6 +28,11 @@ Use Case / Service
     |    PostgreSQL
     |
     +--> Redis for sessions/cache/rate limits
+
+Public HTML short-circuits before middleware: `GET /` and `GET /private`
+(`internal/transport/server/pages.go`) are registered on the engine outside the
+auth/tenant/rate-limit chain — auth-free and DB-free (same route table the
+OpenAPI generator walks).
 ```
 
 ## Package layout
