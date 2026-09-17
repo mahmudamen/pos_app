@@ -185,6 +185,9 @@ func operationID(method, path string) string {
 	b.WriteString(strings.ToUpper(lmethod[:1]))
 	b.WriteString(lmethod[1:])
 	for _, seg := range strings.Split(strings.TrimPrefix(path, "/"), "/") {
+		if seg == "" {
+			continue
+		}
 		seg = strings.ReplaceAll(seg, ":", "")
 		seg = strings.ReplaceAll(seg, "{", "")
 		seg = strings.ReplaceAll(seg, "}", "")

@@ -2763,8 +2763,6 @@ const _policyJson =
     '"offline_trial_policy":"grace24h"},"meta":{"request_id":"t"}}';
 
 class _TrialSettingsClient extends http.BaseClient {
-  bool _updated = false;
-
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.headers['Authorization'], 'Bearer access-token');
@@ -2781,7 +2779,6 @@ class _TrialSettingsClient extends http.BaseClient {
     final body = jsonDecode(await request.finalize().bytesToString())
         as Map<String, dynamic>;
     expect(body['trial_duration_days'], 21);
-    _updated = true;
     const updatedJson =
         '{"data":{"trial_duration_days":21,"trial_scope":"account",'
         '"require_email_verification":true,"require_phone_verification":false,'

@@ -201,6 +201,7 @@ const (
 	ActionOrganizationCreated     = "organization.created"
 	ActionOrganizationBlocked     = "organization.blocked"
 	ActionOrganizationSuspended   = "organization.suspended"
+	ActionOrganizationActivated   = "organization.activated"
 	ActionInstallationRegistered  = "installation.registered"
 	ActionInstallationChanged     = "installation.changed"
 	ActionInstallationRevoked     = "installation.revoked"
@@ -233,7 +234,7 @@ func AuditActionValid(action string) bool {
 		ActionPhoneVerified, ActionPhoneChangeRequested, ActionPhoneChangeCompleted,
 		ActionTrialEligibilityChecked, ActionTrialGranted, ActionTrialDenied,
 		ActionTrialExtended, ActionTrialRevoked, ActionTrialConverted,
-		ActionOrganizationCreated, ActionOrganizationBlocked, ActionOrganizationSuspended,
+		ActionOrganizationCreated, ActionOrganizationBlocked, ActionOrganizationSuspended, ActionOrganizationActivated,
 		ActionInstallationRegistered, ActionInstallationChanged, ActionInstallationRevoked,
 		ActionSessionCreated, ActionSessionRevoked, ActionSessionLogoutAll,
 		ActionSuspiciousRegistration, ActionManualTrialOverride, ActionSubscriptionChanged:

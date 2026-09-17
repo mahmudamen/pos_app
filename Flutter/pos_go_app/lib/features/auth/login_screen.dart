@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/api_client.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
+
+const String _privacyPolicyUrl = 'https://api.xamltech.com/private';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen(
@@ -314,6 +317,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     icon: const Icon(Icons.login),
                     label: Text(_loading ? s.signingIn : s.signIn),
                   ),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    onPressed: _openPrivacy,
+                    child: Text(s.privacyPolicy),
+                  ),
                 ],
               ),
             ),
@@ -325,4 +333,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _required(String? value) =>
       value == null || value.trim().isEmpty ? AppStrings.of(context).required : null;
+
+  Future<void> _openPrivacy() async {
+    final ok = await launchUrl(Uri.parse(_privacyPolicyUrl),
+        mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(AppStrings.of(context).privacyPolicy)));
+    }
+  }
 }

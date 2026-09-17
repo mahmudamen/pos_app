@@ -51,6 +51,7 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 		admin.GET("/audit", h.listAudit)
 		admin.POST("/accounts/:id/suspend", h.suspendAccount)
 		admin.POST("/tenants/:id/suspend", h.suspendTenant)
+		admin.POST("/tenants/:id/activate", h.activateTenant)
 	}
 }
 
@@ -481,6 +482,56 @@ func (h *Handler) suspendTenant(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"suspended": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+// activateTenant reverses a suspension: clears tenants.status back to 'active'
+// and lifts any subscription suspension (cancelled subscriptions stay put).
+func (h *Handler) activateTenant(c *gin.Context) {
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	claims, _ := httptransport.Claims(c)
+	tag, err := tx.Exec(ctx, `
+		UPDATE tenants SET status = 'active', updated_at = now() WHERE id = $1::uuid AND status = 'suspended'`,
+		c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to activate tenant")
+		return
+	}
+	if tag.RowsAffected() == 0 {
+		writeError(c, http.StatusNotFound, "tenant_not_found", "tenant not found or not suspended")
+		return
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE subscriptions SET status = 'active', updated_at = now()
+		WHERE tenant_id = $1::uuid AND status = 'suspended'`, c.Param("id")); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to activate subscription")
+		return
+	}
+	if err := h.audit.Record(ctx, tx, identity.AuditEntry{
+		Action:      identity.ActionOrganizationActivated,
+		ActorUserID: claims.UserID,
+		TenantID:    c.Param("id"),
+		EntityID:    c.Param("id"),
+		EntityType:  identity.EntityOrganization,
+		Reason:      "admin reactivated tenant",
+	}); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to record audit")
+		return
+	}
+	if err := tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to activate tenant")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"activated": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
 func entitlementPayloads(items []identity.TrialEntitlement) []gin.H {

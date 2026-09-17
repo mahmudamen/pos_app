@@ -48,6 +48,31 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          ""
+        ],
+        "operationId": "Get",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "tags": [
@@ -74,6 +99,31 @@
           "ready"
         ],
         "operationId": "GetHealthReady",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/private": {
+      "get": {
+        "tags": [
+          "private"
+        ],
+        "operationId": "GetPrivate",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "default": {
             "content": {
@@ -894,6 +944,31 @@
           "platform"
         ],
         "operationId": "GetV1PlatformAudit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/tenants/{id}/activate": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTenantsIdActivate",
         "security": [
           {
             "bearerAuth": []

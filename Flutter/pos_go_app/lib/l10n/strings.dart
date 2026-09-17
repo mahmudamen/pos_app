@@ -18,6 +18,7 @@ class AppStrings {
 
   String get appTitle => isArabic ? 'نقطة البيع' : 'POS Go';
   String get signInSubtitle => isArabic ? 'تسجيل الدخول إلى متجرك' : 'Sign in to your store';
+  String get privacyPolicy => isArabic ? 'سياسة الخصوصية' : 'Privacy Policy';
   String get storeId => isArabic ? 'معرف المتجر' : 'Store ID';
   String get email => isArabic ? 'البريد الإلكتروني' : 'Email';
   String get password => isArabic ? 'كلمة المرور' : 'Password';
@@ -184,6 +185,7 @@ class AppStrings {
   String get suspendedLabel => isArabic ? 'موقوفة' : 'Suspended';
   String get activeLabel => isArabic ? 'نشطة' : 'Active';
   String get tenantDetails => isArabic ? 'تفاصيل الجهة' : 'Tenant details';
+  String get joinedOn => isArabic ? 'انضمت في' : 'Joined on';
   String get tenantAnalytics => isArabic ? 'تحليلات الجهة' : 'Tenant analytics';
   String get todayStats => isArabic ? 'إحصاءات اليوم' : "Today's stats";
   String get revenueTrend => isArabic ? 'الإيرادات (آخر 7 أيام)' : 'Revenue (7 days)';
@@ -230,6 +232,8 @@ class AppStrings {
   String get suspendTenant => isArabic ? 'إيقاف الجهة' : 'Suspend tenant';
   String get suspendTenantHint => isArabic ? 'سبب الإيقاف (اختياري)' : 'Suspension reason (optional)';
   String get tenantSuspended => isArabic ? 'تم إيقاف الجهة' : 'Tenant suspended';
+  String get activateTenant => isArabic ? 'تفعيل الجهة' : 'Activate tenant';
+  String get tenantActivated => isArabic ? 'تم تفعيل الجهة' : 'Tenant activated';
   String get loadFailed => isArabic ? 'تعذر تحميل البيانات' : 'Failed to load';
   String get guest => isArabic ? 'ضيف' : 'Guest';
   String get rememberLogins => isArabic ? 'تذكر بيانات تسجيل الدخول' : 'Remember logins';

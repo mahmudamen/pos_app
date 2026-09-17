@@ -75,28 +75,13 @@ class _TenantAnalyticsScreenState extends State<TenantAnalyticsScreen> {
           FilledButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              try {
+              await _runPlatformAction(() async {
                 await widget.apiClient.platformSuspendTenant(
                   widget.session,
                   widget.tenantId,
                   reason: controller.text,
                 );
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(s.tenantSuspended),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              } catch (_) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(s.actionFailed),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
+              }, s.tenantSuspended);
             },
             child: Text(s.suspendTenant),
           ),
@@ -105,18 +90,60 @@ class _TenantAnalyticsScreenState extends State<TenantAnalyticsScreen> {
     );
   }
 
+  Future<void> _activate() async {
+    final s = AppStrings.of(context);
+    await _runPlatformAction(() async {
+      await widget.apiClient.platformActivateTenant(
+        widget.session,
+        widget.tenantId,
+      );
+    }, s.tenantActivated);
+  }
+
+  Future<void> _runPlatformAction(
+      Future<void> Function() action, String successMessage) async {
+    final s = AppStrings.of(context);
+    try {
+      await action();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(successMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      _load();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(s.actionFailed),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
+    final suspended = _analytics?.tenant.status == 'suspended';
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.tenantName),
         actions: [
-          IconButton(
-            tooltip: s.suspendTenant,
-            icon: const Icon(Icons.block),
-            onPressed: _suspend,
-          ),
+          if (_analytics != null && !suspended)
+            IconButton(
+              tooltip: s.suspendTenant,
+              icon: const Icon(Icons.block),
+              onPressed: _suspend,
+            ),
+          if (_analytics != null && suspended)
+            IconButton(
+              tooltip: s.activateTenant,
+              icon: const Icon(Icons.check_circle_outline),
+              onPressed: _activate,
+            ),
         ],
       ),
       body: _loading
@@ -135,7 +162,10 @@ class _TenantAnalyticsScreenState extends State<TenantAnalyticsScreen> {
                     ],
                   ),
                 )
-              : _AnalyticsBody(analytics: _analytics!),
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: _AnalyticsBody(analytics: _analytics!),
+                ),
     );
   }
 }
@@ -149,10 +179,14 @@ class _AnalyticsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
     final a = analytics;
+    final currency =
+        a.tenant.currencyCode.isEmpty ? 'EGP' : a.tenant.currencyCode;
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
-        Text('${a.tenant.slug} · ${a.tenant.businessType}',
+        Text(
+            '${a.tenant.slug} · ${a.tenant.businessType} · ${a.tenant.countryCode}/$currency',
             style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 8),
         Wrap(
@@ -177,6 +211,11 @@ class _AnalyticsBody extends StatelessWidget {
               label: Text('${s.products} ${a.products}'),
               visualDensity: VisualDensity.compact,
             ),
+            if (a.tenant.createdAt.isNotEmpty)
+              Chip(
+                label: Text('${s.joinedOn} ${_fmtDate(s, a.tenant.createdAt)}'),
+                visualDensity: VisualDensity.compact,
+              ),
           ],
         ),
         const SizedBox(height: 20),
@@ -188,11 +227,11 @@ class _AnalyticsBody extends StatelessWidget {
           children: [
             _StatCard(
                 label: s.revenueToday,
-                value: s.formatMoney(a.today.revenueMinor, 'EGP')),
+                value: s.formatMoney(a.today.revenueMinor, currency)),
             _StatCard(label: s.salesCount, value: '${a.today.salesCount}'),
             _StatCard(
                 label: s.avgSale,
-                value: s.formatMoney(a.today.avgSaleMinor, 'EGP')),
+                value: s.formatMoney(a.today.avgSaleMinor, currency)),
             _StatCard(label: s.itemsSold, value: '${a.today.itemsSold}'),
           ],
         ),
@@ -218,7 +257,7 @@ class _AnalyticsBody extends StatelessWidget {
                 leading: const Icon(Icons.inventory_2_outlined),
                 title: Text(p.productName),
                 subtitle: Text('${p.sku} · ×${p.quantity}'),
-                trailing: Text(s.formatMoney(p.revenueMinor, 'EGP')),
+                trailing: Text(s.formatMoney(p.revenueMinor, currency)),
               ),
             ),
           ),
@@ -235,7 +274,7 @@ class _AnalyticsBody extends StatelessWidget {
                 title: Text(r.cashier.isEmpty
                     ? r.paymentMethod
                     : '${r.cashier} · ${r.paymentMethod}'),
-                subtitle: Text(r.createdAt),
+                subtitle: Text(_fmtDate(s, r.createdAt)),
                 trailing: Text(s.formatMoney(r.totalMinor, r.currency)),
               ),
             ),
@@ -244,6 +283,13 @@ class _AnalyticsBody extends StatelessWidget {
       ],
     );
   }
+}
+
+String _fmtDate(AppStrings s, String iso) {
+  if (iso.isEmpty) return '';
+  final parsed = DateTime.tryParse(iso);
+  if (parsed == null) return iso;
+  return s.formatDate(parsed.toLocal());
 }
 
 class _RevenueBars extends StatelessWidget {
@@ -269,7 +315,7 @@ class _RevenueBars extends StatelessWidget {
                 children: [
                   if (max > 0)
                     Container(
-                      height: 110 * (p.revenueMinor / max),
+                      height: 96 * (p.revenueMinor / max),
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
@@ -279,6 +325,8 @@ class _RevenueBars extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     p.day.length >= 5 ? p.day.substring(5) : p.day,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ],

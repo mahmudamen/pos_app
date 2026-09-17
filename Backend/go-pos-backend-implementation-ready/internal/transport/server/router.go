@@ -90,6 +90,8 @@ func Register(engine *gin.Engine, d Deps) {
 		c.JSON(status, gin.H{"status": map[bool]string{true: "ready", false: "not_ready"}[ready()]})
 	})
 
+	registerSitePages(engine)
+
 	api := engine.Group("/v1")
 	authHandler := authtransport.NewHandler(d.Pool, d.Config)
 	authGroup := api.Group("/auth")

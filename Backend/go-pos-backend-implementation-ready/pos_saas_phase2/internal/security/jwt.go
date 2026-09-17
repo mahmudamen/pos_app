@@ -8,9 +8,9 @@ import (
 )
 
 type JWTService struct {
-	Secret   []byte
-	Issuer   string
-	Audience string
+	Secret    []byte
+	Issuer    string
+	Audience  string
 	AccessTTL time.Duration
 }
 

@@ -448,9 +448,23 @@ class ApiClient {
     Session session, {
     int page = 1,
     int limit = 50,
+    String? q,
+    String? businessType,
+    String? plan,
+    String? status,
+    bool includeInternal = false,
   }) async {
     final uri = Uri.parse('$baseUrl/v1/saas/tenants').replace(
-      queryParameters: {'page': '$page', 'limit': '$limit'},
+      queryParameters: {
+        'page': '$page',
+        'limit': '$limit',
+        if (q != null && q.isNotEmpty) 'q': q,
+        if (businessType != null && businessType.isNotEmpty)
+          'business_type': businessType,
+        if (plan != null && plan.isNotEmpty) 'plan': plan,
+        if (status != null && status.isNotEmpty) 'status': status,
+        if (includeInternal) 'include_internal': '1',
+      },
     );
     final response = await _authenticatedRequest(
       session,
@@ -511,14 +525,6 @@ class ApiClient {
     }
     return TenantAnalytics.fromJson(
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
-  }
-
-  Future<SaasTenantsPage> saasTenantsPage(
-    Session session, {
-    int page = 1,
-    int limit = 50,
-  }) async {
-    return saasTenants(session, page: page, limit: limit);
   }
 
   Future<List<TrialEntitlement>> platformTrialEntitlements(
@@ -654,6 +660,27 @@ class ApiClient {
         body: jsonEncode({
           if (reason.isNotEmpty) 'reason': reason,
         }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+  }
+
+  Future<void> platformActivateTenant(
+    Session session,
+    String tenantId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/activate'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: '',
       ),
     );
     if (response.statusCode != 200) {

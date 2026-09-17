@@ -37,16 +37,25 @@ class SaasSummary {
 }
 
 class SaasBusinessCount {
-  const SaasBusinessCount({required this.businessType, required this.tenants});
+  const SaasBusinessCount({
+    required this.businessType,
+    required this.tenants,
+    this.users = 0,
+    this.revenueMinor = 0,
+  });
 
   factory SaasBusinessCount.fromJson(Map<String, dynamic> json) =>
       SaasBusinessCount(
-        businessType: json['business_type'] as String,
-        tenants: (json['tenants'] as num).toInt(),
+        businessType: json['business_type'] as String? ?? '',
+        tenants: (json['tenants'] as num?)?.toInt() ?? 0,
+        users: (json['users'] as num?)?.toInt() ?? 0,
+        revenueMinor: (json['revenue_minor'] as num?)?.toInt() ?? 0,
       );
 
   final String businessType;
   final int tenants;
+  final int users;
+  final int revenueMinor;
 }
 
 class SaasTenant {
@@ -64,12 +73,17 @@ class SaasTenant {
     this.maxUsers = 0,
     this.maxProducts = 0,
     this.status = '',
+    this.revenueMinor = 0,
+    this.totalSales = 0,
+    this.createdAt = '',
+    this.trialEndsAt = '',
+    this.ownerUserId = '',
   });
 
   factory SaasTenant.fromJson(Map<String, dynamic> json) => SaasTenant(
         id: json['id'] as String,
         name: json['name'] as String,
-        slug: json['slug'] as String,
+        slug: json['slug'] as String? ?? '',
         businessType: json['business_type'] as String? ?? '',
         countryCode: json['country_code'] as String? ?? '',
         currencyCode: json['currency_code'] as String? ?? '',
@@ -80,6 +94,11 @@ class SaasTenant {
         maxUsers: (json['max_users'] as num?)?.toInt() ?? 0,
         maxProducts: (json['max_products'] as num?)?.toInt() ?? 0,
         status: json['status'] as String? ?? '',
+        revenueMinor: (json['revenue_minor'] as num?)?.toInt() ?? 0,
+        totalSales: (json['total_sales'] as num?)?.toInt() ?? 0,
+        createdAt: json['created_at'] as String? ?? '',
+        trialEndsAt: json['trial_ends_at'] as String? ?? '',
+        ownerUserId: json['owner_user_id'] as String? ?? '',
       );
 
   final String id;
@@ -95,6 +114,11 @@ class SaasTenant {
   final int maxUsers;
   final int maxProducts;
   final String status;
+  final int revenueMinor;
+  final int totalSales;
+  final String createdAt;
+  final String trialEndsAt;
+  final String ownerUserId;
 }
 
 class SaasTenantsPage {
@@ -162,6 +186,8 @@ class AnalyticsTenant {
     this.maxUsers = 0,
     this.maxProducts = 0,
     this.status = '',
+    this.createdAt = '',
+    this.trialEndsAt = '',
   });
 
   factory AnalyticsTenant.fromJson(Map<String, dynamic> json) =>
@@ -177,6 +203,8 @@ class AnalyticsTenant {
         maxUsers: (json['max_users'] as num?)?.toInt() ?? 0,
         maxProducts: (json['max_products'] as num?)?.toInt() ?? 0,
         status: json['status'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+        trialEndsAt: json['trial_ends_at'] as String? ?? '',
       );
 
   final String id;
@@ -190,6 +218,8 @@ class AnalyticsTenant {
   final int maxUsers;
   final int maxProducts;
   final String status;
+  final String createdAt;
+  final String trialEndsAt;
 }
 
 class TodayStats {

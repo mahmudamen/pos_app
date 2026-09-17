@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/layout.dart';
 import '../../core/saas.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
@@ -195,11 +198,11 @@ class _ControlPanelScreenState extends State<ControlPanelScreen> {
                         summary: _summary,
                         tenants: _tenants ?? const SaasTenantsPage(
                             tenants: [], total: 0, page: 1, limit: 200),
+                        onRefresh: _load,
                       ),
                       _TenantsTab(
                         session: widget.session,
                         apiClient: widget.apiClient,
-                        tenants: _tenants?.tenants ?? const [],
                       ),
                       _TrialsTab(
                         trials: _trials,
@@ -239,64 +242,77 @@ class _ErrorView extends StatelessWidget {
 }
 
 class _OverviewTab extends StatelessWidget {
-  const _OverviewTab({required this.summary, required this.tenants});
+  const _OverviewTab({
+    required this.summary,
+    required this.tenants,
+    required this.onRefresh,
+  });
 
   final SaasSummary? summary;
   final SaasTenantsPage tenants;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
     final summary = this.summary;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(s.platformSummary, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        if (summary != null)
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _StatCard(label: s.tenants, value: '${summary.totalTenants}'),
-              _StatCard(label: s.users, value: '${summary.totalUsers}'),
-              _StatCard(label: s.totalSales, value: '${summary.totalSales}'),
-              _StatCard(
-                  label: s.revenue,
-                  value: s.formatMoney(
-                      summary.revenueMinor, summary.supportedCurrency)),
-            ],
-          ),
-        if (summary != null && summary.byBusiness.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(s.businessType, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          ...summary.byBusiness.map((b) => Card(
-                child: ListTile(
-                  dense: true,
-                  title: Text(b.businessType),
-                  subtitle: Text('${b.tenants} ${s.tenants}'),
-                  leading: const Icon(Icons.category_outlined),
-                ),
-              )),
-        ],
-        const SizedBox(height: 20),
-        Text(s.plans, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        ..._planCounts(tenants).entries.map((e) => Card(
-              child: ListTile(
-                dense: true,
-                title: Text(e.key),
-                subtitle: Text('${e.value} ${s.tenants}'),
-                leading: const Icon(Icons.card_membership_outlined),
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: MaxWidthBox(
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(s.platformSummary, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            if (summary != null)
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _StatCard(label: s.tenants, value: '${summary.totalTenants}'),
+                  _StatCard(label: s.users, value: '${summary.totalUsers}'),
+                  _StatCard(label: s.totalSales, value: '${summary.totalSales}'),
+                  _StatCard(
+                      label: s.revenue,
+                      value: s.formatMoney(
+                          summary.revenueMinor, summary.supportedCurrency)),
+                ],
               ),
-            )),
-        if (tenants.tenants.isEmpty) ...[
-          const SizedBox(height: 8),
-          Text(s.noTenantsFound,
-              style: Theme.of(context).textTheme.bodyMedium),
-        ],
-      ],
+            if (summary != null && summary.byBusiness.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text(s.businessType, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              ...summary.byBusiness.map((b) => Card(
+                    child: ListTile(
+                      dense: true,
+                      title: Text(b.businessType),
+                      subtitle: Text(
+                          '${b.tenants} ${s.tenants} · ${b.users} ${s.users} · '
+                          '${s.formatMoney(b.revenueMinor, summary.supportedCurrency)}'),
+                      leading: const Icon(Icons.category_outlined),
+                    ),
+                  )),
+            ],
+            const SizedBox(height: 20),
+            Text(s.plans, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            ..._planCounts(tenants).entries.map((e) => Card(
+                  child: ListTile(
+                    dense: true,
+                    title: Text(e.key),
+                    subtitle: Text('${e.value} ${s.tenants}'),
+                    leading: const Icon(Icons.card_membership_outlined),
+                  ),
+                )),
+            if (tenants.tenants.isEmpty) ...[
+              const SizedBox(height: 8),
+              Text(s.noTenantsFound,
+                  style: Theme.of(context).textTheme.bodyMedium),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -311,49 +327,113 @@ class _OverviewTab extends StatelessWidget {
 }
 
 class _TenantsTab extends StatefulWidget {
-  const _TenantsTab({
-    required this.session,
-    required this.apiClient,
-    required this.tenants,
-  });
+  const _TenantsTab({required this.session, required this.apiClient});
 
   final Session session;
   final ApiClient apiClient;
-  final List<SaasTenant> tenants;
 
   @override
   State<_TenantsTab> createState() => _TenantsTabState();
 }
 
 class _TenantsTabState extends State<_TenantsTab> {
+  SaasTenantsPage? _page;
+  bool _loading = true;
+  String? _error;
   String _query = '';
   String _typeFilter = '';
+  String _statusFilter = '';
+  String _planFilter = '';
+  int _pageIndex = 1;
+  Timer? _debounce;
+
+  static const int _limit = 50;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onQueryChanged(String value) {
+    setState(() => _query = value);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      _pageIndex = 1;
+      _fetch();
+    });
+  }
+
+  void _applyFilter(void Function() update) {
+    setState(() {
+      _pageIndex = 1;
+      update();
+    });
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final q = _query.trim();
+      final page = await widget.apiClient.saasTenants(
+        widget.session,
+        page: _pageIndex,
+        limit: _limit,
+        q: q.isEmpty ? null : q,
+        businessType: _typeFilter.isEmpty ? null : _typeFilter,
+        status: _statusFilter.isEmpty ? null : _statusFilter,
+        plan: _planFilter.isEmpty ? null : _planFilter,
+      );
+      if (!mounted) return;
+      setState(() {
+        _page = page;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  void _goTo(int page) {
+    if (page < 1 || _page == null) return;
+    _pageIndex = page;
+    _fetch();
+  }
 
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
-    final all = widget.tenants;
+    final tenants = _page?.tenants ?? const <SaasTenant>[];
     final types = <String>{};
-    for (final t in all) {
+    final plans = <String>{};
+    for (final t in tenants) {
       if (t.businessType.isNotEmpty) types.add(t.businessType);
+      final plan = t.plan.isEmpty ? 'standard' : t.plan;
+      plans.add(plan);
     }
     final typeList = types.toList()..sort();
-
-    final filtered = all.where((t) {
-      final q = _query.trim().toLowerCase();
-      final matchesQuery = q.isEmpty ||
-          t.name.toLowerCase().contains(q) ||
-          t.slug.toLowerCase().contains(q);
-      final matchesType = _typeFilter.isEmpty || t.businessType == _typeFilter;
-      return matchesQuery && matchesType;
-    }).toList();
+    final planList = plans.toList()..sort();
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
           child: TextField(
-            onChanged: (v) => setState(() => _query = v),
+            onChanged: _onQueryChanged,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
               hintText: s.searchTenants,
@@ -362,83 +442,242 @@ class _TenantsTabState extends State<_TenantsTab> {
             ),
           ),
         ),
-        SizedBox(
-          height: 44,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: [
-              FilterChip(
-                label: Text(s.all),
-                selected: _typeFilter.isEmpty,
-                onSelected: (_) => setState(() => _typeFilter = ''),
-              ),
-              ...typeList.map((type) => Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: FilterChip(
-                      label: Text(type),
-                      selected: _typeFilter == type,
-                      onSelected: (_) =>
-                          setState(() => _typeFilter = type),
-                    ),
-                  )),
-            ],
+        _filterRow([
+          FilterChip(
+            label: Text(s.all),
+            selected: _typeFilter.isEmpty,
+            onSelected: (_) => _applyFilter(() => _typeFilter = ''),
           ),
-        ),
+          ...typeList.map((type) => FilterChip(
+                label: Text(type),
+                selected: _typeFilter == type,
+                onSelected: (_) =>
+                    _applyFilter(() => _typeFilter = type),
+              )),
+        ]),
+        _filterRow([
+          FilterChip(
+            label: Text(s.all),
+            selected: _statusFilter.isEmpty,
+            onSelected: (_) => _applyFilter(() => _statusFilter = ''),
+          ),
+          FilterChip(
+            label: Text(s.activeLabel),
+            selected: _statusFilter == 'active',
+            onSelected: (_) => _applyFilter(() => _statusFilter = 'active'),
+          ),
+          FilterChip(
+            label: Text(s.suspendedLabel),
+            selected: _statusFilter == 'suspended',
+            onSelected: (_) =>
+                _applyFilter(() => _statusFilter = 'suspended'),
+          ),
+        ]),
+        if (planList.isNotEmpty)
+          _filterRow([
+            FilterChip(
+              label: Text(s.plans),
+              selected: _planFilter.isEmpty,
+              onSelected: (_) => _applyFilter(() => _planFilter = ''),
+            ),
+            ...planList.map((plan) => FilterChip(
+                  label: Text(plan),
+                  selected: _planFilter == plan,
+                  onSelected: (_) => _applyFilter(() => _planFilter = plan),
+                )),
+          ]),
         Expanded(
-          child: filtered.isEmpty
-              ? Center(child: Text(s.noTenantsFound))
-              : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final t = filtered[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      child: ListTile(
-                        leading: const Icon(Icons.storefront_outlined),
-                        title: Text(t.name),
-                        subtitle: Text(
-                            '${t.slug} · ${t.businessType} · ${t.countryCode}/${t.currencyCode}'),
-                        isThreeLine: false,
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                                '${s.users} ${t.users} · ${s.products} ${t.products}'),
-                            const SizedBox(height: 4),
-                            Wrap(
-                              spacing: 6,
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? _ErrorView(error: _error!, onRetry: _fetch)
+                  : RefreshIndicator(
+                      onRefresh: _fetch,
+                      child: tenants.isEmpty
+                          ? ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
                               children: [
-                                _PlanChip(plan: t.plan),
-                                if (t.status == 'suspended')
-                                  Chip(
-                                    label: Text(s.suspendedLabel),
-                                    visualDensity: VisualDensity.compact,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.error,
+                                const SizedBox(height: 120),
+                                Center(child: Text(s.noTenantsFound)),
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                Expanded(
+                                  child: ListView.builder(
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    padding: const EdgeInsets.all(12),
+                                    itemCount: tenants.length,
+                                    itemBuilder: (context, index) {
+                                      final t = tenants[index];
+                                      return _TenantCard(
+                                        tenant: t,
+                                        onTap: () =>
+                                            Navigator.of(context).push(
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                TenantAnalyticsScreen(
+                                              session: widget.session,
+                                              apiClient: widget.apiClient,
+                                              tenantId: t.id,
+                                              tenantName: t.name,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                if ((_page?.total ?? 0) > _limit)
+                                  _Pager(
+                                    page: _page?.page ?? 1,
+                                    total: _page?.total ?? 0,
+                                    limit: _limit,
+                                    onPrevious: () => _goTo(
+                                        (_page?.page ?? 1) - 1),
+                                    onNext: () =>
+                                        _goTo((_page?.page ?? 1) + 1),
                                   ),
                               ],
                             ),
-                          ],
-                        ),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => TenantAnalyticsScreen(
-                              session: widget.session,
-                              apiClient: widget.apiClient,
-                              tenantId: t.id,
-                              tenantName: t.name,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                    ),
         ),
       ],
+    );
+  }
+
+  Widget _filterRow(List<Widget> chips) {
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: [
+          for (var i = 0; i < chips.length; i++)
+            if (i > 0)
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: chips[i],
+              )
+            else
+              chips[i],
+        ],
+      ),
+    );
+  }
+}
+
+class _TenantCard extends StatelessWidget {
+  const _TenantCard({required this.tenant, required this.onTap});
+
+  final SaasTenant tenant;
+  final VoidCallback onTap;
+
+  String _headerLine(SaasTenant t, String currency) {
+    final parts = [t.slug, t.businessType];
+    if (t.countryCode.isNotEmpty) parts.add('$t.countryCode/$currency');
+    return parts.join(' · ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    final t = tenant;
+    final currency = t.currencyCode.isEmpty ? 'EGP' : t.currencyCode;
+    final theme = Theme.of(context);
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.storefront_outlined),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.name, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    Text(_headerLine(t, currency),
+                        style: theme.textTheme.bodySmall),
+                    if (t.createdAt.isNotEmpty)
+                      Text('${s.joinedOn} ${_fmtDate(s, t.createdAt)}',
+                          style: theme.textTheme.bodySmall),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${s.revenue} ${s.formatMoney(t.revenueMinor, currency)} · '
+                      '${s.totalSales} ${t.totalSales}',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        _PlanChip(plan: t.plan),
+                        if (t.status == 'suspended')
+                          Chip(
+                            label: Text(s.suspendedLabel),
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text('${s.users} ${t.users} · ${s.products} ${t.products}',
+                  style: theme.textTheme.bodySmall),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Pager extends StatelessWidget {
+  const _Pager({
+    required this.page,
+    required this.total,
+    required this.limit,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final int page;
+  final int total;
+  final int limit;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    final totalPages = (total / limit).ceil();
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: page > 1 ? onPrevious : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Text('${s.pageOf} $page / $totalPages'),
+          IconButton(
+            onPressed: page < totalPages ? onNext : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -502,9 +741,10 @@ class _TrialsTab extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${s.trialType}: ${t.trialType} · ${s.trialSource}: ${t.source}'),
-                Text('${s.trialStartedAt}: ${t.startedAt}'),
-                Text('${s.trialExpiresAt}: ${t.expiresAt}'),
+                Text(
+                    '${s.trialType}: ${t.trialType} · ${s.trialSource}: ${t.source}'),
+                Text('${s.trialStartedAt}: ${_fmtDate(s, t.startedAt)}'),
+                Text('${s.trialExpiresAt}: ${_fmtDate(s, t.expiresAt)}'),
                 if (t.reason.isNotEmpty) Text('${s.reasonLabel}: ${t.reason}'),
               ],
             ),
@@ -560,13 +800,16 @@ class _TrialStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
-    final label = status == 'active'
-        ? s.statusActive
-        : status == 'pending'
-            ? s.statusPending
-            : status == 'expired'
-                ? s.statusExpired
-                : status;
+    final label = switch (status) {
+      'active' => s.statusActive,
+      'pending' => s.statusPending,
+      'expired' => s.statusExpired,
+      'consumed' => s.statusConsumed,
+      'revoked' => s.statusRevoked,
+      'converted' => s.statusConverted,
+      'canceled' => s.statusRevoked,
+      _ => status,
+    };
     return Chip(label: Text(label), visualDensity: VisualDensity.compact);
   }
 }
@@ -595,7 +838,7 @@ class _AuditTab extends StatelessWidget {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(e.createdAt),
+                Text(_fmtDate(s, e.createdAt)),
                 if (e.reason.isNotEmpty) Text('${s.reasonLabel}: ${e.reason}'),
                 Text('${s.actorLabel}: ${_shortId(e.actorUserId)}'),
               ],
@@ -636,4 +879,11 @@ class _StatCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _fmtDate(AppStrings s, String iso) {
+  if (iso.isEmpty) return '';
+  final parsed = DateTime.tryParse(iso);
+  if (parsed == null) return iso;
+  return s.formatDate(parsed.toLocal());
 }

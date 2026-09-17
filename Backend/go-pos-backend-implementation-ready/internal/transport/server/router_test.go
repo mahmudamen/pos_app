@@ -3,6 +3,7 @@ package server_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/example/pos-api/internal/config"
@@ -121,5 +122,47 @@ func TestMetricsRouteOnlyWhenRegistryProvided(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("expected /metrics route when registry is provided")
+	}
+}
+
+func TestIndexServesBrandedLandingWithoutDatabase(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "text/html; charset=utf-8" {
+		t.Fatalf("Content-Type = %q, want text/html", ct)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{"POS.Go", "XAMLtech", "Admin sign in", "/admin/"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("index body missing %q", want)
+		}
+	}
+}
+
+func TestPrivacyServesPublicPolicyPage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/private", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "text/html; charset=utf-8" {
+		t.Fatalf("Content-Type = %q, want text/html", rec.Header().Get("Content-Type"))
+	}
+	body := rec.Body.String()
+	for _, want := range []string{"POS.Go", "Privacy Policy", "support@xamltech.com", "/admin/"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("privacy body missing %q", want)
+		}
 	}
 }
