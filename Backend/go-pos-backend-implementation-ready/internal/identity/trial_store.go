@@ -21,7 +21,7 @@ func (s *TrialStore) GetByOrganization(ctx context.Context, q Querier, tenantID 
 	var e TrialEntitlement
 	err := q.QueryRow(ctx, `
 		SELECT id::text, organization_id::text, COALESCE(owner_user_id::text, ''), account_id::text,
-		       trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, reason
+		       trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, COALESCE(reason, '')
 		FROM trial_entitlements
 		WHERE organization_id = $1::uuid
 		ORDER BY created_at DESC LIMIT 1`, tenantID).
@@ -39,7 +39,7 @@ func (s *TrialStore) GetByID(ctx context.Context, q Querier, id string) (*TrialE
 	var e TrialEntitlement
 	err := q.QueryRow(ctx, `
 		SELECT id::text, organization_id::text, COALESCE(owner_user_id::text, ''), account_id::text,
-		       trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, reason
+		       trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, COALESCE(reason, '')
 		FROM trial_entitlements WHERE id = $1::uuid`, id).
 		Scan(&e.ID, &e.OrganizationID, &e.OwnerUserID, &e.AccountID,
 			&e.TrialType, &e.Status, &e.StartedAt, &e.ExpiresAt, &e.TrialDays,
@@ -57,7 +57,7 @@ func (s *TrialStore) List(ctx context.Context, q Querier, limit, offset int) ([]
 	}
 	rows, err := q.Query(ctx, `
 		SELECT id::text, organization_id::text, COALESCE(owner_user_id::text, ''), account_id::text,
-		       trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, reason
+		       trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, COALESCE(reason, '')
 		FROM trial_entitlements ORDER BY created_at DESC LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (s *TrialStore) Extend(ctx context.Context, q Querier, id string, extraDays
 		SET expires_at = $2, trial_days = trial_days + $3, status = 'active', updated_at = now()
 		WHERE id = $1::uuid AND status IN ('pending', 'active', 'expired')
 		RETURNING id::text, organization_id::text, COALESCE(owner_user_id::text, ''), account_id::text,
-		          trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, reason`,
+		          trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, COALESCE(reason, '')`,
 		id, newExpiry, extraDays).
 		Scan(&updated.ID, &updated.OrganizationID, &updated.OwnerUserID, &updated.AccountID,
 			&updated.TrialType, &updated.Status, &updated.StartedAt, &updated.ExpiresAt, &updated.TrialDays,
@@ -159,7 +159,7 @@ func (s *TrialStore) ActivatePending(ctx context.Context, q Querier, tenantID, a
 		    reason = 'verification_complete', updated_at = now()
 		WHERE organization_id = $1::uuid AND account_id = $2::uuid AND status = 'pending' AND trial_type = 'standard'
 		RETURNING id::text, organization_id::text, COALESCE(owner_user_id::text, ''), account_id::text,
-		          trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, reason`,
+		          trial_type, status, started_at, expires_at, trial_days, consumed_at, source, eligibility_key, COALESCE(reason, '')`,
 		tenantID, accountID, now, expires, days).
 		Scan(&ent.ID, &ent.OrganizationID, &ent.OwnerUserID, &ent.AccountID,
 			&ent.TrialType, &ent.Status, &ent.StartedAt, &ent.ExpiresAt, &ent.TrialDays,

@@ -374,12 +374,72 @@ func TestDenyTrialProjection(t *testing.T) {
 	}
 }
 
+func TestListAndLoadWithNullReason(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	ctx := context.Background()
+	accountID, tenantID := newOrgAccount(t, ctx, pool, "nullreason@example.com")
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatalf("begin: %v", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	store := identity.NewTrialStore()
+	ent, err := identity.GrantTrial(ctx, tx, basePolicy(), identity.GrantTrialInput{
+		AccountID: accountID, TenantID: tenantID, TrialType: "standard",
+		EligibilityKey: identity.EligibilityKeyFor(identity.ScopeOrganization, tenantID),
+		Status:         identity.TrialStatusActive, Source: "backfill",
+	}, time.Now().UTC().Add(-time.Minute))
+	if err != nil {
+		t.Fatalf("grant: %v", err)
+	}
+	// reason column stays NULL — backfilled rows carry no reason.
+	loaded, err := store.GetByID(ctx, tx, ent.ID)
+	if err != nil {
+		t.Fatalf("GetByID with NULL reason: %v", err)
+	}
+	if loaded.Reason != "" {
+		t.Fatalf("reason = %q, want '' from NULL", loaded.Reason)
+	}
+	byOrg, err := store.GetByOrganization(ctx, tx, tenantID)
+	if err != nil {
+		t.Fatalf("GetByOrganization with NULL reason: %v", err)
+	}
+	if byOrg == nil || byOrg.Reason != "" {
+		t.Fatalf("org load failed: %+v", byOrg)
+	}
+	items, err := store.List(ctx, tx, 50, 0)
+	if err != nil {
+		t.Fatalf("List with NULL reason: %v", err)
+	}
+	found := false
+	for _, e := range items {
+		if e.ID == ent.ID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("List did not include the NULL-reason entitlement")
+	}
+	extended, err := store.Extend(ctx, tx, ent.ID, 3)
+	if err != nil {
+		t.Fatalf("Extend RETURNING with NULL reason: %v", err)
+	}
+	if extended.Reason != "" {
+		t.Fatalf("extended reason = %q, want ''", extended.Reason)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatalf("commit: %v", err)
+	}
+}
+
 func TestExtend_MovesExpiryInLockStep(t *testing.T) {
 	pool := testutil.Pool(t)
 	testutil.Migrate(t, testutil.DatabaseURL(t))
 	ctx := context.Background()
 	accountID, tenantID := newOrgAccount(t, ctx, pool, "extend@example.com")
-
 	tx, err := pool.Begin(ctx)
 	if err != nil {
 		t.Fatalf("begin: %v", err)
