@@ -329,6 +329,31 @@
         }
       }
     },
+    "/v1/client/events": {
+      "post": {
+        "tags": [
+          "client"
+        ],
+        "operationId": "PostV1ClientEvents",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/customers": {
       "get": {
         "tags": [
@@ -498,6 +523,231 @@
         }
       }
     },
+    "/v1/identity": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "GetV1Identity",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/email/change": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityEmailChange",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/email/resend": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityEmailResend",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/email/verify": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityEmailVerify",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/email/verify_change": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityEmailVerify_change",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/installations": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "GetV1IdentityInstallations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/installations/{id}/revoke": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityInstallationsIdRevoke",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/phone/send": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityPhoneSend",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/identity/phone/verify": {
+      "post": {
+        "tags": [
+          "identity"
+        ],
+        "operationId": "PostV1IdentityPhoneVerify",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/inventory/adjustments": {
       "get": {
         "tags": [
@@ -599,6 +849,279 @@
         ],
         "summary": "GET /v1/meta/currencies",
         "operationId": "GetV1MetaCurrencies",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/accounts/{id}/suspend": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformAccountsIdSuspend",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/audit": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "GetV1PlatformAudit",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/tenants/{id}/suspend": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTenantsIdSuspend",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/entitlements": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "GetV1PlatformTrialEntitlements",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/entitlements/{id}": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "GetV1PlatformTrialEntitlementsId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/entitlements/{id}/convert": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTrialEntitlementsIdConvert",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/entitlements/{id}/extend": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTrialEntitlementsIdExtend",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/entitlements/{id}/revoke": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTrialEntitlementsIdRevoke",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/grant": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTrialGrant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/trial/settings": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "GetV1PlatformTrialSettings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PutV1PlatformTrialSettings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "default": {
             "content": {
@@ -1649,6 +2172,31 @@
           "settings"
         ],
         "operationId": "PutV1Settings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/subscription": {
+      "get": {
+        "tags": [
+          "subscription"
+        ],
+        "operationId": "GetV1Subscription",
         "security": [
           {
             "bearerAuth": []

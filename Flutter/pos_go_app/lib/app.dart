@@ -5,6 +5,7 @@ import 'core/api_client.dart';
 import 'core/focus_mode.dart';
 import 'core/session_store.dart';
 import 'core/storage/local_database.dart';
+import 'core/telemetry.dart';
 import 'features/auth/login_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/pos/pos_screen.dart';
@@ -38,6 +39,8 @@ class _PosAppState extends State<PosApp> {
         if (mounted) setState(() => _session = session);
       },
     );
+    Telemetry.instance.configure(_apiClient);
+    Telemetry.instance.install();
     _restoreSession();
   }
 
@@ -45,6 +48,7 @@ class _PosAppState extends State<PosApp> {
     final session = await _sessionStore.read();
     final language = await _sessionStore.readLanguage();
     final customized = await _sessionStore.hasCustomizedLanguage();
+    Telemetry.instance.setSession(session);
     if (!mounted) return;
     setState(() {
       _session = session;
@@ -74,6 +78,8 @@ class _PosAppState extends State<PosApp> {
     }
     if (!mounted) return;
     setState(() => _session = session);
+    Telemetry.instance.setSession(session);
+    Telemetry.instance.reportScreen('pos');
   }
 
   @override
@@ -147,6 +153,7 @@ class _PosAppState extends State<PosApp> {
                       // Unlock the UI even if secure storage is transiently unavailable.
                     }
                     if (mounted) setState(() => _session = null);
+                    Telemetry.instance.setSession(null);
                   },
                 ),
               ),

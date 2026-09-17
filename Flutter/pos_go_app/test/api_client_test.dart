@@ -11,6 +11,7 @@ import 'package:pos_go_app/core/payments.dart';
 import 'package:pos_go_app/core/receipts.dart';
 import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/restaurants.dart';
+import 'package:pos_go_app/core/saas.dart';
 import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
@@ -93,6 +94,223 @@ void main() {
     expect(tenant.businessType, 'restaurant');
     expect(tenant.users, 3);
     expect(tenant.products, 14);
+  });
+
+  test('SaasTenant parses plan, limits and status', () {
+    final tenant = SaasTenant.fromJson({
+      'id': 't1',
+      'name': 'Demo',
+      'slug': 'demo',
+      'business_type': 'restaurant',
+      'plan': 'trial',
+      'max_users': 3,
+      'max_products': 100,
+      'status': 'suspended',
+    });
+    expect(tenant.plan, 'trial');
+    expect(tenant.maxUsers, 3);
+    expect(tenant.maxProducts, 100);
+    expect(tenant.status, 'suspended');
+  });
+
+  test('TenantAnalytics parses report payload', () {
+    final analytics = TenantAnalytics.fromJson({
+      'tenant': {
+        'id': 't1',
+        'name': 'Demo Restaurant',
+        'slug': 'demo-restaurant',
+        'business_type': 'restaurant',
+        'country_code': 'EG',
+        'currency_code': 'EGP',
+        'plan': 'trial',
+        'status': 'active',
+      },
+      'counts': {'users': 3, 'products': 14},
+      'today': {
+        'date': '2026-09-17',
+        'revenue_minor': 28000,
+        'sales_count': 5,
+        'avg_sale_minor': 5600,
+        'items_sold': 9,
+      },
+      'revenue_trend': [
+        {'day': '2026-09-11', 'revenue_minor': 1200},
+      ],
+      'top_products': [
+        {'product_name': 'Espresso', 'sku': 'ESP-001', 'quantity': 4, 'revenue_minor': 1120},
+      ],
+      'recent_sales': [
+        {
+          'id': 's1',
+          'status': 'completed',
+          'total_minor': 5600,
+          'currency': 'EGP',
+          'payment_method': 'cash',
+          'cashier': 'Amina',
+          'created_at': '2026-09-17 10:00:00',
+        },
+      ],
+    });
+    expect(analytics.tenant.plan, 'trial');
+    expect(analytics.users, 3);
+    expect(analytics.products, 14);
+    expect(analytics.today.revenueMinor, 28000);
+    expect(analytics.today.salesCount, 5);
+    expect(analytics.revenueTrend.single.day, '2026-09-11');
+    expect(analytics.topProducts.single.productName, 'Espresso');
+    expect(analytics.recentSales.single.cashier, 'Amina');
+  });
+
+  test('TrialEntitlement parses admin payload', () {
+    final e = TrialEntitlement.fromJson({
+      'id': 'e1',
+      'organization_id': 'org1',
+      'owner_user_id': 'u1',
+      'account_id': 'acct1',
+      'trial_type': 'standard',
+      'status': 'active',
+      'started_at': '2026-09-01T00:00:00Z',
+      'expires_at': '2026-09-15T00:00:00Z',
+      'trial_days': 14,
+      'source': 'signup',
+      'eligibility_key': 'org:org1',
+      'reason': 'manual',
+    });
+    expect(e.status, 'active');
+    expect(e.trialDays, 14);
+    expect(e.source, 'signup');
+    expect(e.organizationId, 'org1');
+  });
+
+  test('AuditPage parses audit entries', () {
+    final page = AuditPage.fromJson({
+      'data': {
+        'entries': [
+          {
+            'id': 'a1',
+            'created_at': '2026-09-17T10:00:00Z',
+            'actor_user_id': 'u1',
+            'account_id': '',
+            'tenant_id': 't1',
+            'action': 'trial_extended',
+            'entity_type': 'trial',
+            'entity_id': 'e1',
+            'reason': 'admin extend by 7 days',
+            'ip': '1.2.3.4',
+          }
+        ]
+      }
+    });
+    expect(page.entries.single.action, 'trial_extended');
+    expect(page.entries.single.reason, 'admin extend by 7 days');
+  });
+
+  test('TrialPolicy parses settings and round-trips', () {
+    final policy = TrialPolicy.fromJson({
+      'trial_duration_days': 14,
+      'trial_scope': 'org',
+      'require_email_verification': true,
+      'max_organizations_per_account': 3,
+      'offline_trial_policy': 'grace24h',
+    });
+    expect(policy.trialDurationDays, 14);
+    expect(policy.requireEmailVerification, isTrue);
+    expect(policy.toJson()['trial_duration_days'], 14);
+    expect(policy.toJson()['require_email_verification'], isTrue);
+    expect(policy.toJson()['offline_trial_policy'], 'grace24h');
+  });
+
+  test('saasTenantAnalytics fetches and parses drill-down', () async {
+    final client = ApiClient(client: _SaasAnalyticsClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    final analytics = await client.saasTenantAnalytics(session, 't1');
+    expect(analytics.tenant.name, 'Demo Restaurant');
+    expect(analytics.today.revenueMinor, 28000);
+  });
+
+  test('platformTrialEntitlements fetches and parses entitlements', () async {
+    final client = ApiClient(client: _PlatformTrialsClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    final trials = await client.platformTrialEntitlements(session);
+    expect(trials.single.status, 'active');
+  });
+
+  test('trialChange extends with extra_days', () async {
+    final client = ApiClient(client: _TrialExtendClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    final updated = await client.trialChange(session, 'e1', 'extend', extraDays: 7);
+    expect(updated.status, 'active');
+  });
+
+  test('platformAudit fetches entries', () async {
+    final client = ApiClient(client: _PlatformAuditClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    final entries = await client.platformAudit(session);
+    expect(entries.single.action, 'trial_extended');
+  });
+
+  test('platformTrialSettings fetches and update sends policy', () async {
+    final client = ApiClient(client: _TrialSettingsClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    final fetched = await client.platformTrialSettings(session);
+    expect(fetched.trialDurationDays, 14);
+    final updated = await client.platformUpdateTrialSettings(
+        session, const TrialPolicy(trialDurationDays: 21));
+    expect(updated.trialDurationDays, 21);
+  });
+
+  test('platformSuspendTenant posts and succeeds on 200', () async {
+    final client = ApiClient(client: _SuspendTenantClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    await client.platformSuspendTenant(session, 't1', reason: 'abuse');
   });
 
   test('TenantSettings parses defaults when keys are missing', () {
@@ -1507,6 +1725,44 @@ expect(() => client.dashboardSummary(session),
       expect(sale.id, 'sale-8');
     });
   });
+
+  group('client events', () {
+    test('postClientEvent posts the event with a bearer token', () async {
+      final client = ApiClient(client: _ClientEventClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+
+      await client.postClientEvent(
+        session,
+        'crash',
+        appVersion: '0.1.0+1',
+        screen: 'pos',
+        stackTrace: 'trace line',
+        payload: {'exception': 'boom'},
+      );
+    });
+
+    test('postClientEvent throws on a non-201 response', () async {
+      final client = ApiClient(client: _FailingClientEventClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+
+      expect(
+        () => client.postClientEvent(session, 'crash'),
+        throwsA(isA<ApiException>()),
+      );
+    });
+  });
 }
 
 class _FakeClient extends http.BaseClient {
@@ -2362,6 +2618,198 @@ class _PlainSaleClient extends http.BaseClient {
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _ClientEventClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/client/events');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    expect(request.headers['content-type'], 'application/json');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['event'], 'crash');
+    expect(body['app_version'], '0.1.0+1');
+    expect(body['screen'], 'pos');
+    expect(body['stack_trace'], 'trace line');
+    expect(body['payload'], {'exception': 'boom'});
+    const response =
+        '{"data":{"id":"event-1","event":"crash"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _FailingClientEventClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    const response = '{"error":{"code":"internal_error","message":"nope"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      500,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _analyticsJson =
+    '{"data":{"tenant":{"id":"t1","name":"Demo Restaurant","slug":'
+    '"demo-restaurant","business_type":"restaurant","country_code":"EG",'
+    '"currency_code":"EGP","plan":"trial","status":"active"},"counts":'
+    '{"users":3,"products":14},"today":{"date":"2026-09-17",'
+    '"revenue_minor":28000,"sales_count":5,"avg_sale_minor":5600,'
+    '"items_sold":9},"revenue_trend":[{"day":"2026-09-11",'
+    '"revenue_minor":1200}],"top_products":[{"product_name":"Espresso",'
+    '"sku":"ESP-001","quantity":4,"revenue_minor":1120}],'
+    '"recent_sales":[{"id":"s1","status":"completed","total_minor":5600,'
+    '"currency":"EGP","payment_method":"cash","cashier":"Amina",'
+    '"created_at":"2026-09-17 10:00:00"}]},"meta":{"request_id":"t"}}';
+
+class _SaasAnalyticsClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/saas/tenants/t1/analytics');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_analyticsJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _entitlementJson =
+    '{"data":{"entitlements":[{"id":"e1","organization_id":"org1",'
+    '"owner_user_id":"u1","account_id":"acct1","trial_type":"standard",'
+    '"status":"active","started_at":"2026-09-01T00:00:00Z",'
+    '"expires_at":"2026-09-15T00:00:00Z","trial_days":14,"source":"signup",'
+    '"eligibility_key":"org:org1","reason":"manual"}]},'
+    '"meta":{"request_id":"t"}}';
+
+class _PlatformTrialsClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(
+      request.url.path,
+      '/v1/platform/trial/entitlements',
+    );
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_entitlementJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _TrialExtendClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/platform/trial/entitlements/e1/extend');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['extra_days'], 7);
+    const response =
+        '{"data":{"id":"e1","organization_id":"org1","owner_user_id":"u1",'
+        '"account_id":"acct1","trial_type":"standard","status":"active",'
+        '"started_at":"2026-09-01T00:00:00Z","expires_at":"2026-09-22T00:00:00Z",'
+        '"trial_days":21,"source":"admin","eligibility_key":"org:org1",'
+        '"reason":"extended by admin"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _auditJson =
+    '{"data":{"entries":[{"id":"a1","created_at":"2026-09-17T10:00:00Z",'
+    '"actor_user_id":"u1","account_id":"","tenant_id":"t1",'
+    '"action":"trial_extended","entity_type":"trial","entity_id":"e1",'
+    '"reason":"admin extend by 7 days","ip":"1.2.3.4"}]},'
+    '"meta":{"request_id":"t"}}';
+
+class _PlatformAuditClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/platform/audit');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_auditJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _policyJson =
+    '{"data":{"trial_duration_days":14,"trial_scope":"account",'
+    '"require_email_verification":true,"require_phone_verification":false,'
+    '"require_device_integrity":false,"max_organizations_per_account":3,'
+    '"max_active_installations":10,"suspicious_registration_policy":"review",'
+    '"register_rate_per_ip_per_hour":5,"promo_trials_enabled":false,'
+    '"offline_trial_policy":"grace24h"},"meta":{"request_id":"t"}}';
+
+class _TrialSettingsClient extends http.BaseClient {
+  bool _updated = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    if (request.method == 'GET') {
+      expect(request.url.path, '/v1/platform/trial/settings');
+      return http.StreamedResponse(
+        Stream.value(_policyJson.codeUnits),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+    expect(request.method, 'PUT');
+    expect(request.url.path, '/v1/platform/trial/settings');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['trial_duration_days'], 21);
+    _updated = true;
+    const updatedJson =
+        '{"data":{"trial_duration_days":21,"trial_scope":"account",'
+        '"require_email_verification":true,"require_phone_verification":false,'
+        '"require_device_integrity":false,"max_organizations_per_account":3,'
+        '"max_active_installations":10,"suspicious_registration_policy":"review",'
+        '"register_rate_per_ip_per_hour":5,"promo_trials_enabled":false,'
+        '"offline_trial_policy":"grace24h"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(updatedJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SuspendTenantClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/platform/tenants/t1/suspend');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['reason'], 'abuse');
+    const response = '{"data":{"suspended":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
       headers: {'content-type': 'application/json'},
     );
   }

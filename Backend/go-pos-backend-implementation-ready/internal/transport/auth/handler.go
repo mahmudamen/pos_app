@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/example/pos-api/internal/config"
+	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/transport/access"
 	"github.com/gin-gonic/gin"
@@ -27,10 +28,12 @@ const (
 )
 
 type Handler struct {
-	pool        *pgxpool.Pool
-	tokens      security.TokenManager
-	cost        int
-	maxSessions int
+	pool            *pgxpool.Pool
+	tokens          security.TokenManager
+	cost            int
+	maxSessions     int
+	cfg             config.Config
+	registerLimiter identity.Counter
 }
 
 func NewHandler(pool *pgxpool.Pool, cfg config.Config) *Handler {
@@ -40,8 +43,10 @@ func NewHandler(pool *pgxpool.Pool, cfg config.Config) *Handler {
 			Issuer: cfg.JWTIssuer, AccessSecret: []byte(cfg.JWTAccessSecret), RefreshSecret: []byte(cfg.JWTRefreshSecret),
 			AccessTTL: cfg.JWTAccessTTL, RefreshTTL: cfg.JWTRefreshTTL,
 		},
-		cost:        cfg.BcryptCost,
-		maxSessions: cfg.MaxSessionsPerUser,
+		cost:            cfg.BcryptCost,
+		maxSessions:     cfg.MaxSessionsPerUser,
+		cfg:             cfg,
+		registerLimiter: identity.NewMemoryCounter("register:"),
 	}
 }
 
@@ -411,19 +416,44 @@ func (h *Handler) login(c *gin.Context) {
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	var tenantID, businessType, countryCode, currencyCode, defaultLanguage string
+	var tenantID, businessType, countryCode, currencyCode, defaultLanguage, tenantStatus, ownerAccountID string
 	var plan string
 	var trialEndsAt *time.Time
 	err = tx.QueryRow(ctx, `
-		SELECT id, business_type, country_code, currency_code, default_language, plan, trial_ends_at
+		SELECT id, business_type, country_code, currency_code, default_language, plan, trial_ends_at, status,
+		       COALESCE(owner_account_id::text, '')
 		FROM tenants WHERE id::text = $1 OR slug = $1`, request.TenantID).
-		Scan(&tenantID, &businessType, &countryCode, &currencyCode, &defaultLanguage, &plan, &trialEndsAt)
+		Scan(&tenantID, &businessType, &countryCode, &currencyCode, &defaultLanguage, &plan, &trialEndsAt,
+			&tenantStatus, &ownerAccountID)
 	if err != nil {
 		writeError(c, http.StatusUnauthorized, "invalid_credentials", "email or password is incorrect")
 		return
 	}
-	if plan == "trial" && trialEndsAt != nil && trialEndsAt.Before(time.Now()) {
-		writeError(c, http.StatusForbidden, "trial_expired", "the 15-day trial has ended; renew your plan to continue")
+	var dbNow time.Time
+	if err := tx.QueryRow(ctx, `SELECT now()`).Scan(&dbNow); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to read server time")
+		return
+	}
+	dbNow = dbNow.UTC()
+	if tenantStatus == "suspended" || tenantStatus == "closed" {
+		writeError(c, http.StatusForbidden, "organization_suspended", "this organization has been suspended; contact support")
+		return
+	}
+	if ownerAccountID != "" {
+		var accountStatus string
+		if err := tx.QueryRow(ctx, `SELECT status FROM accounts WHERE id = $1::uuid`, ownerAccountID).Scan(&accountStatus); err == nil {
+			if accountStatus == "suspended" || accountStatus == "disabled" {
+				writeError(c, http.StatusForbidden, "account_suspended", "this account has been suspended; contact support")
+				return
+			}
+		}
+	}
+	if plan == "trial" && trialEndsAt != nil && trialEndsAt.Before(dbNow) {
+		writeError(c, http.StatusForbidden, "trial_expired", "the free trial has ended; renew your plan to continue")
+		return
+	}
+	if plan == "trial" && trialEndsAt == nil {
+		writeError(c, http.StatusForbidden, "trial_pending", "your trial is not activated yet; verify your email/phone to start it")
 		return
 	}
 	if _, err = tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID); err != nil {

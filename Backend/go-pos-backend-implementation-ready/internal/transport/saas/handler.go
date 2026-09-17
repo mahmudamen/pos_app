@@ -147,20 +147,20 @@ func (h *Handler) listTenants(c *gin.Context) {
 	}
 
 	rows, err := tx.Query(ctx, `
-		SELECT id, name, slug, business_type, country_code, currency_code, default_language, plan, max_users, max_products
+		SELECT id, name, slug, business_type, country_code, currency_code, default_language, plan, max_users, max_products, status
 		FROM tenants ORDER BY name LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load tenants")
 		return
 	}
 	type tenantInfo struct {
-		id, name, slug, bType, country, currency, lang, plan string
-		maxUsers, maxProducts                                int
+		id, name, slug, bType, country, currency, lang, plan, status string
+		maxUsers, maxProducts                                         int
 	}
 	list := make([]tenantInfo, 0)
 	for rows.Next() {
 		var t tenantInfo
-		if err := rows.Scan(&t.id, &t.name, &t.slug, &t.bType, &t.country, &t.currency, &t.lang, &t.plan, &t.maxUsers, &t.maxProducts); err != nil {
+		if err := rows.Scan(&t.id, &t.name, &t.slug, &t.bType, &t.country, &t.currency, &t.lang, &t.plan, &t.maxUsers, &t.maxProducts, &t.status); err != nil {
 			rows.Close()
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load tenants")
 			return
@@ -192,7 +192,7 @@ func (h *Handler) listTenants(c *gin.Context) {
 			"id": t.id, "name": t.name, "slug": t.slug, "business_type": t.bType,
 			"country_code": t.country, "currency_code": t.currency, "default_language": t.lang,
 			"plan": t.plan, "max_users": t.maxUsers, "max_products": t.maxProducts,
-			"users": users, "products": products,
+			"status": t.status, "users": users, "products": products,
 		})
 	}
 
@@ -225,11 +225,11 @@ func (h *Handler) tenantAnalytics(c *gin.Context) {
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	var name, slug, bType, country, currency, lang, plan string
+	var name, slug, bType, country, currency, lang, plan, status string
 	var maxUsers, maxProducts int
 	err = tx.QueryRow(ctx, `
-		SELECT name, slug, business_type, country_code, currency_code, default_language, plan, max_users, max_products
-		FROM tenants WHERE id = $1::uuid`, tenantID).Scan(&name, &slug, &bType, &country, &currency, &lang, &plan, &maxUsers, &maxProducts)
+		SELECT name, slug, business_type, country_code, currency_code, default_language, plan, max_users, max_products, status
+		FROM tenants WHERE id = $1::uuid`, tenantID).Scan(&name, &slug, &bType, &country, &currency, &lang, &plan, &maxUsers, &maxProducts, &status)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "tenant_not_found", "tenant not found")
 		return
@@ -382,7 +382,7 @@ func (h *Handler) tenantAnalytics(c *gin.Context) {
 			"tenant": gin.H{
 				"id": tenantID.String(), "name": name, "slug": slug, "business_type": bType,
 				"country_code": country, "currency_code": currency, "default_language": lang,
-				"plan": plan, "max_users": maxUsers, "max_products": maxProducts,
+				"plan": plan, "max_users": maxUsers, "max_products": maxProducts, "status": status,
 			},
 			"counts":        gin.H{"users": users, "products": products},
 			"today":         gin.H{"date": date, "revenue_minor": todayRevenue, "sales_count": todaySales, "avg_sale_minor": todayAvg, "items_sold": todayItems},

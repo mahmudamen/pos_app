@@ -19,16 +19,20 @@ import (
 	customertransport "github.com/example/pos-api/internal/transport/customers"
 	dashboardtransport "github.com/example/pos-api/internal/transport/dashboard"
 	httptransport "github.com/example/pos-api/internal/transport/http"
+	identitytransport "github.com/example/pos-api/internal/transport/identitytransport"
 	inventorytransport "github.com/example/pos-api/internal/transport/inventory"
 	lotstransport "github.com/example/pos-api/internal/transport/lots"
 	metatransport "github.com/example/pos-api/internal/transport/meta"
+	platformtransport "github.com/example/pos-api/internal/transport/platform"
 	receiptstransport "github.com/example/pos-api/internal/transport/receipts"
 	registerstransport "github.com/example/pos-api/internal/transport/registers"
 	restauranttransport "github.com/example/pos-api/internal/transport/restaurants"
 	saastransport "github.com/example/pos-api/internal/transport/saas"
 	salestransport "github.com/example/pos-api/internal/transport/sales"
 	settingsTransport "github.com/example/pos-api/internal/transport/settings"
+	subscriptiontransport "github.com/example/pos-api/internal/transport/subscription"
 	synctransport "github.com/example/pos-api/internal/transport/sync"
+	telemetrytransport "github.com/example/pos-api/internal/transport/telemetry"
 	usertransport "github.com/example/pos-api/internal/transport/users"
 	variantstransport "github.com/example/pos-api/internal/transport/variants"
 	"github.com/gin-gonic/gin"
@@ -119,4 +123,8 @@ func Register(engine *gin.Engine, d Deps) {
 	lotstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	variantstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	receiptstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	telemetrytransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	subscriptiontransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
+	identitytransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
+	platformtransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
 }

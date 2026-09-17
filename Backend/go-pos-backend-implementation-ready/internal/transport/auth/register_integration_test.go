@@ -79,8 +79,8 @@ func TestRegisterIntegration_CreatesTrialStoreWithCatalog(t *testing.T) {
 	if err != nil {
 		t.Fatalf("trial_ends_at not parseable: %v", err)
 	}
-	if days := time.Until(end); days < 14*24*time.Hour || days > 16*24*time.Hour {
-		t.Fatalf("trial window should be ~15 days, got %v", days)
+	if days := time.Until(end); days < 13*24*time.Hour || days > 16*24*time.Hour {
+		t.Fatalf("trial window should be ~14-15 days, got %v", days)
 	}
 
 	ctx := context.Background()

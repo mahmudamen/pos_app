@@ -11,8 +11,12 @@ import 'payments.dart';
 import 'receipts.dart';
 import 'restaurants.dart';
 import 'registers.dart';
+import 'saas.dart';
 import 'security.dart';
 import 'session_store.dart';
+
+/// SaaS control-plane models live in saas.dart (exported for convenience).
+export 'saas.dart' show SaasSummary, SaasTenant, SaasTenantsPage;
 
 class ApiClient {
   ApiClient({http.Client? client, this.onSessionRefreshed})
@@ -98,6 +102,40 @@ class ApiClient {
       },
     );
     if (response.statusCode != 204) {
+      throw ApiException(_message(response));
+    }
+  }
+
+  /// Reports a client-observability event (crash, error, screen/action) to the
+  /// backend. Best-effort: callers are expected to swallow failures so
+  /// telemetry can never interrupt the POS flow.
+  Future<void> postClientEvent(
+    Session session,
+    String event, {
+    String? appVersion,
+    String? screen,
+    String? stackTrace,
+    Map<String, dynamic> payload = const {},
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/client/events'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'event': event,
+          if (appVersion != null) 'app_version': appVersion,
+          if (screen != null) 'screen': screen,
+          if (stackTrace != null) 'stack_trace': stackTrace,
+          'payload': payload,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
       throw ApiException(_message(response));
     }
   }
@@ -452,6 +490,175 @@ class ApiClient {
     }
     return DashboardSummary.fromJson(
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TenantAnalytics> saasTenantAnalytics(
+    Session session,
+    String tenantId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/analytics'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return TenantAnalytics.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<SaasTenantsPage> saasTenantsPage(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    return saasTenants(session, page: page, limit: limit);
+  }
+
+  Future<List<TrialEntitlement>> platformTrialEntitlements(
+    Session session, {
+    int limit = 100,
+    int offset = 0,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/platform/trial/entitlements?limit=$limit&offset=$offset'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
+    return (data['entitlements'] as List<dynamic>? ?? [])
+        .map((e) => TrialEntitlement.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<TrialEntitlement> trialChange(
+    Session session,
+    String entitlementId,
+    String action, {
+    int? extraDays,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse(
+            '$baseUrl/v1/platform/trial/entitlements/$entitlementId/$action'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (extraDays != null) 'extra_days': extraDays,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return TrialEntitlement.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<AuditEntry>> platformAudit(
+    Session session, {
+    int limit = 100,
+    int offset = 0,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/platform/audit?limit=$limit&offset=$offset'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return AuditPage.fromJson(jsonDecode(response.body) as Map<String, dynamic>)
+        .entries;
+  }
+
+  Future<TrialPolicy> platformTrialSettings(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/platform/trial/settings'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return TrialPolicy.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TrialPolicy> platformUpdateTrialSettings(
+    Session session,
+    TrialPolicy policy,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.put(
+        Uri.parse('$baseUrl/v1/platform/trial/settings'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(policy.toJson()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return TrialPolicy.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> platformSuspendTenant(
+    Session session,
+    String tenantId, {
+    String reason = '',
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/suspend'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (reason.isNotEmpty) 'reason': reason,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
   }
 
   Future<CustomersPage> listCustomers(
@@ -1296,102 +1503,6 @@ class Currency {
   final String nameAr;
   final String symbol;
   final int digitsAfterDecimal;
-}
-
-class SaasBusinessCount {
-  const SaasBusinessCount({required this.businessType, required this.tenants});
-
-  factory SaasBusinessCount.fromJson(Map<String, dynamic> json) =>
-      SaasBusinessCount(
-        businessType: json['business_type'] as String,
-        tenants: (json['tenants'] as num).toInt(),
-      );
-
-  final String businessType;
-  final int tenants;
-}
-
-class SaasSummary {
-  const SaasSummary({
-    required this.totalTenants,
-    required this.totalUsers,
-    required this.totalSales,
-    required this.revenueMinor,
-    required this.byBusiness,
-    this.supportedCountry = 'EG',
-    this.supportedCurrency = 'EGP',
-  });
-
-  factory SaasSummary.fromJson(Map<String, dynamic> json) => SaasSummary(
-        totalTenants: (json['total_tenants'] as num).toInt(),
-        totalUsers: (json['total_users'] as num).toInt(),
-        totalSales: (json['total_sales'] as num).toInt(),
-        revenueMinor: (json['revenue_minor'] as num).toInt(),
-        byBusiness: (json['by_business'] as List<dynamic>? ?? const [])
-            .map((item) =>
-                SaasBusinessCount.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        supportedCountry: json['supported_country'] as String? ?? 'EG',
-        supportedCurrency: json['supported_currency'] as String? ?? 'EGP',
-      );
-
-  final int totalTenants;
-  final int totalUsers;
-  final int totalSales;
-  final int revenueMinor;
-  final List<SaasBusinessCount> byBusiness;
-  final String supportedCountry;
-  final String supportedCurrency;
-}
-
-class SaasTenant {
-  const SaasTenant({
-    required this.id,
-    required this.name,
-    required this.slug,
-    required this.businessType,
-    required this.countryCode,
-    required this.currencyCode,
-    required this.defaultLanguage,
-    required this.users,
-    required this.products,
-  });
-
-  factory SaasTenant.fromJson(Map<String, dynamic> json) => SaasTenant(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        slug: json['slug'] as String,
-        businessType: json['business_type'] as String? ?? '',
-        countryCode: json['country_code'] as String? ?? '',
-        currencyCode: json['currency_code'] as String? ?? '',
-        defaultLanguage: json['default_language'] as String? ?? '',
-        users: (json['users'] as num?)?.toInt() ?? 0,
-        products: (json['products'] as num?)?.toInt() ?? 0,
-      );
-
-  final String id;
-  final String name;
-  final String slug;
-  final String businessType;
-  final String countryCode;
-  final String currencyCode;
-  final String defaultLanguage;
-  final int users;
-  final int products;
-}
-
-class SaasTenantsPage {
-  const SaasTenantsPage({
-    required this.tenants,
-    required this.total,
-    required this.page,
-    required this.limit,
-  });
-
-  final List<SaasTenant> tenants;
-  final int total;
-  final int page;
-  final int limit;
 }
 
 class CustomersPage {

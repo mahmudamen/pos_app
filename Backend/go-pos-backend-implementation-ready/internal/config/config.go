@@ -45,7 +45,34 @@ type Config struct {
 	PriceCronEnabled      bool
 	PriceCronInterval     time.Duration
 	PriceCronVariationPct int
+	Trial                 TrialConfig
 }
+
+// TrialConfig is the configurable free-trial and identity policy. Every field
+// is backend-owned: the client never supplies trial duration, scope, or dates.
+type TrialConfig struct {
+	DurationDays                 int
+	Scope                        string
+	RequireEmailVerification     bool
+	RequirePhoneVerification     bool
+	RequireDeviceIntegrity       bool
+	MaxOrganizationsPerAccount   int
+	MaxActiveInstallations       int
+	SuspiciousRegistrationPolicy string
+	OfflinePolicy                string
+	RegisterRatePerIPPerHour     int
+	EmailTokenTTL                time.Duration
+	OTPTTL                       time.Duration
+	PromoTrialsEnabled           bool
+	Mailer                       string
+	SMSSender                    string
+}
+
+// ValidTrialScopes lists the supported trial-identity scopes.
+var ValidTrialScopes = []string{"account", "organization", "verified_phone", "business_identity"}
+
+// ValidSuspiciousPolicies lists how a suspicious registration is treated.
+var ValidSuspiciousPolicies = []string{"allow", "review", "deny"}
 
 func Load() (Config, error) {
 	c := Config{
@@ -195,7 +222,90 @@ func Load() (Config, error) {
 	}
 	c.PriceCronEnabled = priceCronEnabled
 	c.PriceCronVariationPct = priceCronVariation
+	trial, err := loadTrialConfig()
+	if err != nil {
+		return Config{}, err
+	}
+	c.Trial = trial
 	return c, nil
+}
+
+func loadTrialConfig() (TrialConfig, error) {
+	t := TrialConfig{
+		Scope:                        envOr("TRIAL_SCOPE", "account"),
+		SuspiciousRegistrationPolicy: envOr("SUSPICIOUS_REGISTRATION_POLICY", "review"),
+		OfflinePolicy:                envOr("OFFLINE_TRIAL_POLICY", "grace24h"),
+		Mailer:                       envOr("MAILER", "noop"),
+		SMSSender:                    envOr("SMS_SENDER", "noop"),
+	}
+	if !oneOf(t.Scope, ValidTrialScopes) {
+		return TrialConfig{}, fmt.Errorf("TRIAL_SCOPE must be one of %v, got %q", ValidTrialScopes, t.Scope)
+	}
+	if !oneOf(t.SuspiciousRegistrationPolicy, ValidSuspiciousPolicies) {
+		return TrialConfig{}, fmt.Errorf("SUSPICIOUS_REGISTRATION_POLICY must be one of %v, got %q", ValidSuspiciousPolicies, t.SuspiciousRegistrationPolicy)
+	}
+	if !oneOf(t.Mailer, []string{"noop", "smtp"}) {
+		return TrialConfig{}, fmt.Errorf("MAILER must be noop or smtp, got %q", t.Mailer)
+	}
+	if !oneOf(t.SMSSender, []string{"noop", "provider"}) {
+		return TrialConfig{}, fmt.Errorf("SMS_SENDER must be noop or provider, got %q", t.SMSSender)
+	}
+	var err error
+	if t.DurationDays, err = intValue("TRIAL_DURATION_DAYS", 14); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.DurationDays < 0 || t.DurationDays > 3650 {
+		return TrialConfig{}, fmt.Errorf("TRIAL_DURATION_DAYS must be between 0 and 3650")
+	}
+	if t.MaxOrganizationsPerAccount, err = intValue("MAX_ORGANIZATIONS_PER_ACCOUNT", 3); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.MaxOrganizationsPerAccount < 1 {
+		return TrialConfig{}, fmt.Errorf("MAX_ORGANIZATIONS_PER_ACCOUNT must be at least 1")
+	}
+	if t.MaxActiveInstallations, err = intValue("MAX_ACTIVE_INSTALLATIONS", 10); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.MaxActiveInstallations < 1 {
+		return TrialConfig{}, fmt.Errorf("MAX_ACTIVE_INSTALLATIONS must be at least 1")
+	}
+	if t.RegisterRatePerIPPerHour, err = intValue("REGISTER_RATE_PER_IP_PER_HOUR", 5); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.RegisterRatePerIPPerHour < 1 {
+		return TrialConfig{}, fmt.Errorf("REGISTER_RATE_PER_IP_PER_HOUR must be at least 1")
+	}
+	if t.EmailTokenTTL, err = duration("EMAIL_TOKEN_TTL", 15*time.Minute); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.OTPTTL, err = duration("OTP_TTL", 5*time.Minute); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.EmailTokenTTL <= 0 || t.OTPTTL <= 0 {
+		return TrialConfig{}, fmt.Errorf("EMAIL_TOKEN_TTL and OTP_TTL must be positive")
+	}
+	if t.RequireEmailVerification, err = boolValue("REQUIRE_EMAIL_VERIFICATION", false); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.RequirePhoneVerification, err = boolValue("REQUIRE_PHONE_VERIFICATION", false); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.RequireDeviceIntegrity, err = boolValue("REQUIRE_DEVICE_INTEGRITY", false); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.PromoTrialsEnabled, err = boolValue("PROMO_TRIALS_ENABLED", false); err != nil {
+		return TrialConfig{}, err
+	}
+	return t, nil
+}
+
+func oneOf(value string, allowed []string) bool {
+	for _, candidate := range allowed {
+		if value == candidate {
+			return true
+		}
+	}
+	return false
 }
 
 // boolValue parses a plain bool env var; an empty or unset variable returns
