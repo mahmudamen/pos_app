@@ -74,7 +74,9 @@ func isExpired(expiry string) bool {
 	if err != nil {
 		return false
 	}
-	return parsed.Before(time.Now().Truncate(24 * time.Hour))
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	return parsed.Before(today)
 }
 
 func (h *Handler) list(c *gin.Context) {

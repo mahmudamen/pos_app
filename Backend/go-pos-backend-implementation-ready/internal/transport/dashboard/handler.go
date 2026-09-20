@@ -28,13 +28,19 @@ type TodayStats struct {
 	SalesCount   int64 `json:"sales_count"`
 	AvgSaleMinor int64 `json:"avg_sale_minor"`
 	ItemsSold    int64 `json:"items_sold"`
+	TaxMinor     int64 `json:"tax_minor"`
+	CogsMinor    int64 `json:"cogs_minor"`
+	ProfitMinor  int64 `json:"profit_minor"`
 }
 
 type TopProduct struct {
-	ProductName  string `json:"product_name"`
-	SKU          string `json:"sku"`
-	Quantity     int64  `json:"quantity"`
-	RevenueMinor int64  `json:"revenue_minor"`
+	ProductName      string `json:"product_name"`
+	SKU              string `json:"sku"`
+	Quantity         int64  `json:"quantity"`
+	RevenueMinor     int64  `json:"revenue_minor"`
+	TaxMinor         int64  `json:"tax_minor"`
+	CogsMinor        int64  `json:"cogs_minor"`
+	GrossProfitMinor int64  `json:"gross_profit_minor"`
 }
 
 type CashierStat struct {
@@ -59,6 +65,7 @@ type RecentSale struct {
 
 type Summary struct {
 	Date        string        `json:"date"`
+	VATMode     string        `json:"vat_mode"`
 	Today       TodayStats    `json:"today"`
 	TopProducts []TopProduct  `json:"top_products"`
 	RecentSales []RecentSale  `json:"recent_sales"`
@@ -93,7 +100,8 @@ func (h *Handler) summary(c *gin.Context) {
 		return
 	}
 
-	summary := Summary{Today: TodayStats{}, TopProducts: []TopProduct{}, RecentSales: []RecentSale{}, PerCashier: []CashierStat{}, PaymentMix: []PaymentMix{}}
+	vatMode := parseVATMode(c.Query("vat"))
+	summary := Summary{VATMode: vatMode, Today: TodayStats{}, TopProducts: []TopProduct{}, RecentSales: []RecentSale{}, PerCashier: []CashierStat{}, PaymentMix: []PaymentMix{}}
 
 	if err = tx.QueryRow(ctx, `SELECT CURRENT_DATE::text`).Scan(&summary.Date); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load date")
@@ -101,21 +109,29 @@ func (h *Handler) summary(c *gin.Context) {
 	}
 
 	if err = tx.QueryRow(ctx, `
-		SELECT COALESCE(SUM(total_minor), 0), COUNT(*), COALESCE(SUM((SELECT COALESCE(SUM(quantity), 0) FROM sale_items si WHERE si.sale_id = s.id)), 0)
-		FROM sales s WHERE created_at::date = CURRENT_DATE`).
-		Scan(&summary.Today.RevenueMinor, &summary.Today.SalesCount, &summary.Today.ItemsSold); err != nil {
+		SELECT COALESCE(SUM(s.total_minor), 0), COUNT(*),
+		       COALESCE(SUM((SELECT COALESCE(SUM(si.quantity), 0) FROM sale_items si WHERE si.sale_id = s.id)), 0),
+		       COALESCE(SUM(s.tax_minor), 0),
+		       COALESCE(SUM((SELECT COALESCE(SUM(si.quantity * p.cost_minor), 0)
+		                     FROM sale_items si JOIN products p ON p.tenant_id = si.tenant_id AND p.id = si.product_id
+		                     WHERE si.sale_id = s.id)), 0)
+		FROM sales s WHERE s.created_at::date = CURRENT_DATE`).
+		Scan(&summary.Today.RevenueMinor, &summary.Today.SalesCount, &summary.Today.ItemsSold, &summary.Today.TaxMinor, &summary.Today.CogsMinor); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to tally today")
 		return
 	}
 	if summary.Today.SalesCount > 0 {
 		summary.Today.AvgSaleMinor = summary.Today.RevenueMinor / summary.Today.SalesCount
 	}
+	summary.Today.ProfitMinor = profitFor(vatMode, summary.Today.RevenueMinor, summary.Today.TaxMinor, summary.Today.CogsMinor)
 
 	rows, err := tx.Query(ctx, `
-		SELECT product_name, sku, SUM(quantity)::bigint, SUM(total_minor)
-		FROM sale_items
-		WHERE created_at::date = CURRENT_DATE
-		GROUP BY product_name, sku
+		SELECT si.product_name, si.sku, SUM(si.quantity)::bigint, SUM(si.total_minor),
+		       COALESCE(SUM(si.tax_minor), 0), COALESCE(SUM(si.quantity * p.cost_minor), 0)
+		FROM sale_items si
+		LEFT JOIN products p ON p.tenant_id = si.tenant_id AND p.id = si.product_id
+		WHERE si.created_at::date = CURRENT_DATE
+		GROUP BY si.product_name, si.sku
 		ORDER BY 3 DESC
 		LIMIT 5`)
 	if err != nil {
@@ -125,10 +141,11 @@ func (h *Handler) summary(c *gin.Context) {
 	defer rows.Close()
 	for rows.Next() {
 		var p TopProduct
-		if err := rows.Scan(&p.ProductName, &p.SKU, &p.Quantity, &p.RevenueMinor); err != nil {
+		if err := rows.Scan(&p.ProductName, &p.SKU, &p.Quantity, &p.RevenueMinor, &p.TaxMinor, &p.CogsMinor); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load top products")
 			return
 		}
+		p.GrossProfitMinor = profitFor(vatMode, p.RevenueMinor, p.TaxMinor, p.CogsMinor)
 		summary.TopProducts = append(summary.TopProducts, p)
 	}
 	if err := rows.Err(); err != nil {
@@ -226,6 +243,26 @@ func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {
 		return security.Claims{}, false
 	}
 	return claims, true
+}
+
+// parseVATMode maps the ?vat= query to the profit view. "inclusive" reports
+// gross profit before VAT is removed; anything else defaults to "exclusive"
+// (net trading profit, revenue minus VAT minus COGS) — the accounting default.
+func parseVATMode(raw string) string {
+	if strings.EqualFold(strings.TrimSpace(raw), "inclusive") {
+		return "inclusive"
+	}
+	return "exclusive"
+}
+
+// profitFor computes gross profit for a vat_mode. Exclusive strips the outgoing
+// VAT (sales revenue minus tax minus cost); inclusive keeps VAT in the gross
+// figure (revenue minus cost). Dormant zero tax is handled naturally.
+func profitFor(mode string, revenue, tax, cogs int64) int64 {
+	if mode == "inclusive" {
+		return revenue - cogs
+	}
+	return revenue - tax - cogs
 }
 
 func writeError(c *gin.Context, status int, code, message string) {

@@ -130,6 +130,61 @@ describe('ApiClient', () => {
     const result = await client.deletePlan('plan-1')
     expect(result).toBeUndefined()
   })
+
+  it('lists products with pagination and search query', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    await client.listProducts(2, 25, 'cola')
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toBe('http://api.test/v1/products?page=2&limit=25&q=cola')
+  })
+
+  it('lists products without a q param when empty', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    await client.listProducts()
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toBe('http://api.test/v1/products?page=1&limit=50')
+  })
+
+  it('creates an inventory adjustment on /v1/inventory/adjustments', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ id: 'adj-1' }))
+    await client.createInventoryAdjustment({
+      product_id: 'p1',
+      reason: 'restock',
+      quantity_delta: 5,
+      note: 'shelf refill',
+    })
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('http://api.test/v1/inventory/adjustments')
+    expect(JSON.parse(String(init.body))).toEqual({
+      product_id: 'p1',
+      reason: 'restock',
+      quantity_delta: 5,
+      note: 'shelf refill',
+    })
+  })
+
+  it('changePlan posts to /v1/subscription/change-plan', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ id: 'sub-1', plan_code: 'pro' }))
+    await client.changePlan('pro')
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('http://api.test/v1/subscription/change-plan')
+    expect(JSON.parse(String(init.body))).toEqual({ plan_code: 'pro' })
+  })
+
+  it('reads and writes the persisted user via setUser/readUser', async () => {
+    client.setUser({
+      id: 'u1',
+      tenant_id: 'ten-1',
+      display_name: 'Ali',
+      role: 'owner',
+      permissions: {},
+    })
+    const user = client.readUser()
+    expect(user?.role).toBe('owner')
+    expect(user?.tenant_id).toBe('ten-1')
+    client.clearUser()
+    expect(client.readUser()).toBeNull()
+  })
 })
 
 describe('deviceId', () => {

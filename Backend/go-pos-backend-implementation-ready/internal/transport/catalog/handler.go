@@ -1,10 +1,12 @@
 package catalog
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/gin-gonic/gin"
@@ -13,13 +15,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// BackInStockFunc is invoked after a product PATCH commits when the product
+// just became available for online self-ordering again (was out of stock or
+// not published, now in stock and published). The selforder package wires it
+// up via SetBackInStockNotifier to fire web-push back-in-stock notifications.
+type BackInStockFunc func(ctx context.Context, tenantID, productID string)
+
 type Handler struct {
-	pool   *pgxpool.Pool
-	tokens security.TokenManager
+	pool        *pgxpool.Pool
+	tokens      security.TokenManager
+	backInStock BackInStockFunc
 }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 	return &Handler{pool: pool, tokens: tokens}
+}
+
+// SetBackInStockNotifier registers the back-in-stock callback (selforder).
+func (h *Handler) SetBackInStockNotifier(fn BackInStockFunc) {
+	h.backInStock = fn
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
@@ -38,48 +52,57 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 type Category struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
+	NameAr   string `json:"name_ar,omitempty"`
 	Slug     string `json:"slug"`
 	IsActive bool   `json:"is_active"`
 }
 
 type categoryRequest struct {
-	Name string `json:"name" binding:"required"`
-	Slug string `json:"slug" binding:"required"`
+	Name   string  `json:"name" binding:"required"`
+	NameAr *string `json:"name_ar"`
+	Slug   string  `json:"slug" binding:"required"`
 }
 
 type categoryPatchRequest struct {
 	Name     *string `json:"name"`
+	NameAr   *string `json:"name_ar"`
 	Slug     *string `json:"slug"`
 	IsActive *bool   `json:"is_active"`
 }
 
 type productRequest struct {
-	CategoryID    *string `json:"category_id"`
-	Name          string  `json:"name" binding:"required"`
-	SKU           string  `json:"sku" binding:"required"`
-	Barcode       string  `json:"barcode"`
-	PriceMinor    int64   `json:"price_minor" binding:"gte=0"`
-	CostMinor     int64   `json:"cost_minor" binding:"gte=0"`
-	Currency      string  `json:"currency" binding:"required,len=3"`
-	StockQuantity int64   `json:"stock_quantity" binding:"gte=0"`
-	ImageURL      string  `json:"image_url"`
-	Description   string  `json:"description"`
-	Unit          string  `json:"unit"`
+	CategoryID       *string `json:"category_id"`
+	Name             string  `json:"name" binding:"required"`
+	NameAr           *string `json:"name_ar"`
+	SKU              string  `json:"sku" binding:"required"`
+	Barcode          string  `json:"barcode"`
+	PriceMinor       int64   `json:"price_minor" binding:"gte=0"`
+	CostMinor        int64   `json:"cost_minor" binding:"gte=0"`
+	Currency         string  `json:"currency" binding:"required,len=3"`
+	StockQuantity    int64   `json:"stock_quantity" binding:"gte=0"`
+	ImageURL         string  `json:"image_url"`
+	Description      string  `json:"description"`
+	DescriptionAr    *string `json:"description_ar"`
+	Unit             string  `json:"unit"`
+	SelforderEnabled bool    `json:"selforder_enabled"`
 }
 
 type productPatchRequest struct {
-	CategoryID    *string `json:"category_id"`
-	Name          *string `json:"name"`
-	SKU           *string `json:"sku"`
-	Barcode       *string `json:"barcode"`
-	PriceMinor    *int64  `json:"price_minor"`
-	CostMinor     *int64  `json:"cost_minor"`
-	Currency      *string `json:"currency"`
-	StockQuantity *int64  `json:"stock_quantity"`
-	ImageURL      *string `json:"image_url"`
-	Description   *string `json:"description"`
-	IsActive      *bool   `json:"is_active"`
-	Unit          *string `json:"unit"`
+	CategoryID       *string `json:"category_id"`
+	Name             *string `json:"name"`
+	NameAr           *string `json:"name_ar"`
+	SKU              *string `json:"sku"`
+	Barcode          *string `json:"barcode"`
+	PriceMinor       *int64  `json:"price_minor"`
+	CostMinor        *int64  `json:"cost_minor"`
+	Currency         *string `json:"currency"`
+	StockQuantity    *int64  `json:"stock_quantity"`
+	ImageURL         *string `json:"image_url"`
+	Description      *string `json:"description"`
+	DescriptionAr    *string `json:"description_ar"`
+	IsActive         *bool   `json:"is_active"`
+	Unit             *string `json:"unit"`
+	SelforderEnabled *bool   `json:"selforder_enabled"`
 }
 
 func (h *Handler) listCategories(c *gin.Context) {
@@ -92,7 +115,7 @@ func (h *Handler) listCategories(c *gin.Context) {
 		return
 	}
 	defer func() { _ = tx.Rollback(c.Request.Context()) }()
-	rows, err := tx.Query(c.Request.Context(), `SELECT id, name, slug, is_active FROM categories WHERE is_active ORDER BY name`)
+	rows, err := tx.Query(c.Request.Context(), `SELECT id, name, COALESCE(name_ar, ''), slug, is_active FROM categories WHERE is_active ORDER BY name`)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load categories")
 		return
@@ -101,7 +124,7 @@ func (h *Handler) listCategories(c *gin.Context) {
 	categories := make([]Category, 0)
 	for rows.Next() {
 		var category Category
-		if err := rows.Scan(&category.ID, &category.Name, &category.Slug, &category.IsActive); err != nil {
+		if err := rows.Scan(&category.ID, &category.Name, &category.NameAr, &category.Slug, &category.IsActive); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load categories")
 			return
 		}
@@ -135,8 +158,8 @@ func (h *Handler) createCategory(c *gin.Context) {
 	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	var category Category
 	err := tx.QueryRow(c.Request.Context(), `
-		INSERT INTO categories (tenant_id, name, slug) VALUES ($1::uuid, $2, $3)
-		RETURNING id, name, slug, is_active`, claims.TenantID, strings.TrimSpace(request.Name), strings.TrimSpace(request.Slug)).Scan(&category.ID, &category.Name, &category.Slug, &category.IsActive)
+		INSERT INTO categories (tenant_id, name, name_ar, slug) VALUES ($1::uuid, $2, NULLIF($3, ''), $4)
+		RETURNING id, name, COALESCE(name_ar, ''), slug, is_active`, claims.TenantID, strings.TrimSpace(request.Name), strings.TrimSpace(nonNilString(request.NameAr)), strings.TrimSpace(request.Slug)).Scan(&category.ID, &category.Name, &category.NameAr, &category.Slug, &category.IsActive)
 	if err != nil {
 		writeError(c, http.StatusConflict, "category_conflict", "category slug is already in use")
 		return
@@ -173,8 +196,8 @@ func (h *Handler) updateCategory(c *gin.Context) {
 	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	var current Category
 	err := tx.QueryRow(c.Request.Context(),
-		`SELECT id, name, slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
-		&current.ID, &current.Name, &current.Slug, &current.IsActive)
+		`SELECT id, name, COALESCE(name_ar, ''), slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
+		&current.ID, &current.Name, &current.NameAr, &current.Slug, &current.IsActive)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "category_not_found", "category not found")
 		return
@@ -186,6 +209,9 @@ func (h *Handler) updateCategory(c *gin.Context) {
 	if request.Name != nil {
 		current.Name = strings.TrimSpace(*request.Name)
 	}
+	if request.NameAr != nil {
+		current.NameAr = strings.TrimSpace(*request.NameAr)
+	}
 	if request.Slug != nil {
 		current.Slug = strings.TrimSpace(*request.Slug)
 	}
@@ -193,8 +219,8 @@ func (h *Handler) updateCategory(c *gin.Context) {
 		current.IsActive = *request.IsActive
 	}
 	_, err = tx.Exec(c.Request.Context(),
-		`UPDATE categories SET name = $1, slug = $2, is_active = $3 WHERE id = $4::uuid`,
-		current.Name, current.Slug, current.IsActive, c.Param("id"))
+		`UPDATE categories SET name = $1, name_ar = NULLIF($2, ''), slug = $3, is_active = $4 WHERE id = $5::uuid`,
+		current.Name, current.NameAr, current.Slug, current.IsActive, c.Param("id"))
 	if err != nil {
 		writeError(c, http.StatusConflict, "category_conflict", "category slug is already in use")
 		return
@@ -218,8 +244,8 @@ func (h *Handler) deleteCategory(c *gin.Context) {
 	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	var category Category
 	err := tx.QueryRow(c.Request.Context(),
-		`SELECT id, name, slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
-		&category.ID, &category.Name, &category.Slug, &category.IsActive)
+		`SELECT id, name, COALESCE(name_ar, ''), slug, is_active FROM categories WHERE id = $1::uuid`, c.Param("id")).Scan(
+		&category.ID, &category.Name, &category.NameAr, &category.Slug, &category.IsActive)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "category_not_found", "category not found")
 		return
@@ -372,15 +398,17 @@ func (h *Handler) updateProduct(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load product")
 		return
 	}
+	wasAvailableOnline := current.IsActive && current.SelforderEnabled && current.StockQuantity > 0
 	applyPatch(&current, request)
 	if !validProduct(current.Name, current.SKU, current.Currency, current.PriceMinor, current.CostMinor, current.StockQuantity) {
 		writeError(c, http.StatusBadRequest, "validation_error", "invalid product request")
 		return
 	}
+	nowAvailableOnline := current.IsActive && current.SelforderEnabled && current.StockQuantity > 0
 	_, err = tx.Exec(c.Request.Context(), `
-		UPDATE products SET category_id = NULLIF($1, '')::uuid, name = $2, sku = $3, barcode = NULLIF($4, ''),
-		price_minor = $5, cost_minor = $6, currency = $7, stock_quantity = $8, image_url = $9, description = $10, is_active = $11, unit = $13
-		WHERE id = $12::uuid`, current.CategoryID, current.Name, current.SKU, current.Barcode, current.PriceMinor, current.CostMinor, current.Currency, current.StockQuantity, current.ImageURL, current.Description, current.IsActive, c.Param("id"), normalizeUnit(current.Unit))
+		UPDATE products SET category_id = NULLIF($1, '')::uuid, name = $2, name_ar = NULLIF($3, ''), sku = $4, barcode = NULLIF($5, ''),
+		price_minor = $6, cost_minor = $7, currency = $8, stock_quantity = $9, image_url = $10, description = $11, description_ar = NULLIF($12, ''), is_active = $13, unit = $15, selforder_enabled = $16
+		WHERE id = $14::uuid`, current.CategoryID, current.Name, current.NameAr, current.SKU, current.Barcode, current.PriceMinor, current.CostMinor, current.Currency, current.StockQuantity, current.ImageURL, current.Description, current.DescriptionAr, current.IsActive, c.Param("id"), normalizeUnit(current.Unit), current.SelforderEnabled)
 	if err != nil {
 		writeError(c, http.StatusConflict, "product_conflict", "product SKU or barcode is already in use")
 		return
@@ -388,6 +416,9 @@ func (h *Handler) updateProduct(c *gin.Context) {
 	if err := tx.Commit(c.Request.Context()); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to update product")
 		return
+	}
+	if nowAvailableOnline && !wasAvailableOnline && h.backInStock != nil {
+		h.backInStock(c.Request.Context(), claims.TenantID, c.Param("id"))
 	}
 	c.JSON(http.StatusOK, gin.H{"data": current, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
@@ -439,7 +470,7 @@ func (h *Handler) listProducts(c *gin.Context) {
 	}
 
 	rows, err := tx.Query(c.Request.Context(), `
-		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), unit
+		SELECT id, name, COALESCE(name_ar, ''), sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), COALESCE(description_ar, ''), unit, selforder_enabled, created_at
 		FROM products WHERE is_active
 		  AND ($1 = '' OR name ILIKE '%' || $1 || '%' OR sku ILIKE '%' || $1 || '%' OR barcode ILIKE '%' || $1 || '%')
 		ORDER BY name
@@ -452,7 +483,7 @@ func (h *Handler) listProducts(c *gin.Context) {
 	products := make([]Product, 0)
 	for rows.Next() {
 		var product Product
-		if err := rows.Scan(&product.ID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.Unit); err != nil {
+		if err := rows.Scan(&product.ID, &product.Name, &product.NameAr, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.DescriptionAr, &product.Unit, &product.SelforderEnabled, &product.CreatedAt); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load products")
 			return
 		}
@@ -503,9 +534,9 @@ func (h *Handler) getByBarcode(c *gin.Context) {
 	}
 	var product Product
 	err = tx.QueryRow(c.Request.Context(), `
-		SELECT id, name, sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), unit
+		SELECT id, name, COALESCE(name_ar, ''), sku, COALESCE(barcode, ''), price_minor, cost_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), COALESCE(description_ar, ''), unit, selforder_enabled, created_at
 		FROM products WHERE barcode = $1 AND is_active`, c.Param("barcode")).Scan(
-		&product.ID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.Unit)
+		&product.ID, &product.Name, &product.NameAr, &product.SKU, &product.Barcode, &product.PriceMinor, &product.CostMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.DescriptionAr, &product.Unit, &product.SelforderEnabled, &product.CreatedAt)
 	if err != nil {
 		writeError(c, http.StatusNotFound, "product_not_found", "product not found")
 		return
@@ -532,19 +563,23 @@ func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {
 }
 
 type Product struct {
-	ID            string `json:"id"`
-	CategoryID    string `json:"category_id,omitempty"`
-	Name          string `json:"name"`
-	SKU           string `json:"sku"`
-	Barcode       string `json:"barcode"`
-	PriceMinor    int64  `json:"price_minor"`
-	CostMinor     int64  `json:"cost_minor"`
-	Currency      string `json:"currency"`
-	StockQuantity int64  `json:"stock_quantity"`
-	ImageURL      string `json:"image_url"`
-	Description   string `json:"description"`
-	Unit          string `json:"unit"`
-	IsActive      bool   `json:"is_active"`
+	ID               string    `json:"id"`
+	CategoryID       string    `json:"category_id,omitempty"`
+	Name             string    `json:"name"`
+	NameAr           string    `json:"name_ar,omitempty"`
+	SKU              string    `json:"sku"`
+	Barcode          string    `json:"barcode"`
+	PriceMinor       int64     `json:"price_minor"`
+	CostMinor        int64     `json:"cost_minor"`
+	Currency         string    `json:"currency"`
+	StockQuantity    int64     `json:"stock_quantity"`
+	ImageURL         string    `json:"image_url"`
+	Description      string    `json:"description"`
+	DescriptionAr    string    `json:"description_ar,omitempty"`
+	Unit             string    `json:"unit"`
+	IsActive         bool      `json:"is_active"`
+	SelforderEnabled bool      `json:"selforder_enabled"`
+	CreatedAt        time.Time `json:"created_at"`
 }
 
 func (h *Handler) tenantTx(c *gin.Context, claims security.Claims) (pgx.Tx, bool) {
@@ -588,20 +623,27 @@ func insertProduct(c *gin.Context, tx pgx.Tx, tenantID string, request productRe
 	}
 	var product Product
 	err := tx.QueryRow(c.Request.Context(), `
-		INSERT INTO products (tenant_id, category_id, name, sku, barcode, price_minor, cost_minor, currency, stock_quantity, image_url, description, unit)
-		VALUES ($1::uuid, NULLIF($2, '')::uuid, $3, $4, NULLIF($5, ''), $6, $7, $8, $9, $10, $11, $12)
-		RETURNING id, COALESCE(category_id::text, ''), name, sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), unit, is_active`,
-		tenantID, categoryID, strings.TrimSpace(request.Name), strings.TrimSpace(request.SKU), strings.TrimSpace(request.Barcode), request.PriceMinor, request.CostMinor, strings.ToUpper(strings.TrimSpace(request.Currency)), request.StockQuantity, strings.TrimSpace(request.ImageURL), strings.TrimSpace(request.Description), normalizeUnit(request.Unit)).Scan(
-		&product.ID, &product.CategoryID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.Unit, &product.IsActive)
+		INSERT INTO products (tenant_id, category_id, name, name_ar, sku, barcode, price_minor, cost_minor, currency, stock_quantity, image_url, description, description_ar, unit, selforder_enabled)
+		VALUES ($1::uuid, NULLIF($2, '')::uuid, $3, NULLIF($4, ''), $5, NULLIF($6, ''), $7, $8, $9, $10, $11, $12, NULLIF($13, ''), $14, $15)
+		RETURNING id, COALESCE(category_id::text, ''), name, COALESCE(name_ar, ''), sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), COALESCE(description_ar, ''), unit, is_active, selforder_enabled`,
+		tenantID, categoryID, strings.TrimSpace(request.Name), strings.TrimSpace(nonNilString(request.NameAr)), strings.TrimSpace(request.SKU), strings.TrimSpace(request.Barcode), request.PriceMinor, request.CostMinor, strings.ToUpper(strings.TrimSpace(request.Currency)), request.StockQuantity, strings.TrimSpace(request.ImageURL), strings.TrimSpace(request.Description), strings.TrimSpace(nonNilString(request.DescriptionAr)), normalizeUnit(request.Unit), request.SelforderEnabled).Scan(
+		&product.ID, &product.CategoryID, &product.Name, &product.NameAr, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.DescriptionAr, &product.Unit, &product.IsActive, &product.SelforderEnabled)
 	return product, err
+}
+
+func nonNilString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }
 
 func queryProduct(c *gin.Context, tx pgx.Tx, id string) (Product, error) {
 	var product Product
 	err := tx.QueryRow(c.Request.Context(), `
-		SELECT id, COALESCE(category_id::text, ''), name, sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), unit, is_active
+		SELECT id, COALESCE(category_id::text, ''), name, COALESCE(name_ar, ''), sku, COALESCE(barcode, ''), price_minor, currency, stock_quantity, COALESCE(image_url, ''), COALESCE(description, ''), COALESCE(description_ar, ''), unit, is_active, selforder_enabled, created_at
 		FROM products WHERE id = $1::uuid`, id).Scan(
-		&product.ID, &product.CategoryID, &product.Name, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.Unit, &product.IsActive)
+		&product.ID, &product.CategoryID, &product.Name, &product.NameAr, &product.SKU, &product.Barcode, &product.PriceMinor, &product.Currency, &product.StockQuantity, &product.ImageURL, &product.Description, &product.DescriptionAr, &product.Unit, &product.IsActive, &product.SelforderEnabled, &product.CreatedAt)
 	return product, err
 }
 
@@ -611,6 +653,9 @@ func applyPatch(product *Product, request productPatchRequest) {
 	}
 	if request.Name != nil {
 		product.Name = strings.TrimSpace(*request.Name)
+	}
+	if request.NameAr != nil {
+		product.NameAr = strings.TrimSpace(*request.NameAr)
 	}
 	if request.SKU != nil {
 		product.SKU = strings.TrimSpace(*request.SKU)
@@ -636,11 +681,17 @@ func applyPatch(product *Product, request productPatchRequest) {
 	if request.Description != nil {
 		product.Description = strings.TrimSpace(*request.Description)
 	}
+	if request.DescriptionAr != nil {
+		product.DescriptionAr = strings.TrimSpace(*request.DescriptionAr)
+	}
 	if request.Unit != nil {
 		product.Unit = normalizeUnit(*request.Unit)
 	}
 	if request.IsActive != nil {
 		product.IsActive = *request.IsActive
+	}
+	if request.SelforderEnabled != nil {
+		product.SelforderEnabled = *request.SelforderEnabled
 	}
 }
 

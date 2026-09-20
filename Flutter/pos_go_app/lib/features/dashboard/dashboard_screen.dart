@@ -24,6 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   DashboardSummary? _summary;
   bool _loading = true;
   String? _error;
+  String _vatMode = 'exclusive';
 
   @override
   void initState() {
@@ -31,13 +32,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({String? vatMode}) async {
+    final mode = vatMode ?? _vatMode;
     setState(() {
+      _vatMode = mode;
       _loading = true;
       _error = null;
     });
     try {
-      final summary = await widget.apiClient.dashboardSummary(widget.session);
+      final summary =
+          await widget.apiClient.dashboardSummary(widget.session, vatMode: mode);
       if (!mounted) return;
       setState(() {
         _summary = summary;
@@ -81,10 +85,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(16),
                       children: [
-                        Text(summary?.date ?? '',
+Text(summary?.date ?? '',
                             style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 12),
                         if (summary != null) ...[
+                          SegmentedButton<String>(
+                            segments: [
+                              ButtonSegment(
+                                  value: 'exclusive',
+                                  label: Text(s.profitExcludingVat)),
+                              ButtonSegment(
+                                  value: 'inclusive',
+                                  label: Text(s.profitIncludingVat)),
+                            ],
+                            selected: {_vatMode},
+                            onSelectionChanged: (selection) =>
+                                _load(vatMode: selection.first),
+                          ),
+                          const SizedBox(height: 16),
                           LayoutBuilder(builder: (context, constraints) {
                             final cardWidth =
                                 ((constraints.maxWidth - 36) / 4)
@@ -101,8 +119,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         widget.session.currencyCode)),
                                 _StatCard(
                                     width: cardWidth,
-                                    label: s.salesCount,
-                                    value: '${summary.today.salesCount}'),
+                                    label: s.profitToday,
+                                    value: s.formatMoney(
+                                        summary.today.profitMinor,
+                                        widget.session.currencyCode)),
                                 _StatCard(
                                     width: cardWidth,
                                     label: s.avgSale,

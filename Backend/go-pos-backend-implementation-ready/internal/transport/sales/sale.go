@@ -34,6 +34,10 @@ func newSaleError(status int, code, message string) *saleError {
 // the sync package can decode "sale.create" payloads without duplicating it.
 type CreateSaleRequest = createSaleRequest
 
+// SaleItemRequest aliases the line-item binding type so sibling packages
+// (selforder, sync) can build a CreateSaleRequest without duplicating it.
+type SaleItemRequest = saleItemRequest
+
 // CreateSale applies a sale inside the caller's transaction. The tx must
 // already have the tenant context set. It never commits and never touches the
 // HTTP response; callers decide how to surface the outcome.

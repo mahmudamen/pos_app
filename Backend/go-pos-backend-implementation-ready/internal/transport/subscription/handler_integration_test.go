@@ -178,3 +178,105 @@ func TestSubscription_RequiresAuth(t *testing.T) {
 		t.Fatalf("status = %d, want 401", rec.Code)
 	}
 }
+
+func insertSub(t *testing.T, pool *pgxpool.Pool, tenantID string) string {
+	t.Helper()
+	ctx := context.Background()
+	var subID string
+	err := pool.QueryRow(ctx, `
+		INSERT INTO subscriptions (tenant_id, plan_id, status, current_period_end)
+		SELECT $1::uuid, id, 'trial', now() + interval '30 days' FROM plans WHERE code = 'trial' AND is_active
+		RETURNING id::text`, tenantID).Scan(&subID)
+	if err != nil {
+		t.Fatalf("insert subscription: %v", err)
+	}
+	return subID
+}
+
+func TestChangePlan_OwnerUpgrades(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	seed := testutil.SeedTenant(t, pool)
+	insertSub(t, pool, seed.TenantID)
+	router := newTestRouter(pool)
+
+	token := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, seed.DeviceID, "", "owner")
+	rec := doJSON(router, http.MethodPost, "/v1/subscription/change-plan",
+		`{"plan_code":"starter"}`, token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp struct {
+		Data map[string]any `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if resp.Data["plan_code"] != "starter" {
+		t.Fatalf("plan_code = %v, want starter", resp.Data["plan_code"])
+	}
+
+	var tenantPlan string
+	var maxUsers, maxProducts int
+	if err := pool.QueryRow(context.Background(),
+		`SELECT plan, max_users, max_products FROM tenants WHERE id = $1::uuid`, seed.TenantID).
+		Scan(&tenantPlan, &maxUsers, &maxProducts); err != nil {
+		t.Fatalf("load tenant: %v", err)
+	}
+	if tenantPlan != "starter" || maxUsers == 0 || maxProducts == 0 {
+		t.Fatalf("tenant plan not synced: plan=%s users=%d products=%d", tenantPlan, maxUsers, maxProducts)
+	}
+}
+
+func TestChangePlan_CashierForbidden(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	seed := testutil.SeedTenant(t, pool)
+	insertSub(t, pool, seed.TenantID)
+	router := newTestRouter(pool)
+
+	token := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, seed.DeviceID, "", "cashier")
+	rec := doJSON(router, http.MethodPost, "/v1/subscription/change-plan",
+		`{"plan_code":"starter"}`, token)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rec.Code)
+	}
+	var resp struct {
+		Error map[string]any `json:"error"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if resp.Error["code"] != "permission_denied" {
+		t.Fatalf("error = %v, want permission_denied", resp.Error["code"])
+	}
+}
+
+func TestChangePlan_UnknownPlan(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	seed := testutil.SeedTenant(t, pool)
+	insertSub(t, pool, seed.TenantID)
+	router := newTestRouter(pool)
+
+	token := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, seed.DeviceID, "", "owner")
+	rec := doJSON(router, http.MethodPost, "/v1/subscription/change-plan",
+		`{"plan_code":"nonexistent"}`, token)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", rec.Code)
+	}
+}
+
+func TestChangePlan_RequiresActiveSubscription(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	seed := testutil.SeedTenant(t, pool)
+	router := newTestRouter(pool)
+
+	token := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, seed.DeviceID, "", "owner")
+	rec := doJSON(router, http.MethodPost, "/v1/subscription/change-plan",
+		`{"plan_code":"starter"}`, token)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", rec.Code)
+	}
+}

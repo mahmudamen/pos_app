@@ -197,13 +197,16 @@ func operationID(method, path string) string {
 	return b.String()
 }
 
-// requiredSecurity marks which paths need a Bearer token. Login and the meta
-// endpoints are public by design.
+// requiredSecurity marks which paths need a Bearer token. Login, meta,
+// self-order menu/order/request, and the public site pages are public.
 func requiredSecurity(path string) []map[string][]string {
 	public := strings.HasPrefix(path, "/health") ||
 		strings.HasPrefix(path, "/metrics") ||
 		strings.HasPrefix(path, "/v1/meta/") ||
-		path == "/v1/auth/login"
+		strings.HasPrefix(path, "/v1/selforder/") ||
+		path == "/v1/auth/login" ||
+		path == "/selforder" ||
+		path == "/sw.js"
 	if public {
 		return nil
 	}

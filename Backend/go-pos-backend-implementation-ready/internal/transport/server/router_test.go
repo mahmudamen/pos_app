@@ -58,6 +58,11 @@ func TestRegisterBuildsRouteTableWithoutDatabase(t *testing.T) {
 		"GET /v1/meta/currencies",
 		"GET /v1/saas/summary",
 		"GET /v1/saas/tenants",
+		"POST /v1/saas/tenants",
+		"PATCH /v1/saas/tenants/:id",
+		"GET /v1/saas/tenants/:id/analytics",
+		"GET /v1/saas/users",
+		"POST /v1/saas/tenants/:id/users",
 		"GET /v1/settings",
 		"GET /v1/sync/pull",
 		"POST /v1/sync/push",
@@ -234,5 +239,44 @@ func TestSitePagesHonorAcceptLanguage(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), `dir="rtl"`) {
 		t.Fatal("expected Arabic RTL page from Accept-Language")
+	}
+}
+
+func TestIndexServesStatsStepsAndFAQ(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{"How it works", "Open the register", "Close with a Z-report", "day free trial", "detail", "</details>"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("index body missing %q", want)
+		}
+	}
+	if !strings.Contains(body, `href="/pricing#compare"`) {
+		t.Error("index plans link should point to the pricing comparison anchor")
+	}
+}
+
+func TestPricingServesCompareTableAndFAQ(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/pricing", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{`<table class="compare">`, `<th scope="col">Starter</th>`, `<th scope="col">Business</th>`, `<th scope="col">Enterprise</th>`, `class="match"`, `<span class="dash"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("pricing body missing %q", want)
+		}
 	}
 }

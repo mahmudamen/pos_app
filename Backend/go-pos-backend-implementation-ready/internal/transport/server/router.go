@@ -13,6 +13,7 @@ import (
 	"github.com/example/pos-api/internal/config"
 	"github.com/example/pos-api/internal/infrastructure/metrics"
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
+	ocrorcore "github.com/example/pos-api/internal/ocr"
 	authtransport "github.com/example/pos-api/internal/transport/auth"
 	billingtransport "github.com/example/pos-api/internal/transport/billing"
 	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
@@ -24,11 +25,13 @@ import (
 	lotstransport "github.com/example/pos-api/internal/transport/lots"
 	metatransport "github.com/example/pos-api/internal/transport/meta"
 	platformtransport "github.com/example/pos-api/internal/transport/platform"
+	purchasetransport "github.com/example/pos-api/internal/transport/purchases"
 	receiptstransport "github.com/example/pos-api/internal/transport/receipts"
 	registerstransport "github.com/example/pos-api/internal/transport/registers"
 	restauranttransport "github.com/example/pos-api/internal/transport/restaurants"
 	saastransport "github.com/example/pos-api/internal/transport/saas"
 	salestransport "github.com/example/pos-api/internal/transport/sales"
+	selftransport "github.com/example/pos-api/internal/transport/selforder"
 	settingsTransport "github.com/example/pos-api/internal/transport/settings"
 	subscriptiontransport "github.com/example/pos-api/internal/transport/subscription"
 	synctransport "github.com/example/pos-api/internal/transport/sync"
@@ -105,12 +108,21 @@ func Register(engine *gin.Engine, d Deps) {
 	authGroup.POST("/logout", authHandler.Logout())
 	authGroup.POST("/set-pin", authHandler.SetPin())
 	authGroup.POST("/verify-pin", authHandler.VerifyPin())
-	catalogtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	catalogHandler := catalogtransport.NewHandler(d.Pool, authHandler.Tokens())
+	catalogHandler.Register(api)
 	customertransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	dashboardtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	salestransport.NewHandlerWithDiscountLimit(d.Pool, authHandler.Tokens(), d.Config.CashierDiscountPct).Register(api)
 	registerstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	inventorytransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+	purchasetransport.NewHandler(d.Pool, authHandler.Tokens(),
+		ocrorcore.NewEngine(d.Config.OCREnabled, d.Config.TesseractBin,
+			d.Config.TesseractLangs, d.Config.TesseractPSM),
+		purchasetransport.OCRWindows{
+			Day:   d.Config.OCRDayLimit,
+			Week:  d.Config.OCRWeekLimit,
+			Month: d.Config.OCRMonthLimit,
+		}).Register(api)
 	usertransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	settingsTransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	synctransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
@@ -129,4 +141,20 @@ func Register(engine *gin.Engine, d Deps) {
 	subscriptiontransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
 	identitytransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
 	platformtransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
+
+	// Self-ordering: public menu/order/request endpoints used by any browser
+	// that scans a store's self-order QR, plus staff routes to list, approve
+	// and cancel pending orders. The web page and its service worker are served
+	// at /selforder and /sw.js. When a product transitions back to "available
+	// online" the catalog handler fires NotifyBackInStock.
+	selfOrderHandler := selftransport.NewHandler(d.Pool, authHandler.Tokens(), selftransport.WebPushConfig{
+		PublicKey:  d.Config.VAPIDPublicKey,
+		PrivateKey: d.Config.VAPIDPrivateKey,
+		Subject:    d.Config.VAPIDSubject,
+	}, d.Config.CashierDiscountPct)
+	selfOrderHandler.RegisterPublic(api)
+	selfOrderHandler.Register(api)
+	catalogHandler.SetBackInStockNotifier(selfOrderHandler.NotifyBackInStock)
+	engine.GET("/selforder", selfOrderHandler.Page)
+	engine.GET("/sw.js", selfOrderHandler.ServiceWorker)
 }

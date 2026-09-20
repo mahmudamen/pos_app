@@ -48,6 +48,35 @@ func TestLoadReturnsDefaultsWhenNoEnv(t *testing.T) {
 	if len(cfg.CORSAllowedOrigins) != 1 || cfg.CORSAllowedOrigins[0] != "*" {
 		t.Errorf("CORSAllowedOrigins: got %v, want [*]", cfg.CORSAllowedOrigins)
 	}
+	if cfg.OCREnabled {
+		t.Errorf("OCREnabled: got true, want false (opt-in default)")
+	}
+	if cfg.TesseractBin != "tesseract" || cfg.TesseractLangs != "ara+eng" || cfg.TesseractPSM != 6 {
+		t.Errorf("tesseract defaults: bin=%q langs=%q psm=%d", cfg.TesseractBin, cfg.TesseractLangs, cfg.TesseractPSM)
+	}
+}
+
+func TestLoadParsesOCREnv(t *testing.T) {
+	clearEnv()
+	t.Setenv("OCR_ENABLED", "true")
+	t.Setenv("TESSERACT_BIN", "/usr/bin/tesseract")
+	t.Setenv("TESSERACT_LANGS", "ara+eng")
+	t.Setenv("TESSERACT_PSM", "4")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.OCREnabled || cfg.TesseractBin != "/usr/bin/tesseract" || cfg.TesseractPSM != 4 {
+		t.Errorf("OCR config not parsed: %+v", cfg)
+	}
+}
+
+func TestLoadRejectsInvalidTesseractPSM(t *testing.T) {
+	clearEnv()
+	t.Setenv("TESSERACT_PSM", "20")
+	if _, err := Load(); err == nil {
+		t.Fatal("expected error for TESSERACT_PSM=20")
+	}
 }
 
 func TestLoadParsesCORSAllowedOrigins(t *testing.T) {
@@ -445,6 +474,8 @@ func clearEnv() {
 		"RATE_LIMIT_ENABLED", "RATE_LIMIT_MAX", "RATE_LIMIT_WINDOW",
 		"CORS_ALLOWED_ORIGINS", "METRICS_ENABLED",
 		"PRICE_CRON_ENABLED", "PRICE_CRON_INTERVAL", "PRICE_CRON_VARIATION_PCT",
+		"OCR_ENABLED", "TESSERACT_BIN", "TESSERACT_LANGS", "TESSERACT_PSM",
+		"OCR_DAY_LIMIT", "OCR_WEEK_LIMIT", "OCR_MONTH_LIMIT",
 		"TRIAL_SCOPE", "SUSPICIOUS_REGISTRATION_POLICY", "OFFLINE_TRIAL_POLICY",
 		"MAILER", "SMS_SENDER",
 		"TRIAL_DURATION_DAYS", "MAX_ORGANIZATIONS_PER_ACCOUNT",

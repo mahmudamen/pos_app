@@ -1,18 +1,22 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' show Locale;
 
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 import 'customers.dart';
+import 'billing.dart';
 import 'dashboard.dart';
 import 'inventory.dart';
 import 'payments.dart';
+import 'purchases.dart';
 import 'receipts.dart';
 import 'restaurants.dart';
 import 'registers.dart';
 import 'saas.dart';
 import 'security.dart';
+import 'selforder.dart';
 import 'session_store.dart';
 
 /// SaaS control-plane models live in saas.dart (exported for convenience).
@@ -29,6 +33,17 @@ class ApiClient {
     defaultValue: 'http://127.0.0.1:8080',
   );
 
+  /// Newest session known to be valid. Its refresh token is the only one that
+  /// has not yet been rotated, so a caller holding a stale `Session` snapshot
+  /// never replays a consumed token (which would trip the backend's AUTH-007
+  /// reuse detection and revoke the whole session family).
+  Session? _latestSession;
+
+  /// The refresh currently in flight. Concurrent 401s (e.g. the parallel
+  /// catalog/settings/register boot load) join this one rotation instead of
+  /// submitting the same refresh token twice and racing the rotation.
+  Future<Session>? _refreshInFlight;
+
   Future<Session> login({
     required String tenantId,
     required String email,
@@ -36,6 +51,7 @@ class ApiClient {
     required String deviceId,
     required String deviceName,
   }) async {
+    _resetAuthState();
     final response = await _client.post(
       Uri.parse('$baseUrl/v1/auth/login'),
       headers: {'Content-Type': 'application/json'},
@@ -51,7 +67,9 @@ class ApiClient {
       throw ApiException(_message(response), code: _errorCode(response));
     }
     final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
-    return Session.fromJson(data);
+    final session = Session.fromJson(data);
+    _latestSession = session;
+    return session;
   }
 
   Future<Session> register({
@@ -90,10 +108,13 @@ class ApiClient {
       throw ApiException(_message(response), code: _errorCode(response));
     }
     final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
-    return Session.fromJson(data);
+    final session = Session.fromJson(data);
+    _latestSession = session;
+    return session;
   }
 
   Future<void> logout(Session session) async {
+    _resetAuthState();
     final response = await _client.post(
       Uri.parse('$baseUrl/v1/auth/logout'),
       headers: {
@@ -189,20 +210,13 @@ class ApiClient {
     }
   }
 
-  Future<Session> refresh(Session session) async {
-    final response = await _client.post(
-      Uri.parse('$baseUrl/v1/auth/refresh'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'refresh_token': session.refreshToken}),
-    );
-    if (response.statusCode != 200) {
-      throw ApiException(_message(response));
-    }
-    final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
-    return session.copyWith(
-      accessToken: data['access_token'] as String,
-      refreshToken: data['refresh_token'] as String,
-    );
+  Future<Session> refresh(Session session) => _refresh(session);
+
+  /// Drops tracked auth state so a fresh login/register or a sign-out can never
+  /// re-use the previous user's session family.
+  void _resetAuthState() {
+    _latestSession = null;
+    _refreshInFlight = null;
   }
 
   Future<List<Category>> categories(Session session) async {
@@ -327,6 +341,7 @@ class ApiClient {
     String? categoryId,
     String? imageUrl,
     bool? isActive,
+    bool? selforderEnabled,
   }) async {
     final response = await _authenticatedRequest(
       session,
@@ -348,6 +363,7 @@ class ApiClient {
           if (categoryId != null) 'category_id': categoryId,
           if (imageUrl != null) 'image_url': imageUrl,
           if (isActive != null) 'is_active': isActive,
+          if (selforderEnabled != null) 'selforder_enabled': selforderEnabled,
         }),
       ),
     );
@@ -488,11 +504,15 @@ class ApiClient {
     );
   }
 
-  Future<DashboardSummary> dashboardSummary(Session session) async {
+  Future<DashboardSummary> dashboardSummary(
+    Session session, {
+    String vatMode = 'exclusive',
+  }) async {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/dashboard/summary'),
+        Uri.parse(
+            '$baseUrl/v1/dashboard/summary?vat=${Uri.encodeQueryComponent(vatMode)}'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -525,6 +545,415 @@ class ApiClient {
     }
     return TenantAnalytics.fromJson(
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingSummaryData> billingSummary(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/saas/billing/summary'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingSummaryData.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<BillingPlan>> billingPlans(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/saas/plans'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return (jsonDecode(response.body)['data'] as List<dynamic>)
+        .map((e) => BillingPlan.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<PaymentProvider>> paymentProviders(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/saas/payment-providers'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return (jsonDecode(response.body)['data'] as List<dynamic>)
+        .map((e) => PaymentProvider.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<BillingSubscriptionsPage> billingSubscriptions(
+    Session session, {
+    String? status,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/saas/subscriptions').replace(
+      queryParameters: {
+        'page': '$page',
+        'limit': '$limit',
+        if (status != null && status.isNotEmpty) 'status': status,
+      },
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return _subscriptionsPage(response, page, limit);
+  }
+
+  Future<BillingSubscription> tenantSubscription(
+    Session session,
+    String tenantId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/subscription'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingSubscription.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingSubscription> assignSubscription(
+    Session session,
+    String tenantId, {
+    required String planCode,
+    String? status,
+    int? trialDays,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/subscription'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'plan_code': planCode,
+          if (status != null && status.isNotEmpty) 'status': status,
+          if (trialDays != null) 'trial_days': trialDays,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    return BillingSubscription.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingSubscription> setSubscriptionStatus(
+    Session session,
+    String subscriptionId,
+    String status,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/subscriptions/$subscriptionId/status'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'status': status}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingSubscription.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingSubscription> changeSubscriptionPlan(
+    Session session,
+    String subscriptionId,
+    String planCode,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/subscriptions/$subscriptionId/change-plan'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'plan_code': planCode}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingSubscription.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingInvoicesPage> billingInvoices(
+    Session session, {
+    String? status,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/saas/invoices').replace(
+      queryParameters: {
+        'page': '$page',
+        'limit': '$limit',
+        if (status != null && status.isNotEmpty) 'status': status,
+      },
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final meta = body['meta'] as Map<String, dynamic>;
+    return BillingInvoicesPage(
+      invoices: (body['data'] as List<dynamic>)
+          .map((e) => BillingInvoice.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: (meta['total'] as num?)?.toInt() ?? 0,
+      page: (meta['page'] as num?)?.toInt() ?? page,
+      limit: (meta['limit'] as num?)?.toInt() ?? limit,
+    );
+  }
+
+  Future<BillingInvoice> createInvoice(
+    Session session,
+    String tenantId, {
+    required int amountMinor,
+    required String description,
+    String currency = 'EGP',
+    String? dueAt,
+    String? provider,
+    String? subscriptionId,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/invoices'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'amount_minor': amountMinor,
+          'currency': currency,
+          'description': description,
+          if (dueAt != null && dueAt.isNotEmpty) 'due_at': dueAt,
+          if (provider != null && provider.isNotEmpty) 'provider': provider,
+          if (subscriptionId != null && subscriptionId.isNotEmpty)
+            'subscription_id': subscriptionId,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    return BillingInvoice.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingInvoice> payInvoice(
+    Session session,
+    String invoiceId, {
+    String? provider,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/invoices/$invoiceId/pay'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (provider != null && provider.isNotEmpty) 'provider': provider,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingInvoice.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingInvoice> voidInvoice(
+    Session session,
+    String invoiceId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/invoices/$invoiceId/void'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(const {}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingInvoice.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BillingInvoice> refundInvoice(
+    Session session,
+    String invoiceId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/invoices/$invoiceId/refund'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(const {}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return BillingInvoice.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<SaasUsersPage> saasUsers(
+    Session session, {
+    String? tenantId,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/saas/users').replace(
+      queryParameters: {
+        'page': '$page',
+        'limit': '$limit',
+        if (tenantId != null && tenantId.isNotEmpty) 'tenant_id': tenantId,
+      },
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final meta = body['meta'] as Map<String, dynamic>;
+    return SaasUsersPage(
+      users: (body['data'] as List<dynamic>)
+          .map((e) => SaasUser.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: (meta['total'] as num?)?.toInt() ?? 0,
+      page: (meta['page'] as num?)?.toInt() ?? page,
+      limit: (meta['limit'] as num?)?.toInt() ?? limit,
+    );
+  }
+
+  Future<SaasUser> createSaasUser(
+    Session session,
+    String tenantId, {
+    required String email,
+    required String displayName,
+    required String password,
+    required String role,
+    String? accountType,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/users'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'email': email,
+          'display_name': displayName,
+          'password': password,
+          'role': role,
+          if (accountType != null && accountType.isNotEmpty)
+            'account_type': accountType,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    return SaasUser.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  BillingSubscriptionsPage _subscriptionsPage(
+      http.Response response, int page, int limit) {
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final meta = body['meta'] as Map<String, dynamic>;
+    return BillingSubscriptionsPage(
+      subscriptions: (body['data'] as List<dynamic>)
+          .map((e) => BillingSubscription.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: (meta['total'] as num?)?.toInt() ?? 0,
+      page: (meta['page'] as num?)?.toInt() ?? page,
+      limit: (meta['limit'] as num?)?.toInt() ?? limit,
+    );
   }
 
   Future<List<TrialEntitlement>> platformTrialEntitlements(
@@ -803,6 +1232,143 @@ class ApiClient {
         jsonDecode(respond.body) as Map<String, dynamic>);
   }
 
+  /// Uploads an invoice photo and returns the OCR-proposed purchase lines.
+  /// The merchant reviews them (edit qty/price, map to products, set sale
+  /// prices) before [applyPurchase] commits anything. A tenant past its OCR
+  /// window limits with no credits left receives 402 `ocr_window_limit_reached`.
+  Future<OcrScanResult> ocrScanInvoice(
+    Session session,
+    Uint8List imageBytes, {
+    String filename = 'invoice.jpg',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) async {
+        final request = http.MultipartRequest(
+          'POST',
+          Uri.parse('$baseUrl/v1/purchases/ocr'),
+        );
+        request.headers['Accept'] = 'application/json';
+        request.headers['Authorization'] = 'Bearer $accessToken';
+        request.files.add(http.MultipartFile.fromBytes(
+          'file',
+          imageBytes,
+          filename: filename,
+        ));
+        final streamed = await request.send();
+        return http.Response.fromStream(streamed);
+      },
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
+    return OcrScanResult.fromJson(data);
+  }
+
+  /// Commits a reviewed purchase: for each line the backend matches/adds the
+  /// product, adds stock, sets cost to the invoice unit price, and syncs the
+  /// product unit. New products are created with sale price = cost; the client
+  /// patches a desired sale price afterwards via [updateProduct].
+  Future<ApplyPurchaseResult> applyPurchase(
+    Session session, {
+    String supplier = '',
+    String invoiceNo = '',
+    String currency = 'EGP',
+    int taxMinor = 0,
+    String ocrText = '',
+    required List<PurchaseLineInput> items,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/purchases'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'supplier': supplier,
+          'invoice_no': invoiceNo,
+          'currency': currency,
+          'tax_minor': taxMinor,
+          'ocr_text': ocrText,
+          'items': items.map((item) => item.toJson()).toList(),
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return ApplyPurchaseResult.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Paginated purchase ledger (newest first).
+  Future<PurchasesPage> listPurchases(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/purchases?page=$page&limit=$limit'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return PurchasesPage.fromJson(jsonDecode(respond.body) as Map<String, dynamic>);
+  }
+
+  /// Current OCR meter state (scans used per window, configured caps, credit
+  /// balance) so the client can show limits and a top-up affordance.
+  Future<OcrMeterState> ocrUsage(Session session) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/purchases/ocr/usage'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return OcrMeterState.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Adds OCR scan credits to the tenant (manager/owner only; cashiers get
+  /// 403). Returns the new balance.
+  Future<int> ocrTopup(Session session, int points) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/purchases/ocr/topup'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'points': points}),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
+    return (data['credits_remaining'] as num?)?.toInt() ?? 0;
+  }
+
   Future<SyncPullPage> syncPull(
     Session session, {
     int cursor = 0,
@@ -965,6 +1531,135 @@ class ApiClient {
     }
     final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
     return SaleDetail.fromJson(data);
+  }
+
+  /// Cashier-side self-orders awaiting / done on the cashier side.
+  Future<SelfOrdersPage> selfOrders(
+    Session session, {
+    String? status,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/self-orders').replace(
+      queryParameters: {
+        if (status != null) 'status': status,
+        'page': '$page',
+        'limit': '$limit',
+      },
+    );
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return SelfOrdersPage.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<SelfOrderApproval> approveSelfOrder(
+      Session session, String orderId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/self-orders/$orderId/approve'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return SelfOrderApproval.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> cancelSelfOrder(Session session, String orderId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/self-orders/$orderId/cancel'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+  }
+
+  Future<ProductRequestsPage> productRequests(
+    Session session, {
+    String? status,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/product-requests').replace(
+      queryParameters: {
+        if (status != null) 'status': status,
+        'page': '$page',
+        'limit': '$limit',
+      },
+    );
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+    return ProductRequestsPage.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> fulfillProductRequest(
+      Session session, String requestId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/product-requests/$requestId/fulfill'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
+  }
+
+  Future<void> closeProductRequest(Session session, String requestId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/product-requests/$requestId/close'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond));
+    }
   }
 
   Future<TenantSettings> settings(Session session) async {
@@ -1212,21 +1907,41 @@ class ApiClient {
   }
 
   Future<Session> _refresh(Session session) async {
+    final existing = _refreshInFlight;
+    if (existing != null) return existing;
+
+    final future = _doRefresh(_refreshBase(session));
+    _refreshInFlight = future;
+    try {
+      final refreshed = await future;
+      _latestSession = refreshed;
+      await onSessionRefreshed?.call(refreshed);
+      return refreshed;
+    } finally {
+      if (identical(_refreshInFlight, future)) {
+        _refreshInFlight = null;
+      }
+    }
+  }
+
+  /// Base for a rotation: prefer the newest session known to the client so a
+  /// caller holding a pre-rotation snapshot can't replay a consumed token.
+  Session _refreshBase(Session requested) => _latestSession ?? requested;
+
+  Future<Session> _doRefresh(Session base) async {
     final response = await _client.post(
       Uri.parse('$baseUrl/v1/auth/refresh'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'refresh_token': session.refreshToken}),
+      body: jsonEncode({'refresh_token': base.refreshToken}),
     );
     if (response.statusCode != 200) {
       throw ApiException(_message(response));
     }
     final data = jsonDecode(response.body)['data'] as Map<String, dynamic>;
-    final refreshed = session.copyWith(
+    return base.copyWith(
       accessToken: data['access_token'] as String,
       refreshToken: data['refresh_token'] as String,
     );
-    await onSessionRefreshed?.call(refreshed);
-    return refreshed;
   }
 
   String _message(http.Response response) {
@@ -1261,8 +1976,12 @@ class Product {
     this.costMinor = 0,
     this.imageUrl = '',
     this.description = '',
+    this.nameAr = '',
+    this.descriptionAr = '',
     this.unit = 'piece',
     this.isActive = true,
+    this.selforderEnabled = false,
+    this.createdAt,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
@@ -1277,8 +1996,14 @@ class Product {
         costMinor: (json['cost_minor'] as num?)?.toInt() ?? 0,
         imageUrl: json['image_url'] as String? ?? '',
         description: json['description'] as String? ?? '',
+        nameAr: json['name_ar'] as String? ?? '',
+        descriptionAr: json['description_ar'] as String? ?? '',
         unit: json['unit'] as String? ?? 'piece',
         isActive: json['is_active'] as bool? ?? true,
+        selforderEnabled: json['selforder_enabled'] as bool? ?? false,
+        createdAt: json['created_at'] == null
+            ? null
+            : DateTime.tryParse(json['created_at'] as String),
       );
 
   final String id;
@@ -1292,8 +2017,30 @@ class Product {
   final int costMinor;
   final String imageUrl;
   final String description;
+  final String nameAr;
+  final String descriptionAr;
   final String unit;
   final bool isActive;
+  final bool selforderEnabled;
+  final DateTime? createdAt;
+
+  /// Arabic product name when the device language is Arabic and the store
+  /// catalog provides it; otherwise the primary (English) name.
+  String displayName(Locale locale) =>
+      locale.languageCode == 'ar' && nameAr.isNotEmpty ? nameAr : name;
+
+  /// True when the product was published to the self-order menu (visible on
+  /// the customer QR page while in stock).
+  bool get publishedForSelfOrder => selforderEnabled && stockQuantity > 0;
+
+  /// True when the product was created within [within] of [now]. Products
+  /// without a created_at (older backend, cached rows) are never "new".
+  bool isRecentlyAdded(DateTime now, {Duration within = const Duration(days: 7)}) {
+    final created = createdAt;
+    if (created == null) return false;
+    final diff = now.difference(created);
+    return !diff.isNegative && diff <= within;
+  }
 }
 
 class SaleItemInput {
@@ -1379,17 +2126,25 @@ class Category {
     required this.id,
     required this.name,
     required this.slug,
+    this.nameAr = '',
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
         id: json['id'] as String,
         name: json['name'] as String,
         slug: json['slug'] as String,
+        nameAr: json['name_ar'] as String? ?? '',
       );
 
   final String id;
   final String name;
   final String slug;
+  final String nameAr;
+
+  /// Arabic category name when the device language is Arabic and the store
+  /// catalog provides it; otherwise the primary (English) name.
+  String displayName(Locale locale) =>
+      locale.languageCode == 'ar' && nameAr.isNotEmpty ? nameAr : name;
 }
 
 class SaleDetail {

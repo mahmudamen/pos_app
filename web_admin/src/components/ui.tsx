@@ -34,7 +34,7 @@ export function Stat({
   sub,
 }: {
   label: string
-  value: string
+  value: React.ReactNode
   sub?: string
 }) {
   return (

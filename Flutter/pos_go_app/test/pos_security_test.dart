@@ -10,7 +10,8 @@ import 'package:pos_go_app/core/session_store.dart';
 import 'package:pos_go_app/features/pos/pos_screen.dart';
 import 'package:pos_go_app/l10n/strings.dart';
 
-Product _product(String id, String name, int stock, {int priceMinor = 350}) {
+Product _product(String id, String name, int stock,
+    {int priceMinor = 350, DateTime? createdAt}) {
   return Product(
     id: id,
     name: name,
@@ -20,6 +21,7 @@ Product _product(String id, String name, int stock, {int priceMinor = 350}) {
     currency: 'EGP',
     stockQuantity: stock,
     categoryId: 'category-1',
+    createdAt: createdAt,
   );
 }
 
@@ -164,6 +166,29 @@ Color? _badgeColor(WidgetTester tester, String text) {
 }
 
 void main() {
+  testWidgets('recently-added products show a NEW badge, older ones do not',
+      (tester) async {
+    final api = _PosSecurityApi(customSettings: const TenantSettings());
+    final now = DateTime.now();
+    api.productList = [
+      _product('p-new', 'Fresh Baklava', 10,
+          createdAt: now.subtract(const Duration(days: 1))),
+      _product('p-old', 'Stale Ramadan Lamp', 10,
+          createdAt: now.subtract(const Duration(days: 40))),
+    ];
+
+    await tester.pumpWidget(_wrap(PosScreen(
+      session: _cashier,
+      apiClient: api,
+      onSignOut: () {},
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.text('NEW'), findsOneWidget);
+    expect(find.text('Fresh Baklava'), findsOneWidget);
+    expect(find.text('Stale Ramadan Lamp'), findsOneWidget);
+  });
+
   testWidgets('stock badges show red for out-of-stock, amber for low, '
       'neutral for healthy', (tester) async {
     final api = _PosSecurityApi(

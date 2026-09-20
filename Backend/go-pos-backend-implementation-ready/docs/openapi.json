@@ -163,6 +163,46 @@
         }
       }
     },
+    "/selforder": {
+      "get": {
+        "tags": [
+          "selforder"
+        ],
+        "operationId": "GetSelforder",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/sw.js": {
+      "get": {
+        "tags": [
+          "sw.js"
+        ],
+        "operationId": "GetSw.js",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/auth/login": {
       "post": {
         "tags": [
@@ -1236,6 +1276,81 @@
         }
       }
     },
+    "/v1/product-requests": {
+      "get": {
+        "tags": [
+          "product-requests"
+        ],
+        "operationId": "GetV1Product-requests",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/product-requests/{id}/close": {
+      "post": {
+        "tags": [
+          "product-requests"
+        ],
+        "operationId": "PostV1Product-requestsIdClose",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/product-requests/{id}/fulfill": {
+      "post": {
+        "tags": [
+          "product-requests"
+        ],
+        "operationId": "PostV1Product-requestsIdFulfill",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/products": {
       "get": {
         "tags": [
@@ -1457,6 +1572,129 @@
           "products"
         ],
         "operationId": "PostV1ProductsIdVariants",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/purchases": {
+      "get": {
+        "tags": [
+          "purchases"
+        ],
+        "operationId": "GetV1Purchases",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "purchases"
+        ],
+        "operationId": "PostV1Purchases",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/purchases/ocr": {
+      "post": {
+        "tags": [
+          "purchases"
+        ],
+        "operationId": "PostV1PurchasesOcr",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/purchases/ocr/topup": {
+      "post": {
+        "tags": [
+          "purchases"
+        ],
+        "operationId": "PostV1PurchasesOcrTopup",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/purchases/ocr/usage": {
+      "get": {
+        "tags": [
+          "purchases"
+        ],
+        "operationId": "GetV1PurchasesOcrUsage",
         "security": [
           {
             "bearerAuth": []
@@ -1970,6 +2208,54 @@
             "description": "data/error envelope; see docs/07_API_CONTRACT.md"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasTenants",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/tenants/{id}": {
+      "patch": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PatchV1SaasTenantsId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
       }
     },
     "/v1/saas/tenants/{id}/analytics": {
@@ -2051,6 +2337,56 @@
           "saas"
         ],
         "operationId": "PostV1SaasTenantsIdSubscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/tenants/{id}/users": {
+      "post": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "PostV1SaasTenantsIdUsers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/saas/users": {
+      "get": {
+        "tags": [
+          "saas"
+        ],
+        "operationId": "GetV1SaasUsers",
         "security": [
           {
             "bearerAuth": []
@@ -2243,6 +2579,141 @@
         }
       }
     },
+    "/v1/self-orders": {
+      "get": {
+        "tags": [
+          "self-orders"
+        ],
+        "operationId": "GetV1Self-orders",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/self-orders/{id}/approve": {
+      "post": {
+        "tags": [
+          "self-orders"
+        ],
+        "operationId": "PostV1Self-ordersIdApprove",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/self-orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "self-orders"
+        ],
+        "operationId": "PostV1Self-ordersIdCancel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/selforder/menu/{tenant}": {
+      "get": {
+        "tags": [
+          "selforder"
+        ],
+        "operationId": "GetV1SelforderMenuTenant",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/selforder/orders": {
+      "post": {
+        "tags": [
+          "selforder"
+        ],
+        "operationId": "PostV1SelforderOrders",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/selforder/requests": {
+      "post": {
+        "tags": [
+          "selforder"
+        ],
+        "operationId": "PostV1SelforderRequests",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/settings": {
       "get": {
         "tags": [
@@ -2297,6 +2768,31 @@
           "subscription"
         ],
         "operationId": "GetV1Subscription",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/subscription/change-plan": {
+      "post": {
+        "tags": [
+          "subscription"
+        ],
+        "operationId": "PostV1SubscriptionChange-plan",
         "security": [
           {
             "bearerAuth": []

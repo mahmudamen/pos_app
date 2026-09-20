@@ -70,3 +70,45 @@ func TestSummaryUnavailableWithoutDatabase(t *testing.T) {
 		t.Fatalf("expected 503, got %d", recorder.Code)
 	}
 }
+
+func TestParseVATMode(t *testing.T) {
+	cases := []struct {
+		raw  string
+		want string
+	}{
+		{"", "exclusive"},
+		{"exclusive", "exclusive"},
+		{"inclusive", "inclusive"},
+		{"INCLUSIVE", "inclusive"},
+		{"  inclusive  ", "inclusive"},
+		{"garbage", "exclusive"},
+		{"none", "exclusive"},
+	}
+	for _, c := range cases {
+		if got := parseVATMode(c.raw); got != c.want {
+			t.Errorf("parseVATMode(%q): got %q, want %q", c.raw, got, c.want)
+		}
+	}
+}
+
+func TestProfitFor(t *testing.T) {
+	const revenue, tax, cogs int64 = 1140, 140, 700
+	if got := profitFor("exclusive", revenue, tax, cogs); got != 300 {
+		t.Errorf("exclusive profit: got %d, want 300", got)
+	}
+	if got := profitFor("inclusive", revenue, tax, cogs); got != 440 {
+		t.Errorf("inclusive profit: got %d, want 440", got)
+	}
+	if got := profitFor("inclusive", revenue, 0, cogs); got != 440 {
+		t.Errorf("inclusive profit without residual tax: got %d, want 440", got)
+	}
+	if got := profitFor("exclusive", revenue, 0, cogs); got != 440 {
+		t.Errorf("exclusive profit without residual tax: got %d, want 440", got)
+	}
+	if got := profitFor("exclusive", 0, 0, 0); got != 0 {
+		t.Errorf("zero profit: got %d, want 0", got)
+	}
+	if got := profitFor("exclusive", revenue, tax, 0); got != 1000 {
+		t.Errorf("zero cogs: got %d, want 1000", got)
+	}
+}

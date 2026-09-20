@@ -17,10 +17,14 @@ import '../../l10n/strings.dart';
 import '../customers/customers_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../inventory/inventory_screen.dart';
+import '../purchases/purchases_screen.dart';
 import '../printers/printers_screen.dart';
 import '../restaurants/split_bill_screen.dart';
 import '../restaurants/table_picker_sheet.dart';
 import '../sales/sale_history_screen.dart';
+import '../selforder/product_requests_screen.dart';
+import '../selforder/qr_sheet.dart';
+import '../selforder/self_orders_screen.dart';
 import '../settings/settings_screen.dart';
 import 'session_screen.dart';
 
@@ -240,8 +244,10 @@ class _PosScreenState extends State<PosScreen> {
         }
       }
       if (existing == null) {
-        _activeOrder.items
-            .add(_CartLine(product.id, product.name, product.priceMinor));
+        _activeOrder.items.add(_CartLine(
+            product.id,
+            product.displayName(Localizations.localeOf(context)),
+            product.priceMinor));
       } else {
         _bumpQuantity(existing, product, s);
       }
@@ -348,34 +354,34 @@ class _PosScreenState extends State<PosScreen> {
   void _openSettings(BuildContext context) {
     Navigator.of(context)
         .push(
-          MaterialPageRoute<void>(
-            builder: (_) => SettingsScreen(
-              session: widget.session,
-              apiClient: widget.apiClient,
-              onLanguageChanged: widget.onLanguageChanged,
-              onSignOut: widget.onSignOut,
-            ),
-          ),
-        )
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsScreen(
+          session: widget.session,
+          apiClient: widget.apiClient,
+          onLanguageChanged: widget.onLanguageChanged,
+          onSignOut: widget.onSignOut,
+        ),
+      ),
+    )
         .then((_) {
-          if (mounted) _loadSettings();
-        });
+      if (mounted) _loadSettings();
+    });
   }
 
   void _openPrinters() {
     Navigator.of(context)
         .push(
-          MaterialPageRoute<void>(
-            builder: (_) => PrintersScreen(
-              session: widget.session,
-              sessionStore: widget.sessionStore ?? SessionStore(),
-              printerService: _printerService,
-            ),
-          ),
-        )
+      MaterialPageRoute<void>(
+        builder: (_) => PrintersScreen(
+          session: widget.session,
+          sessionStore: widget.sessionStore ?? SessionStore(),
+          printerService: _printerService,
+        ),
+      ),
+    )
         .then((_) {
-          if (mounted) _loadPrinterStatus();
-        });
+      if (mounted) _loadPrinterStatus();
+    });
   }
 
   /// Best-effort receipt output after a successful sale. Never blocks or fails
@@ -413,6 +419,7 @@ class _PosScreenState extends State<PosScreen> {
             (_selectedCategoryId == null ||
                 item.categoryId == _selectedCategoryId) &&
             (item.name.toLowerCase().contains(query) ||
+                item.nameAr.toLowerCase().contains(query) ||
                 item.sku.toLowerCase().contains(query) ||
                 item.barcode.toLowerCase().contains(query)))
         .toList();
@@ -420,93 +427,153 @@ class _PosScreenState extends State<PosScreen> {
       appBar: AppBar(
         title: Text(s.checkout),
         actions: [
-          IconButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => DashboardScreen(
-                  session: widget.session,
-                  apiClient: widget.apiClient,
-                ),
-              ),
-            ),
-            tooltip: s.dashboard,
-            icon: const Icon(Icons.insights),
-          ),
-          IconButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => SaleHistoryScreen(
-                  session: widget.session,
-                  apiClient: widget.apiClient,
-                  sessionStore: widget.sessionStore,
-                ),
-              ),
-            ),
-            tooltip: s.salesHistory,
-            icon: const Icon(Icons.receipt_long),
-          ),
-          IconButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => CustomersScreen(
-                  session: widget.session,
-                  apiClient: widget.apiClient,
-                ),
-              ),
-            ),
-            tooltip: s.customers,
-            icon: const Icon(Icons.groups_outlined),
-          ),
-          if (widget.session.isManager)
-            IconButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => InventoryScreen(
-                    session: widget.session,
-                    apiClient: widget.apiClient,
+          SizedBox(
+            width: (MediaQuery.sizeOf(context).width - 130).clamp(200.0, 600.0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DashboardScreen(
+                          session: widget.session,
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    ),
+                    tooltip: s.dashboard,
+                    icon: const Icon(Icons.insights),
                   ),
-                ),
+                  IconButton(
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => SelfOrderQrSheet(
+                        session: widget.session,
+                        apiClient: widget.apiClient,
+                      ),
+                    ),
+                    tooltip: s.selfOrderQR,
+                    icon: const Icon(Icons.qr_code_2),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => SelfOrdersScreen(
+                          session: widget.session,
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    ),
+                    tooltip: s.selfOrdersQueue,
+                    icon: const Icon(Icons.pending_actions),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ProductRequestsScreen(
+                          session: widget.session,
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    ),
+                    tooltip: s.productRequests,
+                    icon: const Icon(Icons.rate_review_outlined),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => SaleHistoryScreen(
+                          session: widget.session,
+                          apiClient: widget.apiClient,
+                          sessionStore: widget.sessionStore,
+                        ),
+                      ),
+                    ),
+                    tooltip: s.salesHistory,
+                    icon: const Icon(Icons.receipt_long),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CustomersScreen(
+                          session: widget.session,
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    ),
+                    tooltip: s.customers,
+                    icon: const Icon(Icons.groups_outlined),
+                  ),
+                  if (widget.session.isManager)
+                    IconButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => InventoryScreen(
+                            session: widget.session,
+                            apiClient: widget.apiClient,
+                          ),
+                        ),
+                      ),
+                      tooltip: s.inventory,
+                      icon: const Icon(Icons.inventory_2),
+                    ),
+                  if (widget.session.isManager)
+                    IconButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PurchasesScreen(
+                            session: widget.session,
+                            apiClient: widget.apiClient,
+                          ),
+                        ),
+                      ),
+                      tooltip: s.purchases,
+                      icon: const Icon(Icons.document_scanner_outlined),
+                    ),
+                  IconButton(
+                    onPressed: () => _toggleFocusMode(context),
+                    tooltip: s.focusMode,
+                    icon: Icon(_focusMode
+                        ? Icons.center_focus_weak
+                        : Icons.center_focus_strong),
+                  ),
+                  IconButton(
+                    onPressed: _openPrinters,
+                    tooltip: s.printers,
+                    icon: Icon(
+                      switch (_printerStatus) {
+                        PrinterStatus.online => Icons.print,
+                        PrinterStatus.offline => Icons.print_disabled,
+                        PrinterStatus.noPrinter =>
+                          Icons.local_printshop_outlined,
+                      },
+                      color: _printerStatus == PrinterStatus.offline
+                          ? Theme.of(context).colorScheme.error
+                          : null,
+                    ),
+                  ),
+                  if (_settings.refreshButton)
+                    IconButton(
+                      onPressed: () {
+                        setState(() => _loading = true);
+                        _loadData();
+                      },
+                      tooltip: s.refresh,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Center(child: Text(widget.session.displayName))),
+                  IconButton(
+                    onPressed: () => _openSettings(context),
+                    tooltip: s.settings,
+                    icon: const Icon(Icons.settings_outlined),
+                  ),
+                ],
               ),
-              tooltip: s.inventory,
-              icon: const Icon(Icons.inventory_2),
             ),
-          IconButton(
-            onPressed: () => _toggleFocusMode(context),
-            tooltip: s.focusMode,
-            icon: Icon(_focusMode
-                ? Icons.center_focus_weak
-                : Icons.center_focus_strong),
-          ),
-          IconButton(
-            onPressed: _openPrinters,
-            tooltip: s.printers,
-            icon: Icon(
-              switch (_printerStatus) {
-                PrinterStatus.online => Icons.print,
-                PrinterStatus.offline => Icons.print_disabled,
-                PrinterStatus.noPrinter => Icons.local_printshop_outlined,
-              },
-              color: _printerStatus == PrinterStatus.offline
-                  ? Theme.of(context).colorScheme.error
-                  : null,
-            ),
-          ),
-          if (_settings.refreshButton)
-            IconButton(
-              onPressed: () {
-                setState(() => _loading = true);
-                _loadData();
-              },
-              tooltip: s.refresh,
-              icon: const Icon(Icons.refresh),
-            ),
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(child: Text(widget.session.displayName))),
-          IconButton(
-            onPressed: () => _openSettings(context),
-            tooltip: s.settings,
-            icon: const Icon(Icons.settings_outlined),
           ),
         ],
       ),
@@ -555,7 +622,8 @@ class _PosScreenState extends State<PosScreen> {
                   onNewOrder: _newOrder,
                   onIncrease: _increase,
                   onDecrease: _decrease,
-                  onRemove: (line) => setState(() => _activeOrder.items.remove(line)),
+                  onRemove: (line) =>
+                      setState(() => _activeOrder.items.remove(line)),
                   onCheckout: _activeOrder.isEmpty || _checkingOut
                       ? null
                       : () => _checkout(context));
@@ -570,7 +638,8 @@ class _PosScreenState extends State<PosScreen> {
                   : Column(children: [
                       Expanded(child: catalog),
                       SizedBox(
-                          height: (constraints.maxHeight * 0.42).clamp(360, 520),
+                          height:
+                              (constraints.maxHeight * 0.42).clamp(360, 520),
                           child: cart)
                     ]);
             }),
@@ -583,16 +652,16 @@ class _PosScreenState extends State<PosScreen> {
   void _openSessionHistory(BuildContext context) {
     Navigator.of(context)
         .push(
-          MaterialPageRoute<void>(
-            builder: (_) => SessionHistoryScreen(
-              session: widget.session,
-              apiClient: widget.apiClient,
-            ),
-          ),
-        )
+      MaterialPageRoute<void>(
+        builder: (_) => SessionHistoryScreen(
+          session: widget.session,
+          apiClient: widget.apiClient,
+        ),
+      ),
+    )
         .then((_) {
-          if (mounted) _loadRegisterSession();
-        });
+      if (mounted) _loadRegisterSession();
+    });
   }
 
   Future<void> _openSessionFlow(BuildContext context) async {
@@ -697,8 +766,7 @@ class _PosScreenState extends State<PosScreen> {
     if (countedMinor == null || !mounted) return;
     String managerPin = '';
     if (_settings.managerClosePin && !widget.session.isManagerLevel) {
-      final pin =
-          await _promptManagerPin(message: s.closeNeedsManagerPin);
+      final pin = await _promptManagerPin(message: s.closeNeedsManagerPin);
       if (pin == null || !context.mounted) return;
       managerPin = pin;
     }
@@ -850,8 +918,7 @@ class _PosScreenState extends State<PosScreen> {
                   .toList(),
               if (payments.isNotEmpty)
                 'payments': payments.map((p) => p.toJson()).toList(),
-              if (_registerSession != null)
-                'session_id': _registerSession!.id,
+              if (_registerSession != null) 'session_id': _registerSession!.id,
               if (tableId != null) 'table_id': tableId,
               if (discountMinor > 0) 'discount_minor': discountMinor,
             }),
@@ -871,7 +938,7 @@ class _PosScreenState extends State<PosScreen> {
     }
   }
 
-Future<String?> _promptManagerPin({required String message}) async {
+  Future<String?> _promptManagerPin({required String message}) async {
     final s = AppStrings.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final controller = TextEditingController();
@@ -897,7 +964,8 @@ Future<String?> _promptManagerPin({required String message}) async {
               child: Text(s.cancel),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
               child: Text(s.ok),
             ),
           ],
@@ -924,7 +992,7 @@ Future<String?> _promptManagerPin({required String message}) async {
     }
   }
 
-Future<void> _replayPending() async {
+  Future<void> _replayPending() async {
     final db = widget.localDatabase;
     if (db == null) return;
     final pending = await db.pendingCommands();
@@ -1082,7 +1150,8 @@ class _Catalog extends StatelessWidget {
                   ...categories.map((cat) => Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: FilterChip(
-                          label: Text(cat.name),
+                          label: Text(
+                              cat.displayName(Localizations.localeOf(context))),
                           selected: selectedCategoryId == cat.id,
                           onSelected: (_) => onCategorySelected(
                               selectedCategoryId == cat.id ? null : cat.id),
@@ -1116,12 +1185,11 @@ class _Catalog extends StatelessWidget {
           else
             Expanded(
                 child: GridView.builder(
-                    gridDelegate:
-                        SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: wide ? 280 : 220,
-                            childAspectRatio: wide ? 1.2 : 1.25,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12),
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: wide ? 280 : 220,
+                        childAspectRatio: wide ? 1.2 : 1.25,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
@@ -1132,6 +1200,12 @@ class _Catalog extends StatelessWidget {
                               child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Stack(children: [
+                                    if (product.isRecentlyAdded(DateTime.now()))
+                                      Positioned(
+                                        top: 0,
+                                        left: 0,
+                                        child: _NewBadge(strings: strings),
+                                      ),
                                     if (showStockBadges)
                                       Positioned(
                                         top: 0,
@@ -1149,7 +1223,11 @@ class _Catalog extends StatelessWidget {
                                         children: [
                                           _ProductImage(
                                               imageUrl: product.imageUrl),
-                                          Text(product.name,
+                                          Text(
+                                              product.displayName(Localizations
+                                                  .localeOf(context)),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .titleMedium),
@@ -1158,8 +1236,7 @@ class _Catalog extends StatelessWidget {
                                           if (product.unit.isNotEmpty &&
                                               product.unit != 'piece')
                                             Text(
-                                                strings
-                                                    .unitLabel(product.unit),
+                                                strings.unitLabel(product.unit),
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .bodySmall
@@ -1228,7 +1305,8 @@ class _CartPanel extends StatelessWidget {
                       avatar: orders[i].items.isNotEmpty
                           ? CircleAvatar(
                               radius: 12,
-                              child: Text('${orders[i].items.fold<int>(0, (s, l) => s + l.quantity)}',
+                              child: Text(
+                                  '${orders[i].items.fold<int>(0, (s, l) => s + l.quantity)}',
                                   style: const TextStyle(fontSize: 11)),
                             )
                           : null,
@@ -1255,7 +1333,8 @@ class _CartPanel extends StatelessWidget {
                           (line) => ListTile(
                             title: Text(line.name),
                             subtitle: Text(
-                              strings.formatMoney(line.price * line.quantity, currency),
+                              strings.formatMoney(
+                                  line.price * line.quantity, currency),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -1263,25 +1342,29 @@ class _CartPanel extends StatelessWidget {
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
                                   onPressed: () => onDecrease(line),
-                                  icon: const Icon(Icons.remove_circle_outline, size: 22),
+                                  icon: const Icon(Icons.remove_circle_outline,
+                                      size: 22),
                                 ),
                                 SizedBox(
                                   width: 28,
                                   child: Text(
                                     '${line.quantity}',
                                     textAlign: TextAlign.center,
-                                    style: Theme.of(context).textTheme.titleSmall,
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall,
                                   ),
                                 ),
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
                                   onPressed: () => onIncrease(line),
-                                  icon: const Icon(Icons.add_circle_outline, size: 22),
+                                  icon: const Icon(Icons.add_circle_outline,
+                                      size: 22),
                                 ),
                                 IconButton(
                                   visualDensity: VisualDensity.compact,
                                   onPressed: () => onRemove(line),
-                                  icon: const Icon(Icons.delete_outline, size: 20),
+                                  icon: const Icon(Icons.delete_outline,
+                                      size: 20),
                                 ),
                               ],
                             ),
@@ -1381,12 +1464,12 @@ class _PaymentSheetState extends State<PaymentSheet> {
   void initState() {
     super.initState();
     final full = (widget.totalMinor / 100).toStringAsFixed(2);
-    _cashController =
-        TextEditingController(text: widget.defaultMethod == PaymentMethod.cash ? full : '');
-    _cardController =
-        TextEditingController(text: widget.defaultMethod == PaymentMethod.card ? full : '');
-    _mobileController =
-        TextEditingController(text: widget.defaultMethod == PaymentMethod.mobile ? full : '');
+    _cashController = TextEditingController(
+        text: widget.defaultMethod == PaymentMethod.cash ? full : '');
+    _cardController = TextEditingController(
+        text: widget.defaultMethod == PaymentMethod.card ? full : '');
+    _mobileController = TextEditingController(
+        text: widget.defaultMethod == PaymentMethod.mobile ? full : '');
     _tipController = TextEditingController();
     _discountController = TextEditingController();
   }
@@ -1410,11 +1493,11 @@ class _PaymentSheetState extends State<PaymentSheet> {
         managerOverrideEnabled: widget.managerOverrideEnabled,
       );
 
-  int get _discountMinorInput =>
-      minorFromInput(_discountController.text) ?? 0;
+  int get _discountMinorInput => minorFromInput(_discountController.text) ?? 0;
 
-  int get _discountDecisionNet =>
-      _discountMinorInput > 0 ? _evaluate(_discountMinorInput).effectiveMinor : 0;
+  int get _discountDecisionNet => _discountMinorInput > 0
+      ? _evaluate(_discountMinorInput).effectiveMinor
+      : 0;
 
   String? get _discountHint {
     if (_discountMinorInput <= 0) return null;
@@ -1491,7 +1574,8 @@ class _PaymentSheetState extends State<PaymentSheet> {
     }
   }
 
-  Widget _methodRow(AppStrings s, String label, TextEditingController controller,
+  Widget _methodRow(
+      AppStrings s, String label, TextEditingController controller,
       {ValueChanged<String>? onChanged}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1517,7 +1601,8 @@ class _PaymentSheetState extends State<PaymentSheet> {
   Widget build(BuildContext context) {
     final s = widget.strings;
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -1525,8 +1610,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(s.payment,
-                  style: Theme.of(context).textTheme.headlineSmall),
+              Text(s.payment, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 4),
               Text(s.formatMoney(widget.totalMinor, widget.currency),
                   style: Theme.of(context).textTheme.titleMedium),
@@ -1552,18 +1636,17 @@ class _PaymentSheetState extends State<PaymentSheet> {
               if (_discountHint != null) ...[
                 const SizedBox(height: 4),
                 Text(_discountHint!,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Theme.of(context).colorScheme.tertiary)),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.tertiary)),
               ],
               Text(s.remainingLabel,
                   style: Theme.of(context).textTheme.bodySmall),
-              Text(s.netTotal,
-                  style: Theme.of(context).textTheme.bodySmall),
+              Text(s.netTotal, style: Theme.of(context).textTheme.bodySmall),
               Text(
                 s.formatMoney(
-                    widget.totalMinor - _discountDecisionNet + (minorFromInput(_tipController.text) ?? 0),
+                    widget.totalMinor -
+                        _discountDecisionNet +
+                        (minorFromInput(_tipController.text) ?? 0),
                     widget.currency),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -1578,8 +1661,8 @@ class _PaymentSheetState extends State<PaymentSheet> {
               if (_error != null) ...[
                 const SizedBox(height: 8),
                 Text(_error!,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.error)),
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error)),
               ],
               const SizedBox(height: 16),
               FilledButton.icon(
@@ -1686,9 +1769,31 @@ class _SessionBar extends StatelessWidget {
     );
   }
 
-  String _shortId(String id) => id.isEmpty
-      ? '—'
-      : id.split('-').first.substring(0, 4).toUpperCase();
+  String _shortId(String id) =>
+      id.isEmpty ? '—' : id.split('-').first.substring(0, 4).toUpperCase();
+}
+
+class _NewBadge extends StatelessWidget {
+  const _NewBadge({required this.strings});
+
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        strings.newBadge,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
 }
 
 class _StockBadge extends StatelessWidget {
@@ -1710,17 +1815,32 @@ class _StockBadge extends StatelessWidget {
     final low = !out && quantity <= threshold;
     final (Color background, Color foreground, String label, IconData icon) =
         negative
-            ? (colorScheme.errorContainer, colorScheme.onErrorContainer,
-                '$quantity', Icons.remove_shopping_cart)
+            ? (
+                colorScheme.errorContainer,
+                colorScheme.onErrorContainer,
+                '$quantity',
+                Icons.remove_shopping_cart
+              )
             : out
-                ? (colorScheme.errorContainer, colorScheme.onErrorContainer,
-                    strings.outOfStock, Icons.remove_shopping_cart)
+                ? (
+                    colorScheme.errorContainer,
+                    colorScheme.onErrorContainer,
+                    strings.outOfStock,
+                    Icons.remove_shopping_cart
+                  )
                 : low
-                    ? (Colors.amber.shade100, Colors.brown.shade700,
-                        '$quantity', Icons.inventory_2)
-                    : (colorScheme.surfaceContainerHighest,
-                        colorScheme.onSurfaceVariant, '$quantity',
-                        Icons.inventory_2);
+                    ? (
+                        Colors.amber.shade100,
+                        Colors.brown.shade700,
+                        '$quantity',
+                        Icons.inventory_2
+                      )
+                    : (
+                        colorScheme.surfaceContainerHighest,
+                        colorScheme.onSurfaceVariant,
+                        '$quantity',
+                        Icons.inventory_2
+                      );
     return Tooltip(
       message: negative ? strings.backorderHint : '',
       child: Container(

@@ -1,12 +1,28 @@
 import type {
+  AdjustmentReason,
+  AuthUser,
   BillingSummary,
+  Category,
+  CategoryInput,
+  DashboardSummary,
+  InventoryAdjustment,
+  InventoryAdjustmentInput,
   Invoice,
   InvoiceStatus,
   LoginResponse,
   Page,
   Plan,
+  Product,
+  ProductInput,
+  ProductPatch,
   Provider,
+  Purchase,
+  PurchaseInput,
   RecentInvoice,
+  SaleSummary,
+  StoreSubscription,
+  StoreUser,
+  StoreUserInput,
   Subscription,
   SubscriptionStatus,
   Tenant,
@@ -15,6 +31,7 @@ import type {
 
 export const ACCESS_TOKEN_KEY = 'pos_admin_token'
 export const DEVICE_ID_KEY = 'pos_admin_device_id'
+export const USER_KEY = 'pos_admin_user'
 
 export class ApiError extends Error {
   status: number
@@ -80,6 +97,26 @@ export class ApiClient {
 
   hasToken(): boolean {
     return this.token() !== null
+  }
+
+  setUser(user: AuthUser): void {
+    this.storage.setItem(USER_KEY, JSON.stringify(user))
+  }
+
+  readUser(): AuthUser | null {
+    const raw = this.storage.getItem(USER_KEY)
+    if (!raw) {
+      return null
+    }
+    try {
+      return JSON.parse(raw) as AuthUser
+    } catch {
+      return null
+    }
+  }
+
+  clearUser(): void {
+    this.storage.removeItem(USER_KEY)
   }
 
   private async request<T>(
@@ -282,7 +319,107 @@ export class ApiClient {
   paymentProviders(): Promise<Provider[]> {
     return this.request<Provider[]>('GET', '/saas/payment-providers')
   }
+
+  // ---- store console ----------------------------------------------------
+  listProducts(page = 1, limit = 50, q = ''): Promise<Page<Product>> {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (q) {
+      qs.set('q', q)
+    }
+    return this.request<Page<Product>>('GET', `/products?${qs.toString()}`)
+  }
+
+  createProduct(input: ProductInput): Promise<{ id: string }> {
+    return this.request<{ id: string }>('POST', '/products', input)
+  }
+
+  updateProduct(id: string, patch: ProductPatch): Promise<{ updated: boolean }> {
+    return this.request<{ updated: boolean }>('PATCH', `/products/${id}`, patch)
+  }
+
+  listCategories(): Promise<Category[]> {
+    return this.request<Category[]>('GET', '/categories')
+  }
+
+  createCategory(input: CategoryInput): Promise<{ id: string }> {
+    return this.request<{ id: string }>('POST', '/categories', input)
+  }
+
+  updateCategory(
+    id: string,
+    patch: Partial<CategoryInput> & { is_active?: boolean },
+  ): Promise<{ updated: boolean }> {
+    return this.request<{ updated: boolean }>('PATCH', `/categories/${id}`, patch)
+  }
+
+  deleteCategory(id: string): Promise<void> {
+    return this.request<void>('DELETE', `/categories/${id}`)
+  }
+
+  listUsers(page = 1, limit = 50): Promise<Page<StoreUser>> {
+    return this.request<Page<StoreUser>>(
+      'GET',
+      `/users?page=${page}&limit=${limit}`,
+    )
+  }
+
+  createUser(input: StoreUserInput): Promise<{ id: string }> {
+    return this.request<{ id: string }>('POST', '/users', input)
+  }
+
+  listSales(page = 1, limit = 50): Promise<Page<SaleSummary>> {
+    return this.request<Page<SaleSummary>>(
+      'GET',
+      `/sales?page=${page}&limit=${limit}`,
+    )
+  }
+
+  listPurchases(): Promise<Purchase[]> {
+    return this.request<Purchase[]>('GET', '/purchases')
+  }
+
+  createPurchase(input: PurchaseInput): Promise<{ id: string }> {
+    return this.request<{ id: string }>('POST', '/purchases', input)
+  }
+
+  listInventoryAdjustments(
+    page = 1,
+    limit = 50,
+  ): Promise<Page<InventoryAdjustment>> {
+    return this.request<Page<InventoryAdjustment>>(
+      'GET',
+      `/inventory/adjustments?page=${page}&limit=${limit}`,
+    )
+  }
+
+  createInventoryAdjustment(
+    input: InventoryAdjustmentInput,
+  ): Promise<{ id: string }> {
+    return this.request<{ id: string }>(
+      'POST',
+      '/inventory/adjustments',
+      input,
+    )
+  }
+
+  dashboardSummary(): Promise<DashboardSummary> {
+    return this.request<DashboardSummary>('GET', '/dashboard/summary')
+  }
+
+  subscription(): Promise<StoreSubscription> {
+    return this.request<StoreSubscription>('GET', '/subscription')
+  }
+
+  changePlan(planCode: string): Promise<{ id: string; plan_code: string }> {
+    return this.request<{ id: string; plan_code: string }>(
+      'POST',
+      '/subscription/change-plan',
+      { plan_code: planCode },
+    )
+  }
 }
+
+export const REASONS: AdjustmentReason[] = ['damaged', 'restock', 'count']
 
 export const api = new ApiClient()
 

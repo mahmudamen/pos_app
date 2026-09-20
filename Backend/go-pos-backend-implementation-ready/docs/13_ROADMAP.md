@@ -48,6 +48,22 @@ Status legend:
 - [x] E4 Flutter integration tests: `integration_test/app_test.dart` drives the real widget tree (cart → payment sheet → completed sale) against an in-memory fake API — requires a device/emulator (`flutter test integration_test` or `flutter drive`), so it stays skipped offline like the DB suites. The host-runnable equivalent — the offline checkout → enqueue → replay job (`test/offline_replay_test.dart`) — is green locally, covering the A3/SYNC-007 replay path end to end at the widget level.
 - [x] E5 OpenAPI spec generation from Gin routes for frontend codegen. `cmd/openapi` assembles the engine via `internal/transport/server.Register` (same path as `cmd/api`), walks the live Gin route table, and emits `docs/openapi.json` (82 paths, bearer security, data/error envelope) — `make openapi`. No drift possible: the generator shares main's route table. Guard added for the empty root segment (`operationID` must not slice `seg[:1]` of `""` for the `/` landing page).
 
+## Phase F — Egypt tax & accounting (VAT + ETA e-invoice/e-receipt)
+
+> Detailed plan: `docs/22_EGYPT_ACCOUNTING_VAT_EINVOICE.md`. Law 67/2016 VAT (14%),
+> E-invoicing B2B/B2G is cleared in real time; e-receipts B2C from registered POS
+> devices reported within 24–72h with mandatory print QR (2026 enforcement, EGP
+> 250k registration threshold).
+
+- [ ] F0 Tax/VAT schema + VAT engine: migrations `040_eta_taxonomy` (tax_categories + products VAT fields + EGS/GS1 codes + customers TRN), `041_eta_identity` (tenant TRN/activity/commercial/ETA profile encrypted, devices ETA serial+PIN), pure `internal/accounting` VAT engine (tax-inclusive prices, per-rate split, discount pro-ration, per-line round-half-up, credit on refund).
+- [ ] F1 ETA document builder + eSeal signer: Invoice v1.2/1.3 + Receipt v1.2 + Credit builders, ETA canonical-string + RSA-SHA256 signing, byte-level contract tests vs official samples. `internal/eta/`.
+- [ ] F2 Submission outbox + worker + webhook: `042_eta_documents` (RLS FORCE, excluded from sync feed), chunked submit (≤100), status polling, ETA notifications receiver, exponential backoff, alerting for the 72h e-receipt window; QR echoed on receipts.
+- [ ] F3 Accounting core (GL): `043_gl_accounting` (COA + journals + lines, debits=credits), posting engine (sales/refunds/registers/inventory/purchases), VAT sales/purchase registers + monthly VAT return worksheet.
+- [ ] F4 Merchant onboarding + catalog mapping: tenant/device ETA setup endpoints + Flutter settings + EGS/GS1 bulk CSV import + missing-codes report.
+- [ ] F5 Reports + dashboard + recon: submission dashboard (per status), VAT registers UI, POS-vs-ETA reconciliation.
+- [ ] F6 Receipt QR + printing: extend ESC/POS + JSON receipts with ETA QR (mandatory once `eta_enabled`).
+- [ ] F7 Go-live + ops: 2-week ETA preprod soak, prod cut-over, expired/rejected batch triage, VAT-with-old-ETA-verified-numbers acceptance, runbook additions to `docs/11_OPERATIONS.md`.
+
 ## Definition of done
 
 Same as docs/04_TASKS.md: gofmt-clean, vet-clean, tested, tenant-isolated, typed errors,

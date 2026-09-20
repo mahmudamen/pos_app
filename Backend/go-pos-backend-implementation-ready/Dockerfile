@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/pos-api ./cmd/api 
     && GOFLAGS=-mod=mod go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
 
 FROM alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
-RUN apk --no-cache add ca-certificates tzdata \
+RUN apk --no-cache add ca-certificates tzdata tesseract-ocr tesseract-ocr-data-ara \
     && addgroup -S pos-api && adduser -S -G pos-api pos-api
 WORKDIR /app
 COPY --from=build /out/pos-api /app/pos-api

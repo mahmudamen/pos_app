@@ -9,6 +9,7 @@ import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 import 'tenant_analytics_screen.dart';
 import 'trial_settings_screen.dart';
+import 'billing_screen.dart';
 
 class ControlPanelScreen extends StatefulWidget {
   const ControlPanelScreen({
@@ -171,6 +172,16 @@ class _ControlPanelScreenState extends State<ControlPanelScreen> {
             ],
           ),
           actions: [
+            IconButton(
+              tooltip: s.billing,
+              icon: const Icon(Icons.receipt_long_outlined),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => BillingScreen(
+                  session: widget.session,
+                  apiClient: widget.apiClient,
+                ),
+              )),
+            ),
             IconButton(
               tooltip: s.trialSettings,
               icon: const Icon(Icons.tune),

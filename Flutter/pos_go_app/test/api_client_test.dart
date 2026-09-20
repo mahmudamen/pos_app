@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -484,18 +485,25 @@ void main() {
       () {
     final summary = DashboardSummary.fromJson(const {
       'date': '2026-09-11',
+      'vat_mode': 'inclusive',
       'today': {
         'revenue_minor': 4125,
         'sales_count': 7,
         'avg_sale_minor': 589,
         'items_sold': 12,
+        'tax_minor': 505,
+        'cogs_minor': 1800,
+        'profit_minor': 2325,
       },
       'top_products': [
         {
           'product_name': 'Blueberry Muffin',
           'sku': 'MUF-001',
           'quantity': 4,
-          'revenue_minor': 1200
+          'revenue_minor': 1200,
+          'tax_minor': 147,
+          'cogs_minor': 500,
+          'gross_profit_minor': 700,
         }
       ],
       'recent_sales': [
@@ -521,12 +529,18 @@ void main() {
       ],
     });
     expect(summary.date, '2026-09-11');
+    expect(summary.vatMode, 'inclusive');
+    expect(summary.profitIncludesVat, isTrue);
     expect(summary.today.revenueMinor, 4125);
     expect(summary.today.salesCount, 7);
     expect(summary.today.avgSaleMinor, 589);
     expect(summary.today.itemsSold, 12);
+    expect(summary.today.taxMinor, 505);
+    expect(summary.today.cogsMinor, 1800);
+    expect(summary.today.profitMinor, 2325);
     expect(summary.topProducts, hasLength(1));
     expect(summary.topProducts.first.productName, 'Blueberry Muffin');
+    expect(summary.topProducts.first.grossProfitMinor, 700);
     expect(summary.recentSales, hasLength(1));
     expect(summary.recentSales.first.paymentMethod, 'cash');
     expect(summary.perCashier, hasLength(1));
@@ -534,6 +548,22 @@ void main() {
     expect(summary.paymentMix, hasLength(2));
     expect(summary.paymentMix.first.method, 'cash');
     expect(summary.paymentMix.first.amountMinor, 3000);
+  });
+
+  test('DashboardSummary defaults vat_mode to exclusive when absent', () {
+    final summary = DashboardSummary.fromJson(<String, dynamic>{
+      'date': '2026-09-11',
+      'today': <String, dynamic>{},
+      'top_products': const <dynamic>[],
+      'recent_sales': const <dynamic>[],
+      'per_cashier': const <dynamic>[],
+      'payment_mix': const <dynamic>[],
+    });
+    expect(summary.vatMode, 'exclusive');
+    expect(summary.profitIncludesVat, isFalse);
+    expect(summary.today.profitMinor, 0);
+    expect(summary.today.cogsMinor, 0);
+    expect(summary.today.taxMinor, 0);
   });
 
   test('dashboardSummary fetches /v1/dashboard/summary', () async {
@@ -547,7 +577,22 @@ void main() {
     );
     final summary = await client.dashboardSummary(session);
     expect(summary.today.revenueMinor, 4125);
+    expect(summary.today.profitMinor, 1820);
     expect(summary.paymentMix, hasLength(2));
+  });
+
+  test('dashboardSummary passes vat mode as the vat query parameter', () async {
+    final mock = _DashboardClient();
+    final client = ApiClient(client: mock);
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    await client.dashboardSummary(session, vatMode: 'inclusive');
+    expect(mock.lastVat, 'inclusive');
   });
 
   test('dashboardSummary surfaces API errors', () async {
@@ -1313,6 +1358,37 @@ expect(() => client.dashboardSummary(session),
     expect(refreshedSession?.refreshToken, 'new-refresh-token');
   });
 
+  test(
+      'concurrent 401s share ONE refresh so the rotated token is never replayed',
+      () async {
+    Session? refreshedSession;
+    final mock = _ConcurrentRefreshClient();
+    final client = ApiClient(
+      client: mock,
+      onSessionRefreshed: (session) async => refreshedSession = session,
+    );
+    const session = Session(
+      accessToken: 'expired-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+    );
+
+    final results = await Future.wait([
+      client.categories(session),
+      client.products(session),
+      client.settings(session),
+    ]);
+
+    expect((results[0] as List<Category>), hasLength(2));
+    expect((results[1] as List<Product>).single.id, 'product-1');
+    expect(refreshedSession?.accessToken, 'new-access-token');
+    expect(refreshedSession?.refreshToken, 'new-refresh-token');
+    expect(mock.refreshCalls, 1,
+        reason: 'the AUTH-007 replay path revokes the whole session family');
+  });
+
   test('createProduct sends catalog fields', () async {
     final client = ApiClient(client: _CreateProductClient());
     const session = Session(
@@ -1418,6 +1494,53 @@ expect(() => client.dashboardSummary(session),
     expect(cat.id, 'cat-1');
     expect(cat.name, 'Drinks');
     expect(cat.slug, 'drinks');
+  });
+
+  group('Arabic catalog localization', () {
+    test('Product parses name_ar/description_ar and honors the Arabic locale', () {
+      final product = Product.fromJson({
+        'id': 'p-ar',
+        'name': 'Chipsy Chips 80g',
+        'name_ar': 'شيبسي شيبس 80 جم',
+        'sku': 'GR-017',
+        'barcode': '6221010000239',
+        'price_minor': 1600,
+        'currency': 'EGP',
+        'stock_quantity': 75,
+        'description': 'Classic salted potato chips.',
+        'description_ar': 'رقائق بطاطس مملحة كلاسيكية.',
+      });
+      expect(product.nameAr, 'شيبسي شيبس 80 جم');
+      expect(product.descriptionAr, 'رقائق بطاطس مملحة كلاسيكية.');
+      const ar = Locale('ar');
+      expect(product.displayName(ar), 'شيبسي شيبس 80 جم');
+      expect(product.displayName(const Locale('en')), 'Chipsy Chips 80g');
+    });
+
+    test('Product falls back to the primary name when Arabic is missing', () {
+      final product = Product.fromJson({
+        'id': 'p-noar',
+        'name': 'Generic Item',
+        'sku': 'G-1',
+        'price_minor': 100,
+        'currency': 'EGP',
+        'stock_quantity': 1,
+      });
+      expect(product.nameAr, '');
+      expect(product.displayName(const Locale('ar')), 'Generic Item');
+    });
+
+    test('Category parses name_ar and honors the Arabic locale', () {
+      final cat = Category.fromJson({
+        'id': 'cat-bak',
+        'name': 'Bakery',
+        'name_ar': 'المخبوزات',
+        'slug': 'bakery',
+      });
+      expect(cat.nameAr, 'المخبوزات');
+      expect(cat.displayName(const Locale('ar')), 'المخبوزات');
+      expect(cat.displayName(const Locale('en')), 'Bakery');
+    });
   });
 
   group('login', () {
@@ -1597,6 +1720,43 @@ expect(() => client.dashboardSummary(session),
         'stock_quantity': 1,
       });
       expect(product.priceMinor, 200);
+    });
+
+    test('parses created_at into createdAt and flags recent products', () {
+      final now = DateTime.now();
+      final fresh = Product.fromJson({
+        'id': 'p-4',
+        'name': 'Fresh',
+        'sku': 'F-1',
+        'price_minor': 200,
+        'currency': 'USD',
+        'stock_quantity': 1,
+        'created_at': now.subtract(const Duration(days: 1)).toIso8601String(),
+      });
+      final old = Product.fromJson({
+        'id': 'p-5',
+        'name': 'Old',
+        'sku': 'O-1',
+        'price_minor': 200,
+        'currency': 'USD',
+        'stock_quantity': 1,
+        'created_at': now.subtract(const Duration(days: 40)).toIso8601String(),
+      });
+      final without = Product.fromJson({
+        'id': 'p-6',
+        'name': 'Plain',
+        'sku': 'PL-1',
+        'price_minor': 200,
+        'currency': 'USD',
+        'stock_quantity': 1,
+      });
+      expect(fresh.createdAt, isNotNull);
+      expect(fresh.isRecentlyAdded(now), isTrue);
+      expect(fresh.isRecentlyAdded(now, within: const Duration(days: 0)),
+          isFalse, reason: 'outside the window must not flag');
+      expect(old.isRecentlyAdded(now), isFalse);
+      expect(without.createdAt, isNull);
+      expect(without.isRecentlyAdded(now), isFalse);
     });
   });
 
@@ -1855,6 +2015,60 @@ class _RefreshClient extends http.BaseClient {
       headers: {'content-type': 'application/json'},
     );
   }
+}
+
+/// Simulates the POS boot storm: several authenticated calls 401 at once while
+/// the access token is expired. The client must rotate the refresh token
+/// exactly once — each concurrent caller joins the same in-flight refresh, so
+/// the old token is never submitted a second time (which would trip the
+/// backend's AUTH-007 reuse detection and revoke the whole session family).
+class _ConcurrentRefreshClient extends http.BaseClient {
+  var refreshCalls = 0;
+  final _attempts = <String, int>{};
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.url.path.endsWith('/auth/refresh')) {
+      refreshCalls++;
+      // Keep the replacement slow enough that the sibling 401s arrive while
+      // this rotation is still in flight.
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      const body =
+          '{"data":{"access_token":"new-access-token","refresh_token":"new-refresh-token"}}';
+      return http.StreamedResponse(
+        Stream.value(body.codeUnits),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    }
+    final path = request.url.path;
+    final attempt = _attempts[path] = (_attempts[path] ?? 0) + 1;
+    if (attempt == 1) {
+      return http.StreamedResponse(Stream.value('{}'.codeUnits), 401);
+    }
+    expect(request.headers['Authorization'], 'Bearer new-access-token');
+    switch (path) {
+      case '/v1/categories':
+        const body =
+            '{"data":[{"id":"cat-1","name":"Drinks","slug":"drinks"},{"id":"cat-2","name":"Food","slug":"food"}]}';
+        return _ok(body);
+      case '/v1/products':
+        const body =
+            '{"data":[{"id":"product-1","name":"Espresso","sku":"ESP-1","barcode":"0123","price_minor":280,"currency":"USD","stock_quantity":4}]}';
+        return _ok(body);
+      default:
+        expect(path, '/v1/settings');
+        const body =
+            '{"data":{"pos.default_payment_method":"cash","pos.show_stock_badges":"false","pos.receipt_footer":"","inventory.allow_negative_stock":"false"}}';
+        return _ok(body);
+    }
+  }
+
+  http.StreamedResponse _ok(String body) => http.StreamedResponse(
+        Stream.value(body.codeUnits),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
 }
 
 class _CreateProductClient extends http.BaseClient {
@@ -2153,14 +2367,17 @@ class _SessionsListClient extends http.BaseClient {
 }
 
 const _dashboardJson =
-    '{"data":{"date":"2026-09-11","today":{"revenue_minor":4125,"sales_count":7,"avg_sale_minor":589,"items_sold":12},"top_products":[{"product_name":"Blueberry Muffin","sku":"MUF-001","quantity":4,"revenue_minor":1200}],"recent_sales":[{"id":"sale-1","status":"completed","total_minor":600,"currency":"EGP","payment_method":"cash","created_at":"2026-09-11 00:11:17"}],"per_cashier":[{"cashier":"Restaurant Admin","sales_count":7,"revenue_minor":4125}],"payment_mix":[{"method":"cash","amount_minor":3000},{"method":"card","amount_minor":1125}]},"meta":{"request_id":"t"}}';
+    '{"data":{"date":"2026-09-11","vat_mode":"exclusive","today":{"revenue_minor":4125,"sales_count":7,"avg_sale_minor":589,"items_sold":12,"tax_minor":505,"cogs_minor":1800,"profit_minor":1820},"top_products":[{"product_name":"Blueberry Muffin","sku":"MUF-001","quantity":4,"revenue_minor":1200,"tax_minor":147,"cogs_minor":500,"gross_profit_minor":553}],"recent_sales":[{"id":"sale-1","status":"completed","total_minor":600,"currency":"EGP","payment_method":"cash","created_at":"2026-09-11 00:11:17"}],"per_cashier":[{"cashier":"Restaurant Admin","sales_count":7,"revenue_minor":4125}],"payment_mix":[{"method":"cash","amount_minor":3000},{"method":"card","amount_minor":1125}]},"meta":{"request_id":"t"}}';
 
 class _DashboardClient extends http.BaseClient {
+  String? lastVat;
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'GET');
     expect(request.url.path, '/v1/dashboard/summary');
     expect(request.headers['Authorization'], 'Bearer access-token');
+    lastVat = request.url.queryParameters['vat'];
     return http.StreamedResponse(
       Stream.value(_dashboardJson.codeUnits),
       200,

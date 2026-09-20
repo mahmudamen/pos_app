@@ -99,6 +99,31 @@ BEGIN
 END
 $$;
 
+-- Purchase ledger + OCR-scanned line items (migration 035). Tenant-RLS rows
+-- written by the purchases module; the runtime role needs the same DML it
+-- exercises when an invoice is applied/listed.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT ON TABLE purchases TO pos_app_rls;
+        GRANT SELECT, INSERT ON TABLE purchase_items TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE ocr_usage TO pos_app_rls;
+        GRANT UPDATE (ocr_credits_remaining) ON TABLE tenants TO pos_app_rls;
+    END IF;
+END
+$$;
+
+-- Self-ordering (migration 038). Public web orders INSERT self_orders through
+-- the tenant-scoped tx; the staff module reads/updates both tables.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE self_orders TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE ON TABLE product_requests TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- ── Identity + trial platform tables (migrations 033/034) ───────────────────
 -- These are platform-level (no RLS) and are only ever read/written by server
 -- services, never exposed to clients. audit_log is append-only: no UPDATE or

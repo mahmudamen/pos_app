@@ -59,8 +59,13 @@ func get(t *testing.T, router http.Handler, path, token string) (*httptest.Respo
 
 func postJSON(t *testing.T, router http.Handler, path, token, body string) *httptest.ResponseRecorder {
 	t.Helper()
+	return doJSON(t, router, http.MethodPost, path, token, body)
+}
+
+func doJSON(t *testing.T, router http.Handler, method, path, token, body string) *httptest.ResponseRecorder {
+	t.Helper()
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, path, bytes.NewBufferString(body))
+	req := httptest.NewRequest(method, path, bytes.NewBufferString(body))
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(rec, req)
@@ -208,12 +213,12 @@ func TestSaaSIntegration_SummaryAndList(t *testing.T) {
 	if len(body["data"].([]any)) < 1 {
 		t.Fatalf("business_type+status filter should still match the tenant: %v", body["data"])
 	}
-	rec, body = get(t, router, "/v1/saas/tenants?status=suspended", token)
+	rec, body = get(t, router, "/v1/saas/tenants?status=suspended&q="+seed.Slug, token)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("suspended list: expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
 	if len(body["data"].([]any)) != 0 {
-		t.Fatalf("no tenant should be suspended yet: %v", body["data"])
+		t.Fatalf("seeded tenant should not be suspended yet: %v", body["data"])
 	}
 
 	// The platform tenant only appears when explicitly requested.
@@ -284,6 +289,167 @@ func TestSaaSIntegration_TenantAnalytics(t *testing.T) {
 	}
 	if !bytes.Contains(list, []byte(`"plan":"standard"`)) {
 		t.Fatalf("tenant list should include plan: %s", list)
+	}
+}
+
+func TestSaaSIntegration_CreateAndUpdateTenant(t *testing.T) {
+	router, seed, pool := setupSaaSIntegration(t)
+	_ = pool
+	token := saasToken(t, seed)
+
+	// Create a store shell from the control plane.
+	rec := doJSON(t, router, http.MethodPost, "/v1/saas/tenants", token,
+		`{"name":"Cafe Ismailia","business_type":"coffee_shop","plan":"starter","max_users":5,"max_products":300}`)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create tenant: expected 201, got %d: %s", rec.Code, rec.Body.String())
+	}
+	var created struct {
+		Data struct {
+			ID           string `json:"id"`
+			Name         string `json:"name"`
+			Slug         string `json:"slug"`
+			Plan         string `json:"plan"`
+			Status       string `json:"status"`
+			MaxUsers     int    `json:"max_users"`
+			MaxProducts  int    `json:"max_products"`
+			CurrencyCode string `json:"currency_code"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &created); err != nil {
+		t.Fatal(err)
+	}
+	if created.Data.ID == "" || created.Data.Slug == "" {
+		t.Fatalf("create tenant should return id+slug: %s", rec.Body.String())
+	}
+	if created.Data.Plan != "starter" || created.Data.Status != "active" ||
+		created.Data.MaxUsers != 5 || created.Data.MaxProducts != 300 || created.Data.CurrencyCode != "EGP" {
+		t.Fatalf("create tenant shell fields wrong: %s", rec.Body.String())
+	}
+
+	// Invalid business type and status → 400.
+	rec = doJSON(t, router, http.MethodPost, "/v1/saas/tenants", token, `{"name":"Bad","business_type":"space_port"}`)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("bad business_type: expected 400, got %d", rec.Code)
+	}
+	rec = doJSON(t, router, http.MethodPost, "/v1/saas/tenants", token, `{"name":"Bad2","business_type":"retail","status":"frozen"}`)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("bad status: expected 400, got %d", rec.Code)
+	}
+
+	// Update the plan, quotas and status.
+	rec = doJSON(t, router, http.MethodPatch, "/v1/saas/tenants/"+created.Data.ID, token,
+		`{"plan":"business","max_users":10,"max_products":1000,"status":"suspended"}`)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("update tenant: expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+	var updated struct {
+		Data struct {
+			Plan        string `json:"plan"`
+			Status      string `json:"status"`
+			MaxUsers    int    `json:"max_users"`
+			MaxProducts int    `json:"max_products"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &updated); err != nil {
+		t.Fatal(err)
+	}
+	if updated.Data.Plan != "business" || updated.Data.Status != "suspended" ||
+		updated.Data.MaxUsers != 10 || updated.Data.MaxProducts != 1000 {
+		t.Fatalf("update tenant should apply plan/limits/status: %s", rec.Body.String())
+	}
+
+	// The suspended store shows up under that filter.
+	rec, body := get(t, router, "/v1/saas/tenants?status=suspended", token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("list: expected 200, got %d", rec.Code)
+	}
+	seen := false
+	for _, item := range body["data"].([]any) {
+		if item.(map[string]any)["id"] == created.Data.ID {
+			seen = true
+		}
+	}
+	if !seen {
+		t.Fatalf("updated tenant should appear in the suspended filter: %v", body["data"])
+	}
+
+	// Unknown tenant id → 404.
+	rec = doJSON(t, router, http.MethodPatch, "/v1/saas/tenants/00000000-0000-0000-0000-0000000000ff", token, `{"plan":"starter"}`)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("update missing tenant: expected 404, got %d", rec.Code)
+	}
+
+	// The seeded tenant (from before) is untouched.
+	rec, body = get(t, router, "/v1/saas/tenants?q="+seed.Slug, token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("list seeded: expected 200, got %d", rec.Code)
+	}
+	if len(body["data"].([]any)) != 1 {
+		t.Fatalf("seeded tenant should remain intact: %v", body["data"])
+	}
+}
+
+func TestSaaSIntegration_CreateAndListUsers(t *testing.T) {
+	router, seed, pool := setupSaaSIntegration(t)
+	token := saasToken(t, seed)
+
+	// Create a staff user inside the seeded tenant.
+	body := `{"email":"staff@example.com","display_name":"Staff","password":"password123","role":"cashier"}`
+	rec := doJSON(t, router, http.MethodPost, "/v1/saas/tenants/"+seed.TenantID+"/users", token, body)
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("create saas user: expected 201, got %d: %s", rec.Code, rec.Body.String())
+	}
+	var created struct {
+		Data struct {
+			ID          string `json:"id"`
+			TenantName  string `json:"tenant_name"`
+			Role        string `json:"role"`
+			AccessLevel string `json:"access_level"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &created); err != nil {
+		t.Fatal(err)
+	}
+	if created.Data.TenantName == "" || created.Data.Role != "cashier" || created.Data.AccessLevel == "" {
+		t.Fatalf("create saas user payload wrong: %s", rec.Body.String())
+	}
+
+	// Duplicate email inside the same store → 409 user_conflict.
+	rec = doJSON(t, router, http.MethodPost, "/v1/saas/tenants/"+seed.TenantID+"/users", token, body)
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("duplicate email: expected 409, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	// Unknown tenant → 404.
+	rec = doJSON(t, router, http.MethodPost, "/v1/saas/tenants/00000000-0000-0000-0000-0000000000ff/users", token, body)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("create user in missing tenant: expected 404, got %d", rec.Code)
+	}
+
+	// Global user list, narrowed to the seeded tenant, includes the new user
+	// with its owning store name.
+	rec, listBody := get(t, router, "/v1/saas/users?tenant_id="+seed.TenantID, token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("list users: expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+	rows := listBody["data"].([]any)
+	found := false
+	for _, item := range rows {
+		m := item.(map[string]any)
+		if m["email"] == "staff@example.com" && m["tenant_name"] != "" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("user list should include the new staff user: %v", rows)
+	}
+
+	// Plan cap is enforced through the SaaS create endpoint too.
+	setTenantPlan(t, seed, pool, 3, 0) // 2 seeded users + 1 staff = 3
+	rec = doJSON(t, router, http.MethodPost, "/v1/saas/tenants/"+seed.TenantID+"/users", token,
+		`{"email":"fourth@example.com","display_name":"Fourth","password":"password123","role":"cashier"}`)
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("over-limit saas user: expected 409, got %d: %s", rec.Code, rec.Body.String())
 	}
 }
 

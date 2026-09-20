@@ -68,10 +68,11 @@ const siteIndexBody = `<main>
           <a class="btn btn-primary" href="/admin/">{{.T.ctaPrimary}}</a>
           <a class="btn btn-ghost" href="/pricing">{{.T.ctaSecondary}}</a>
         </div>
-        <div class="hero-trust">
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.3 2.3 4.7-4.7"/></svg>{{.T.trust1}}</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.3 2.3 4.7-4.7"/></svg>{{.T.trust2}}</span>
-          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.3 2.3 4.7-4.7"/></svg>{{.T.trust3}}</span>
+        <div class="stats">
+          <span class="s"><b>{{.T.stat1}}</b><small>{{.T.stat1L}}</small></span>
+          <span class="s"><b>{{.T.stat2}}</b><small>{{.T.stat2L}}</small></span>
+          <span class="s"><b>{{.T.stat3}}</b><small>{{.T.stat3L}}</small></span>
+          <span class="s"><b>{{.T.stat4}}</b><small>{{.T.stat4L}}</small></span>
         </div>
       </div>
       <aside class="receipt" aria-label="{{.T.recOrder}}">
@@ -94,6 +95,17 @@ const siteIndexBody = `<main>
           <rect x="0" y="0" width="4" height="28"/><rect x="8" y="4" width="2" height="24"/><rect x="14" y="0" width="5" height="28"/><rect x="23" y="6" width="2" height="22"/><rect x="29" y="0" width="3" height="28"/><rect x="36" y="2" width="5" height="26"/><rect x="45" y="6" width="2" height="22"/><rect x="51" y="0" width="4" height="28"/><rect x="59" y="3" width="3" height="25"/><rect x="66" y="0" width="2" height="28"/><rect x="72" y="5" width="5" height="23"/><rect x="81" y="0" width="3" height="28"/><rect x="88" y="2" width="4" height="26"/><rect x="96" y="6" width="2" height="22"/><rect x="102" y="0" width="5" height="28"/><rect x="111" y="4" width="2" height="24"/><rect x="117" y="0" width="3" height="28"/><rect x="124" y="2" width="5" height="26"/><rect x="133" y="6" width="2" height="22"/><rect x="139" y="0" width="4" height="28"/><rect x="147" y="3" width="3" height="25"/><rect x="154" y="0" width="2" height="28"/><rect x="160" y="5" width="5" height="23"/><rect x="169" y="0" width="3" height="28"/><rect x="176" y="2" width="4" height="26"/><rect x="184" y="6" width="2" height="22"/><rect x="190" y="0" width="5" height="28"/><rect x="199" y="4" width="2" height="24"/><rect x="205" y="0" width="3" height="28"/><rect x="212" y="2" width="5" height="26"/><rect x="221" y="6" width="2" height="22"/><rect x="227" y="0" width="4" height="28"/><rect x="235" y="3" width="5" height="25"/>
         </svg>
       </aside>
+    </section>
+
+    <section id="how" class="section">
+      <span class="section-label">{{.T.secHow}}</span>
+      <h2 class="section-title">{{.T.howTitle}}</h2>
+      <p class="section-sub">{{.T.howLead}}</p>
+      <ol class="steps">
+        <li><span class="step-num" aria-hidden="true">1</span><div><h3>{{.T.how1t}}</h3><p>{{.T.how1d}}</p></div></li>
+        <li><span class="step-num" aria-hidden="true">2</span><div><h3>{{.T.how2t}}</h3><p>{{.T.how2d}}</p></div></li>
+        <li><span class="step-num" aria-hidden="true">3</span><div><h3>{{.T.how3t}}</h3><p>{{.T.how3d}}</p></div></li>
+      </ol>
     </section>
 
     <section id="features" class="section">
@@ -142,12 +154,24 @@ const siteIndexBody = `<main>
       </div>
     </section>
 
+    <section id="faq" class="section">
+      <span class="section-label">{{.T.secFAQ}}</span>
+      <h2 class="section-title">{{.T.faqTitle}}</h2>
+      <div class="faqs">
+        <details><summary>{{.T.q1}}</summary><p>{{.T.a1}}</p></details>
+        <details><summary>{{.T.q2}}</summary><p>{{.T.a2}}</p></details>
+        <details><summary>{{.T.q3}}</summary><p>{{.T.a3}}</p></details>
+        <details><summary>{{.T.q4}}</summary><p>{{.T.a4}}</p></details>
+        <details><summary>{{.T.q5}}</summary><p>{{.T.a5}}</p></details>
+      </div>
+    </section>
+
     <section id="plans" class="section">
       <span class="section-label">{{.T.secPlans}}</span>
       <h2 class="section-title">{{.T.plansTitle}}</h2>
       <p class="section-sub">{{.T.plansLead}}</p>
       <div class="plans">` + sitePlansGrid + `</div>
-      <p class="section-note"><a href="/pricing">{{.T.plansCTA}}</a></p>
+      <p class="section-note"><a href="/pricing#compare">{{.T.plansCTA}}</a></p>
     </section>
   </div>
 </main>`
@@ -162,6 +186,34 @@ const sitePricingBody = `<main>
     <section class="section">
       <div class="plans">` + sitePlansGrid + `</div>
       <p class="section-note">{{.T.priceNote}}</p>
+    </section>
+    <section id="compare" class="section">
+      <span class="section-label">{{.T.secCompare}}</span>
+      <h2 class="section-title">{{.T.compareTitle}}</h2>
+      <p class="section-sub">{{.T.compareLead}}</p>
+      <div class="compare-scroll">
+        <table class="compare">
+          <thead>
+            <tr><th scope="col">{{.T.compareFeature}}</th>{{range .ComparePlans}}<th scope="col">{{.}}</th>{{end}}</tr>
+          </thead>
+          <tbody>
+          {{range .Compare}}
+            <tr><th scope="row">{{.Label}}</th>{{range .Values}}<td>{{if .}}<svg class="match" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{else}}<span class="dash" aria-hidden="true">—</span>{{end}}</td>{{end}}</tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section id="faq" class="section">
+      <span class="section-label">{{.T.secFAQ}}</span>
+      <h2 class="section-title">{{.T.faqTitle}}</h2>
+      <div class="faqs">
+        <details><summary>{{.T.q1}}</summary><p>{{.T.a1}}</p></details>
+        <details><summary>{{.T.q2}}</summary><p>{{.T.a2}}</p></details>
+        <details><summary>{{.T.q3}}</summary><p>{{.T.a3}}</p></details>
+        <details><summary>{{.T.q4}}</summary><p>{{.T.a4}}</p></details>
+        <details><summary>{{.T.q5}}</summary><p>{{.T.a5}}</p></details>
+      </div>
       <p class="section-note"><a href="/">{{.T.backHome}}</a></p>
     </section>
   </div>
@@ -192,11 +244,25 @@ const sitePrivacyBody = `<main>
 
 const siteFoot = `<footer class="site-footer">
   <div class="footer container">
-    <span class="copy">© {{.Year}} XAMLtech · {{.T.footerRights}} · {{.T.footerTag}}</span>
-    <a href="/pricing">{{.T.navPricing}}</a>
-    <a href="/private">{{.T.navPrivacy}}</a>
-    <a href="mailto:{{.T.contact}}">{{.T.contact}}</a>
-    <a href="/admin/">{{.T.navAdmin}}</a>
+    <div class="footer-brand">
+      <b>{{.T.brand}} <small>{{.T.brandSub}}</small></b>
+      <p>{{.T.footerTag}}</p>
+    </div>
+    <div class="footer-links" aria-label="{{.T.navLabel}}">
+      <a href="/#features">{{.T.navFeatures}}</a>
+      <a href="/#verticals">{{.T.navVerticals}}</a>
+      <a href="/#how">{{.T.secHow}}</a>
+      <a href="/#faq">{{.T.secFAQ}}</a>
+    </div>
+    <div class="footer-links">
+      <a href="/pricing">{{.T.navPricing}}</a>
+      <a href="/private">{{.T.navPrivacy}}</a>
+      <a href="/admin/">{{.T.navAdmin}}</a>
+      <a href="mailto:{{.T.contact}}">{{.T.contact}}</a>
+    </div>
+    <div class="footer-text">
+      <span>© {{.Year}} XAMLtech · {{.T.footerRights}}</span>
+    </div>
   </div>
 </footer>
 </body>

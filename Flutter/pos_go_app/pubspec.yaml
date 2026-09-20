@@ -18,6 +18,9 @@ dependencies:
   path: ^1.9.0
   sqflite: ^2.3.3+1
   url_launcher: ^6.3.1
+  image_picker: ^1.2.3
+  image: ^4.10.1
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

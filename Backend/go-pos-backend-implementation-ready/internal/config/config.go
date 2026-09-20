@@ -45,7 +45,29 @@ type Config struct {
 	PriceCronEnabled      bool
 	PriceCronInterval     time.Duration
 	PriceCronVariationPct int
-	Trial                 TrialConfig
+	OCREnabled            bool
+	TesseractBin          string
+	TesseractLangs        string
+	TesseractPSM          int
+
+	// OCR metering limits (migration 036_ocr_usage). A zero limit means
+	// "unlimited" for that rolling window; when a tenant is past every window
+	// limit AND its credits are exhausted, /v1/purchases/ocr answers 402
+	// ocr_window_limit_reached — the shop then tops up points via
+	// POST /v1/purchases/ocr/topup.
+	OCRDayLimit   int64
+	OCRWeekLimit  int64
+	OCRMonthLimit int64
+
+	// Web Push (RFC 8030) VAPID keys for the self-order page's browser
+	// notifications ("notify me when this product is back in stock"). Without
+	// all three set, back-in-stock notifications are skipped (disabled) and the
+	// self-order page hides the notify button.
+	VAPIDPublicKey  string
+	VAPIDPrivateKey string
+	VAPIDSubject    string
+
+	Trial TrialConfig
 }
 
 // TrialConfig is the configurable free-trial and identity policy. Every field
@@ -222,6 +244,54 @@ func Load() (Config, error) {
 	}
 	c.PriceCronEnabled = priceCronEnabled
 	c.PriceCronVariationPct = priceCronVariation
+
+	// Purchase-invoice OCR. The feature is opt-in: without OCR_ENABLED=true the
+	// binary is still built but /v1/purchases/ocr answers 503 ocr_unavailable.
+	c.OCREnabled, err = boolValue("OCR_ENABLED", false)
+	if err != nil {
+		return Config{}, err
+	}
+	c.TesseractBin = envOr("TESSERACT_BIN", "tesseract")
+	c.TesseractLangs = envOr("TESSERACT_LANGS", "ara+eng")
+	psm, err := intValue("TESSERACT_PSM", 6)
+	if err != nil {
+		return Config{}, err
+	}
+	if psm < 0 || psm > 13 {
+		return Config{}, fmt.Errorf("TESSERACT_PSM must be between 0 and 13")
+	}
+	c.TesseractPSM = psm
+
+	// OCR window limits (migration 036_ocr_usage, enforcement in
+	// internal/transport/purchases/metering.go). Zero = unlimited for that
+	// rolling window. The handler bumps the window counters on every admitted
+	// scan and rejects 402 ocr_window_limit_reached when the tenant is past
+	// EVERY window AND its ocr_credits_remaining is exhausted; a top-up
+	// (POST /v1/purchases/ocr/topup) adds points and lets scanning resume.
+	for _, kv := range []struct {
+		key string
+		dst *int64
+	}{
+		{"OCR_DAY_LIMIT", &c.OCRDayLimit},
+		{"OCR_WEEK_LIMIT", &c.OCRWeekLimit},
+		{"OCR_MONTH_LIMIT", &c.OCRMonthLimit},
+	} {
+		n, err := int64Value(kv.key, 0)
+		if err != nil {
+			return Config{}, err
+		}
+		if n < 0 {
+			return Config{}, fmt.Errorf("%s must be >= 0 (0 = unlimited)", kv.key)
+		}
+		*kv.dst = n
+	}
+
+	// VAPID identity for web-push back-in-stock notifications. Opt-in: if the
+	// private key is missing the pusher is a no-op.
+	c.VAPIDPublicKey = envOr("VAPID_PUBLIC_KEY", "")
+	c.VAPIDPrivateKey = envOr("VAPID_PRIVATE_KEY", "")
+	c.VAPIDSubject = envOr("VAPID_SUBJECT", "mailto:support@xamltech.com")
+
 	trial, err := loadTrialConfig()
 	if err != nil {
 		return Config{}, err

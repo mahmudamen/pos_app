@@ -188,7 +188,37 @@ class _InventoryScreenState extends State<InventoryScreen> {
         costMinor: p.costMinor,
         imageUrl: p.imageUrl,
         isActive: p.isActive,
+        selforderEnabled: p.selforderEnabled,
       );
+
+  Future<void> _toggleSelfOrderPublish(Product product, bool value) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final updated = await widget.apiClient.updateProduct(
+        widget.session,
+        product.id,
+        selforderEnabled: value,
+      );
+      if (!mounted) return;
+      setState(() {
+        final index = _products.indexWhere((p) => p.id == product.id);
+        if (index >= 0) _products[index] = updated;
+      });
+      if (value && updated.stockQuantity <= 0) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('${s.onQRMenu}: ${s.hiddenOutOfStock}')),
+        );
+      } else {
+        messenger.showSnackBar(SnackBar(
+          content: Text(value ? s.onQRMenu : s.notOnQRMenu),
+        ));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -248,34 +278,69 @@ class _InventoryScreenState extends State<InventoryScreen> {
             leading: _ProductThumb(product: product),
             title: Text(product.name),
             subtitle: Text(product.sku),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('${s.onHand}: ',
-                        style: Theme.of(context).textTheme.bodySmall),
-                    Text('${product.stockQuantity}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: out
-                                ? Theme.of(context).colorScheme.error
-                                : null,
-                            fontWeight: FontWeight.bold)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${s.onHand}: ',
+                            style: Theme.of(context).textTheme.bodySmall),
+                        Text('${product.stockQuantity}',
+                            style:
+                                Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: out
+                                        ? Theme.of(context).colorScheme.error
+                                        : null,
+                                    fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      negative
+                          ? s.backorder
+                          : out
+                              ? s.outOfStock
+                              : s.adjustStock,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: out
+                              ? Theme.of(context).colorScheme.error
+                              : Theme.of(context).colorScheme.primary),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  negative
-                      ? s.backorder
-                      : out
-                          ? s.outOfStock
-                          : s.adjustStock,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: out
-                          ? Theme.of(context).colorScheme.error
-                          : Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 4),
+                Tooltip(
+                  message: product.selforderEnabled
+                      ? (out ? '${s.publishForQR}: ${s.hiddenOutOfStock}' : s.onQRMenu)
+                      : s.publishForQR,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        product.publishedForSelfOrder
+                            ? Icons.public
+                            : Icons.public_off,
+                        size: 18,
+                        color: product.publishedForSelfOrder
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.outline,
+                      ),
+                      Transform.scale(
+                        scale: 0.75,
+                        child: Switch(
+                          value: product.selforderEnabled,
+                          onChanged: _saving
+                              ? null
+                              : (v) => _toggleSelfOrderPublish(product, v),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

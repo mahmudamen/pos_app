@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/example/pos-api/internal/billing"
 	"github.com/example/pos-api/internal/config"
 	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
@@ -29,6 +30,123 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager, cfg config.Con
 
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/subscription", httptransport.RequireAccessToken(h.tokens), h.subscription)
+	router.POST("/subscription/change-plan", httptransport.RequireAccessToken(h.tokens), h.changePlan)
+}
+
+type changePlanRequest struct {
+	PlanCode string `json:"plan_code" binding:"required"`
+}
+
+// changePlan is the self-service plan upgrade/downgrade for the tenant owner
+// (or a manager acting on the store's behalf). The subscription is resolved by
+// the caller's tenant — never from a client-supplied id — and the plan limits
+// are re-checked inside the tenant's RLS context, mirroring the saas_admin
+// change-plan path in billing.
+func (h *Handler) changePlan(c *gin.Context) {
+	var req changePlanRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid change-plan payload")
+		return
+	}
+	claims, ok := httptransport.Claims(c)
+	if !ok {
+		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is required")
+		return
+	}
+	if claims.Role != "owner" && claims.Role != "manager" {
+		writeError(c, http.StatusForbidden, "permission_denied", "only the store owner or a manager can change the plan")
+		return
+	}
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var subID, subStatus string
+	err = tx.QueryRow(ctx, `
+		SELECT id::text, status FROM subscriptions
+		WHERE tenant_id = $1::uuid AND status <> 'cancelled'
+		ORDER BY created_at DESC LIMIT 1`, claims.TenantID).
+		Scan(&subID, &subStatus)
+	if errors.Is(err, pgx.ErrNoRows) {
+		writeError(c, http.StatusNotFound, "subscription_not_found", "no active subscription")
+		return
+	} else if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load subscription")
+		return
+	}
+	if subStatus == billing.StatusCancelled {
+		writeError(c, http.StatusConflict, "invalid_transition", "cannot change the plan of a cancelled subscription")
+		return
+	}
+
+	var target billing.Plan
+	if err := tx.QueryRow(ctx, `
+		SELECT code, name, price_minor, currency, billing_period, max_users, max_products
+		FROM plans WHERE code = $1 AND is_active`, req.PlanCode).
+		Scan(&target.Code, &target.Name, &target.PriceMinor, &target.Currency, &target.BillingPeriod, &target.MaxUsers, &target.MaxProducts); errors.Is(err, pgx.ErrNoRows) {
+		writeError(c, http.StatusNotFound, "plan_not_found", "plan not found or inactive")
+		return
+	} else if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load plan")
+		return
+	}
+
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, claims.TenantID); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+	var users, products int64
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&users); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to count users")
+		return
+	}
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM products`).Scan(&products); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to count products")
+		return
+	}
+	decision := billing.EvaluatePlanChange(int(users), int(products), target)
+	if !decision.Allowed {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": gin.H{
+				"code": "plan_downgrade_blocked", "message": decision.Remediation,
+				"request_id": c.GetString("request_id"),
+			},
+			"data": gin.H{
+				"code": decision.Code, "required": decision.Required,
+				"limit": decision.Limit, "usage": gin.H{"users": users, "products": products},
+			},
+		})
+		return
+	}
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE subscriptions SET plan_id = (SELECT id FROM plans WHERE code = $1) WHERE id = $2::uuid`,
+		req.PlanCode, subID); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to change plan")
+		return
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE tenants SET plan = $2, max_users = $3, max_products = $4 WHERE id = $1::uuid`,
+		claims.TenantID, target.Code, target.MaxUsers, target.MaxProducts); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to sync tenant plan")
+		return
+	}
+	if err := tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to change plan")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{"id": subID, "plan_code": req.PlanCode, "status": subStatus},
+		"meta": gin.H{"request_id": c.GetString("request_id")},
+	})
 }
 
 func (h *Handler) subscription(c *gin.Context) {

@@ -31,12 +31,14 @@ import (
 
 // siteTemplateData is the render context for every public page.
 type siteTemplateData struct {
-	Page  string
-	Lang  string
-	Dir   string
-	Year  int
-	T     map[string]string
-	Plans []planCard
+	Page         string
+	Lang         string
+	Dir          string
+	Year         int
+	T            map[string]string
+	Plans        []planCard
+	Compare      []compareRow
+	ComparePlans []string
 }
 
 // planCard is a display-ready subscription plan, localized for the pricing page.
@@ -48,7 +50,16 @@ type planCard struct {
 	Currency    string
 	Period      string
 	Features    []string
+	Keys        []string
 	Featured    bool
+}
+
+// compareRow is one feature row of the /pricing comparison table: a localized
+// label and one included/excluded flag per plan (aligned to ComparePlans).
+type compareRow struct {
+	Key    string
+	Label  string
+	Values []bool
 }
 
 func pickSiteLang(c *gin.Context) string {
@@ -76,6 +87,9 @@ func renderSite(c *gin.Context, page string, plans []planCard) {
 	data := siteTemplateData{
 		Page: page, Lang: lang, Dir: dir,
 		Year: time.Now().Year(), T: siteStrings[lang], Plans: plans,
+	}
+	if page == "pricing" {
+		data.Compare, data.ComparePlans = buildCompare(lang, plans)
 	}
 	c.Header("Vary", "Accept-Language")
 	c.Header("Content-Type", "text/html; charset=utf-8")
@@ -173,11 +187,7 @@ func buildPlanCard(lang, code, name, desc string, priceMinor int64, period strin
 	}
 	labels := make([]string, 0, len(features)+2)
 	for _, key := range features {
-		if label, ok := featureTranslations[lang][key]; ok {
-			labels = append(labels, label)
-		} else {
-			labels = append(labels, key)
-		}
+		labels = append(labels, featureLabel(lang, key))
 	}
 	labels = append(labels, limitLabel(lang, "users", maxUsers), limitLabel(lang, "products", maxProducts))
 	return planCard{
@@ -188,7 +198,46 @@ func buildPlanCard(lang, code, name, desc string, priceMinor int64, period strin
 		Currency:    siteStrings[lang]["currency"],
 		Period:      periodLabel(lang, period),
 		Features:    labels,
+		Keys:        features,
 	}
+}
+
+// featureLabel localizes a plan feature key, falling back to the raw key.
+func featureLabel(lang, key string) string {
+	if label, ok := featureTranslations[lang][key]; ok {
+		return label
+	}
+	return key
+}
+
+// buildCompare derives the /pricing comparison table from the feature keys the
+// plans actually expose: one row per distinct feature (in first-encountered
+// order), a boolean per plan aligned to the given plan order, and the plan
+// display names as column headers.
+func buildCompare(lang string, plans []planCard) ([]compareRow, []string) {
+	names := make([]string, 0, len(plans))
+	rows := make([]compareRow, 0)
+	seen := make(map[string]struct{})
+	for _, p := range plans {
+		names = append(names, p.Name)
+		for _, k := range p.Keys {
+			if _, ok := seen[k]; ok {
+				continue
+			}
+			seen[k] = struct{}{}
+			rows = append(rows, compareRow{Key: k, Label: featureLabel(lang, k), Values: make([]bool, len(plans))})
+		}
+	}
+	for i, p := range plans {
+		for _, k := range p.Keys {
+			for ri := range rows {
+				if rows[ri].Key == k {
+					rows[ri].Values[i] = true
+				}
+			}
+		}
+	}
+	return rows, names
 }
 
 func formatPlanPrice(minor int64) string {

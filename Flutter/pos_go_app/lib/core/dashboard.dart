@@ -4,6 +4,7 @@ library;
 class DashboardSummary {
   const DashboardSummary({
     required this.date,
+    required this.vatMode,
     required this.today,
     required this.topProducts,
     required this.recentSales,
@@ -14,6 +15,7 @@ class DashboardSummary {
   factory DashboardSummary.fromJson(Map<String, dynamic> json) =>
       DashboardSummary(
         date: json['date'] as String? ?? '',
+        vatMode: json['vat_mode'] as String? ?? 'exclusive',
         today: TodayStats.fromJson(
             json['today'] as Map<String, dynamic>? ?? const {}),
         topProducts: (json['top_products'] as List<dynamic>? ?? const [])
@@ -31,6 +33,12 @@ class DashboardSummary {
       );
 
   final String date;
+  final String vatMode;
+
+  /// True when the profit figures below were computed on VAT-inclusive gross
+  /// revenue (income) rather than the net-of-VAT trading figure.
+  bool get profitIncludesVat => vatMode == 'inclusive';
+
   final TodayStats today;
   final List<TopProduct> topProducts;
   final List<RecentSale> recentSales;
@@ -44,6 +52,9 @@ class TodayStats {
     this.salesCount = 0,
     this.avgSaleMinor = 0,
     this.itemsSold = 0,
+    this.taxMinor = 0,
+    this.cogsMinor = 0,
+    this.profitMinor = 0,
   });
 
   factory TodayStats.fromJson(Map<String, dynamic> json) => TodayStats(
@@ -51,12 +62,18 @@ class TodayStats {
         salesCount: (json['sales_count'] as num?)?.toInt() ?? 0,
         avgSaleMinor: (json['avg_sale_minor'] as num?)?.toInt() ?? 0,
         itemsSold: (json['items_sold'] as num?)?.toInt() ?? 0,
+        taxMinor: (json['tax_minor'] as num?)?.toInt() ?? 0,
+        cogsMinor: (json['cogs_minor'] as num?)?.toInt() ?? 0,
+        profitMinor: (json['profit_minor'] as num?)?.toInt() ?? 0,
       );
 
   final int revenueMinor;
   final int salesCount;
   final int avgSaleMinor;
   final int itemsSold;
+  final int taxMinor;
+  final int cogsMinor;
+  final int profitMinor;
 }
 
 class TopProduct {
@@ -65,6 +82,9 @@ class TopProduct {
     required this.sku,
     required this.quantity,
     required this.revenueMinor,
+    this.taxMinor = 0,
+    this.cogsMinor = 0,
+    this.grossProfitMinor = 0,
   });
 
   factory TopProduct.fromJson(Map<String, dynamic> json) => TopProduct(
@@ -72,12 +92,19 @@ class TopProduct {
         sku: json['sku'] as String? ?? '',
         quantity: (json['quantity'] as num?)?.toInt() ?? 0,
         revenueMinor: (json['revenue_minor'] as num?)?.toInt() ?? 0,
+        taxMinor: (json['tax_minor'] as num?)?.toInt() ?? 0,
+        cogsMinor: (json['cogs_minor'] as num?)?.toInt() ?? 0,
+        grossProfitMinor:
+            (json['gross_profit_minor'] as num?)?.toInt() ?? 0,
       );
 
   final String productName;
   final String sku;
   final int quantity;
   final int revenueMinor;
+  final int taxMinor;
+  final int cogsMinor;
+  final int grossProfitMinor;
 }
 
 class CashierStat {

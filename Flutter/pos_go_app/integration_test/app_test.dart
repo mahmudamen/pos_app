@@ -117,9 +117,15 @@ void main() {
     await tester.tap(find.text('Complete sale'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Grand total'), findsOneWidget);
+    expect(find.text('Payment method'), findsOneWidget);
     expect(find.text('T01'), findsWidgets);
-    await tester.enterText(find.byType(TextField).last, '5.00');
+    // Cash(0), card(1), mobile(2), tip(3), discount(4).
+    final sheetFields = find.descendant(
+      of: find.byType(PaymentSheet),
+      matching: find.byType(TextField),
+    );
+    expect(sheetFields, findsNWidgets(5));
+    await tester.enterText(sheetFields.at(3), '5.00');
     await tester.pump();
     expect(find.text('E£12.00'), findsWidgets);
 

@@ -320,10 +320,11 @@ func seedCatalog(ctx context.Context, tx pgx.Tx, tenantID, businessType string) 
 	for _, cat := range vertical.categories {
 		var id string
 		err := tx.QueryRow(ctx, `
-			INSERT INTO categories (tenant_id, name, slug)
-			VALUES ($1, $2, $3)
-			ON CONFLICT (tenant_id, slug) DO UPDATE SET name = EXCLUDED.name
-			RETURNING id`, tenantID, cat[1], cat[0]).Scan(&id)
+			INSERT INTO categories (tenant_id, name, slug, name_ar)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (tenant_id, slug) DO UPDATE SET name = EXCLUDED.name,
+				name_ar = COALESCE(EXCLUDED.name_ar, categories.name_ar)
+			RETURNING id`, tenantID, cat[1], cat[0], arabicCategoryNames[cat[0]]).Scan(&id)
 		if err != nil {
 			return err
 		}
@@ -338,13 +339,23 @@ func seedCatalog(ctx context.Context, tx pgx.Tx, tenantID, businessType string) 
 		if unit == "" {
 			unit = "piece"
 		}
+		ar := arabicProducts[p.barcode]
 		if _, err := tx.Exec(ctx, `
-			INSERT INTO products (tenant_id, category_id, name, sku, barcode, price_minor, cost_minor, currency, stock_quantity, image_url, description, unit)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, 'EGP', $8, $9, $10, $11)`,
+			INSERT INTO products (tenant_id, category_id, name, sku, barcode, price_minor, cost_minor, currency, stock_quantity, image_url, description, unit, name_ar, description_ar)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, 'EGP', $8, $9, $10, $11, $12, $13)`,
 			tenantID, categoryID, p.name, p.sku, p.barcode, p.priceMinor, p.costMinor, p.stock,
-			"https://images.unsplash.com/"+p.imageURL+"?auto=format&fit=crop&w=400&q=60", p.description, unit); err != nil {
+			"https://images.unsplash.com/"+p.imageURL+"?auto=format&fit=crop&w=400&q=60", p.description, unit,
+			emptyString(ar[0]), emptyString(ar[1])); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func emptyString(s string) *string {
+	t := s
+	if t == "" {
+		return nil
+	}
+	return &t
 }
