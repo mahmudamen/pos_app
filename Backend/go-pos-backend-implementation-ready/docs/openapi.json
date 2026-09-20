@@ -113,6 +113,31 @@
         }
       }
     },
+    "/pricing": {
+      "get": {
+        "tags": [
+          "pricing"
+        ],
+        "operationId": "GetPricing",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/private": {
       "get": {
         "tags": [

@@ -166,3 +166,73 @@ func TestPrivacyServesPublicPolicyPage(t *testing.T) {
 		}
 	}
 }
+
+func TestPricingServesFallbackPlansWithoutDatabase(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/pricing", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{"Simple pricing", "Starter", "Business", "Enterprise", "/admin/", "/private"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("pricing body missing %q", want)
+		}
+	}
+	// The landing preview must also render plan cards without a DB.
+	rec2 := httptest.NewRecorder()
+	engine.ServeHTTP(rec2, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("expected index 200, got %d", rec2.Code)
+	}
+	for _, want := range []string{"Starter", "Business", "Enterprise", "/pricing"} {
+		if !strings.Contains(rec2.Body.String(), want) {
+			t.Errorf("index body missing plan preview %q", want)
+		}
+	}
+}
+
+func TestSitePagesServeArabicRTL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	for _, path := range []string{"/", "/pricing", "/private"} {
+		req := httptest.NewRequest(http.MethodGet, path+"?lang=ar", nil)
+		rec := httptest.NewRecorder()
+		engine.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: expected 200, got %d", path, rec.Code)
+		}
+		body := rec.Body.String()
+		for _, want := range []string{`lang="ar"`, `dir="rtl"`, "English", "نظام نقاط بيع"} {
+			if !strings.Contains(body, want) {
+				t.Errorf("%s?lang=ar body missing %q", path, want)
+			}
+		}
+		if v := rec.Header().Get("Vary"); !strings.Contains(v, "Accept-Language") {
+			t.Errorf("%s missing Vary: Accept-Language", path)
+		}
+	}
+}
+
+func TestSitePagesHonorAcceptLanguage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Accept-Language", "ar,en;q=0.8")
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), `dir="rtl"`) {
+		t.Fatal("expected Arabic RTL page from Accept-Language")
+	}
+}

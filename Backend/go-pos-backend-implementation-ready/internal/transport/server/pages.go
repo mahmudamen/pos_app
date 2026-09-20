@@ -1,181 +1,219 @@
 package server
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Public brand + privacy pages served at the API root and /private. nginx on
+// Public brand, pricing and privacy pages served at the API root. nginx on
 // api.xamltech.com proxies everything except /admin/ (the React admin SPA) and
 // /.well-known/ to this app, so GET / is the branded landing visitors see when
-// they open the domain, and GET /private is the privacy policy pointed to from
-// the Android app and store listing.
+// they open the domain, GET /pricing lists the subscription plans, and
+// GET /private is the privacy policy linked from the Android app.
+//
+// The visual system is the POS.Go "Nocturne" brand (deep night canvas + soft
+// light wells + hairline-divided sections) with emerald kept as the single
+// interactive accent (CTAs, links, focus). Every page is bilingual
+// (Arabic / English) and direction-aware: the language is chosen from ?lang=,
+// then a cookie, then Accept-Language, and the page renders with the matching
+// `lang`/`dir` attributes and logical CSS. The pages need no auth; /pricing
+// reads the platform plans when a pool is available and falls back to the
+// seeded catalog otherwise (so the OpenAPI generator, which registers routes
+// with a nil pool, still works offline).
 
-const posGoStyling = `
-:root {
-  --bg: #08131f;
-  --card: #0f2233;
-  --border: #1d3a52;
-  --text: #e6eef5;
-  --muted: #93a8ba;
-  --accent: #22c55e;
-  --accent-dark: #15803d;
+// siteTemplateData is the render context for every public page.
+type siteTemplateData struct {
+	Page  string
+	Lang  string
+	Dir   string
+	Year  int
+	T     map[string]string
+	Plans []planCard
 }
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-  background:
-    radial-gradient(900px 420px at 85% -10%, rgba(34,197,94,.16), transparent 60%),
-    radial-gradient(700px 380px at -10% 110%, rgba(14,116,144,.18), transparent 60%),
-    var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+
+// planCard is a display-ready subscription plan, localized for the pricing page.
+type planCard struct {
+	Code        string
+	Name        string
+	Description string
+	Price       string
+	Currency    string
+	Period      string
+	Features    []string
+	Featured    bool
 }
-main { flex: 1; width: 100%; max-width: 760px; margin: 0 auto; padding: 48px 20px; }
-.card {
-  background: linear-gradient(180deg, var(--card), #0c1d2c);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 44px 36px;
-  text-align: center;
-  box-shadow: 0 18px 50px rgba(0,0,0,.35);
+
+func pickSiteLang(c *gin.Context) string {
+	lang := strings.ToLower(strings.TrimSpace(c.Query("lang")))
+	if lang == "ar" || lang == "en" {
+		c.SetCookie("pos_lang", lang, 60*60*24*365, "/", "", false, false)
+		return lang
+	}
+	if cookie, err := c.Cookie("pos_lang"); err == nil && (cookie == "ar" || cookie == "en") {
+		return cookie
+	}
+	accept := strings.ToLower(c.GetHeader("Accept-Language"))
+	if strings.HasPrefix(accept, "ar") || strings.Contains(accept, ",ar") {
+		return "ar"
+	}
+	return "en"
 }
-.logo { width: 84px; height: 84px; margin: 0 auto 6px; display: block; }
-h1 { font-size: 30px; margin: 10px 0 8px; font-weight: 700; letter-spacing: .3px; }
-h2 { font-size: 22px; margin: 0 0 14px; }
-p.tagline { color: var(--muted); margin: 0 auto 28px; font-size: 16px; max-width: 520px; }
-.actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 26px; }
-a.btn {
-  display: inline-block;
-  padding: 13px 26px;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 15px;
-  border: 1px solid var(--border);
+
+func renderSite(c *gin.Context, page string, plans []planCard) {
+	lang := pickSiteLang(c)
+	dir := "ltr"
+	if lang == "ar" {
+		dir = "rtl"
+	}
+	data := siteTemplateData{
+		Page: page, Lang: lang, Dir: dir,
+		Year: time.Now().Year(), T: siteStrings[lang], Plans: plans,
+	}
+	c.Header("Vary", "Accept-Language")
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	if err := siteTemplates.ExecuteTemplate(c.Writer, page, data); err != nil {
+		c.String(http.StatusInternalServerError, "render error")
+	}
 }
-a.primary { background: var(--accent); color: #052e12; border-color: var(--accent); }
-a.primary:hover { background: var(--accent-dark); color: #fff; }
-a.ghost { background: transparent; color: var(--text); }
-a.ghost:hover { border-color: var(--accent); color: var(--accent); }
-footer { color: var(--muted); font-size: 13px; text-align: center; padding: 14px 0 26px; }
-.muted { color: var(--muted); }
-.prose { text-align: left; color: #c7d6e2; line-height: 1.65; font-size: 15px; }
-.prose h2 { color: var(--text); }
-.prose p { margin: 0 0 16px; }
-.prose ul { margin: 0 0 18px; padding-left: 22px; }
-.prose li { margin-bottom: 8px; }
-a { color: var(--accent); }
-`
 
-const posGoLogo = `
-<svg class="logo" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
-  <rect x="4" y="4" width="88" height="88" rx="22" fill="#0f2233" stroke="#22c55e" stroke-width="4"/>
-  <text x="48" y="68" text-anchor="middle" font-family="Verdana, sans-serif" font-size="52" font-weight="700" fill="#22c55e">P</text>
-  <circle cx="72" cy="24" r="6" fill="#e2fde9"/>
-</svg>`
-
-const posGoIndexHTML = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="description" content="POS.Go — point of sale for restaurants, shops and every business. Sign in to the admin console."/>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect x='4' y='4' width='88' height='88' rx='22' fill='%230f2233' stroke='%2322c55e' stroke-width='4'/%3E%3Ctext x='48' y='68' text-anchor='middle' font-family='Verdana' font-size='52' font-weight='700' fill='%2322c55e'%3EP%3C/text%3E%3C/svg%3E"/>
-    <title>POS.Go — Powers every business</title>
-    <style>` + posGoStyling + `</style>
-  </head>
-  <body>
-    <main>
-      <div class="card">
-        ` + posGoLogo + `
-        <h1>POS.Go</h1>
-        <p class="tagline">Point of sale that works offline-first: restaurants, retail, pharmacy and more — backed by XAMLtech.</p>
-        <div class="actions">
-          <a class="btn primary" href="/admin/">Admin sign in</a>
-          <a class="btn ghost" href="/private">Privacy policy</a>
-        </div>
-        <p class="muted" style="font-size:13px;margin:0">The console manages subscriptions, plans &amp; billing across all tenants.</p>
-      </div>
-    </main>
-    <footer>© <span id="year"></span> XAMLtech &middot; <a href="/private">Privacy</a> &middot; <a href="/admin/">Admin sign in</a></footer>
-    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-  </body>
-</html>`
-
-const posGoPrivacyHTML = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="robots" content="noindex"/>
-    <title>Privacy Policy — POS.Go</title>
-    <style>` + posGoStyling + `</style>
-  </head>
-  <body>
-    <main>
-      <div class="card">
-        ` + posGoLogo + `
-        <h1>Privacy Policy</h1>
-        <p class="tagline">POS.Go by XAMLtech — last updated January 1, 2026.</p>
-        <div class="prose">
-          <h2>1. Who we are</h2>
-          <p>POS.Go is a point-of-sale service operated by XAMLtech. This policy explains what personal data we process, why,
-          and the choices you have. By using POS.Go you agree to the practices described here.</p>
-
-          <h2>2. Data we collect</h2>
-          <ul>
-            <li><strong>Account data:</strong> name, email, password (stored hashed), tenant and role, access level and permission settings.</li>
-            <li><strong>Terminal &amp; device data:</strong> a generated device identifier and the device name you choose for each register.</li>
-            <li><strong>Business data:</strong> products, categories, customers, sales, payments, invoices, inventory and receipts you enter in POS.Go.</li>
-            <li><strong>Usage &amp; technical data:</strong> crash reports, screen names, app version, and basic request logs (IP address) for security.</li>
-          </ul>
-
-          <h2>3. How we use data</h2>
-          <p>We use your data only to run the service: authenticate users, sync data across your devices, produce receipts and reports,
-          apply your discount and access rules, prevent fraud and abuse, and provide support. We never sell your data.</p>
-
-          <h2>4. Sharing</h2>
-          <p>We share data only with sub-processors needed to host and operate the service (for example the cloud provider hosting our
-          servers). Those parties are bound by appropriate confidentiality and security commitments. Business data stays isolated per
-          tenant and is never shared between tenants.</p>
-
-          <h2>5. Retention</h2>
-          <p>We keep your account and transaction data for as long as your tenant is active, and for the periods required by tax law for
-          receipt and invoice records. Telemetry and crash data are retained for shorter operational periods.</p>
-
-          <h2>6. Security</h2>
-          <p>Traffic is encrypted in transit (TLS), passwords and PINs are stored hashed, access to tenant data is enforced by
-          row-level security, and credentials are kept in secure storage. You can remove users, close registers and export your data
-          from the app at any time.</p>
-
-          <h2>7. Your rights</h2>
-          <p>You may access, correct, export or delete your personal data, and object to processing, by contacting us. Account deletion
-          removes your personal data subject to legal retention periods.</p>
-
-          <h2>8. Contact</h2>
-          <p>Questions about this policy or your data: <a href="mailto:support@xamltech.com">support@xamltech.com</a>.</p>
-        </div>
-        <p class="muted" style="font-size:13px;margin:16px 0 0"><a href="/">← Back to POS.Go</a></p>
-      </div>
-    </main>
-    <footer>© <span id="year"></span> XAMLtech &middot; <a href="/admin/">Admin sign in</a></footer>
-    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-  </body>
-</html>`
-
-// registerSitePages mounts the public brand landing and privacy pages. They
-// need no auth or database, matching how the OpenAPI generator walks the route
-// table offline.
-func registerSitePages(engine *gin.Engine) {
+// registerSitePages mounts the public brand, pricing and privacy pages. They
+// need no auth; pricing and the landing preview render from the platform plans
+// when the pool is available and fall back to the seeded catalog otherwise.
+func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool) {
 	engine.GET("/", func(c *gin.Context) {
-		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(posGoIndexHTML))
+		renderSite(c, "index", loadPlanCards(c.Request.Context(), pool, pickSiteLang(c)))
+	})
+	engine.GET("/pricing", func(c *gin.Context) {
+		renderSite(c, "pricing", loadPlanCards(c.Request.Context(), pool, pickSiteLang(c)))
 	})
 	engine.GET("/private", func(c *gin.Context) {
-		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(posGoPrivacyHTML))
+		renderSite(c, "privacy", nil)
 	})
+}
+
+// loadPlanCards reads the active plans from the platform table. It degrades
+// gracefully (nil pool, query error, or empty catalog) to the seeded defaults
+// so the page — and the offline OpenAPI generator — always renders.
+func loadPlanCards(ctx context.Context, pool *pgxpool.Pool, lang string) []planCard {
+	if pool == nil {
+		return fallbackPlanCards(lang)
+	}
+	qctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	rows, err := pool.Query(qctx, `SELECT code, name, description, price_minor, billing_period, features, max_users, max_products
+		FROM plans WHERE is_active ORDER BY price_minor, code`)
+	if err != nil {
+		return fallbackPlanCards(lang)
+	}
+	defer rows.Close()
+	cards := make([]planCard, 0)
+	for rows.Next() {
+		var code, name, desc, period string
+		var priceMinor int64
+		var features []byte
+		var maxUsers, maxProducts int
+		if err := rows.Scan(&code, &name, &desc, &priceMinor, &period, &features, &maxUsers, &maxProducts); err != nil {
+			return fallbackPlanCards(lang)
+		}
+		var keys []string
+		_ = json.Unmarshal(features, &keys)
+		cards = append(cards, buildPlanCard(lang, code, name, desc, priceMinor, period, keys, maxUsers, maxProducts))
+	}
+	if rows.Err() != nil || len(cards) == 0 {
+		return fallbackPlanCards(lang)
+	}
+	return cards
+}
+
+type fallbackPlan struct {
+	Code, Name, Desc string
+	PriceMinor       int64
+	Period           string
+	Features         []string
+	MaxUsers         int
+	MaxProducts      int
+}
+
+var fallbackPlans = []fallbackPlan{
+	{"starter", "Starter", "Solo store getting started", 0, "monthly",
+		[]string{"pos.basic", "inventory.basic", "dashboard.basic"}, 3, 100},
+	{"business", "Business", "Growing multi-cashier store", 29900, "monthly",
+		[]string{"pos.basic", "inventory.advanced", "dashboard.advanced", "restaurant", "loyalty"}, 10, 1000},
+	{"enterprise", "Enterprise", "Unlimited stores and verticals", 99900, "monthly",
+		[]string{"pos.basic", "inventory.advanced", "dashboard.advanced", "restaurant", "pharmacy", "textile", "loyalty", "sync.multi_device"}, 0, 0},
+}
+
+func fallbackPlanCards(lang string) []planCard {
+	cards := make([]planCard, 0, len(fallbackPlans))
+	for i, p := range fallbackPlans {
+		card := buildPlanCard(lang, p.Code, p.Name, p.Desc, p.PriceMinor, p.Period, p.Features, p.MaxUsers, p.MaxProducts)
+		card.Featured = i == 1
+		cards = append(cards, card)
+	}
+	return cards
+}
+
+func buildPlanCard(lang, code, name, desc string, priceMinor int64, period string, features []string, maxUsers, maxProducts int) planCard {
+	labelName, labelDesc := name, desc
+	if meta, ok := planTranslations[lang][code]; ok {
+		if meta.Name != "" {
+			labelName = meta.Name
+		}
+		if meta.Desc != "" {
+			labelDesc = meta.Desc
+		}
+	}
+	labels := make([]string, 0, len(features)+2)
+	for _, key := range features {
+		if label, ok := featureTranslations[lang][key]; ok {
+			labels = append(labels, label)
+		} else {
+			labels = append(labels, key)
+		}
+	}
+	labels = append(labels, limitLabel(lang, "users", maxUsers), limitLabel(lang, "products", maxProducts))
+	return planCard{
+		Code:        code,
+		Name:        labelName,
+		Description: labelDesc,
+		Price:       formatPlanPrice(priceMinor),
+		Currency:    siteStrings[lang]["currency"],
+		Period:      periodLabel(lang, period),
+		Features:    labels,
+	}
+}
+
+func formatPlanPrice(minor int64) string {
+	if minor%100 == 0 {
+		return strconv.FormatInt(minor/100, 10)
+	}
+	return fmt.Sprintf("%.2f", float64(minor)/100)
+}
+
+func periodLabel(lang, period string) string {
+	if period == "yearly" {
+		if lang == "ar" {
+			return "سنة"
+		}
+		return "yr"
+	}
+	if lang == "ar" {
+		return "شهر"
+	}
+	return "mo"
+}
+
+func limitLabel(lang, kind string, n int) string {
+	if n <= 0 {
+		return siteStrings[lang]["plan"+strings.Title(kind)] + ": " + siteStrings[lang]["planUnlimited"]
+	}
+	return fmt.Sprintf("%s: %d", siteStrings[lang]["plan"+strings.Title(kind)], n)
 }
