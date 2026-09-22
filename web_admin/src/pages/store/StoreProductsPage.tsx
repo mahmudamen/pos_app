@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { canManage } from '../../auth/roles'
+import { localizedName, localizedUnit } from '../../i18n/ar'
 import { ApiError, api } from '../../lib/api'
 import type { Category, Product } from '../../types'
 import { decimalToMinor } from '../../lib/billing'
@@ -273,25 +274,26 @@ export function StoreProductsPage() {
         <table className="table card">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Arabic name</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Status</th>
-              {manageable ? <th>Actions</th> : null}
+              <th>المنتج / Product</th>
+              <th>English name</th>
+              <th>السعر / Price</th>
+              <th>المخزون / Stock</th>
+              <th>الحالة / Status</th>
+              {manageable ? <th>إجراءات / Actions</th> : null}
             </tr>
           </thead>
           <tbody>
             {products.map((p) => (
               <tr key={p.id} className={p.is_active ? '' : 'muted'}>
                 <td>
-                  <strong>{p.name}</strong>
+                  <strong>{localizedName(p.name_ar, p.name)}</strong>
                   <div className="muted small">
                     {p.sku}
                     {p.barcode ? ` · ${p.barcode}` : ''}
+                    {p.unit ? ` · ${localizedUnit(p.unit)}` : ''}
                   </div>
                 </td>
-                <td>{p.name_ar || <span className="muted">—</span>}</td>
+                <td className="muted">{p.name_ar ? p.name : '—'}</td>
                 <td className="num">
                   <Money minor={p.price_minor} currency={p.currency} />
                 </td>

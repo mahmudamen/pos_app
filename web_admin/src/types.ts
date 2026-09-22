@@ -190,6 +190,7 @@ export interface Product {
   price_minor: number
   currency: string
   stock_quantity: number
+  unit?: string
   category_id?: string
   category_name?: string
   is_active: boolean

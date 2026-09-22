@@ -104,9 +104,9 @@ describe('StoreProductsPage', () => {
 
   it('renders the product list with prices and Arabic names', async () => {
     renderPage()
-    expect(await screen.findByText('Cola')).toBeInTheDocument()
-    expect(screen.getByText('Water')).toBeInTheDocument()
-    expect(screen.getByText('كولا')).toBeInTheDocument()
+    expect(await screen.findByText('كولا')).toBeInTheDocument()
+    expect(screen.getByText('مياه')).toBeInTheDocument()
+    expect(screen.getByText('Cola')).toBeInTheDocument()
     expect(screen.getByText('E£12.50')).toBeInTheDocument()
     expect(screen.getByText('E£5.00')).toBeInTheDocument()
     expect(apiMock.listProducts).toHaveBeenCalledWith(1, 50, '')

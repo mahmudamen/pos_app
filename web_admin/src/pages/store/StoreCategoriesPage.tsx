@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { canManage } from '../../auth/roles'
+import { localizedName } from '../../i18n/ar'
 import { ApiError, api } from '../../lib/api'
 import type { Category } from '../../types'
 import { ErrorBanner, Spinner } from '../../components/ui'
@@ -165,18 +166,20 @@ export function StoreCategoriesPage() {
         <table className="table card">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Arabic name</th>
+              <th>الاسم / Name</th>
+              <th>English name</th>
               <th>Slug</th>
-              <th>Status</th>
-              {manageable ? <th>Actions</th> : null}
+              <th>الحالة / Status</th>
+              {manageable ? <th>إجراءات / Actions</th> : null}
             </tr>
           </thead>
           <tbody>
             {categories.map((c) => (
               <tr key={c.id} className={c.is_active ? '' : 'muted'}>
-                <td>{c.name}</td>
-                <td>{c.name_ar || <span className="muted">—</span>}</td>
+                <td>
+                  <strong>{localizedName(c.name_ar, c.name)}</strong>
+                </td>
+                <td className="muted">{c.name_ar ? c.name : '—'}</td>
                 <td className="muted">{c.slug}</td>
                 <td>
                   {c.is_active ? (
