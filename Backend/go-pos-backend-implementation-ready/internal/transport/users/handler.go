@@ -7,6 +7,7 @@ import (
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/transport/access"
+	notificationstransport "github.com/example/pos-api/internal/transport/notifications"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,11 +16,15 @@ import (
 type Handler struct {
 	pool   *pgxpool.Pool
 	tokens security.TokenManager
+	notify notificationstransport.Emit
 }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 	return &Handler{pool: pool, tokens: tokens}
 }
+
+// SetNotifier wires the notifications emitter (nil = no-op).
+func (h *Handler) SetNotifier(fn notificationstransport.Emit) { h.notify = fn }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/users", h.listUsers)
@@ -242,6 +247,12 @@ func (h *Handler) createUser(c *gin.Context) {
 	if err := tx.Commit(ctx); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to create user")
 		return
+	}
+	if h.notify != nil {
+		h.notify(ctx, tenantID.String(), user.ID, notificationstransport.TypeUserCreate,
+			"user_created:"+user.ID, notificationstransport.SeverityInfo,
+			"New user added", user.DisplayName+" ("+user.Email+") was created as "+user.Role+".",
+			map[string]any{"user_id": user.ID, "role": user.Role})
 	}
 	c.JSON(http.StatusCreated, gin.H{"data": user, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }

@@ -147,6 +147,19 @@ BEGIN
 END
 $$;
 
+-- Notifications inbox + manager web-push subscriptions (migration 040).
+-- Tenant-RLS rows written/read by the notifications module; the runtime role
+-- needs SELECT/INSERT on the inbox and full DML on push subs (subscribe upserts,
+-- a dead endpoint triggers DELETE during a push sweep).
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE notifications TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE notification_push_sub TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

@@ -24,6 +24,7 @@ import (
 	inventorytransport "github.com/example/pos-api/internal/transport/inventory"
 	lotstransport "github.com/example/pos-api/internal/transport/lots"
 	metatransport "github.com/example/pos-api/internal/transport/meta"
+	notificationstransport "github.com/example/pos-api/internal/transport/notifications"
 	platformtransport "github.com/example/pos-api/internal/transport/platform"
 	purchasetransport "github.com/example/pos-api/internal/transport/purchases"
 	receiptstransport "github.com/example/pos-api/internal/transport/receipts"
@@ -108,22 +109,35 @@ func Register(engine *gin.Engine, d Deps) {
 	authGroup.POST("/logout", authHandler.Logout())
 	authGroup.POST("/set-pin", authHandler.SetPin())
 	authGroup.POST("/verify-pin", authHandler.VerifyPin())
+	notifHandler := notificationstransport.NewHandler(d.Pool, authHandler.Tokens(), notificationstransport.WebPushConfig{
+		PublicKey:  d.Config.VAPIDPublicKey,
+		PrivateKey: d.Config.VAPIDPrivateKey,
+		Subject:    d.Config.VAPIDSubject,
+	})
+	notifHandler.Register(api)
+	emit := notifHandler.Emitter()
 	catalogHandler := catalogtransport.NewHandler(d.Pool, authHandler.Tokens())
 	catalogHandler.Register(api)
 	customertransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	dashboardtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
-	salestransport.NewHandlerWithDiscountLimit(d.Pool, authHandler.Tokens(), d.Config.CashierDiscountPct).Register(api)
+	salesHandler := salestransport.NewHandlerWithDiscountLimit(d.Pool, authHandler.Tokens(), d.Config.CashierDiscountPct)
+	salesHandler.SetNotifier(emit)
+	salesHandler.Register(api)
 	registerstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	inventorytransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
-	purchasetransport.NewHandler(d.Pool, authHandler.Tokens(),
+	purchaseHandler := purchasetransport.NewHandler(d.Pool, authHandler.Tokens(),
 		ocrorcore.NewEngine(d.Config.OCREnabled, d.Config.TesseractBin,
 			d.Config.TesseractLangs, d.Config.TesseractPSM),
 		purchasetransport.OCRWindows{
 			Day:   d.Config.OCRDayLimit,
 			Week:  d.Config.OCRWeekLimit,
 			Month: d.Config.OCRMonthLimit,
-		}).Register(api)
-	usertransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
+		})
+	purchaseHandler.SetNotifier(emit)
+	purchaseHandler.Register(api)
+	usersHandler := usertransport.NewHandler(d.Pool, authHandler.Tokens())
+	usersHandler.SetNotifier(emit)
+	usersHandler.Register(api)
 	settingsTransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	synctransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	metatransport.NewHandler(d.Pool).Register(api)

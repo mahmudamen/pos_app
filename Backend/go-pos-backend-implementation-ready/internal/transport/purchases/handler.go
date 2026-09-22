@@ -21,6 +21,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/ocr"
 	httptransport "github.com/example/pos-api/internal/transport/http"
+	notificationstransport "github.com/example/pos-api/internal/transport/notifications"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -39,6 +40,7 @@ type Handler struct {
 	pool   *pgxpool.Pool
 	tokens security.TokenManager
 	ocr    ocr.Engine
+	notify notificationstransport.Emit
 
 	// OCR metering (migration 036_ocr_usage): per-tenant rolling-window
 	// limits fed from config (OCR_DAY_LIMIT / OCR_WEEK_LIMIT / OCR_MONTH_LIMIT)
@@ -47,6 +49,9 @@ type Handler struct {
 	meterWindows OCRWindows
 	meterLimits  OCRWindows
 }
+
+// SetNotifier wires the notifications emitter (nil = no-op).
+func (h *Handler) SetNotifier(fn notificationstransport.Emit) { h.notify = fn }
 
 // NewHandler wires the module. The OCR engine is built from config; a disabled
 // engine makes /v1/purchases/ocr answer 503 cleanly while apply + list still
@@ -149,6 +154,13 @@ func (h *Handler) ocrScan(c *gin.Context) {
 	}
 	admit, scanBorrowedCredit := ShouldAdmit(used, h.meterLimits, credits)
 	if !admit {
+		if h.notify != nil {
+			h.notify(ctx, claims.TenantID, "", notificationstransport.TypeOCRLimit,
+				"ocr_limit", notificationstransport.SeverityCritical,
+				"OCR scan limit reached",
+				"The tenant hit its daily/weekly/monthly OCR scan window and the credit balance is exhausted.",
+				map[string]any{"used": used, "credits_remaining": credits})
+		}
 		writeError(c, http.StatusPaymentRequired, "ocr_window_limit_reached",
 			"OCR scan limit reached on the day, week and month windows and the credit balance is exhausted; top up OCR points to resume")
 		return

@@ -1,12 +1,14 @@
 package sales
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
+	notificationstransport "github.com/example/pos-api/internal/transport/notifications"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -17,7 +19,12 @@ type Handler struct {
 	pool             *pgxpool.Pool
 	tokens           security.TokenManager
 	discountLimitPct int
+	notify           notificationstransport.Emit
 }
+
+// SetNotifier wires the notifications emitter; a nil emitter makes the
+// handler a no-op (unit tests, OpenAPI generator).
+func (h *Handler) SetNotifier(fn notificationstransport.Emit) { h.notify = fn }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 	return &Handler{pool: pool, tokens: tokens, discountLimitPct: 5}
@@ -346,6 +353,9 @@ func (h *Handler) createSale(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit sale")
 		return
 	}
+	if saleID, err := uuid.Parse(sale.ID); err == nil {
+		h.notifyLowStock(ctx, tenantID, saleID)
+	}
 	writeSale(c, sale)
 }
 
@@ -406,7 +416,57 @@ func (h *Handler) refundSale(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit refund")
 		return
 	}
+	if h.notify != nil {
+		h.notify(ctx, tenantID.String(), userID.String(), notificationstransport.TypeRefund,
+			"refund:"+saleID.String(), notificationstransport.SeverityCritical,
+			"Refund applied", "A refund was issued against sale "+saleID.String()+".",
+			map[string]any{"sale_id": saleID.String()})
+	}
 	c.JSON(http.StatusCreated, gin.H{"data": refund, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+// notifyLowStock emits a low-stock notification for every product on this sale
+// whose post-sale on-hand count dropped to (or below) the tenant's
+// pos.low_stock_threshold. Runs in its own connection after the sale commit, so
+// failures only degrade the inbox, never the sale response.
+func (h *Handler) notifyLowStock(ctx context.Context, tenantID uuid.UUID, saleID uuid.UUID) {
+	if h.pool == nil || h.notify == nil {
+		return
+	}
+	threshold := int64(5) // tenant_settings default
+	if err := h.pool.QueryRow(ctx, `
+		SELECT COALESCE((SELECT value FROM tenant_settings WHERE tenant_id = $1 AND key = 'pos.low_stock_threshold'), '5')`,
+		tenantID).Scan(&threshold); err != nil {
+		return
+	}
+	rows, err := h.pool.Query(ctx, `
+		SELECT DISTINCT p.id::text, p.name, p.stock_quantity
+		FROM sale_items si
+		JOIN products p ON p.id = si.product_id
+		WHERE si.sale_id = $1 AND p.stock_quantity <= $2`,
+		saleID, threshold)
+	if err != nil {
+		return
+	}
+	type lowProduct struct {
+		id, name string
+		stock    int64
+	}
+	lows := make([]lowProduct, 0)
+	for rows.Next() {
+		var lp lowProduct
+		if rows.Scan(&lp.id, &lp.name, &lp.stock) != nil {
+			continue
+		}
+		lows = append(lows, lp)
+	}
+	rows.Close()
+	for _, lp := range lows {
+		h.notify(ctx, tenantID.String(), "", notificationstransport.TypeLowStock,
+			"low_stock:"+lp.id, notificationstransport.SeverityWarning,
+			"Low stock: "+lp.name, "Only "+strconv.FormatInt(lp.stock, 10)+" left.",
+			map[string]any{"product_id": lp.id, "stock_quantity": lp.stock})
+	}
 }
 
 func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {
