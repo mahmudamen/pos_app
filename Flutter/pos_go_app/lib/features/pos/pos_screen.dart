@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/api_client.dart';
 import '../../core/focus_mode.dart';
+import '../../core/fonts.dart';
 import '../../core/payments.dart';
 import '../../core/printer_service.dart';
 import '../../core/printers.dart';
@@ -36,7 +37,10 @@ class PosScreen extends StatefulWidget {
       required this.onSignOut,
       this.localDatabase,
       this.sessionStore,
+      this.fontSetting = const FontSetting(),
       this.onLanguageChanged,
+      this.onFontModeChanged,
+      this.onFontSizeChanged,
       this.printerService});
 
   final Session session;
@@ -44,7 +48,10 @@ class PosScreen extends StatefulWidget {
   final VoidCallback onSignOut;
   final LocalDatabase? localDatabase;
   final SessionStore? sessionStore;
+  final FontSetting fontSetting;
   final ValueChanged<String>? onLanguageChanged;
+  final ValueChanged<FontMode>? onFontModeChanged;
+  final ValueChanged<FontSize>? onFontSizeChanged;
   final PrinterService? printerService;
 
   @override
@@ -358,6 +365,10 @@ class _PosScreenState extends State<PosScreen> {
         builder: (_) => SettingsScreen(
           session: widget.session,
           apiClient: widget.apiClient,
+          sessionStore: widget.sessionStore,
+          fontSetting: widget.fontSetting,
+          onFontModeChanged: widget.onFontModeChanged,
+          onFontSizeChanged: widget.onFontSizeChanged,
           onLanguageChanged: widget.onLanguageChanged,
           onSignOut: widget.onSignOut,
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:pos_go_app/core/fonts.dart';
 import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
@@ -306,7 +307,8 @@ void main() {
     expect(restored.isTrial, isTrue);
   });
 
-  test('session clear drops tokens but keeps device and language', () async {
+  test('session clear drops tokens but keeps device, language and fonts',
+      () async {
     FlutterSecureStorage.setMockInitialValues(<String, String>{});
     final store = SessionStore();
     await store.save(const Session(
@@ -319,12 +321,49 @@ void main() {
     ));
     await store.saveDeviceId('dev-keep');
     await store.applyTenantLanguage('en');
+    await store.saveFontFamily(FontMode.kufi.wire);
+    await store.saveFontSize(FontSize.large.wire);
+    await store.saveSoundEnabled(false);
 
     await store.clear();
 
     expect(await store.read(), isNull);
     expect(await store.readDeviceId(), 'dev-keep');
     expect(await store.readLanguage(), 'en');
+    expect(await store.readFontFamily(), FontMode.kufi.wire);
+    expect(await store.readFontSize(), FontSize.large.wire);
+    expect(await store.readSoundEnabled(), isFalse);
+  });
+
+  test('font family/size round-trip through secure storage with defaults',
+      () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    // Defaults: prompt sans at medium, sound on.
+    expect(await store.readFontFamily(), FontMode.sans.wire);
+    expect(await store.readFontSize(), FontSize.medium.wire);
+    expect(await store.readSoundEnabled(), isTrue);
+
+    await store.saveFontFamily(FontMode.naskh.wire);
+    await store.saveFontSize(FontSize.small.wire);
+    expect(await store.readFontFamily(), FontMode.naskh.wire);
+    expect(await store.readFontSize(), FontSize.small.wire);
+
+    await store.saveFontFamily(FontMode.sans.wire);
+    await store.saveFontSize(FontSize.medium.wire);
+    expect(await store.readFontFamily(), FontMode.sans.wire);
+    expect(await store.readFontSize(), FontSize.medium.wire);
+  });
+
+  test('sound enabled flag round-trips through secure storage', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    await store.saveSoundEnabled(false);
+    expect(await store.readSoundEnabled(), isFalse);
+    await store.saveSoundEnabled(true);
+    expect(await store.readSoundEnabled(), isTrue);
   });
 
   test('remembered login round-trips through secure storage', () async {

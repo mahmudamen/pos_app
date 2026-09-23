@@ -3,8 +3,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/api_client.dart';
+import '../../core/feedback.dart';
+import '../../core/fonts.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
+import '../settings/font_picker_sheet.dart';
 
 const String _privacyPolicyUrl = 'https://api.xamltech.com/private';
 
@@ -14,12 +17,18 @@ class LoginScreen extends StatefulWidget {
       required this.apiClient,
       required this.onAuthenticated,
       required this.sessionStore,
-      this.onLanguageChanged});
+      this.onLanguageChanged,
+      this.fontSetting = const FontSetting(),
+      this.onFontModeChanged,
+      this.onFontSizeChanged});
 
   final ApiClient apiClient;
   final ValueChanged<Session> onAuthenticated;
   final SessionStore sessionStore;
   final ValueChanged<String>? onLanguageChanged;
+  final FontSetting fontSetting;
+  final ValueChanged<FontMode>? onFontModeChanged;
+  final ValueChanged<FontSize>? onFontSizeChanged;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -111,6 +120,16 @@ class _LoginScreenState extends State<LoginScreen> {
     widget.onLanguageChanged?.call(s.isArabic ? 'en' : 'ar');
   }
 
+  void _switchFont() {
+    UiFeedback.click();
+    showFontPickerSheet(
+      context,
+      current: widget.fontSetting,
+      onFontModeChanged: widget.onFontModeChanged ?? (_) {},
+      onFontSizeChanged: widget.onFontSizeChanged ?? (_) {},
+    );
+  }
+
   @override
   void dispose() {
     _tenantController.dispose();
@@ -179,13 +198,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       TextButton.icon(
                         onPressed: _switchLanguage,
-                        icon: const Icon(Icons.language, size: 20),
+                        style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact),
+                        icon: const Icon(Icons.language, size: 18),
                         label: Text(s.isArabic ? 'English / EN' : 'العربية / AR'),
+                      ),
+                      IconButton(
+                        onPressed: _switchFont,
+                        tooltip: s.font,
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.font_download_outlined, size: 18),
                       ),
                     ],
                   ),

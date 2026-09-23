@@ -152,6 +152,18 @@ class AppStrings {
   String get language => isArabic ? 'اللغة' : 'Language';
   String get arabic => isArabic ? 'العربية' : 'Arabic';
   String get english => isArabic ? 'الإنجليزية' : 'English';
+  String get font => isArabic ? 'الخط' : 'Font';
+  String get fontSize => isArabic ? 'حجم الخط' : 'Font size';
+  String get fontSans => isArabic ? 'افتراضي' : 'Default';
+  String get fontNaskh => isArabic ? 'نسخ' : 'Naskh';
+  String get fontKufi => isArabic ? 'كوفي' : 'Kufi';
+  String get fontSizeSmall => isArabic ? 'صغير' : 'Small';
+  String get fontSizeMedium => isArabic ? 'متوسط' : 'Medium';
+  String get fontSizeLarge => isArabic ? 'كبير' : 'Large';
+  String get apply => isArabic ? 'تطبيق' : 'Apply';
+  String get soundEffects => isArabic ? 'المؤثرات الصوتية' : 'Sound effects';
+  String get soundEffectsHint =>
+      isArabic ? 'صوت ونبض عند اختيار الخيارات وتأكيدها' : 'Click and confirm sounds and haptics';
   String get country => isArabic ? 'البلد' : 'Country';
   String get currency => isArabic ? 'العملة' : 'Currency';
   String get settings => isArabic ? 'الإعدادات' : 'Settings';
@@ -183,6 +195,7 @@ class AppStrings {
   String get searchTenants => isArabic ? 'ابحث عن جهة...' : 'Search tenants...';
   String get planLabel => isArabic ? 'خطة' : 'Plan';
   String get suspendedLabel => isArabic ? 'موقوفة' : 'Suspended';
+  String get stoppedLabel => isArabic ? 'معطلة' : 'Stopped';
   String get activeLabel => isArabic ? 'نشطة' : 'Active';
   String get tenantDetails => isArabic ? 'تفاصيل الجهة' : 'Tenant details';
   String get joinedOn => isArabic ? 'انضمت في' : 'Joined on';
@@ -290,6 +303,16 @@ class AppStrings {
   String get tenantSuspended => isArabic ? 'تم إيقاف الجهة' : 'Tenant suspended';
   String get activateTenant => isArabic ? 'تفعيل الجهة' : 'Activate tenant';
   String get tenantActivated => isArabic ? 'تم تفعيل الجهة' : 'Tenant activated';
+  String get stopTenant => isArabic ? 'إيقاف دائم' : 'Stop tenant';
+  String get stopTenantHint => isArabic ? 'سبب الإيقاف (اختياري) — لا يمكن للجهة تسجيل الدخول بعدها' : 'Stop reason (optional) — the store can no longer sign in';
+  String get tenantStopped => isArabic ? 'تم إيقاف الجهة نهائيًا' : 'Tenant stopped';
+  String get backupTenant => isArabic ? 'تنزيل النسخة الاحتياطية' : 'Download backup';
+  String get backupStarted => isArabic ? 'جاري تجهيز النسخة الاحتياطية…' : 'Preparing backup…';
+  String get backupSaved => isArabic ? 'تم حفظ النسخة الاحتياطية' : 'Backup saved';
+  String get backupFailed => isArabic ? 'تعذر إنشاء النسخة الاحتياطية' : 'Unable to create backup';
+  String get storeDomain => isArabic ? 'رابط المتجر' : 'Store domain';
+  String get domainIncluded => isArabic ? 'مشمول في الباقة' : 'Included in plan';
+  String get subdomainIncluded => isArabic ? 'الرابط الفرعي مشمول' : 'Subdomain included';
   String get loadFailed => isArabic ? 'تعذر تحميل البيانات' : 'Failed to load';
   String get guest => isArabic ? 'ضيف' : 'Guest';
   String get rememberLogins => isArabic ? 'تذكر بيانات تسجيل الدخول' : 'Remember logins';

@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import '../../core/feedback.dart';
+import '../../core/fonts.dart';
 import '../../core/payments.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 import '../saas/control_panel_screen.dart';
+import 'font_picker_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
     required this.session,
     required this.apiClient,
+    this.sessionStore,
+    this.fontSetting = const FontSetting(),
+    this.onFontModeChanged,
+    this.onFontSizeChanged,
     this.onLanguageChanged,
     this.onSignOut,
   });
 
   final Session session;
   final ApiClient apiClient;
+  final SessionStore? sessionStore;
+  final FontSetting fontSetting;
+  final ValueChanged<FontMode>? onFontModeChanged;
+  final ValueChanged<FontSize>? onFontSizeChanged;
   final ValueChanged<String>? onLanguageChanged;
   final VoidCallback? onSignOut;
 
@@ -26,16 +37,54 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   TenantSettings? _settings;
+  late FontSetting _font;
+  bool _soundEnabled = true;
   bool _loading = true;
   bool _saving = false;
   String? _error;
 
   bool get _canEdit => widget.session.canManageSettings;
 
+  void _openFontPicker() {
+    UiFeedback.click();
+    showFontPickerSheet(
+      context,
+      current: _font,
+      onFontModeChanged: (mode) {
+        setState(() => _font = _font.copyWith(fontMode: mode));
+        widget.onFontModeChanged?.call(mode);
+      },
+      onFontSizeChanged: (size) {
+        setState(() => _font = _font.copyWith(size: size));
+        widget.onFontSizeChanged?.call(size);
+      },
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  Future<void> _setSoundEnabled(bool enabled) async {
+    setState(() => _soundEnabled = enabled);
+    UiFeedback.enabled = enabled;
+    await widget.sessionStore?.saveSoundEnabled(enabled);
+    if (enabled) UiFeedback.confirm();
+  }
+
   @override
   void initState() {
     super.initState();
+    _font = widget.fontSetting;
+    _loadSound();
     _load();
+  }
+
+  Future<void> _loadSound() async {
+    final enabled = await widget.sessionStore?.readSoundEnabled();
+    if (enabled == null || !mounted) return;
+    setState(() {
+      _soundEnabled = enabled;
+      UiFeedback.enabled = enabled;
+    });
   }
 
   Future<void> _load() async {
@@ -254,6 +303,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               label: Text(s.isArabic ? s.english : s.arabic),
                             ),
                           ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.font_download_outlined),
+                            title: Text(s.font),
+                            trailing: Text('${_fontModeLabel(s, _font.fontMode)} · ${_fontSizeLabel(s, _font.size)}'),
+                            onTap: _openFontPicker,
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.format_size),
+                            title: Text(s.fontSize),
+                            trailing: Text(_fontSizeLabel(s, _font.size)),
+                            onTap: _openFontPicker,
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.volume_up_outlined),
+                            title: Text(s.soundEffects),
+                            subtitle: Text(s.soundEffectsHint),
+                            trailing: Switch(
+                              value: _soundEnabled,
+                              onChanged: _setSoundEnabled,
+                            ),
+                          ),
                           if (widget.session.isPlatformAdmin) ...[
                             const Divider(height: 1),
                             ListTile(
@@ -283,6 +356,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
     );
+  }
+
+  String _fontModeLabel(AppStrings s, FontMode style) {
+    switch (style) {
+      case FontMode.sans:
+        return s.fontSans;
+      case FontMode.naskh:
+        return s.fontNaskh;
+      case FontMode.kufi:
+        return s.fontKufi;
+    }
+  }
+
+  String _fontSizeLabel(AppStrings s, FontSize size) {
+    switch (size) {
+      case FontSize.small:
+        return s.fontSizeSmall;
+      case FontSize.medium:
+        return s.fontSizeMedium;
+      case FontSize.large:
+        return s.fontSizeLarge;
+    }
   }
 
   String _paymentLabel(AppStrings s, PaymentMethod method) {

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/api_client.dart';
+import 'core/feedback.dart';
 import 'core/focus_mode.dart';
+import 'core/fonts.dart';
 import 'core/session_store.dart';
 import 'core/storage/local_database.dart';
 import 'core/telemetry.dart';
@@ -29,6 +31,7 @@ class _PosAppState extends State<PosApp> {
   bool _showLogin = false;
   Locale _locale = const Locale('ar');
   bool _languageCustomized = false;
+  FontSetting _fontSetting = const FontSetting();
 
   @override
   void initState() {
@@ -48,12 +51,18 @@ class _PosAppState extends State<PosApp> {
     final session = await _sessionStore.read();
     final language = await _sessionStore.readLanguage();
     final customized = await _sessionStore.hasCustomizedLanguage();
+    UiFeedback.enabled = await _sessionStore.readSoundEnabled();
+    final font = FontSetting(
+      fontMode: FontMode.fromWire(await _sessionStore.readFontFamily()),
+      size: FontSize.fromWire(await _sessionStore.readFontSize()),
+    );
     Telemetry.instance.setSession(session);
     if (!mounted) return;
     setState(() {
       _session = session;
       _locale = Locale(language);
       _languageCustomized = customized;
+      _fontSetting = font;
       _restoring = false;
     });
   }
@@ -65,6 +74,20 @@ class _PosAppState extends State<PosApp> {
         _locale = Locale(code);
         _languageCustomized = true;
       });
+    }
+  }
+
+  Future<void> _setFontMode(FontMode mode) async {
+    await _sessionStore.saveFontFamily(mode.wire);
+    if (mounted) {
+      setState(() => _fontSetting = _fontSetting.copyWith(fontMode: mode));
+    }
+  }
+
+  Future<void> _setFontSize(FontSize size) async {
+    await _sessionStore.saveFontSize(size.wire);
+    if (mounted) {
+      setState(() => _fontSetting = _fontSetting.copyWith(size: size));
     }
   }
 
@@ -99,6 +122,11 @@ class _PosAppState extends State<PosApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff00adee)),
         scaffoldBackgroundColor: const Color(0xfff4f7f6),
         useMaterial3: true,
+        fontFamily: resolveFonts(
+            _fontSetting.fontMode, _locale.languageCode == 'ar'),
+        textTheme: ThemeData.light()
+            .textTheme
+            .apply(fontSizeFactor: fontScale(_fontSetting.size)),
       ),
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
@@ -115,6 +143,9 @@ class _PosAppState extends State<PosApp> {
                     apiClient: _apiClient,
                     sessionStore: _sessionStore,
                     onLanguageChanged: _setLanguage,
+                    fontSetting: _fontSetting,
+                    onFontModeChanged: _setFontMode,
+                    onFontSizeChanged: _setFontSize,
                     onAuthenticated: _authenticated,
                     onOpenLogin: () {
                       if (mounted) {
@@ -131,6 +162,9 @@ class _PosAppState extends State<PosApp> {
                     apiClient: _apiClient,
                     sessionStore: _sessionStore,
                     onLanguageChanged: _setLanguage,
+                    fontSetting: _fontSetting,
+                    onFontModeChanged: _setFontMode,
+                    onFontSizeChanged: _setFontSize,
                     onAuthenticated: _authenticated,
                   )
                 : PosScreen(
@@ -139,7 +173,10 @@ class _PosAppState extends State<PosApp> {
                   apiClient: _apiClient,
                   localDatabase: _localDatabase,
                   sessionStore: _sessionStore,
+                  fontSetting: _fontSetting,
                   onLanguageChanged: _setLanguage,
+                  onFontModeChanged: _setFontMode,
+                  onFontSizeChanged: _setFontSize,
                   onSignOut: () async {
                     await FocusMode.apply(false);
                     try {

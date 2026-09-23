@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/api_client.dart';
+import '../../core/fonts.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 
@@ -18,6 +19,9 @@ class OnboardingScreen extends StatefulWidget {
     required this.sessionStore,
     required this.onAuthenticated,
     this.onLanguageChanged,
+    this.fontSetting = const FontSetting(),
+    this.onFontModeChanged,
+    this.onFontSizeChanged,
     this.onOpenLogin,
   });
 
@@ -25,6 +29,9 @@ class OnboardingScreen extends StatefulWidget {
   final SessionStore sessionStore;
   final ValueChanged<Session> onAuthenticated;
   final ValueChanged<String>? onLanguageChanged;
+  final FontSetting fontSetting;
+  final ValueChanged<FontMode>? onFontModeChanged;
+  final ValueChanged<FontSize>? onFontSizeChanged;
   final VoidCallback? onOpenLogin;
 
   @override

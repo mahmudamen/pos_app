@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'fonts.dart';
 import 'printers.dart';
 import 'security.dart';
 
@@ -146,6 +147,10 @@ class SessionStore {
   static const _languageKey = 'app_language';
   static const _languageCustomizedKey = 'app_language_customized';
 
+  static const _fontFamilyKey = 'app_font_family';
+  static const _fontSizeKey = 'app_font_size';
+  static const _soundEnabledKey = 'app_sound_enabled';
+
   static const _rememberLoginKey = 'remember_login';
   static const _rememberTenantKey = 'remember_tenant';
   static const _rememberEmailKey = 'remember_email';
@@ -232,7 +237,7 @@ class SessionStore {
       _storage.delete(key: _planKey),
       _storage.delete(key: _trialEndsAtKey),
       _storage.delete(key: _permissionsKey),
-      // Device id and app language preferences intentionally survive sign-out.
+      // Device id, app language and font preferences intentionally survive sign-out.
     ]);
   }
 
@@ -261,6 +266,30 @@ class SessionStore {
 
   Future<bool> hasCustomizedLanguage() async {
     return await _storage.read(key: _languageCustomizedKey) == '1';
+  }
+
+  Future<String> readFontFamily() async {
+    return await _storage.read(key: _fontFamilyKey) ?? FontMode.sans.wire;
+  }
+
+  Future<void> saveFontFamily(String wire) async {
+    await _storage.write(key: _fontFamilyKey, value: wire);
+  }
+
+  Future<String> readFontSize() async {
+    return await _storage.read(key: _fontSizeKey) ?? FontSize.medium.wire;
+  }
+
+  Future<void> saveFontSize(String wire) async {
+    await _storage.write(key: _fontSizeKey, value: wire);
+  }
+
+  Future<bool> readSoundEnabled() async {
+    return await _storage.read(key: _soundEnabledKey) != '0';
+  }
+
+  Future<void> saveSoundEnabled(bool enabled) async {
+    await _storage.write(key: _soundEnabledKey, value: enabled ? '1' : '0');
   }
 
   Future<Session?> read() async {

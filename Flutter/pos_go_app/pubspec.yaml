@@ -34,3 +34,34 @@ flutter:
   uses-material-design: true
   assets:
     - assets/xamltech_logo.png
+  fonts:
+    - family: Lato
+      fonts:
+        - asset: assets/fonts/lato/Lato-Regular.ttf
+        - asset: assets/fonts/lato/Lato-Bold.ttf
+          weight: 700
+    - family: NotoSerif
+      fonts:
+        - asset: assets/fonts/noto/NotoSerif-Regular.ttf
+        - asset: assets/fonts/noto/NotoSerif-Bold.ttf
+          weight: 700
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/noto/NotoSans-Regular.ttf
+        - asset: assets/fonts/noto/NotoSans-Bold.ttf
+          weight: 700
+    - family: NotoNaskhArabic
+      fonts:
+        - asset: assets/fonts/noto/NotoNaskhArabic-Regular.ttf
+        - asset: assets/fonts/noto/NotoNaskhArabic-Bold.ttf
+          weight: 700
+    - family: NotoKufiArabic
+      fonts:
+        - asset: assets/fonts/noto/NotoKufiArabic-Regular.ttf
+        - asset: assets/fonts/noto/NotoKufiArabic-Bold.ttf
+          weight: 700
+    - family: NotoSansArabic
+      fonts:
+        - asset: assets/fonts/noto/NotoSansArabic-Regular.ttf
+        - asset: assets/fonts/noto/NotoSansArabic-Bold.ttf
+          weight: 700
