@@ -173,6 +173,18 @@ BEGIN
 END
 $$;
 
+-- Community workstream (migration 045): the job board. job_offers are written
+-- by managers/owners (jobs.write) and read by all staff; job_applications are
+-- inserted by applicants and read/transitioned by managers (jobs.manage).
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE job_offers TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE ON TABLE job_applications TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

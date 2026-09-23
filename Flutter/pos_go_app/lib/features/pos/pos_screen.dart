@@ -18,6 +18,7 @@ import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
 import '../customers/customers_screen.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../community/community_hub_screen.dart';
 import '../inventory/inventory_screen.dart';
 import '../purchases/purchases_screen.dart';
 import '../printers/printers_screen.dart';
@@ -526,6 +527,18 @@ class _PosScreenState extends State<PosScreen> {
                     ),
                     tooltip: s.customers,
                     icon: const Icon(Icons.groups_outlined),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CommunityHubScreen(
+                          session: widget.session,
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    ),
+                    tooltip: s.community,
+                    icon: const Icon(Icons.forum_outlined),
                   ),
                   if (widget.session.isManager)
                     IconButton(

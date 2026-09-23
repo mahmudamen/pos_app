@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:pos_go_app/core/api_client.dart';
+import 'package:pos_go_app/core/community.dart';
 import 'package:pos_go_app/core/customers.dart';
 import 'package:pos_go_app/core/dashboard.dart';
 import 'package:pos_go_app/core/inventory.dart';
@@ -724,6 +725,204 @@ expect(() => client.dashboardSummary(session),
     );
     expect(customer.id, 'customer-1');
     expect(customer.loyaltyPoints, 0);
+  });
+
+  test('StaffProfile parses the Go wire shape', () {
+    final parsed = StaffProfile.fromJson(const {
+      'user_id': 'user-1',
+      'display_name': 'Sara Chef',
+      'email': 'sara@example.com',
+      'headline': 'Head Chef',
+      'bio': 'Team lead',
+      'avatar_url': '',
+      'location': 'Cairo',
+      'years_experience': 12,
+      'is_chief': true,
+      'skills': ['grill', 'sous'],
+      'resume': <String, dynamic>{},
+      'has_profile': true,
+    });
+    expect(parsed.userId, 'user-1');
+    expect(parsed.displayName, 'Sara Chef');
+    expect(parsed.headline, 'Head Chef');
+    expect(parsed.yearsExperience, 12);
+    expect(parsed.isChief, isTrue);
+    expect(parsed.skills, ['grill', 'sous']);
+    expect(parsed.hasProfile, isTrue);
+  });
+
+  test('Company parses list item with members_count', () {
+    final parsed = Company.fromJson(const {
+      'id': 'company-1',
+      'name': 'Bakery X',
+      'slug': '',
+      'description': 'Fresh sourdough',
+      'industry': 'food',
+      'website': '',
+      'logo_url': '',
+      'city': 'Cairo',
+      'is_active': true,
+      'created_at': '2026-09-23 11:00:00',
+      'members_count': 3,
+    });
+    expect(parsed.id, 'company-1');
+    expect(parsed.name, 'Bakery X');
+    expect(parsed.industry, 'food');
+    expect(parsed.membersCount, 3);
+  });
+
+  test('CompanyMember parses and role-caps manage', () {
+    final owner = CompanyMember.fromJson(const {
+      'id': 'm1',
+      'company_id': 'c1',
+      'user_id': 'u1',
+      'display_name': 'A',
+      'role': 'owner',
+      'title': 'Director',
+      'created_at': '2026-09-23 11:00:00',
+    });
+    final staff = CompanyMember.fromJson(const {
+      'id': 'm2',
+      'company_id': 'c1',
+      'user_id': 'u2',
+      'display_name': 'B',
+      'role': 'staff',
+      'title': '',
+      'created_at': '2026-09-23 11:00:00',
+    });
+    expect(owner.canManage, isTrue);
+    expect(staff.canManage, isFalse);
+  });
+
+  test('listProfiles fetches /v1/community/profiles with meta', () async {
+    final client = ApiClient(client: _ProfilesListClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.listProfiles(session, role: 'chief');
+    expect(page.profiles, hasLength(1));
+    expect(page.total, 1);
+    expect(page.profiles.first.isChief, isTrue);
+  });
+
+  test('myProfile fetches /v1/community/profiles/me', () async {
+    final client = ApiClient(client: _MyProfileClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final profile = await client.myProfile(session);
+    expect(profile.hasProfile, isFalse);
+    expect(profile.displayName, 'Restaurant Admin');
+  });
+
+  test('updateMyProfile PUTs /v1/community/profiles/me with skills', () async {
+    final client = ApiClient(client: _UpdateProfileClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final profile = await client.updateMyProfile(
+      session,
+      headline: 'Head Chef',
+      bio: '',
+      location: 'Cairo',
+      yearsExperience: 12,
+      isChief: true,
+      skills: const ['grill', 'sous'],
+    );
+    expect(profile.hasProfile, isTrue);
+    expect(profile.yearsExperience, 12);
+  });
+
+  test('getProfile returns the profile detail with memberships', () async {
+    final client = ApiClient(client: _ProfileDetailClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final profile = await client.getProfile(session, 'user-2');
+    expect(profile.userId, 'user-2');
+    expect(profile.memberships, hasLength(1));
+    expect(profile.memberships.first.role, 'staff');
+  });
+
+  test('listCompanies fetches /v1/community/companies', () async {
+    final client = ApiClient(client: _CompaniesListClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.listCompanies(session);
+    expect(page.companies, hasLength(1));
+    expect(page.companies.first.membersCount, 3);
+  });
+
+  test('createCompany posts to /v1/community/companies', () async {
+    final client = ApiClient(client: _CreateCompanyClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final company = await client.createCompany(
+      session,
+      name: 'Bakery X',
+      industry: 'food',
+      city: 'Cairo',
+    );
+    expect(company.id, 'company-1');
+    expect(company.name, 'Bakery X');
+  });
+
+  test('addCompanyMember posts and returns the member', () async {
+    final client = ApiClient(client: _AddMemberClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final member = await client.addCompanyMember(
+      session,
+      'company-1',
+      userId: 'user-2',
+      role: 'staff',
+      title: 'Line Cook',
+    );
+    expect(member.id, 'member-1');
+    expect(member.role, 'staff');
+  });
+
+  test('removeCompanyMember DELETEs the membership', () async {
+    final client = ApiClient(client: _RemoveMemberClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    await client.removeCompanyMember(session, 'company-1', 'user-2');
   });
 
   test('InventoryAdjustment parses the Go adjustment row', () {
@@ -3180,6 +3379,186 @@ class _SuspendTenantClient extends http.BaseClient {
         as Map<String, dynamic>;
     expect(body['reason'], 'abuse');
     const response = '{"data":{"suspended":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _profilesListJson =
+    '{"data":[{"user_id":"user-1","display_name":"Sara Chef",'
+    '"email":"sara@example.com","headline":"Head Chef","bio":"Team lead",'
+    '"avatar_url":"","location":"Cairo","years_experience":12,'
+    '"is_chief":true,"skills":["grill","sous"],"resume":{},"has_profile":true}],'
+    '"meta":{"total":1,"page":1,"limit":50}}';
+
+class _ProfilesListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(
+      request.url.path,
+      '/v1/community/profiles',
+    );
+    expect(request.url.queryParameters['role'], 'chief');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_profilesListJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _myProfileJson =
+    '{"data":{"user_id":"user-1","display_name":"Restaurant Admin",'
+    '"email":"admin@example.com","headline":"","bio":"","avatar_url":"",'
+    '"location":"","years_experience":0,"is_chief":false,"skills":[],'
+    '"resume":{},"has_profile":false},"meta":{"request_id":"t"}}';
+
+class _MyProfileClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/profiles/me');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_myProfileJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _updateProfileJson =
+    '{"data":{"user_id":"user-1","display_name":"Restaurant Admin",'
+    '"email":"admin@example.com","headline":"Head Chef","bio":"",'
+    '"avatar_url":"","location":"Cairo","years_experience":12,'
+    '"is_chief":true,"skills":["grill","sous"],"resume":{},"has_profile":true},'
+    '"meta":{"request_id":"t"}}';
+
+class _UpdateProfileClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'PUT');
+    expect(request.url.path, '/v1/community/profiles/me');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['headline'], 'Head Chef');
+    expect(body['skills'], ['grill', 'sous']);
+    expect(body['is_chief'], true);
+    return http.StreamedResponse(
+      Stream.value(_updateProfileJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _profileDetailJson =
+    '{"data":{"user_id":"user-2","display_name":"Bakery Staff",'
+    '"email":"staff@example.com","headline":"Baker","bio":"","avatar_url":"",'
+    '"location":"Giza","years_experience":4,"is_chief":false,'
+    '"skills":["dough"],"resume":{},"has_profile":true},'
+    '"memberships":[{"id":"m1","company_id":"c1","user_id":"user-2",'
+    '"display_name":"Bakery Staff","role":"staff","title":"Line Cook",'
+    '"created_at":"2026-09-23 11:00:00"}],"meta":{"request_id":"t"}}';
+
+class _ProfileDetailClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/profiles/user-2');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_profileDetailJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _companiesListJson =
+    '{"data":[{"id":"company-1","name":"Bakery X","slug":"","description":'
+    '"Fresh sourdough","industry":"food","website":"","logo_url":"",'
+    '"city":"Cairo","is_active":true,"created_at":"2026-09-23 11:00:00",'
+    '"members_count":3}],"meta":{"total":1,"page":1,"limit":50}}';
+
+class _CompaniesListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/companies');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_companiesListJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _companyCreatedJson =
+    '{"data":{"id":"company-1","name":"Bakery X","slug":"","description":"",'
+    '"industry":"food","website":"","logo_url":"","city":"Cairo",'
+    '"is_active":true,"created_at":"2026-09-23 11:00:00"},'
+    '"meta":{"request_id":"t"}}';
+
+class _CreateCompanyClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/community/companies');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['name'], 'Bakery X');
+    expect(body['industry'], 'food');
+    return http.StreamedResponse(
+      Stream.value(_companyCreatedJson.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _memberCreatedJson =
+    '{"data":{"id":"member-1","company_id":"company-1","user_id":"user-2",'
+    '"display_name":"Bakery Staff","role":"staff","title":"Line Cook",'
+    '"created_at":"2026-09-23 11:00:00"},"meta":{"request_id":"t"}}';
+
+class _AddMemberClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/community/companies/company-1/members');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['user_id'], 'user-2');
+    expect(body['role'], 'staff');
+    expect(body['title'], 'Line Cook');
+    return http.StreamedResponse(
+      Stream.value(_memberCreatedJson.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _RemoveMemberClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'DELETE');
+    expect(
+      request.url.path,
+      '/v1/community/companies/company-1/members/user-2',
+    );
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response = '{"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,

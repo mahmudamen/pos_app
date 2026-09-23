@@ -469,6 +469,31 @@
         }
       }
     },
+    "/v1/community/applications/{id}": {
+      "patch": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "PatchV1CommunityApplicationsId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/community/companies": {
       "get": {
         "tags": [
@@ -619,6 +644,175 @@
           "community"
         ],
         "operationId": "DeleteV1CommunityCompaniesIdMembersUserId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/community/jobs": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "GetV1CommunityJobs",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "PostV1CommunityJobs",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/community/jobs/{id}": {
+      "delete": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "DeleteV1CommunityJobsId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "GetV1CommunityJobsId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "PatchV1CommunityJobsId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/community/jobs/{id}/applications": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "GetV1CommunityJobsIdApplications",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/community/jobs/{id}/apply": {
+      "post": {
+        "tags": [
+          "community"
+        ],
+        "operationId": "PostV1CommunityJobsIdApply",
         "security": [
           {
             "bearerAuth": []

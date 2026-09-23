@@ -45,6 +45,176 @@ func do(t *testing.T, router *gin.Engine, method, path, token, body string) *htt
 	return recorder
 }
 
+func TestJobBoardRoundTrip(t *testing.T) {
+	router, seed := hub(t)
+
+	// Manager creates a job offer (cashier cannot).
+	status := do(t, router, http.MethodPost, "/v1/community/jobs",
+		token(t, seed, "cashier"), `{"title":"Barista"}`)
+	if status.Code != http.StatusForbidden {
+		t.Fatalf("cashier create job: expected 403, got %d", status.Code)
+	}
+
+	body := `{"title":"Barista","description":"Morning shift","employment_type":"full_time",
+		"location":"Cairo","salary_minor":1800000,"skill_tags":["coffee","Grill","coffee"],
+		"closes_at":"2026-12-31T23:59:59Z"}`
+	status = do(t, router, http.MethodPost, "/v1/community/jobs", token(t, seed, "manager"), body)
+	if status.Code != http.StatusCreated {
+		t.Fatalf("create job: expected 201, got %d (%s)", status.Code, status.Body.String())
+	}
+	var created struct {
+		Data struct {
+			ID          string   `json:"id"`
+			Title       string   `json:"title"`
+			SalaryMinor int      `json:"salary_minor"`
+			SkillTags   []string `json:"skill_tags"`
+			Applied     bool     `json:"applied"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(status.Body.Bytes(), &created); err != nil {
+		t.Fatalf("decode create: %v", err)
+	}
+	if created.Data.ID == "" {
+		t.Fatal("no job id returned")
+	}
+
+	// List: cashier can read, sees the applied flag false.
+	status = do(t, router, http.MethodGet, "/v1/community/jobs", token(t, seed, "cashier"), "")
+	if status.Code != http.StatusOK {
+		t.Fatalf("list jobs: expected 200, got %d", status.Code)
+	}
+	var list struct {
+		Data []map[string]any `json:"data"`
+	}
+	if err := json.Unmarshal(status.Body.Bytes(), &list); err != nil {
+		t.Fatalf("decode list body %q: %v", status.Body.String(), err)
+	}
+	if len(list.Data) != 1 || list.Data[0]["id"] != created.Data.ID {
+		t.Fatalf("expected one owned job, got %+v", list.Data)
+	}
+
+	// Cashier applies.
+	status = do(t, router, http.MethodPost, "/v1/community/jobs/"+created.Data.ID+"/apply",
+		token(t, seed, "cashier"), `{"cover_note":"I love coffee"}`)
+	if status.Code != http.StatusCreated {
+		t.Fatalf("apply: expected 201, got %d (%s)", status.Code, status.Body.String())
+	}
+	var applied struct {
+		Data struct {
+			ID          string `json:"id"`
+			ApplicantID string `json:"applicant_id"`
+			Status      string `json:"status"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(status.Body.Bytes(), &applied); err != nil {
+		t.Fatalf("decode apply: %v", err)
+	}
+	if applied.Data.ApplicantID == "" || applied.Data.Status != "applied" {
+		t.Fatalf("unexpected application: %+v", applied.Data)
+	}
+
+	// Duplicate apply → 409.
+	status = do(t, router, http.MethodPost, "/v1/community/jobs/"+created.Data.ID+"/apply",
+		token(t, seed, "cashier"), `{"cover_note":"again"}`)
+	if status.Code != http.StatusConflict {
+		t.Fatalf("duplicate apply: expected 409, got %d (%s)", status.Code, status.Body.String())
+	}
+
+	// Detail now reports applied for the cashier.
+	status = do(t, router, http.MethodGet, "/v1/community/jobs/"+created.Data.ID,
+		token(t, seed, "cashier"), "")
+	var detail map[string]any
+	_ = json.Unmarshal(status.Body.Bytes(), &detail)
+	if detail["data"].(map[string]any)["applied"] != true {
+		t.Fatalf("expected applied=true, got %+v", detail["data"])
+	}
+
+	// mine=1 shows only jobs the cashier applied to.
+	status = do(t, router, http.MethodGet, "/v1/community/jobs?mine=1", token(t, seed, "cashier"), "")
+	var mine struct {
+		Data []map[string]any `json:"data"`
+	}
+	_ = json.Unmarshal(status.Body.Bytes(), &mine)
+	if len(mine.Data) != 1 {
+		t.Fatalf("mine filter: expected 1, got %+v", mine.Data)
+	}
+
+	// Manager views applications and transitions the status.
+	status = do(t, router, http.MethodGet, "/v1/community/jobs/"+created.Data.ID+"/applications",
+		token(t, seed, "manager"), "")
+	if status.Code != http.StatusOK {
+		t.Fatalf("list applications: expected 200, got %d", status.Code)
+	}
+	var apps struct {
+		Data []map[string]any `json:"data"`
+	}
+	if err := json.Unmarshal(status.Body.Bytes(), &apps); err != nil {
+		t.Fatalf("decode apps %q: %v", status.Body.String(), err)
+	}
+	if len(apps.Data) != 1 || apps.Data[0]["applicant_id"] == "" {
+		t.Fatalf("expected one application, got %+v", apps.Data)
+	}
+
+	status = do(t, router, http.MethodPatch, "/v1/community/applications/"+applied.Data.ID,
+		token(t, seed, "manager"), `{"status":"under_review"}`)
+	if status.Code != http.StatusOK {
+		t.Fatalf("update status: expected 200, got %d (%s)", status.Code, status.Body.String())
+	}
+
+	// manager cannot apply to their own job? They can (any staff) - just verify
+	// the applications list reflects the new status.
+	status = do(t, router, http.MethodGet, "/v1/community/jobs/"+created.Data.ID+"/applications",
+		token(t, seed, "manager"), "")
+	_ = json.Unmarshal(status.Body.Bytes(), &apps)
+	if apps.Data[0]["status"] != "under_review" {
+		t.Fatalf("expected under_review, got %+v", apps.Data[0])
+	}
+
+	// Manager disables the job (soft delete).
+	status = do(t, router, http.MethodDelete, "/v1/community/jobs/"+created.Data.ID,
+		token(t, seed, "manager"), "")
+	if status.Code != http.StatusOK {
+		t.Fatalf("delete job: expected 200, got %d (%s)", status.Code, status.Body.String())
+	}
+	status = do(t, router, http.MethodGet, "/v1/community/jobs", token(t, seed, "cashier"), "")
+	_ = json.Unmarshal(status.Body.Bytes(), &list)
+	if len(list.Data) != 0 {
+		t.Fatalf("job should be hidden after soft delete, got %+v", list.Data)
+	}
+}
+
+func TestJobBoardCrossTenantIsolation(t *testing.T) {
+	router, seed := hub(t)
+
+	status := do(t, router, http.MethodPost, "/v1/community/jobs",
+		token(t, seed, "manager"), `{"title":"Barista"}`)
+	if status.Code != http.StatusCreated {
+		t.Fatalf("create owner job: expected 201, got %d (%s)", status.Code, status.Body.String())
+	}
+	var created struct {
+		Data struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	_ = json.Unmarshal(status.Body.Bytes(), &created)
+
+	// Another tenant sees no jobs and cannot apply to ours.
+	other := testutil.SeedTenant(t, testutil.Pool(t))
+	status = do(t, router, http.MethodGet, "/v1/community/jobs", token(t, other, "manager"), "")
+	var otherList struct {
+		Data []map[string]any `json:"data"`
+	}
+	_ = json.Unmarshal(status.Body.Bytes(), &otherList)
+	if len(otherList.Data) != 0 {
+		t.Fatalf("other tenant sees %d jobs, want 0", len(otherList.Data))
+	}
+	status = do(t, router, http.MethodPost, "/v1/community/jobs/"+created.Data.ID+"/apply",
+		token(t, other, "manager"), `{"cover_note":""}`)
+	if status.Code != http.StatusNotFound {
+		t.Fatalf("cross-tenant apply: expected 404, got %d", status.Code)
+	}
+}
+
 func TestProfileRoundTrip(t *testing.T) {
 	router, seed := hub(t)
 

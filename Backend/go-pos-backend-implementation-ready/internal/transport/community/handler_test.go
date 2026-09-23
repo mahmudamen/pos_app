@@ -61,6 +61,14 @@ func TestRoutesRegistered(t *testing.T) {
 		"DELETE /v1/community/companies/:id",
 		"POST /v1/community/companies/:id/members",
 		"DELETE /v1/community/companies/:id/members/:userId",
+		"GET /v1/community/jobs",
+		"POST /v1/community/jobs",
+		"GET /v1/community/jobs/:id",
+		"PATCH /v1/community/jobs/:id",
+		"DELETE /v1/community/jobs/:id",
+		"POST /v1/community/jobs/:id/apply",
+		"GET /v1/community/jobs/:id/applications",
+		"PATCH /v1/community/applications/:id",
 	} {
 		if !registered[want] {
 			t.Fatalf("route %s not registered", want)
@@ -202,6 +210,135 @@ func TestAddMemberValidation(t *testing.T) {
 	router.ServeHTTP(recorder, request)
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400 for bad role, got %d", recorder.Code)
+	}
+}
+
+func TestJobsRequireToken(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	for _, path := range []string{
+		"/v1/community/jobs",
+		"/v1/community/jobs/22222222-2222-2222-2222-222222222222",
+		"/v1/community/jobs/22222222-2222-2222-2222-222222222222/applications",
+	} {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		if recorder.Code != http.StatusUnauthorized {
+			t.Fatalf("%s: expected 401, got %d", path, recorder.Code)
+		}
+	}
+}
+
+func TestJobsWriteBlockedForCashier(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	request := httptest.NewRequest(http.MethodPost, "/v1/community/jobs", strings.NewReader(`{"title":"Barista"}`))
+	request.Header.Set("Authorization", "Bearer "+cashierToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 for cashier create, got %d", recorder.Code)
+	}
+
+	request = httptest.NewRequest(http.MethodGet, "/v1/community/jobs/22222222-2222-2222-2222-222222222222/applications", nil)
+	request.Header.Set("Authorization", "Bearer "+cashierToken(t))
+	recorder = httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 for cashier applications view, got %d", recorder.Code)
+	}
+}
+
+func TestJobsUnavailableWithoutDatabase(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	for _, token := range []string{ownerToken(t), cashierToken(t)} {
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, "/v1/community/jobs", nil)
+		request.Header.Set("Authorization", "Bearer "+token)
+		router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusServiceUnavailable {
+			t.Fatalf("expected 503, got %d", recorder.Code)
+		}
+	}
+}
+
+func TestCreateJobValidation(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+
+	// Empty title returns 400 (validated without pool).
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/community/jobs", strings.NewReader(`{}`))
+	request.Header.Set("Authorization", "Bearer "+ownerToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for empty title, got %d", recorder.Code)
+	}
+
+	// Bad employment type.
+	recorder = httptest.NewRecorder()
+	request = httptest.NewRequest(http.MethodPost, "/v1/community/jobs", strings.NewReader(`{"title":"Barista","employment_type":"overnight"}`))
+	request.Header.Set("Authorization", "Bearer "+managerToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for bad type, got %d", recorder.Code)
+	}
+
+	// Valid request reaches the pool check (503 without DB).
+	recorder = httptest.NewRecorder()
+	request = httptest.NewRequest(http.MethodPost, "/v1/community/jobs", strings.NewReader(`{"title":"Barista","employment_type":"full_time"}`))
+	request.Header.Set("Authorization", "Bearer "+managerToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 (pool nil), got %d", recorder.Code)
+	}
+}
+
+func TestApplyValidation(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+
+	// Long cover note is rejected without touching the pool.
+	note := strings.Repeat("a", 2001)
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/community/jobs/22222222-2222-2222-2222-222222222222/apply",
+		strings.NewReader(`{"cover_note":"`+note+`"}`))
+	request.Header.Set("Authorization", "Bearer "+cashierToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for long cover note, got %d", recorder.Code)
+	}
+
+	// Valid apply from cashier reaches the pool check (503 without DB).
+	recorder = httptest.NewRecorder()
+	request = httptest.NewRequest(http.MethodPost, "/v1/community/jobs/22222222-2222-2222-2222-222222222222/apply",
+		strings.NewReader(`{"cover_note":""}`))
+	request.Header.Set("Authorization", "Bearer "+cashierToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503 (pool nil), got %d", recorder.Code)
+	}
+}
+
+func TestApplicationStatusValidation(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPatch, "/v1/community/applications/22222222-2222-2222-2222-222222222222",
+		strings.NewReader(`{"status":"hired"}`))
+	request.Header.Set("Authorization", "Bearer "+ownerToken(t))
+	request.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for bad status, got %d", recorder.Code)
 	}
 }
 

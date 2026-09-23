@@ -41,6 +41,15 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	group.DELETE("/companies/:id", h.deleteCompany)
 	group.POST("/companies/:id/members", h.addMember)
 	group.DELETE("/companies/:id/members/:userId", h.removeMember)
+
+	group.GET("/jobs", h.listJobs)
+	group.POST("/jobs", h.createJob)
+	group.GET("/jobs/:id", h.getJob)
+	group.PATCH("/jobs/:id", h.updateJob)
+	group.DELETE("/jobs/:id", h.deleteJob)
+	group.POST("/jobs/:id/apply", h.applyToJob)
+	group.GET("/jobs/:id/applications", h.listApplications)
+	group.PATCH("/applications/:id", h.updateApplicationStatus)
 }
 
 // StaffProfile is the public wire shape of one staff member's profile.

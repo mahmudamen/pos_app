@@ -37,6 +37,9 @@ func init() {
 	grant([]string{"owner", "manager", "saas_admin"}, "notifications", "read")
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "community", "read")
 	grant([]string{"owner", "manager", "saas_admin"}, "community", "write")
+	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "jobs", "read")
+	grant([]string{"owner", "manager", "saas_admin"}, "jobs", "write")
+	grant([]string{"owner", "manager", "saas_admin"}, "jobs", "manage")
 }
 
 // HasPermission reports whether role may perform action on resource.
