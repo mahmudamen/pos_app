@@ -121,7 +121,7 @@ func (h *Handler) print(c *gin.Context) {
 func loadReceipt(ctx context.Context, tx pgx.Tx, saleID uuid.UUID) (Receipt, error) {
 	var r Receipt
 	err := tx.QueryRow(ctx, `
-		SELECT s.status, s.subtotal_minor, s.discount_minor, s.tips_minor, s.total_minor, s.currency,
+		SELECT s.status, s.subtotal_minor, s.discount_minor, s.tips_minor, s.total_minor, s.rounding_minor, s.currency,
 		       s.created_at::text, s.idempotency_key,
 		       COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = s.id), 0),
 		       COALESCE(s.created_by::text, ''), COALESCE(s.device_id::text, ''),
@@ -133,7 +133,7 @@ func loadReceipt(ctx context.Context, tx pgx.Tx, saleID uuid.UUID) (Receipt, err
 		LEFT JOIN floors fl ON fl.id = rt.floor_id
 		LEFT JOIN tenants t ON t.id = s.tenant_id
 		WHERE s.id = $1`, saleID).Scan(
-		&r.Status, &r.SubtotalMinor, &r.DiscountMinor, &r.TipsMinor, &r.TotalMinor, &r.Currency,
+		&r.Status, &r.SubtotalMinor, &r.DiscountMinor, &r.TipsMinor, &r.TotalMinor, &r.RoundingMinor, &r.Currency,
 		&r.CreatedAt, &r.IdempotencyKey,
 		&r.LoyaltyPoints,
 		&r.Cashier, &r.Device,

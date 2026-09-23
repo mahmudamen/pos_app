@@ -55,6 +55,7 @@ type createSaleRequest struct {
 	CustomerID        string            `json:"customer_id"`
 	TableID           string            `json:"table_id"`
 	ManagerPIN        string            `json:"manager_pin"`
+	RoundingMinor     int64             `json:"rounding_minor"`
 }
 
 type saleItemRequest struct {
@@ -70,6 +71,7 @@ type Sale struct {
 	DiscountMinor       int64  `json:"discount_minor"`
 	TaxMinor            int64  `json:"tax_minor"`
 	TotalMinor          int64  `json:"total_minor"`
+	RoundingMinor       int64  `json:"rounding_minor"`
 	Currency            string `json:"currency"`
 	PaymentMethod       string `json:"payment_method"`
 	CustomerID          string `json:"customer_id"`
@@ -150,7 +152,7 @@ func (h *Handler) listSales(c *gin.Context) {
 	}
 
 	rows, err := tx.Query(ctx, `
-		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
+		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, rounding_minor, currency,
 		       COALESCE(payment_method, 'cash'), tips_minor, COALESCE(table_id::text, ''), created_at::text
 		FROM sales ORDER BY created_at DESC LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
@@ -162,7 +164,7 @@ func (h *Handler) listSales(c *gin.Context) {
 	sales := make([]Sale, 0)
 	for rows.Next() {
 		var s Sale
-		if err := rows.Scan(&s.ID, &s.Status, &s.SubtotalMinor, &s.DiscountMinor, &s.TaxMinor, &s.TotalMinor, &s.Currency, &s.PaymentMethod, &s.TipsMinor, &s.TableID, &s.CreatedAt); err != nil {
+		if err := rows.Scan(&s.ID, &s.Status, &s.SubtotalMinor, &s.DiscountMinor, &s.TaxMinor, &s.TotalMinor, &s.RoundingMinor, &s.Currency, &s.PaymentMethod, &s.TipsMinor, &s.TableID, &s.CreatedAt); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sales")
 			return
 		}
@@ -223,14 +225,14 @@ func (h *Handler) getSale(c *gin.Context) {
 
 	var detail SaleDetail
 	err = tx.QueryRow(ctx, `
-		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
+		SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, rounding_minor, currency,
 		       COALESCE(payment_method, 'cash'), COALESCE(customer_id::text, ''),
 		       COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = sales.id), 0),
 		       tips_minor, COALESCE(table_id::text, ''),
 		       created_at::text, COALESCE(created_by::text, '')
 		FROM sales WHERE id = $1`, saleID).Scan(
 		&detail.ID, &detail.Status, &detail.SubtotalMinor, &detail.DiscountMinor, &detail.TaxMinor,
-		&detail.TotalMinor, &detail.Currency, &detail.PaymentMethod, &detail.CustomerID,
+		&detail.TotalMinor, &detail.RoundingMinor, &detail.Currency, &detail.PaymentMethod, &detail.CustomerID,
 		&detail.LoyaltyPointsEarned, &detail.TipsMinor, &detail.TableID,
 		&detail.CreatedAt, &detail.CreatedBy)
 	if errors.Is(err, pgx.ErrNoRows) {

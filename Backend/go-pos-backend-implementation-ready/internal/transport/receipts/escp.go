@@ -63,6 +63,7 @@ type Receipt struct {
 	SubtotalMinor  int64            `json:"subtotal_minor"`
 	DiscountMinor  int64            `json:"discount_minor"`
 	TipsMinor      int64            `json:"tips_minor"`
+	RoundingMinor  int64            `json:"rounding_minor"`
 	TotalMinor     int64            `json:"total_minor"`
 	Payments       []ReceiptPayment `json:"payments"`
 	LoyaltyPoints  int64            `json:"loyalty_points_earned"`
@@ -190,6 +191,9 @@ func BuildBytes(r Receipt, opts ReceiptOptions) []byte {
 	if r.TipsMinor > 0 {
 		p.text(pair("Tip", money(r.TipsMinor, r.Currency), width))
 	}
+	if r.RoundingMinor > 0 {
+		p.text(pair("Rounding", money(r.RoundingMinor, r.Currency), width))
+	}
 	if len(r.Payments) > 0 {
 		for _, pay := range r.Payments {
 			p.text(pair("Paid("+pay.Method+")", money(pay.Amount, r.Currency), width))
@@ -198,7 +202,7 @@ func BuildBytes(r Receipt, opts ReceiptOptions) []byte {
 	p.text(dashes(width))
 	p.align(1)
 	p.emphasize(true)
-	p.text(center("TOTAL "+money(r.TotalMinor, r.Currency), width))
+	p.text(center("TOTAL "+money(r.TotalMinor+r.RoundingMinor, r.Currency), width))
 	p.emphasize(false)
 	p.align(0)
 	if r.LoyaltyPoints > 0 {

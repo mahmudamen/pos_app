@@ -126,6 +126,17 @@ func TestValidateSetting(t *testing.T) {
 		{KeyValidateStockPayment, "", true},
 		{KeyRefreshButton, "false", false},
 		{KeyRefreshButton, "true", false},
+
+		// Egypt cash-rounding policy.
+		{KeyRoundingMode, "off", false},
+		{KeyRoundingMode, "25", false},
+		{KeyRoundingMode, "50", false},
+		{KeyRoundingMode, "100", false},
+		{KeyRoundingMode, "", true},
+		{KeyRoundingMode, "10", true},
+		{KeyRoundingMode, "0", true},
+		{KeyRoundingMode, "cap", true},
+
 		{"not.a.key", "anything", true},
 	}
 	for _, c := range cases {

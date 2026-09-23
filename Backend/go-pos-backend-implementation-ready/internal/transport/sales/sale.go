@@ -115,11 +115,11 @@ func CreateSale(
 	}
 
 	var existing Sale
-	err := tx.QueryRow(ctx, `SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, currency,
+	err := tx.QueryRow(ctx, `SELECT id, status, subtotal_minor, discount_minor, tax_minor, total_minor, rounding_minor, currency,
 		COALESCE(payment_method, 'cash'), COALESCE(customer_id::text, ''),
 		COALESCE((SELECT SUM(points_delta) FROM customer_loyalty_log cl WHERE cl.sale_id = sales.id), 0),
 		created_at::text FROM sales WHERE idempotency_key = $1`, idempotencyKey).Scan(
-		&existing.ID, &existing.Status, &existing.SubtotalMinor, &existing.DiscountMinor, &existing.TaxMinor, &existing.TotalMinor, &existing.Currency, &existing.PaymentMethod, &existing.CustomerID, &existing.LoyaltyPointsEarned, &existing.CreatedAt)
+		&existing.ID, &existing.Status, &existing.SubtotalMinor, &existing.DiscountMinor, &existing.TaxMinor, &existing.TotalMinor, &existing.RoundingMinor, &existing.Currency, &existing.PaymentMethod, &existing.CustomerID, &existing.LoyaltyPointsEarned, &existing.CreatedAt)
 	if err == nil {
 		return existing, nil
 	}
@@ -319,15 +319,42 @@ func createSale(
 		return Sale{}, newSaleError(400, "discount_error", ErrNegativeDiscount.Error())
 	}
 
-	payments, tipsMinor, err := normalizePayments(request.Payments, total)
+	// Egypt cash rounding: the client sends the delta, but the server alone
+	// owns the policy (pos.rounding_mode). Rounding never drops the payable
+	// below the nominal total, so rounding_minor is always >= 0 and satisfies
+	// its CHECK constraint. A rounding-enabled tenant still has the policy
+	// applied when a legacy client omits the field. Payments are validated
+	// only against the payable (= total + rounding) below, so a cashier who
+	// tenders the exact rounded amount is accepted rather than getting a
+	// payment-mismatch 400 from the nominal total.
+	mode, err := roundingMode(ctx, tx, tenantID)
+	if err != nil {
+		return Sale{}, newSaleError(500, "internal_error", "unable to read rounding policy")
+	}
+	expected, rerr := RoundingDelta(mode, total)
+	if rerr != nil {
+		return Sale{}, newSaleError(400, "rounding_error", rerr.Error())
+	}
+	if request.RoundingMinor < 0 {
+		return Sale{}, newSaleError(400, "rounding_error", "rounding_minor must not be negative")
+	}
+	rounding := request.RoundingMinor
+	if rounding == 0 && expected > 0 {
+		rounding = expected
+	} else if rounding != expected {
+		return Sale{}, newSaleError(400, "rounding_error", "rounding_minor does not match the tenant rounding policy")
+	}
+
+	payable := total + rounding
+	payments, tipsMinor, err := normalizePayments(request.Payments, payable)
 	if err != nil {
 		return Sale{}, newSaleError(400, "validation_error", err.Error())
 	}
 
 	saleID := uuid.New()
 	_, err = tx.Exec(ctx, `
-		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, currency, payment_method, register_session_id, customer_id, table_id, tips_minor)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, currency, primaryPaymentMethod(payments), requestSessionID, requestCustomerID, requestTableID, tipsMinor)
+		INSERT INTO sales (id, tenant_id, device_id, created_by, idempotency_key, subtotal_minor, discount_minor, total_minor, rounding_minor, currency, payment_method, register_session_id, customer_id, table_id, tips_minor)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`, saleID, tenantID, deviceID, userID, idempotencyKey, subtotal, discount, total, rounding, currency, primaryPaymentMethod(payments), requestSessionID, requestCustomerID, requestTableID, tipsMinor)
 	if err != nil {
 		return Sale{}, newSaleError(409, "idempotency_conflict", "idempotency key is already in use")
 	}
@@ -436,6 +463,7 @@ func createSale(
 		DiscountMinor:       discount,
 		TaxMinor:            0,
 		TotalMinor:          total,
+		RoundingMinor:       rounding,
 		Currency:            currency,
 		PaymentMethod:       primaryPaymentMethod(payments),
 		CustomerID:          saleCustomerID(requestCustomerID),

@@ -65,6 +65,10 @@ const (
 	KeyValidateStockPayment = "pos.validate_stock_payment"
 	// KeyRefreshButton shows a manual refresh action on the POS navbar.
 	KeyRefreshButton = "pos.refresh_button"
+	// KeyRoundingMode is the cash-change rounding policy: off (no rounding) or
+	// the minor-unit denomination to round the payable to (25/50/100 = 0.25,
+	// 0.50, 1.00 EGP). Egypt-market POSes round card-less cash change.
+	KeyRoundingMode = "pos.rounding_mode"
 )
 
 func isTrueFalse(v string) error {
@@ -111,6 +115,14 @@ func isStockType(v string) error {
 		return nil
 	}
 	return errors.New("must be one of on_hand, available")
+}
+
+func isRoundingMode(v string) error {
+	switch v {
+	case "off", "25", "50", "100":
+		return nil
+	}
+	return errors.New("must be one of off, 25, 50, 100")
 }
 
 func isThreshold(v string) error {
@@ -165,6 +177,7 @@ var settingDefinitions = map[string]validator{
 	KeyLowStockWarning:      isTrueFalse,
 	KeyValidateStockPayment: isTrueFalse,
 	KeyRefreshButton:        isTrueFalse,
+	KeyRoundingMode:         isRoundingMode,
 }
 
 // defaultSettingValue is returned for keys the tenant has never configured.
@@ -205,6 +218,8 @@ func defaultSettingValue(key string) string {
 		return "true"
 	case KeyRefreshButton:
 		return "true"
+	case KeyRoundingMode:
+		return "off"
 	default:
 		return ""
 	}
