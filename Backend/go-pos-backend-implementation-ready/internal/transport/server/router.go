@@ -17,6 +17,7 @@ import (
 	authtransport "github.com/example/pos-api/internal/transport/auth"
 	billingtransport "github.com/example/pos-api/internal/transport/billing"
 	catalogtransport "github.com/example/pos-api/internal/transport/catalog"
+	communitytransport "github.com/example/pos-api/internal/transport/community"
 	customertransport "github.com/example/pos-api/internal/transport/customers"
 	dashboardtransport "github.com/example/pos-api/internal/transport/dashboard"
 	httptransport "github.com/example/pos-api/internal/transport/http"
@@ -155,6 +156,7 @@ func Register(engine *gin.Engine, d Deps) {
 	subscriptiontransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
 	identitytransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
 	platformtransport.NewHandler(d.Pool, authHandler.Tokens(), d.Config).Register(api)
+	communitytransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 
 	// Self-ordering: public menu/order/request endpoints used by any browser
 	// that scans a store's self-order QR, plus staff routes to list, approve

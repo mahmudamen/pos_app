@@ -160,6 +160,19 @@ BEGIN
 END
 $$;
 
+-- Community workstream (migration 044): staff profiles, companies, and their
+-- membership rows. All FORCE RLS tenant tables written/read by the community
+-- module; profiles also INSERT via the staff's own upsert.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE user_profiles TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE ON TABLE companies TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE company_members TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)
