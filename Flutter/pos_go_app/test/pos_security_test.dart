@@ -49,6 +49,7 @@ class _PosSecurityApi extends ApiClient {
   int verifyPinCalls = 0;
   String lastManagerPin = '';
   int lastDiscountMinor = 0;
+  int lastRoundingMinor = 0;
   int? lastClosingCashMinor;
 
   @override
@@ -89,9 +90,11 @@ class _PosSecurityApi extends ApiClient {
     String? tableId,
     int discountMinor = 0,
     String managerPin = '',
+    int roundingMinor = 0,
   }) async {
     lastDiscountMinor = discountMinor;
     lastManagerPin = managerPin;
+    lastRoundingMinor = roundingMinor;
     return const SaleResult(
       id: 'sale-secure-1',
       subtotalMinor: 350,
@@ -400,5 +403,32 @@ void main() {
     expect(api.verifyPinCalls, 1);
     expect(api.lastManagerPin, '1234');
     expect(api.lastClosingCashMinor, 1000);
+  });
+
+  testWidgets('cash rounding shows the payable line and forwards rounding_minor',
+      (tester) async {
+    final api = _PosSecurityApi(
+      customSettings: const TenantSettings(roundingMode: '100'),
+    );
+    api.productList = [_product('p-ok', 'Cappuccino', 10, priceMinor: 350)];
+
+    await tester.pumpWidget(_wrap(PosScreen(
+      session: _cashier,
+      apiClient: api,
+      onSignOut: () {},
+    )));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cappuccino'));
+    await tester.pump();
+    await tester.tap(find.text('Complete sale'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Confirm payment'));
+    await tester.tap(find.text('Confirm payment'));
+    await tester.pumpAndSettle();
+
+    expect(api.lastRoundingMinor, 50);
+    expect(api.lastDiscountMinor, 0);
   });
 }

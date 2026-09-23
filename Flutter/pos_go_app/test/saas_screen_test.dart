@@ -44,6 +44,9 @@ const _restaurant = SaasTenant(
   users: 2,
   products: 24,
   plan: 'trial',
+  planFeatures: ['pos.basic', 'restaurant', 'pos.subdomain'],
+  subdomain: 'nile-cafe.xamltech.com',
+  subscriptionStatus: 'trial',
   status: 'active',
   revenueMinor: 8000,
   totalSales: 4,
@@ -61,6 +64,9 @@ const _bookstore = SaasTenant(
   users: 2,
   products: 80,
   plan: 'premium',
+  planFeatures: ['pos.basic', 'book_store', 'pos.subdomain'],
+  subdomain: 'cairo-books.xamltech.com',
+  subscriptionStatus: 'active',
   status: 'suspended',
   revenueMinor: 4500,
   totalSales: 3,
@@ -73,6 +79,8 @@ class _FakeSaasApi extends ApiClient {
   List<SaasTenant> tenants = const [_restaurant, _bookstore];
   int activateCalls = 0;
   int suspendCalls = 0;
+  int stopCalls = 0;
+  int backupCalls = 0;
   SaasTenantsPage? lastPage;
 
   String? filterQuery;
@@ -144,6 +152,9 @@ class _FakeSaasApi extends ApiClient {
         currencyCode: r.currencyCode,
         defaultLanguage: r.defaultLanguage,
         plan: r.plan,
+        planFeatures: r.planFeatures,
+        subscriptionStatus: r.subscriptionStatus,
+        subdomain: r.subdomain,
         status: r.status,
         createdAt: r.createdAt,
       ),
@@ -239,6 +250,24 @@ class _FakeSaasApi extends ApiClient {
     String reason = '',
   }) async {
     suspendCalls++;
+  }
+
+  @override
+  Future<void> platformStopTenant(
+    Session session,
+    String tenantId, {
+    String reason = '',
+  }) async {
+    stopCalls++;
+  }
+
+  @override
+  Future<String?> platformBackupTenant(
+    Session session,
+    String tenantId,
+  ) async {
+    backupCalls++;
+    return '{"tenant_id":"$tenantId","tables":{"products":[]}}';
   }
 }
 
@@ -348,5 +377,70 @@ void main() {
     await tester.pumpAndSettle();
     expect(api.suspendCalls, 1);
     expect(find.text('Tenant suspended'), findsOneWidget);
+  });
+
+  testWidgets('tenant analytics stop action requires confirm and stops',
+      (tester) async {
+    final api = _FakeSaasApi();
+    await tester.pumpWidget(_wrap(TenantAnalyticsScreen(
+      session: _saasAdmin,
+      apiClient: api,
+      tenantId: 't-1',
+      tenantName: 'Nile Cafe',
+    )));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Stop tenant'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Stop tenant'));
+    await tester.pumpAndSettle();
+    expect(api.stopCalls, 1);
+    expect(find.text('Tenant stopped'), findsOneWidget);
+  });
+
+  testWidgets('tenant analytics backup triggers export snackbar',
+      (tester) async {
+    final api = _FakeSaasApi();
+    await tester.pumpWidget(_wrap(TenantAnalyticsScreen(
+      session: _saasAdmin,
+      apiClient: api,
+      tenantId: 't-1',
+      tenantName: 'Nile Cafe',
+    )));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Download backup'));
+    await tester.pumpAndSettle();
+    expect(api.backupCalls, 1);
+  });
+
+  testWidgets('tenant analytics shows subdomain chip when plan includes it',
+      (tester) async {
+    final api = _FakeSaasApi();
+    await tester.pumpWidget(_wrap(TenantAnalyticsScreen(
+      session: _saasAdmin,
+      apiClient: api,
+      tenantId: 't-1',
+      tenantName: 'Nile Cafe',
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.text('nile-cafe.xamltech.com'), findsOneWidget);
+    expect(find.byTooltip('Subdomain included'), findsOneWidget);
+  });
+
+  testWidgets('control panel list shows subdomain chip on tenant cards',
+      (tester) async {
+    final api = _FakeSaasApi();
+    await tester.pumpWidget(
+        _wrap(ControlPanelScreen(session: _saasAdmin, apiClient: api)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tenants').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('nile-cafe.xamltech.com'), findsOneWidget);
+    expect(find.text('cairo-books.xamltech.com'), findsOneWidget);
   });
 }

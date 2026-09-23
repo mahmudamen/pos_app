@@ -11,6 +11,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -52,6 +53,8 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 		admin.POST("/accounts/:id/suspend", h.suspendAccount)
 		admin.POST("/tenants/:id/suspend", h.suspendTenant)
 		admin.POST("/tenants/:id/activate", h.activateTenant)
+		admin.POST("/tenants/:id/stop", h.stopTenant)
+		admin.POST("/tenants/:id/backup", h.backupTenant)
 	}
 }
 
@@ -532,6 +535,183 @@ func (h *Handler) activateTenant(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"activated": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+// stopTenant is the permanent sibling of suspendTenant: it disables the tenant
+// (login returns organization_stopped) and cancels its live subscription(s) so
+// billing stops accruing. Data is kept for restore; only access is closed.
+func (h *Handler) stopTenant(c *gin.Context) {
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil { /* reason optional */
+	}
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	claims, _ := httptransport.Claims(c)
+	tag, err := tx.Exec(ctx, `
+		UPDATE tenants SET status = 'disabled', updated_at = now() WHERE id = $1::uuid AND status <> 'disabled'`,
+		c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to stop tenant")
+		return
+	}
+	if tag.RowsAffected() == 0 {
+		writeError(c, http.StatusNotFound, "tenant_not_found", "tenant not found or already stopped")
+		return
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE subscriptions SET status = 'cancelled', cancelled_at = now(), updated_at = now()
+		WHERE tenant_id = $1::uuid AND status NOT IN ('cancelled')`, c.Param("id")); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to cancel subscription")
+		return
+	}
+	if err := h.audit.Record(ctx, tx, identity.AuditEntry{
+		Action:      identity.ActionOrganizationStopped,
+		ActorUserID: claims.UserID,
+		TenantID:    c.Param("id"),
+		EntityID:    c.Param("id"),
+		EntityType:  identity.EntityOrganization,
+		Reason:      req.Reason,
+	}); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to record audit")
+		return
+	}
+	if err := tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to stop tenant")
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"stopped": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
+}
+
+// tenantTables is the tenant-scoped business-state catalog mirrored by the sync
+// change feed. Every table carries tenant_id + FORCE RLS, so SELECTs below are
+// scoped by app.current_tenant and CANNOT read another tenant's rows even by
+// owner/superuser. Platform-level tables (plans, subscriptions, invoices,
+// accounts, audit_log, countries, currency, ...) have no RLS and are NOT
+// enumerated here, so a cross-tenant leak via the backup is impossible by
+// construction. client_events is deliberately excluded (observability, not
+// business state — matches the sync feed's exclusion).
+var tenantTables = []string{
+	"categories", "products",
+	"product_variants", "product_lots",
+	"customers", "customer_loyalty_log",
+	"floors", "restaurant_tables",
+	"register_sessions", "inventory_adjustments",
+	"tenant_settings",
+	"sales", "sale_items", "sale_payments", "sale_refunds",
+	"users", "users_pos_security",
+	"devices", "sessions", "refresh_tokens", "sync_commands",
+	"purchases", "purchase_items", "ocr_usage",
+	"self_orders", "product_requests",
+	"notifications", "notification_push_sub",
+}
+
+// backupTenant streams a per-tenant, RLS-scoped JSON export of every
+// tenant-scoped table. One JSON document: {"tenant_id", "slug",
+// "exported_at", "tables": {name: [rows...]}}. Rows are streamed as
+// row_to_json(text) raw bytes, so even large tenants never buffer a whole
+// table in memory. The tx runs with app.current_tenant set for the whole
+// export; FORCE RLS guarantees only this tenant's rows are visible.
+func (h *Handler) backupTenant(c *gin.Context) {
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	tenantID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "invalid_tenant_id", "tenant id is invalid")
+		return
+	}
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var slug string
+	if err := tx.QueryRow(ctx, `SELECT slug FROM tenants WHERE id = $1::uuid`, tenantID).Scan(&slug); err != nil {
+		writeError(c, http.StatusNotFound, "tenant_not_found", "tenant not found")
+		return
+	}
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, tenantID.String()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+
+	// Stream the export. The tenant row lookup above validated existence; the
+	// handler is saas_admin-gated. Everything below runs under the RLS context
+	// just established, so only this tenant's rows are read.
+	c.Header("Content-Type", "application/json")
+	c.Header("Content-Disposition", `attachment; filename="`+slug+`-backup.json"`)
+
+	if _, err := c.Writer.WriteString(`{"tenant_id":"` + tenantID.String() + `","slug":"` + jsonEscape(slug) +
+		`","subdomain":"` + jsonEscape(slug+".xamltech.com") + `","exported_at":"` + time.Now().UTC().Format(time.RFC3339) + `","tables":{`); err != nil {
+		return
+	}
+	for i, table := range tenantTables {
+		if i > 0 {
+			if _, err := c.Writer.WriteString(`,`); err != nil {
+				return
+			}
+		}
+		if _, err := c.Writer.WriteString(`"` + table + `":[`); err != nil {
+			return
+		}
+		rows, err := tx.Query(ctx, `SELECT row_to_json(t)::text FROM `+table+` t`)
+		if err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to export "+table)
+			return
+		}
+		first := true
+		for rows.Next() {
+			var rowBytes []byte
+			if err := rows.Scan(&rowBytes); err != nil {
+				rows.Close()
+				writeError(c, http.StatusInternalServerError, "internal_error", "unable to export "+table)
+				return
+			}
+			if !first {
+				if _, err := c.Writer.WriteString(`,`); err != nil {
+					rows.Close()
+					return
+				}
+			}
+			first = false
+			if _, err := c.Writer.Write(rowBytes); err != nil {
+				rows.Close()
+				return
+			}
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			writeError(c, http.StatusInternalServerError, "internal_error", "unable to export "+table)
+			return
+		}
+		if _, err := c.Writer.WriteString(`]`); err != nil {
+			return
+		}
+	}
+	if _, err := c.Writer.WriteString(`}}`); err != nil {
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func jsonEscape(s string) string {
+	b, _ := json.Marshal(s)
+	return string(b[1 : len(b)-1])
 }
 
 func entitlementPayloads(items []identity.TrialEntitlement) []gin.H {

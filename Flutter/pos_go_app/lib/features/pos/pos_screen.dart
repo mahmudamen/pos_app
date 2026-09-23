@@ -857,11 +857,13 @@ class _PosScreenState extends State<PosScreen> {
         effectiveMaxDiscountPct: effectiveCap,
         actorIsManagerLevel: widget.session.isManagerLevel,
         managerOverrideEnabled: _settings.managerDiscountOverride,
+        roundingDenom: _settings.roundingDenom,
       ),
     );
     if (sheetResult == null || !mounted) return;
 
     final discountMinor = sheetResult.discountMinor;
+    final roundingMinor = sheetResult.roundingMinor;
     final decision = sheetResult.decision;
     if (decision != null &&
         (decision.kind == DiscountDecisionKind.invalidNegative ||
@@ -898,6 +900,7 @@ class _PosScreenState extends State<PosScreen> {
         tableId: tableId,
         discountMinor: discountMinor,
         managerPin: managerPin,
+        roundingMinor: roundingMinor,
       );
       if (!mounted) return;
       _closeOrder(paidOrderIndex);
@@ -942,6 +945,7 @@ class _PosScreenState extends State<PosScreen> {
               if (_registerSession != null) 'session_id': _registerSession!.id,
               if (tableId != null) 'table_id': tableId,
               if (discountMinor > 0) 'discount_minor': discountMinor,
+              if (roundingMinor > 0) 'rounding_minor': roundingMinor,
             }),
           ));
           if (!mounted) return;
@@ -1438,6 +1442,7 @@ class PaymentSheet extends StatefulWidget {
     this.effectiveMaxDiscountPct = 0,
     this.actorIsManagerLevel = false,
     this.managerOverrideEnabled = true,
+    this.roundingDenom = 0,
   });
 
   final AppStrings strings;
@@ -1451,6 +1456,9 @@ class PaymentSheet extends StatefulWidget {
   final bool actorIsManagerLevel;
   final bool managerOverrideEnabled;
 
+  /// Minor-unit cash denomination the payable is rounded to (0 = off).
+  final int roundingDenom;
+
   @override
   State<PaymentSheet> createState() => _PaymentSheetState();
 }
@@ -1460,6 +1468,7 @@ class PaymentSheetResult {
     required this.payments,
     required this.discountMinor,
     this.decision,
+    this.roundingMinor = 0,
   });
 
   final List<PaymentInput> payments;
@@ -1469,6 +1478,9 @@ class PaymentSheetResult {
 
   /// Policy verdict for the entered discount; governs the checkout flow.
   final DiscountDecision? decision;
+
+  /// Cash-change rounding delta to submit alongside the sale (0 when off).
+  final int roundingMinor;
 }
 
 class _PaymentSheetState extends State<PaymentSheet> {
@@ -1484,7 +1496,9 @@ class _PaymentSheetState extends State<PaymentSheet> {
   @override
   void initState() {
     super.initState();
-    final full = (widget.totalMinor / 100).toStringAsFixed(2);
+    final payable = widget.totalMinor +
+        roundingDelta(widget.roundingDenom, widget.totalMinor);
+    final full = (payable / 100).toStringAsFixed(2);
     _cashController = TextEditingController(
         text: widget.defaultMethod == PaymentMethod.cash ? full : '');
     _cardController = TextEditingController(
@@ -1519,6 +1533,16 @@ class _PaymentSheetState extends State<PaymentSheet> {
   int get _discountDecisionNet => _discountMinorInput > 0
       ? _evaluate(_discountMinorInput).effectiveMinor
       : 0;
+
+  /// The nominal total after the (policy-applied) discount.
+  int get _netTotal => widget.totalMinor - _discountDecisionNet;
+
+  /// Cash-change rounding delta for the discounted total.
+  int get _rounding =>
+      widget.roundingDenom > 0 ? roundingDelta(widget.roundingDenom, _netTotal) : 0;
+
+  /// The rounded payable the tender lines must sum to.
+  int get _payable => _netTotal + _rounding;
 
   String? get _discountHint {
     if (_discountMinorInput <= 0) return null;
@@ -1568,7 +1592,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
     }
     try {
       var payments = PaymentSplit.allocate(
-        totalMinor: widget.totalMinor - decision.effectiveMinor,
+        totalMinor: _payable,
         parts: {
           PaymentMethod.cash: cashMinor,
           PaymentMethod.card: cardMinor,
@@ -1589,6 +1613,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
         payments: payments,
         discountMinor: decision.effectiveMinor,
         decision: decision,
+        roundingMinor: _rounding,
       ));
     } on ArgumentError {
       setState(() => _error = widget.strings.paymentRequired);
@@ -1662,15 +1687,40 @@ class _PaymentSheetState extends State<PaymentSheet> {
               ],
               Text(s.remainingLabel,
                   style: Theme.of(context).textTheme.bodySmall),
-              Text(s.netTotal, style: Theme.of(context).textTheme.bodySmall),
-              Text(
-                s.formatMoney(
-                    widget.totalMinor -
-                        _discountDecisionNet +
-                        (minorFromInput(_tipController.text) ?? 0),
-                    widget.currency),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              if (widget.roundingDenom > 0) ...[
+                Text(s.netTotal, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  s.formatMoney(
+                      _netTotal + (minorFromInput(_tipController.text) ?? 0),
+                      widget.currency),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (_rounding > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '${s.rounding} +${s.formatMoney(_rounding, widget.currency)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.tertiary),
+                  ),
+                ],
+                Text(s.payable, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  s.formatMoney(
+                      _payable + (minorFromInput(_tipController.text) ?? 0),
+                      widget.currency),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ] else ...[
+                Text(s.netTotal, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  s.formatMoney(
+                      widget.totalMinor -
+                          _discountDecisionNet +
+                          (minorFromInput(_tipController.text) ?? 0),
+                      widget.currency),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
               if (widget.receiptFooter.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(widget.receiptFooter,

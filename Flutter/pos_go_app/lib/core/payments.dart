@@ -105,3 +105,47 @@ int? minorFromInput(String input) {
   if (parsed == null || parsed < 0) return null;
   return (parsed * 100).round();
 }
+
+/// Maps a `pos.rounding_mode` setting value to its minor-unit denomination.
+/// Returns 0 when rounding is off (""/"off") and null for an unknown value
+/// (mirrors `ParseRoundingMode` on the backend).
+int? roundingDenominator(String? mode) {
+  switch (mode?.trim().toLowerCase()) {
+    case null:
+    case '':
+    case 'off':
+      return 0;
+    case '25':
+      return 25;
+    case '50':
+      return 50;
+    case '100':
+      return 100;
+  }
+  return null;
+}
+
+/// The cash-change rounding delta added to a sale's nominal total to reach the
+/// rounded payable amount. Never negative (nearest-half-up, clamped so a total
+/// is never rounded below its nominal value) — mirrors `RoundingDelta` on the
+/// backend. Returns 0 when rounding is off or the total sits on a boundary.
+///
+/// Throws [ArgumentError] for an unknown rounding mode (a the backend would
+/// reject the sale with `rounding_error`).
+int roundingDelta(int denomination, int totalMinor, {String? mode}) {
+  if (mode != null) {
+    final denom = roundingDenominator(mode);
+    if (denom == null) {
+      throw ArgumentError.value(mode, 'mode', 'unknown rounding mode');
+    }
+    if (denom != denomination) {
+      throw ArgumentError.value(
+          denomination, 'denomination', 'does not match mode "$mode"');
+    }
+  }
+  if (denomination <= 0 || totalMinor <= 0) return 0;
+  final rem = totalMinor % denomination;
+  if (rem == 0) return 0;
+  if (rem * 2 >= denomination) return denomination - rem;
+  return 0;
+}

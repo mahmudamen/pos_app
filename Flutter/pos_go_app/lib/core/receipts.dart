@@ -15,6 +15,7 @@ class SaleReceipt {
     required this.subtotalMinor,
     this.discountMinor = 0,
     this.tipsMinor = 0,
+    this.roundingMinor = 0,
     required this.totalMinor,
     this.payments = const [],
     this.loyaltyPointsEarned = 0,
@@ -39,6 +40,7 @@ class SaleReceipt {
         subtotalMinor: (json['subtotal_minor'] as num?)?.toInt() ?? 0,
         discountMinor: (json['discount_minor'] as num?)?.toInt() ?? 0,
         tipsMinor: (json['tips_minor'] as num?)?.toInt() ?? 0,
+        roundingMinor: (json['rounding_minor'] as num?)?.toInt() ?? 0,
         totalMinor: (json['total_minor'] as num?)?.toInt() ?? 0,
         payments: (json['payments'] as List<dynamic>? ?? [])
             .map((e) => ReceiptPayment.fromJson(e as Map<String, dynamic>))
@@ -63,6 +65,9 @@ class SaleReceipt {
   final int subtotalMinor;
   final int discountMinor;
   final int tipsMinor;
+
+  /// Cash-change rounding delta (0 when rounding is off).
+  final int roundingMinor;
   final int totalMinor;
   final List<ReceiptPayment> payments;
   final int loyaltyPointsEarned;

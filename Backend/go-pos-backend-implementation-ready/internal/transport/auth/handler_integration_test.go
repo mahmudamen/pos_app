@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -193,5 +194,33 @@ func TestAuthIntegration_LogoutRevokesSession(t *testing.T) {
 	router.ServeHTTP(badRec, badReq)
 	if badRec.Code != http.StatusUnauthorized {
 		t.Fatalf("logout after successful logout: expected 401, got %d: %s", badRec.Code, badRec.Body.String())
+	}
+}
+
+// TestAuthIntegration_LoginBlockedForDisabledTenant proves that a tenant
+// stopped via the platform (status 'disabled') can no longer sign in: the
+// login gate must reject it with 403 organization_stopped (distinct from the
+// suspended 403 so operators can tell pause apart from stop).
+func TestAuthIntegration_LoginBlockedForDisabledTenant(t *testing.T) {
+	router, seed, pool := setupAuthIntegration(t)
+	if _, err := pool.Exec(context.Background(),
+		`UPDATE tenants SET status = 'disabled' WHERE id = $1::uuid`, seed.TenantID); err != nil {
+		t.Fatal(err)
+	}
+	rec := doPost(t, router, "/v1/auth/login", loginBody(seed), "")
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("login for disabled tenant: expected 403, got %d: %s", rec.Code, rec.Body.String())
+	}
+	if !bytes.Contains(rec.Body.Bytes(), []byte("organization_stopped")) {
+		t.Fatalf("disabled login should carry organization_stopped: %s", rec.Body.String())
+	}
+	// Reverting to 'active' re-opens login.
+	if _, err := pool.Exec(context.Background(),
+		`UPDATE tenants SET status = 'active' WHERE id = $1::uuid`, seed.TenantID); err != nil {
+		t.Fatal(err)
+	}
+	rec = doPost(t, router, "/v1/auth/login", loginBody(seed), "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("login after reactivate: expected 200, got %d: %s", rec.Code, rec.Body.String())
 	}
 }

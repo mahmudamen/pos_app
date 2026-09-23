@@ -439,6 +439,10 @@ func (h *Handler) login(c *gin.Context) {
 		writeError(c, http.StatusForbidden, "organization_suspended", "this organization has been suspended; contact support")
 		return
 	}
+	if tenantStatus == "disabled" {
+		writeError(c, http.StatusForbidden, "organization_stopped", "this organization has been stopped; contact support")
+		return
+	}
 	if ownerAccountID != "" {
 		var accountStatus string
 		if err := tx.QueryRow(ctx, `SELECT status FROM accounts WHERE id = $1::uuid`, ownerAccountID).Scan(&accountStatus); err == nil {

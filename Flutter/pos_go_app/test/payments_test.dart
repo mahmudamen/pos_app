@@ -169,4 +169,66 @@ void main() {
       expect(minorFromInput('12.5.5'), isNull);
     });
   });
+
+  group('roundingDenominator', () {
+    test('maps setting values to minor denominations', () {
+      expect(roundingDenominator(null), 0);
+      expect(roundingDenominator(''), 0);
+      expect(roundingDenominator('off'), 0);
+      expect(roundingDenominator('OFF'), 0);
+      expect(roundingDenominator('25'), 25);
+      expect(roundingDenominator('50'), 50);
+      expect(roundingDenominator('100'), 100);
+    });
+
+    test('returns null for an unknown value', () {
+      expect(roundingDenominator('abc'), isNull);
+      expect(roundingDenominator('ptg'), isNull);
+    });
+  });
+
+  group('roundingDelta', () {
+    test('rounds up to the nearest denomination when the remainder is at/above half',
+        () {
+      expect(roundingDelta(25, 2513), 12);
+      expect(roundingDelta(25, 2524), 1);
+      expect(roundingDelta(50, 2625), 25);
+      expect(roundingDelta(100, 1350), 50);
+    });
+
+    test('returns zero on exact boundaries', () {
+      expect(roundingDelta(25, 2500), 0);
+      expect(roundingDelta(25, 2525), 0);
+      expect(roundingDelta(50, 2500), 0);
+      expect(roundingDelta(100, 2500), 0);
+    });
+
+    test('returns zero when the remainder is below half the denomination', () {
+      expect(roundingDelta(25, 2501), 0);
+      expect(roundingDelta(100, 1349), 0);
+      expect(roundingDelta(50, 2513), 0);
+      expect(roundingDelta(100, 2513), 0);
+    });
+
+    test('returns zero for off mode or non-positive inputs', () {
+      expect(roundingDelta(0, 2513), 0);
+      expect(roundingDelta(25, 0), 0);
+      expect(roundingDelta(25, -1), 0);
+      expect(roundingDelta(0, 2513, mode: 'off'), 0);
+    });
+
+    test('mode must agree with the denomination', () {
+      expect(roundingDelta(25, 2513, mode: '25'), 12);
+      expect(() => roundingDelta(25, 2513, mode: '50'),
+          throwsArgumentError);
+      expect(() => roundingDelta(25, 2513, mode: 'broken'),
+          throwsArgumentError);
+      expect(() => roundingDelta(25, 2513, mode: 'off'),
+          throwsArgumentError);
+    });
+
+    test('accepts a mode matching the denomination', () {
+      expect(roundingDelta(25, 2513, mode: '25'), 12);
+    });
+  });
 }

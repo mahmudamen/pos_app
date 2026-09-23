@@ -457,6 +457,8 @@ class AppStrings {
   String get closeNeedsManagerPin => isArabic ? 'إنهاء الجلسة يتطلب رمز المدير' : 'Closing the session requires the manager PIN';
   String get discountNet => isArabic ? 'الخصم' : 'Discount';
   String get netTotal => isArabic ? 'الإجمالي بعد الخصم' : 'Total after discount';
+  String get rounding => isArabic ? 'تقريب النقد' : 'Cash rounding';
+  String get payable => isArabic ? 'المستحق' : 'Payable';
   String get taxLabel => isArabic ? 'الضريبة' : 'Tax';
   String get balanceEquals => isArabic ? 'التسوية صحيحة' : 'Reconciled';
   String get closeSessionError => isArabic ? 'تعذر إنهاء الجلسة' : 'Could not finish session';

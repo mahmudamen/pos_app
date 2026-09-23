@@ -2,6 +2,7 @@ package saas
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -181,23 +182,23 @@ func (h *Handler) listTenants(c *gin.Context) {
 	where := make([]string, 0, 5)
 	args := make([]any, 0, 6)
 	if !includeInternal {
-		where = append(where, "slug <> 'saas'")
+		where = append(where, "t.slug <> 'saas'")
 	}
 	if q != "" {
 		args = append(args, "%"+q+"%")
-		where = append(where, fmt.Sprintf("(name ILIKE $%d OR slug ILIKE $%d)", len(args), len(args)))
+		where = append(where, fmt.Sprintf("(t.name ILIKE $%d OR t.slug ILIKE $%d)", len(args), len(args)))
 	}
 	if bType != "" {
 		args = append(args, bType)
-		where = append(where, fmt.Sprintf("business_type = $%d", len(args)))
+		where = append(where, fmt.Sprintf("t.business_type = $%d", len(args)))
 	}
 	if plan != "" {
 		args = append(args, plan)
-		where = append(where, fmt.Sprintf("plan = $%d", len(args)))
+		where = append(where, fmt.Sprintf("t.plan = $%d", len(args)))
 	}
 	if status != "" {
 		args = append(args, status)
-		where = append(where, fmt.Sprintf("status = $%d", len(args)))
+		where = append(where, fmt.Sprintf("t.status = $%d", len(args)))
 	}
 	whereSQL := ""
 	if len(where) > 0 {
@@ -212,32 +213,44 @@ func (h *Handler) listTenants(c *gin.Context) {
 	defer func() { _ = tx.Rollback(ctx) }()
 
 	var total int64
-	countQ := `SELECT COUNT(*) FROM tenants` + whereSQL
+	countQ := `SELECT COUNT(*) FROM tenants t` + whereSQL
 	if err := tx.QueryRow(ctx, countQ, args...).Scan(&total); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to count tenants")
 		return
 	}
 
+	listArgIdx := len(args) + 1
 	listArgs := append(append([]any{}, args...), limit, offset)
 	rows, err := tx.Query(ctx, `
-		SELECT id, name, slug, business_type, country_code, currency_code, default_language, plan,
-		       max_users, max_products, status, created_at, trial_ends_at,
-		       COALESCE(owner_user_id::text, '')
-		FROM tenants`+whereSQL+` ORDER BY created_at DESC, name LIMIT $`+strconv.Itoa(len(args)+1)+` OFFSET $`+strconv.Itoa(len(args)+2), listArgs...)
+		SELECT t.id, t.name, t.slug, t.business_type, t.country_code, t.currency_code, t.default_language,
+		       t.plan, t.max_users, t.max_products, t.status, t.created_at, t.trial_ends_at,
+		       COALESCE(t.owner_user_id::text, ''),
+		       COALESCE(p.features, '[]'::jsonb)::text,
+		       COALESCE(s.status, '')
+		FROM tenants t
+		LEFT JOIN plans p ON p.code = t.plan
+		LEFT JOIN LATERAL (
+			SELECT status FROM subscriptions WHERE tenant_id = t.id ORDER BY created_at DESC LIMIT 1
+		) s ON true
+		`+whereSQL+` ORDER BY t.created_at DESC, t.name LIMIT $`+strconv.Itoa(listArgIdx+0)+` OFFSET $`+strconv.Itoa(listArgIdx+1), listArgs...)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load tenants")
 		return
 	}
 	type tenantInfo struct {
 		id, name, slug, bType, country, currency, lang, plan, status, ownerUserID string
+		planFeatures                                                              string
+		subscriptionStatus                                                        string
 		maxUsers, maxProducts                                                     int
 		createdAt, trialEndsAt                                                    *time.Time
+		slugOut                                                                   string
 	}
 	list := make([]tenantInfo, 0)
 	for rows.Next() {
 		var t tenantInfo
 		if err := rows.Scan(&t.id, &t.name, &t.slug, &t.bType, &t.country, &t.currency, &t.lang, &t.plan,
-			&t.maxUsers, &t.maxProducts, &t.status, &t.createdAt, &t.trialEndsAt, &t.ownerUserID); err != nil {
+			&t.maxUsers, &t.maxProducts, &t.status, &t.createdAt, &t.trialEndsAt, &t.ownerUserID,
+			&t.planFeatures, &t.subscriptionStatus); err != nil {
 			rows.Close()
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load tenants")
 			return
@@ -269,9 +282,10 @@ func (h *Handler) listTenants(c *gin.Context) {
 			return
 		}
 		tenants = append(tenants, gin.H{
-			"id": t.id, "name": t.name, "slug": t.slug, "business_type": t.bType,
+			"id": t.id, "name": t.name, "slug": t.slug, "subdomain": slugSubdomain(t.slug), "business_type": t.bType,
 			"country_code": t.country, "currency_code": t.currency, "default_language": t.lang,
-			"plan": t.plan, "max_users": t.maxUsers, "max_products": t.maxProducts,
+			"plan": t.plan, "plan_features": jsonFeatures(t.planFeatures), "subscription_status": t.subscriptionStatus,
+			"max_users": t.maxUsers, "max_products": t.maxProducts,
 			"status": t.status, "users": users, "products": products,
 			"owner_user_id": t.ownerUserID, "created_at": fmtTime(t.createdAt), "trial_ends_at": fmtTime(t.trialEndsAt),
 			"revenue_minor": revenue, "total_sales": totalSales,
@@ -334,11 +348,12 @@ func (h *Handler) createTenant(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	id := uuid.New()
+	slug := tenantSlug(req.Name)
 	_, err := h.pool.Exec(ctx, `
 		INSERT INTO tenants (id, name, slug, business_type, country_code, currency_code,
 		                     default_language, plan, max_users, max_products, status, is_demo_seeded)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, FALSE)`,
-		id, req.Name, tenantSlug(req.Name), req.BusinessType, country, currency, language,
+		id, req.Name, slug, req.BusinessType, country, currency, language,
 		req.Plan, req.MaxUsers, req.MaxProducts, req.Status)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -350,7 +365,7 @@ func (h *Handler) createTenant(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"data": tenantShell(id.String(), req.Name, tenantSlug(req.Name), req.BusinessType,
+		"data": tenantShell(id.String(), req.Name, slug, req.BusinessType,
 			country, currency, language, req.Plan, req.MaxUsers, req.MaxProducts, req.Status, nil),
 		"meta": gin.H{"request_id": c.GetString("request_id")},
 	})
@@ -460,7 +475,7 @@ type tenantShellView = gin.H
 
 func tenantShell(id, name, slug, bType, country, currency, lang, plan string, maxUsers, maxProducts int, status string, createdAt *time.Time) tenantShellView {
 	return tenantShellView{
-		"id": id, "name": name, "slug": slug, "business_type": bType,
+		"id": id, "name": name, "slug": slug, "subdomain": slugSubdomain(slug), "business_type": bType,
 		"country_code": country, "currency_code": currency, "default_language": lang,
 		"plan": plan, "max_users": maxUsers, "max_products": maxProducts, "status": status,
 		"created_at": fmtTime(createdAt),
@@ -492,6 +507,26 @@ func tenantSlug(name string) string {
 	return slug + "-" + strings.ToLower(uuid.NewString()[:8])
 }
 
+// slugSubdomain derives the store's public host label. The wildcard DNS
+// *.xamltech.com points at the VPS, and the nginx Host-based router forwards
+// /v1/* to the backend; the tenant is resolved by matching this label against
+// tenants.slug. A dash-suffixed slug (from tenantSlug) is shortened when there
+// is a clean base prefix, matching how the login screen resolves tenant_id.
+func slugSubdomain(slug string) string {
+	return slug + ".xamltech.com"
+}
+
+func jsonFeatures(raw string) []string {
+	out := make([]string, 0)
+	if raw == "" || raw == "[]" || raw == "null" {
+		return out
+	}
+	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		return nil
+	}
+	return out
+}
+
 // tenantAnalytics is the per-tenant drill-down for the SaaS control panel:
 // plan/resource facts, user & product counts, today's stats, a 7-day revenue
 // trend, top products, and recent sales. Everything that touches tenant data
@@ -518,9 +553,19 @@ func (h *Handler) tenantAnalytics(c *gin.Context) {
 	var name, slug, bType, country, currency, lang, plan, status string
 	var maxUsers, maxProducts int
 	var createdAt, trialEndsAt *time.Time
+	var planFeaturesRaw, subscriptionStatus string
 	err = tx.QueryRow(ctx, `
-		SELECT name, slug, business_type, country_code, currency_code, default_language, plan, max_users, max_products, status, created_at, trial_ends_at
-		FROM tenants WHERE id = $1::uuid`, tenantID).Scan(&name, &slug, &bType, &country, &currency, &lang, &plan, &maxUsers, &maxProducts, &status, &createdAt, &trialEndsAt)
+		SELECT t.name, t.slug, t.business_type, t.country_code, t.currency_code, t.default_language,
+		       t.plan, t.max_users, t.max_products, t.status, t.created_at, t.trial_ends_at,
+		       COALESCE(p.features, '[]'::jsonb)::text, COALESCE(s.status, '')
+		FROM tenants t
+		LEFT JOIN plans p ON p.code = t.plan
+		LEFT JOIN LATERAL (
+			SELECT status FROM subscriptions WHERE tenant_id = t.id ORDER BY created_at DESC LIMIT 1
+		) s ON true
+		WHERE t.id = $1::uuid`, tenantID).
+		Scan(&name, &slug, &bType, &country, &currency, &lang, &plan, &maxUsers, &maxProducts,
+			&status, &createdAt, &trialEndsAt, &planFeaturesRaw, &subscriptionStatus)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "tenant_not_found", "tenant not found")
 		return
@@ -672,9 +717,10 @@ func (h *Handler) tenantAnalytics(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{
 			"tenant": gin.H{
-				"id": tenantID.String(), "name": name, "slug": slug, "business_type": bType,
+				"id": tenantID.String(), "name": name, "slug": slug, "subdomain": slugSubdomain(slug), "business_type": bType,
 				"country_code": country, "currency_code": currency, "default_language": lang,
-				"plan": plan, "max_users": maxUsers, "max_products": maxProducts, "status": status,
+				"plan": plan, "plan_features": jsonFeatures(planFeaturesRaw), "subscription_status": subscriptionStatus,
+				"max_users": maxUsers, "max_products": maxProducts, "status": status,
 				"created_at": fmtTime(createdAt), "trial_ends_at": fmtTime(trialEndsAt),
 			},
 			"counts":        gin.H{"users": users, "products": products},

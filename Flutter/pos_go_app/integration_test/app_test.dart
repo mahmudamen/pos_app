@@ -225,6 +225,7 @@ class _StubApiClient extends ApiClient {
     String? tableId,
     int discountMinor = 0,
     String managerPin = '',
+    int roundingMinor = 0,
   }) async {
     final id = 'sale-${createdSaleIds.length + 1}';
     createdSaleIds.add(id);

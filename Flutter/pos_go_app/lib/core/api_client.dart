@@ -380,6 +380,7 @@ class ApiClient {
     String? tableId,
     int discountMinor = 0,
     String managerPin = '',
+    int roundingMinor = 0,
   }) async {
     final requestIdempotencyKey = idempotencyKey ?? const Uuid().v4();
     final response = await _authenticatedRequest(
@@ -405,6 +406,7 @@ class ApiClient {
           if (tableId != null && tableId.isNotEmpty) 'table_id': tableId,
           if (discountMinor > 0) 'discount_minor': discountMinor,
           if (managerPin.trim().isNotEmpty) 'manager_pin': managerPin.trim(),
+          if (roundingMinor > 0) 'rounding_minor': roundingMinor,
         }),
       ),
     );
@@ -1115,6 +1117,57 @@ class ApiClient {
     if (response.statusCode != 200) {
       throw ApiException(_message(response));
     }
+  }
+
+  /// Permanently disables a tenant (status `disabled`) and cancels its live
+  /// subscription. Distinct from suspend: a stopped store can no longer sign
+  /// in at all (403 `organization_stopped`).
+  Future<void> platformStopTenant(
+    Session session,
+    String tenantId, {
+    String reason = '',
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/stop'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (reason.isNotEmpty) 'reason': reason,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+  }
+
+  /// Streams the per-tenant, RLS-scoped JSON backup (`application/json`). The
+  /// body is a single document: tenant_id/slug/exported_at + a key per
+  /// tenant-scoped table holding its rows (never platform tables).
+  Future<String?> platformBackupTenant(
+    Session session,
+    String tenantId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/backup'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: '',
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return response.body;
   }
 
   Future<CustomersPage> listCustomers(
@@ -2403,6 +2456,7 @@ class TenantSettings {
     this.lowStockWarning = true,
     this.validateStockPayment = true,
     this.refreshButton = true,
+    this.roundingMode = 'off',
   });
 
   factory TenantSettings.fromJson(Map<String, dynamic> json) => TenantSettings(
@@ -2429,6 +2483,11 @@ class TenantSettings {
         validateStockPayment:
             (json['pos.validate_stock_payment'] as String?) != 'false',
         refreshButton: (json['pos.refresh_button'] as String?) != 'false',
+        roundingMode: switch (
+            roundingDenominator(json['pos.rounding_mode'] as String?)) {
+          null => 'off',
+          _ => json['pos.rounding_mode'] as String? ?? 'off',
+        },
       );
 
   final PaymentMethod defaultPaymentMethod;
@@ -2448,6 +2507,14 @@ class TenantSettings {
   final bool lowStockWarning;
   final bool validateStockPayment;
   final bool refreshButton;
+
+  /// `pos.rounding_mode` — "off", "25", "50" or "100" (minor-unit cash
+  /// denomination the payable is rounded to). The pure
+  /// [roundingDenominator]/[roundingDelta] helpers expose the payable math.
+  final String roundingMode;
+
+  /// Minor-unit cash rounding denomination; 0 means rounding is off.
+  int get roundingDenom => roundingDenominator(roundingMode) ?? 0;
 
   bool get stockBadgeOnHand => stockType != 'available';
 
@@ -2473,6 +2540,7 @@ class TenantSettings {
         lowStockWarning: lowStockWarning,
         validateStockPayment: validateStockPayment,
         refreshButton: refreshButton,
+        roundingMode: roundingMode,
       );
 
   Map<String, String> toUpdateMap() => {
@@ -2480,6 +2548,7 @@ class TenantSettings {
         'pos.show_stock_badges': '$showStockBadges',
         'pos.receipt_footer': receiptFooter,
         'inventory.allow_negative_stock': '$allowNegativeStock',
+        'pos.rounding_mode': roundingMode,
       };
 }
 

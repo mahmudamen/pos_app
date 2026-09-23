@@ -138,13 +138,17 @@ class ReceiptScreen extends StatelessWidget {
     if (r.tipsMinor > 0) {
       buffer.writeln('Tip          ${_money(r.tipsMinor, r.currency)}');
     }
+    if (r.roundingMinor > 0) {
+      buffer.writeln(
+          'Rounding    +${_money(r.roundingMinor, r.currency)}');
+    }
     for (final p in r.payments) {
       buffer.writeln(
           'Paid(${p.method})  ${_money(p.amountMinor, r.currency)}');
     }
     buffer
       ..writeln(dash)
-      ..writeln('     TOTAL ${_money(r.totalMinor, r.currency)}');
+      ..writeln('     TOTAL ${_money(r.totalMinor + r.roundingMinor, r.currency)}');
     if (r.loyaltyPointsEarned > 0) {
       buffer.writeln('Loyalty points earned: ${r.loyaltyPointsEarned}');
     }

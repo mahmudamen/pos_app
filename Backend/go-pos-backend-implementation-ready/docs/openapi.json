@@ -1153,6 +1153,56 @@
         }
       }
     },
+    "/v1/platform/tenants/{id}/backup": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTenantsIdBackup",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/platform/tenants/{id}/stop": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "operationId": "PostV1PlatformTenantsIdStop",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/platform/tenants/{id}/suspend": {
       "post": {
         "tags": [

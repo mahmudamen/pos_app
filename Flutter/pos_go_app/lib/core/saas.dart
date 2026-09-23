@@ -70,6 +70,9 @@ class SaasTenant {
     required this.users,
     required this.products,
     this.plan = 'standard',
+    this.planFeatures = const [],
+    this.subscriptionStatus = '',
+    this.subdomain = '',
     this.maxUsers = 0,
     this.maxProducts = 0,
     this.status = '',
@@ -91,6 +94,11 @@ class SaasTenant {
         users: (json['users'] as num?)?.toInt() ?? 0,
         products: (json['products'] as num?)?.toInt() ?? 0,
         plan: json['plan'] as String? ?? 'standard',
+        planFeatures: (json['plan_features'] as List<dynamic>? ?? const [])
+            .map((e) => e.toString())
+            .toList(),
+        subscriptionStatus: json['subscription_status'] as String? ?? '',
+        subdomain: json['subdomain'] as String? ?? '',
         maxUsers: (json['max_users'] as num?)?.toInt() ?? 0,
         maxProducts: (json['max_products'] as num?)?.toInt() ?? 0,
         status: json['status'] as String? ?? '',
@@ -111,6 +119,9 @@ class SaasTenant {
   final int users;
   final int products;
   final String plan;
+  final List<String> planFeatures;
+  final String subscriptionStatus;
+  final String subdomain;
   final int maxUsers;
   final int maxProducts;
   final String status;
@@ -119,6 +130,8 @@ class SaasTenant {
   final String createdAt;
   final String trialEndsAt;
   final String ownerUserId;
+
+  bool get hasSubdomain => planFeatures.contains('pos.subdomain');
 }
 
 class SaasTenantsPage {
@@ -183,6 +196,9 @@ class AnalyticsTenant {
     required this.currencyCode,
     required this.defaultLanguage,
     required this.plan,
+    this.planFeatures = const [],
+    this.subscriptionStatus = '',
+    this.subdomain = '',
     this.maxUsers = 0,
     this.maxProducts = 0,
     this.status = '',
@@ -200,6 +216,11 @@ class AnalyticsTenant {
         currencyCode: json['currency_code'] as String? ?? '',
         defaultLanguage: json['default_language'] as String? ?? '',
         plan: json['plan'] as String? ?? 'standard',
+        planFeatures: (json['plan_features'] as List<dynamic>? ?? const [])
+            .map((e) => e.toString())
+            .toList(),
+        subscriptionStatus: json['subscription_status'] as String? ?? '',
+        subdomain: json['subdomain'] as String? ?? '',
         maxUsers: (json['max_users'] as num?)?.toInt() ?? 0,
         maxProducts: (json['max_products'] as num?)?.toInt() ?? 0,
         status: json['status'] as String? ?? '',
@@ -215,11 +236,16 @@ class AnalyticsTenant {
   final String currencyCode;
   final String defaultLanguage;
   final String plan;
+  final List<String> planFeatures;
+  final String subscriptionStatus;
+  final String subdomain;
   final int maxUsers;
   final int maxProducts;
   final String status;
   final String createdAt;
   final String trialEndsAt;
+
+  bool get hasSubdomain => planFeatures.contains('pos.subdomain');
 }
 
 class TodayStats {

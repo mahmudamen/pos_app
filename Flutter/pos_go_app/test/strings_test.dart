@@ -24,6 +24,8 @@ void main() {
     expect(ar.card, 'بطاقة');
     expect(ar.mobilePayment, 'محفظة');
     expect(ar.remainingLabel, isNotEmpty);
+    expect(ar.rounding, isNotEmpty);
+    expect(ar.payable, isNotEmpty);
     expect(ar.appearance, 'المظهر');
     expect(ar.themeMode, 'وضع السمة');
     expect(ar.themeLight, 'فاتح');
@@ -152,6 +154,8 @@ void main() {
     expect(en.defaultPaymentMethod, 'Default payment method');
     expect(en.stockBadges, 'Stock badges');
     expect(en.receiptFooter, 'Receipt footer');
+    expect(en.rounding, 'Cash rounding');
+    expect(en.payable, 'Payable');
     expect(en.appearance, 'Appearance');
     expect(en.themeMode, 'Theme mode');
     expect(en.themeLight, 'Light');

@@ -132,9 +132,10 @@ func TestSaaSIntegration_SummaryAndList(t *testing.T) {
 	token := saasToken(t, seed)
 
 	// Give the seeded tenant a real business type and a completed + refunded
-	// sale: revenue must only count the completed one.
+	// sale: revenue must only count the completed one. Plan 'starter' exists in
+	// the seed catalog and carries the pos.subdomain feature.
 	if _, err := pool.Exec(context.Background(),
-		`UPDATE tenants SET business_type = 'restaurant', owner_user_id = $2::uuid WHERE id = $1::uuid`,
+		`UPDATE tenants SET business_type = 'restaurant', plan = 'starter', owner_user_id = $2::uuid WHERE id = $1::uuid`,
 		seed.TenantID, seed.ManagerID); err != nil {
 		t.Fatal(err)
 	}
@@ -204,6 +205,26 @@ func TestSaaSIntegration_SummaryAndList(t *testing.T) {
 	if row["created_at"] == "" || row["owner_user_id"] == "" || row["status"] != "active" {
 		t.Fatalf("tenant list should expose created_at/owner/status: %v", row)
 	}
+	// Store subdomain + plan feature catalog are surfaced on the list payload.
+	if row["subdomain"] != seed.Slug+".xamltech.com" {
+		t.Fatalf("tenant list should expose the store subdomain: %v", row)
+	}
+	feats, ok := row["plan_features"].([]any)
+	if !ok || len(feats) == 0 {
+		t.Fatalf("tenant list should carry plan features: %v", row)
+	}
+	if _, ok := row["subscription_status"]; !ok {
+		t.Fatalf("tenant list should carry the subscription status: %v", row)
+	}
+	foundFeature := false
+	for _, f := range feats {
+		if f == "pos.subdomain" {
+			foundFeature = true
+		}
+	}
+	if !foundFeature {
+		t.Fatalf("all plans (incl. the seeded one) must list pos.subdomain: %v", feats)
+	}
 
 	// business_type + status filters narrow the page.
 	rec, body = get(t, router, "/v1/saas/tenants?business_type=restaurant&status=active", token)
@@ -261,6 +282,17 @@ func TestSaaSIntegration_TenantAnalytics(t *testing.T) {
 	if tenant["id"] != seed.TenantID || tenant["plan"] != "standard" || tenant["business_type"] == "" {
 		t.Fatalf("analytics tenant facts wrong: %v", tenant)
 	}
+	// The analytics drill-down carries the store subdomain, plan features and
+	// (empty) subscription status alongside the tenant shell.
+	if tenant["subdomain"] != seed.Slug+".xamltech.com" {
+		t.Fatalf("analytics should expose the store subdomain: %v", tenant)
+	}
+	if _, ok := tenant["plan_features"].([]any); !ok {
+		t.Fatalf("analytics should expose plan features: %v", tenant)
+	}
+	if _, ok := tenant["subscription_status"]; !ok {
+		t.Fatalf("analytics should expose subscription status: %v", tenant)
+	}
 	counts := data["counts"].(map[string]any)
 	if counts["users"].(float64) < 2 {
 		t.Fatalf("analytics should see the seeded users: %v", counts)
@@ -294,7 +326,6 @@ func TestSaaSIntegration_TenantAnalytics(t *testing.T) {
 
 func TestSaaSIntegration_CreateAndUpdateTenant(t *testing.T) {
 	router, seed, pool := setupSaaSIntegration(t)
-	_ = pool
 	token := saasToken(t, seed)
 
 	// Create a store shell from the control plane.
@@ -308,6 +339,7 @@ func TestSaaSIntegration_CreateAndUpdateTenant(t *testing.T) {
 			ID           string `json:"id"`
 			Name         string `json:"name"`
 			Slug         string `json:"slug"`
+			Subdomain    string `json:"subdomain"`
 			Plan         string `json:"plan"`
 			Status       string `json:"status"`
 			MaxUsers     int    `json:"max_users"`
@@ -324,6 +356,20 @@ func TestSaaSIntegration_CreateAndUpdateTenant(t *testing.T) {
 	if created.Data.Plan != "starter" || created.Data.Status != "active" ||
 		created.Data.MaxUsers != 5 || created.Data.MaxProducts != 300 || created.Data.CurrencyCode != "EGP" {
 		t.Fatalf("create tenant shell fields wrong: %s", rec.Body.String())
+	}
+	if created.Data.Subdomain != created.Data.Slug+".xamltech.com" {
+		t.Fatalf("create tenant should echo the store subdomain: %s", rec.Body.String())
+	}
+
+	// The returned slug must be the one actually stored — the control plane
+	// resolves logins + subdomains by slug, so a mismatched echo would break it.
+	var storedSlug string
+	if err := pool.QueryRow(context.Background(),
+		`SELECT slug FROM tenants WHERE id = $1::uuid`, created.Data.ID).Scan(&storedSlug); err != nil {
+		t.Fatalf("lookup the created tenant: %v", err)
+	}
+	if storedSlug != created.Data.Slug {
+		t.Fatalf("response slug %q != stored slug %q", created.Data.Slug, storedSlug)
 	}
 
 	// Invalid business type and status → 400.

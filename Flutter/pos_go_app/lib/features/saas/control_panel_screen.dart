@@ -483,6 +483,12 @@ class _TenantsTabState extends State<_TenantsTab> {
             onSelected: (_) =>
                 _applyFilter(() => _statusFilter = 'suspended'),
           ),
+          FilterChip(
+            label: Text(s.stoppedLabel),
+            selected: _statusFilter == 'disabled',
+            onSelected: (_) =>
+                _applyFilter(() => _statusFilter = 'disabled'),
+          ),
         ]),
         if (planList.isNotEmpty)
           _filterRow([
@@ -632,11 +638,33 @@ class _TenantCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         _PlanChip(plan: t.plan),
+                        if (t.hasSubdomain && t.subdomain.isNotEmpty)
+                          Tooltip(
+                            message: s.subdomainIncluded,
+                            child: Chip(
+                              avatar: const Icon(Icons.language, size: 14),
+                              label: Text(t.subdomain),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
                         if (t.status == 'suspended')
                           Chip(
                             label: Text(s.suspendedLabel),
                             visualDensity: VisualDensity.compact,
                             backgroundColor: theme.colorScheme.error,
+                          ),
+                        if (t.status == 'disabled')
+                          Chip(
+                            label: Text(s.stoppedLabel),
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                        if (t.subscriptionStatus.isNotEmpty &&
+                            t.subscriptionStatus != 'active' &&
+                            t.subscriptionStatus != 'trial')
+                          Chip(
+                            label: Text(t.subscriptionStatus),
+                            visualDensity: VisualDensity.compact,
                           ),
                       ],
                     ),

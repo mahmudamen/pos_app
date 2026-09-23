@@ -114,6 +114,30 @@ void main() {
     expect(tenant.status, 'suspended');
   });
 
+  test('SaasTenant parses subdomain + plan features + subscription', () {
+    final tenant = SaasTenant.fromJson({
+      'id': 't1',
+      'name': 'Hakeem',
+      'slug': 'hakeem',
+      'business_type': 'restaurant',
+      'subdomain': 'hakeem.xamltech.com',
+      'plan': 'business',
+      'plan_features': ['pos.basic', 'restaurant', 'pos.subdomain'],
+      'subscription_status': 'active',
+    });
+    expect(tenant.subdomain, 'hakeem.xamltech.com');
+    expect(tenant.planFeatures, contains('pos.subdomain'));
+    expect(tenant.subscriptionStatus, 'active');
+    expect(tenant.hasSubdomain, isTrue);
+  });
+
+  test('SaasTenant defaults plan features when missing', () {
+    final tenant = SaasTenant.fromJson({'id': 't1', 'name': 'X', 'slug': 'x'});
+    expect(tenant.planFeatures, isEmpty);
+    expect(tenant.subdomain, '');
+    expect(tenant.hasSubdomain, isFalse);
+  });
+
   test('TenantAnalytics parses report payload', () {
     final analytics = TenantAnalytics.fromJson({
       'tenant': {
@@ -314,6 +338,36 @@ void main() {
     await client.platformSuspendTenant(session, 't1', reason: 'abuse');
   });
 
+  test('platformStopTenant posts stop with reason', () async {
+    final client = ApiClient(client: _StopTenantClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    await client.platformStopTenant(session, 't1', reason: 'shut down');
+  });
+
+  test('platformBackupTenant returns the exported JSON body', () async {
+    final client = ApiClient(client: _BackupTenantClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'u1',
+      displayName: 'Platform Admin',
+      tenantId: 't1',
+      deviceId: 'd1',
+      role: 'saas_admin',
+    );
+    final data = await client.platformBackupTenant(session, 't1');
+    expect(data, contains('xamltech.com'));
+    expect(data, contains('"tables"'));
+  });
+
   test('TenantSettings parses defaults when keys are missing', () {
     const raw = <String, dynamic>{};
     final settings = TenantSettings.fromJson(raw);
@@ -321,6 +375,8 @@ void main() {
     expect(settings.showStockBadges, isTrue);
     expect(settings.receiptFooter, '');
     expect(settings.allowNegativeStock, isFalse);
+    expect(settings.roundingMode, 'off');
+    expect(settings.roundingDenom, 0);
   });
 
   test('TenantSettings parses configured values', () {
@@ -329,17 +385,27 @@ void main() {
       'pos.show_stock_badges': 'false',
       'pos.receipt_footer': 'Thanks!',
       'inventory.allow_negative_stock': 'true',
+      'pos.rounding_mode': '25',
     });
     expect(settings.defaultPaymentMethod, PaymentMethod.card);
     expect(settings.showStockBadges, isFalse);
     expect(settings.receiptFooter, 'Thanks!');
     expect(settings.allowNegativeStock, isTrue);
+    expect(settings.roundingMode, '25');
+    expect(settings.roundingDenom, 25);
     expect(settings.toUpdateMap(), {
       'pos.default_payment_method': 'card',
       'pos.show_stock_badges': 'false',
       'pos.receipt_footer': 'Thanks!',
       'inventory.allow_negative_stock': 'true',
+      'pos.rounding_mode': '25',
     });
+  });
+
+  test('TenantSettings unknown rounding mode maps to off', () {
+    final settings = TenantSettings.fromJson({'pos.rounding_mode': 'ptg'});
+    expect(settings.roundingMode, 'off');
+    expect(settings.roundingDenom, 0);
   });
 
   test('settings fetches tenant configuration', () async {
@@ -841,6 +907,7 @@ expect(() => client.dashboardSummary(session),
       'subtotal_minor': 2500,
       'discount_minor': 500,
       'tips_minor': 0,
+      'rounding_minor': 25,
       'total_minor': 2000,
       'payments': [
         {'method': 'card', 'amount_minor': 2000, 'tip_minor': 100}
@@ -854,8 +921,25 @@ expect(() => client.dashboardSummary(session),
     expect(receipt.items, hasLength(1));
     expect(receipt.items.first.unitPriceMinor, 1000);
     expect(receipt.totalMinor, 2000);
+    expect(receipt.roundingMinor, 25);
     expect(receipt.payments.single.tipMinor, 100);
     expect(receipt.loyaltyPointsEarned, 20);
+  });
+
+  test('SaleReceipt defaults rounding_minor to zero', () {
+    final receipt = SaleReceipt.fromJson({
+      'tenant_name': 'X',
+      'sale_id': 'sale-1',
+      'status': 'completed',
+      'created_at': '2026-09-12 12:00:00',
+      'currency': 'EGP',
+      'items': [],
+      'subtotal_minor': 0,
+      'discount_minor': 0,
+      'tips_minor': 0,
+      'total_minor': 0,
+    });
+    expect(receipt.roundingMinor, 0);
   });
 
   test('fetchReceipt GETs the JSON receipt endpoint', () async {
@@ -1059,9 +1143,28 @@ expect(() => client.dashboardSummary(session),
       idempotencyKey: 'checkout-9',
       discountMinor: 50,
       managerPin: '1234',
+      roundingMinor: 12,
     );
 
     expect(sale.discountCapped, isTrue);
+  });
+
+  test('createSale sends rounding_minor when provided', () async {
+    final client = ApiClient(client: _RoundingSaleClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    await client.createSale(
+      session,
+      const [SaleItemInput(productId: 'product-1', quantity: 1)],
+      idempotencyKey: 'checkout-11',
+      roundingMinor: 12,
+    );
   });
 
   test('createSale omits discount and pin keys when absent', () async {
@@ -2254,6 +2357,7 @@ class _UpdateSettingsClient extends http.BaseClient {
         'pos.show_stock_badges': 'true',
         'pos.receipt_footer': 'Thanks for visiting!',
         'inventory.allow_negative_stock': 'false',
+        'pos.rounding_mode': 'off',
       }
     });
     const response =
@@ -2829,8 +2933,30 @@ class _PlainSaleClient extends http.BaseClient {
         as Map<String, dynamic>;
     expect(body.containsKey('discount_minor'), isFalse);
     expect(body.containsKey('manager_pin'), isFalse);
+    expect(body.containsKey('rounding_minor'), isFalse);
     const response =
         '{"data":{"id":"sale-10","subtotal_minor":2000,"total_minor":2000,'
+        '"currency":"EGP","payment_method":"cash"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _RoundingSaleClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/sales');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['rounding_minor'], 12);
+    expect(body.containsKey('discount_minor'), isFalse);
+    expect(body.containsKey('manager_pin'), isFalse);
+    const response =
+        '{"data":{"id":"sale-11","subtotal_minor":2513,"total_minor":2525,'
         '"currency":"EGP","payment_method":"cash"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
@@ -3005,6 +3131,39 @@ class _TrialSettingsClient extends http.BaseClient {
         '"offline_trial_policy":"grace24h"},"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(updatedJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _StopTenantClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/platform/tenants/t1/stop');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['reason'], 'shut down');
+    const response = '{"data":{"stopped":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _BackupTenantClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/platform/tenants/t1/backup');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response = '{"tenant_id":"t1","slug":"hakeem","subdomain":"hakeem.xamltech.com","exported_at":"2026-09-22T00:00:00Z","tables":{"products":[{"name":"Latte"}]}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
       200,
       headers: {'content-type': 'application/json'},
     );

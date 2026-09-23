@@ -58,6 +58,36 @@ void main() {
         find.text('Enable printing from the printer settings, then try again'),
         findsOneWidget);
   });
+
+  testWidgets('rounding receipt shows the Rounding line and payable total',
+      (tester) async {
+    const rounded = SaleReceipt(
+      tenantName: 'Demo Store',
+      cashier: 'Demo Manager',
+      saleId: 'sale-124',
+      status: 'completed',
+      createdAt: '2026-09-12 12:00:00',
+      currency: 'EGP',
+      items: [
+        ReceiptLine(
+          name: 'Flat White',
+          quantity: 1,
+          unitPriceMinor: 2513,
+          totalMinor: 2513,
+        ),
+      ],
+      subtotalMinor: 2513,
+      totalMinor: 2513,
+      roundingMinor: 12,
+      payments: [ReceiptPayment(method: 'cash', amountMinor: 2525)],
+    );
+    await tester.pumpWidget(const _App(receipt: rounded));
+    await tester.pump();
+
+    expect(find.textContaining('Rounding'), findsOneWidget);
+    expect(find.textContaining('TOTAL E£25.25'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _App extends StatelessWidget {

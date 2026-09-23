@@ -100,6 +100,74 @@ class _TenantAnalyticsScreenState extends State<TenantAnalyticsScreen> {
     }, s.tenantActivated);
   }
 
+  Future<void> _stop() async {
+    final s = AppStrings.of(context);
+    final controller = TextEditingController();
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.stopTenant),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: s.stopTenantHint),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: Text(s.cancel)),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () async {
+              final reason = controller.text;
+              Navigator.pop(ctx);
+              await _runPlatformAction(() async {
+                await widget.apiClient.platformStopTenant(
+                  widget.session,
+                  widget.tenantId,
+                  reason: reason,
+                );
+              }, s.tenantStopped);
+            },
+            child: Text(s.stopTenant),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+  }
+
+  Future<void> _backup() async {
+    final s = AppStrings.of(context);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(s.backupStarted),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+    try {
+      final data = await widget.apiClient
+          .platformBackupTenant(widget.session, widget.tenantId);
+      if (!mounted) return;
+      final ok = data != null && data.isNotEmpty;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ok ? s.backupSaved : s.backupFailed),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(s.backupFailed),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _runPlatformAction(
       Future<void> Function() action, String successMessage) async {
     final s = AppStrings.of(context);
@@ -127,12 +195,20 @@ class _TenantAnalyticsScreenState extends State<TenantAnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
-    final suspended = _analytics?.tenant.status == 'suspended';
+    final status = _analytics?.tenant.status ?? '';
+    final suspended = status == 'suspended';
+    final disabled = status == 'disabled';
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.tenantName),
         actions: [
-          if (_analytics != null && !suspended)
+          if (_analytics != null && !disabled)
+            IconButton(
+              tooltip: s.backupTenant,
+              icon: const Icon(Icons.download_outlined),
+              onPressed: _backup,
+            ),
+          if (_analytics != null && !suspended && !disabled)
             IconButton(
               tooltip: s.suspendTenant,
               icon: const Icon(Icons.block),
@@ -143,6 +219,12 @@ class _TenantAnalyticsScreenState extends State<TenantAnalyticsScreen> {
               tooltip: s.activateTenant,
               icon: const Icon(Icons.check_circle_outline),
               onPressed: _activate,
+            ),
+          if (_analytics != null && !disabled)
+            IconButton(
+              tooltip: s.stopTenant,
+              icon: const Icon(Icons.delete_forever),
+              onPressed: _stop,
             ),
         ],
       ),
@@ -197,9 +279,24 @@ class _AnalyticsBody extends StatelessWidget {
               label: Text('${s.planLabel} ${a.tenant.plan}'),
               visualDensity: VisualDensity.compact,
             ),
+            if (a.tenant.hasSubdomain && a.tenant.subdomain.isNotEmpty)
+              Tooltip(
+                message: s.subdomainIncluded,
+                child: Chip(
+                  label: Text(a.tenant.subdomain),
+                  avatar: const Icon(Icons.language, size: 16),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
             if (a.tenant.status == 'suspended')
               Chip(
                 label: Text(s.suspendedLabel),
+                visualDensity: VisualDensity.compact,
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            if (a.tenant.status == 'disabled')
+              Chip(
+                label: Text(s.stoppedLabel),
                 visualDensity: VisualDensity.compact,
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
@@ -214,6 +311,13 @@ class _AnalyticsBody extends StatelessWidget {
             if (a.tenant.createdAt.isNotEmpty)
               Chip(
                 label: Text('${s.joinedOn} ${_fmtDate(s, a.tenant.createdAt)}'),
+                visualDensity: VisualDensity.compact,
+              ),
+            if (a.tenant.subscriptionStatus.isNotEmpty &&
+                a.tenant.subscriptionStatus != 'active' &&
+                a.tenant.subscriptionStatus != 'trial')
+              Chip(
+                label: Text(a.tenant.subscriptionStatus),
                 visualDensity: VisualDensity.compact,
               ),
           ],

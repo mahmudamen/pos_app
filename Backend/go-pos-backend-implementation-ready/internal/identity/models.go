@@ -202,6 +202,7 @@ const (
 	ActionOrganizationBlocked     = "organization.blocked"
 	ActionOrganizationSuspended   = "organization.suspended"
 	ActionOrganizationActivated   = "organization.activated"
+	ActionOrganizationStopped     = "organization.stopped"
 	ActionInstallationRegistered  = "installation.registered"
 	ActionInstallationChanged     = "installation.changed"
 	ActionInstallationRevoked     = "installation.revoked"
