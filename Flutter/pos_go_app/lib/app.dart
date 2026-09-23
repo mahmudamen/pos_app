@@ -8,6 +8,7 @@ import 'core/fonts.dart';
 import 'core/session_store.dart';
 import 'core/storage/local_database.dart';
 import 'core/telemetry.dart';
+import 'core/theme.dart';
 import 'features/auth/login_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/pos/pos_screen.dart';
@@ -32,6 +33,7 @@ class _PosAppState extends State<PosApp> {
   Locale _locale = const Locale('ar');
   bool _languageCustomized = false;
   FontSetting _fontSetting = const FontSetting();
+  ThemeSetting _themeSetting = const ThemeSetting();
 
   @override
   void initState() {
@@ -56,6 +58,7 @@ class _PosAppState extends State<PosApp> {
       fontMode: FontMode.fromWire(await _sessionStore.readFontFamily()),
       size: FontSize.fromWire(await _sessionStore.readFontSize()),
     );
+    final theme = await _sessionStore.readThemeSetting();
     Telemetry.instance.setSession(session);
     if (!mounted) return;
     setState(() {
@@ -63,6 +66,7 @@ class _PosAppState extends State<PosApp> {
       _locale = Locale(language);
       _languageCustomized = customized;
       _fontSetting = font;
+      _themeSetting = theme;
       _restoring = false;
     });
   }
@@ -88,6 +92,21 @@ class _PosAppState extends State<PosApp> {
     await _sessionStore.saveFontSize(size.wire);
     if (mounted) {
       setState(() => _fontSetting = _fontSetting.copyWith(size: size));
+    }
+  }
+
+  Future<void> _setThemePreference(ThemePreference preference) async {
+    await _sessionStore.saveThemePreference(preference.wire);
+    if (mounted) {
+      setState(() =>
+          _themeSetting = _themeSetting.copyWith(preference: preference));
+    }
+  }
+
+  Future<void> _setThemeAccent(ThemeAccent accent) async {
+    await _sessionStore.saveThemeAccent(accent.wire);
+    if (mounted) {
+      setState(() => _themeSetting = _themeSetting.copyWith(accent: accent));
     }
   }
 
@@ -118,16 +137,21 @@ class _PosAppState extends State<PosApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff00adee)),
-        scaffoldBackgroundColor: const Color(0xfff4f7f6),
-        useMaterial3: true,
+      theme: buildPosTheme(
+        _themeSetting,
+        Brightness.light,
         fontFamily: resolveFonts(
             _fontSetting.fontMode, _locale.languageCode == 'ar'),
-        textTheme: ThemeData.light()
-            .textTheme
-            .apply(fontSizeFactor: fontScale(_fontSetting.size)),
+        fontSizeFactor: fontScale(_fontSetting.size),
       ),
+      darkTheme: buildPosTheme(
+        _themeSetting,
+        Brightness.dark,
+        fontFamily: resolveFonts(
+            _fontSetting.fontMode, _locale.languageCode == 'ar'),
+        fontSizeFactor: fontScale(_fontSetting.size),
+      ),
+      themeMode: _themeSetting.preference.toThemeMode,
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         child: _restoring || !_splashDone
@@ -165,6 +189,9 @@ class _PosAppState extends State<PosApp> {
                     fontSetting: _fontSetting,
                     onFontModeChanged: _setFontMode,
                     onFontSizeChanged: _setFontSize,
+                    themeSetting: _themeSetting,
+                    onThemePreferenceChanged: _setThemePreference,
+                    onThemeAccentChanged: _setThemeAccent,
                     onAuthenticated: _authenticated,
                   )
                 : PosScreen(
@@ -174,9 +201,12 @@ class _PosAppState extends State<PosApp> {
                   localDatabase: _localDatabase,
                   sessionStore: _sessionStore,
                   fontSetting: _fontSetting,
+                  themeSetting: _themeSetting,
                   onLanguageChanged: _setLanguage,
                   onFontModeChanged: _setFontMode,
                   onFontSizeChanged: _setFontSize,
+                  onThemePreferenceChanged: _setThemePreference,
+                  onThemeAccentChanged: _setThemeAccent,
                   onSignOut: () async {
                     await FocusMode.apply(false);
                     try {

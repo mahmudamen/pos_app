@@ -6,8 +6,10 @@ import '../../core/api_client.dart';
 import '../../core/feedback.dart';
 import '../../core/fonts.dart';
 import '../../core/session_store.dart';
+import '../../core/theme.dart';
 import '../../l10n/strings.dart';
 import '../settings/font_picker_sheet.dart';
+import '../settings/theme_picker_sheet.dart';
 
 const String _privacyPolicyUrl = 'https://api.xamltech.com/private';
 
@@ -20,7 +22,10 @@ class LoginScreen extends StatefulWidget {
       this.onLanguageChanged,
       this.fontSetting = const FontSetting(),
       this.onFontModeChanged,
-      this.onFontSizeChanged});
+      this.onFontSizeChanged,
+      this.themeSetting = const ThemeSetting(),
+      this.onThemePreferenceChanged,
+      this.onThemeAccentChanged});
 
   final ApiClient apiClient;
   final ValueChanged<Session> onAuthenticated;
@@ -29,6 +34,9 @@ class LoginScreen extends StatefulWidget {
   final FontSetting fontSetting;
   final ValueChanged<FontMode>? onFontModeChanged;
   final ValueChanged<FontSize>? onFontSizeChanged;
+  final ThemeSetting themeSetting;
+  final ValueChanged<ThemePreference>? onThemePreferenceChanged;
+  final ValueChanged<ThemeAccent>? onThemeAccentChanged;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -130,6 +138,18 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _switchTheme() {
+    UiFeedback.click();
+    showThemePickerSheet(
+      context,
+      current: widget.themeSetting,
+      isArabic: AppStrings.of(context).isArabic,
+      onThemePreferenceChanged:
+          widget.onThemePreferenceChanged ?? (_) {},
+      onThemeAccentChanged: widget.onThemeAccentChanged ?? (_) {},
+    );
+  }
+
   @override
   void dispose() {
     _tenantController.dispose();
@@ -215,6 +235,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         tooltip: s.font,
                         visualDensity: VisualDensity.compact,
                         icon: const Icon(Icons.font_download_outlined, size: 18),
+                      ),
+                      IconButton(
+                        onPressed: _switchTheme,
+                        tooltip: s.appearance,
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.palette_outlined, size: 18),
                       ),
                     ],
                   ),

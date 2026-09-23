@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos_go_app/core/fonts.dart';
 import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
+import 'package:pos_go_app/core/theme.dart';
 
 void main() {
   test('sync cursor persists per tenant and defaults to zero', () async {
@@ -364,6 +365,29 @@ void main() {
     expect(await store.readSoundEnabled(), isFalse);
     await store.saveSoundEnabled(true);
     expect(await store.readSoundEnabled(), isTrue);
+  });
+
+  test('theme setting round-trips through secure storage', () async {
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+    final store = SessionStore();
+
+    expect((await store.readThemeSetting()).preference, ThemePreference.light);
+    expect((await store.readThemeSetting()).accent, ThemeAccent.blue);
+
+    await store.saveThemePreference(ThemePreference.dark.wire);
+    await store.saveThemeAccent(ThemeAccent.teal.wire);
+    final setting = await store.readThemeSetting();
+    expect(setting.preference, ThemePreference.dark);
+    expect(setting.accent, ThemeAccent.teal);
+
+    // Unknown/missing values fall back to the defaults.
+    FlutterSecureStorage.setMockInitialValues(<String, String>{
+      'app_theme_mode': 'bogus',
+      'app_theme_accent': 'bogus',
+    });
+    final fallback = SessionStore();
+    expect((await fallback.readThemeSetting()).preference, ThemePreference.light);
+    expect((await fallback.readThemeSetting()).accent, ThemeAccent.blue);
   });
 
   test('remembered login round-trips through secure storage', () async {

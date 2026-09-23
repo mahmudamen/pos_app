@@ -5,9 +5,11 @@ import '../../core/feedback.dart';
 import '../../core/fonts.dart';
 import '../../core/payments.dart';
 import '../../core/session_store.dart';
+import '../../core/theme.dart';
 import '../../l10n/strings.dart';
 import '../saas/control_panel_screen.dart';
 import 'font_picker_sheet.dart';
+import 'theme_picker_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -19,6 +21,9 @@ class SettingsScreen extends StatefulWidget {
     this.onFontModeChanged,
     this.onFontSizeChanged,
     this.onLanguageChanged,
+    this.themeSetting = const ThemeSetting(),
+    this.onThemePreferenceChanged,
+    this.onThemeAccentChanged,
     this.onSignOut,
   });
 
@@ -29,6 +34,9 @@ class SettingsScreen extends StatefulWidget {
   final ValueChanged<FontMode>? onFontModeChanged;
   final ValueChanged<FontSize>? onFontSizeChanged;
   final ValueChanged<String>? onLanguageChanged;
+  final ThemeSetting themeSetting;
+  final ValueChanged<ThemePreference>? onThemePreferenceChanged;
+  final ValueChanged<ThemeAccent>? onThemeAccentChanged;
   final VoidCallback? onSignOut;
 
   @override
@@ -38,6 +46,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   TenantSettings? _settings;
   late FontSetting _font;
+  late ThemeSetting _theme;
   bool _soundEnabled = true;
   bool _loading = true;
   bool _saving = false;
@@ -70,10 +79,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (enabled) UiFeedback.confirm();
   }
 
+  void _openThemePicker() {
+    UiFeedback.click();
+    showThemePickerSheet(
+      context,
+      current: _theme,
+      isArabic: AppStrings.of(context).isArabic,
+      onThemePreferenceChanged: (preference) {
+        setState(() => _theme = _theme.copyWith(preference: preference));
+        widget.onThemePreferenceChanged?.call(preference);
+      },
+      onThemeAccentChanged: (accent) {
+        setState(() => _theme = _theme.copyWith(accent: accent));
+        widget.onThemeAccentChanged?.call(accent);
+      },
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _font = widget.fontSetting;
+    _theme = widget.themeSetting;
     _loadSound();
     _load();
   }
@@ -327,6 +356,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onChanged: _setSoundEnabled,
                             ),
                           ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.palette_outlined),
+                            title: Text(s.appearance),
+                            subtitle: Text(s.themeMode),
+                            trailing: Text(
+                                '${_themePreferenceLabel(s, _theme.preference)} · ${_themeAccentLabel(_theme.accent)}'),
+                            onTap: _openThemePicker,
+                          ),
                           if (widget.session.isPlatformAdmin) ...[
                             const Divider(height: 1),
                             ListTile(
@@ -377,6 +415,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return s.fontSizeMedium;
       case FontSize.large:
         return s.fontSizeLarge;
+    }
+  }
+
+  String _themePreferenceLabel(AppStrings s, ThemePreference preference) {
+    switch (preference) {
+      case ThemePreference.light:
+        return s.themeLight;
+      case ThemePreference.dark:
+        return s.themeDark;
+      case ThemePreference.system:
+        return s.themeSystem;
+    }
+  }
+
+  String _themeAccentLabel(ThemeAccent accent) {
+    final s = AppStrings.of(context);
+    switch (accent) {
+      case ThemeAccent.blue:
+        return s.themeBlue;
+      case ThemeAccent.green:
+        return s.themeGreen;
+      case ThemeAccent.orange:
+        return s.themeOrange;
+      case ThemeAccent.purple:
+        return s.themePurple;
+      case ThemeAccent.teal:
+        return s.themeTeal;
+      case ThemeAccent.crimson:
+        return s.themeCrimson;
     }
   }
 

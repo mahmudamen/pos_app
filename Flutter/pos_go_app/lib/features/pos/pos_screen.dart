@@ -13,6 +13,7 @@ import '../../core/printers.dart';
 import '../../core/registers.dart';
 import '../../core/security.dart';
 import '../../core/session_store.dart';
+import '../../core/theme.dart';
 import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
 import '../customers/customers_screen.dart';
@@ -41,6 +42,9 @@ class PosScreen extends StatefulWidget {
       this.onLanguageChanged,
       this.onFontModeChanged,
       this.onFontSizeChanged,
+      this.themeSetting = const ThemeSetting(),
+      this.onThemePreferenceChanged,
+      this.onThemeAccentChanged,
       this.printerService});
 
   final Session session;
@@ -52,6 +56,9 @@ class PosScreen extends StatefulWidget {
   final ValueChanged<String>? onLanguageChanged;
   final ValueChanged<FontMode>? onFontModeChanged;
   final ValueChanged<FontSize>? onFontSizeChanged;
+  final ThemeSetting themeSetting;
+  final ValueChanged<ThemePreference>? onThemePreferenceChanged;
+  final ValueChanged<ThemeAccent>? onThemeAccentChanged;
   final PrinterService? printerService;
 
   @override
@@ -370,6 +377,9 @@ class _PosScreenState extends State<PosScreen> {
           onFontModeChanged: widget.onFontModeChanged,
           onFontSizeChanged: widget.onFontSizeChanged,
           onLanguageChanged: widget.onLanguageChanged,
+          themeSetting: widget.themeSetting,
+          onThemePreferenceChanged: widget.onThemePreferenceChanged,
+          onThemeAccentChanged: widget.onThemeAccentChanged,
           onSignOut: widget.onSignOut,
         ),
       ),

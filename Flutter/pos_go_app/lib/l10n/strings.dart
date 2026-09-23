@@ -164,6 +164,19 @@ class AppStrings {
   String get soundEffects => isArabic ? 'المؤثرات الصوتية' : 'Sound effects';
   String get soundEffectsHint =>
       isArabic ? 'صوت ونبض عند اختيار الخيارات وتأكيدها' : 'Click and confirm sounds and haptics';
+  String get appearance => isArabic ? 'المظهر' : 'Appearance';
+  String get themeMode => isArabic ? 'وضع السمة' : 'Theme mode';
+  String get themeLight => isArabic ? 'فاتح' : 'Light';
+  String get themeDark => isArabic ? 'داكن' : 'Dark';
+  String get themeSystem => isArabic ? 'تلقائي' : 'System';
+  String get accentColor => isArabic ? 'لون العلامة' : 'Accent color';
+  String get preview => isArabic ? 'معاينة' : 'Preview';
+  String get themeBlue => isArabic ? 'أزرق' : 'Blue';
+  String get themeGreen => isArabic ? 'أخضر' : 'Green';
+  String get themeOrange => isArabic ? 'برتقالي' : 'Orange';
+  String get themePurple => isArabic ? 'بنفسجي' : 'Purple';
+  String get themeTeal => isArabic ? 'تركوازي' : 'Teal';
+  String get themeCrimson => isArabic ? 'قرمزي' : 'Crimson';
   String get country => isArabic ? 'البلد' : 'Country';
   String get currency => isArabic ? 'العملة' : 'Currency';
   String get settings => isArabic ? 'الإعدادات' : 'Settings';

@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'fonts.dart';
 import 'printers.dart';
 import 'security.dart';
+import 'theme.dart';
 
 class Session {
   const Session({
@@ -151,6 +152,9 @@ class SessionStore {
   static const _fontSizeKey = 'app_font_size';
   static const _soundEnabledKey = 'app_sound_enabled';
 
+  static const _themeModeKey = 'app_theme_mode';
+  static const _themeAccentKey = 'app_theme_accent';
+
   static const _rememberLoginKey = 'remember_login';
   static const _rememberTenantKey = 'remember_tenant';
   static const _rememberEmailKey = 'remember_email';
@@ -237,7 +241,7 @@ class SessionStore {
       _storage.delete(key: _planKey),
       _storage.delete(key: _trialEndsAtKey),
       _storage.delete(key: _permissionsKey),
-      // Device id, app language and font preferences intentionally survive sign-out.
+      // Device id, app language, font and theme preferences intentionally survive sign-out.
     ]);
   }
 
@@ -290,6 +294,22 @@ class SessionStore {
 
   Future<void> saveSoundEnabled(bool enabled) async {
     await _storage.write(key: _soundEnabledKey, value: enabled ? '1' : '0');
+  }
+
+  Future<ThemeSetting> readThemeSetting() async {
+    final mode =
+        ThemePreference.fromWire(await _storage.read(key: _themeModeKey));
+    final accent =
+        ThemeAccent.fromWire(await _storage.read(key: _themeAccentKey));
+    return ThemeSetting(preference: mode, accent: accent);
+  }
+
+  Future<void> saveThemePreference(String wire) async {
+    await _storage.write(key: _themeModeKey, value: wire);
+  }
+
+  Future<void> saveThemeAccent(String wire) async {
+    await _storage.write(key: _themeAccentKey, value: wire);
   }
 
   Future<Session?> read() async {
