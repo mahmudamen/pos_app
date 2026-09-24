@@ -137,7 +137,8 @@ class CompanyMember {
           title == other.title;
 
   @override
-  int get hashCode => Object.hash(id, companyId, userId, displayName, role, title);
+  int get hashCode =>
+      Object.hash(id, companyId, userId, displayName, role, title);
 }
 
 /// Employer (store's companies), mirroring the Go `Company` wire shape.
@@ -208,6 +209,173 @@ class Company {
   @override
   int get hashCode => Object.hash(id, name, slug, description, industry,
       website, logoUrl, city, isActive, membersCount, Object.hashAll(members));
+}
+
+/// A member of the Egypt national community (slice A). Also the shape of
+/// `GET /v1/community/national/me`. Mirrors the Go `Member` wire struct.
+@immutable
+class NationalMember {
+  const NationalMember({
+    required this.userId,
+    required this.displayName,
+    this.originTenantId = '',
+    this.joinedVia = '',
+    this.invitedBy = '',
+    this.invitedByName = '',
+    this.role = 'member',
+    this.status = 'active',
+    this.level = 'bronze',
+    this.expertiseScore = 0,
+    this.joinedAt = '',
+  });
+
+  factory NationalMember.fromJson(Map<String, dynamic> json) => NationalMember(
+        userId: json['user_id'] as String? ?? '',
+        displayName: json['display_name'] as String? ?? '',
+        originTenantId: json['origin_tenant_id'] as String? ?? '',
+        joinedVia: json['joined_via'] as String? ?? '',
+        invitedBy: json['invited_by'] as String? ?? '',
+        invitedByName: json['invited_by_name'] as String? ?? '',
+        role: json['role'] as String? ?? 'member',
+        status: json['status'] as String? ?? 'active',
+        level: json['level'] as String? ?? 'bronze',
+        expertiseScore: _toInt(json['expertise_score']),
+        joinedAt: json['joined_at'] as String? ?? '',
+      );
+
+  final String userId;
+  final String displayName;
+  final String originTenantId;
+  final String joinedVia;
+  final String invitedBy;
+  final String invitedByName;
+  final String role;
+  final String status;
+  final String level;
+  final int expertiseScore;
+  final String joinedAt;
+
+  bool get isActive => status == 'active';
+
+  /// Holds the national `community.moderate` permission dynamically.
+  bool get isModerator => role == 'moderator' || role == 'admin';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NationalMember &&
+          runtimeType == other.runtimeType &&
+          userId == other.userId &&
+          displayName == other.displayName &&
+          originTenantId == other.originTenantId &&
+          joinedVia == other.joinedVia &&
+          invitedBy == other.invitedBy &&
+          invitedByName == other.invitedByName &&
+          role == other.role &&
+          status == other.status &&
+          level == other.level &&
+          expertiseScore == other.expertiseScore &&
+          joinedAt == other.joinedAt;
+
+  @override
+  int get hashCode => Object.hash(
+      userId,
+      displayName,
+      originTenantId,
+      joinedVia,
+      invitedBy,
+      invitedByName,
+      role,
+      status,
+      level,
+      expertiseScore,
+      joinedAt);
+}
+
+/// One national community invitation (slice A). `code` is only present on the
+/// row returned by `POST /v1/community/national/invitations` (the code is
+/// hashed at rest; the plaintext is never stored).
+@immutable
+class NationalInvitation {
+  const NationalInvitation({
+    required this.id,
+    this.code = '',
+    this.inviterId = '',
+    this.email = '',
+    this.note = '',
+    this.maxUses = 1,
+    this.usedCount = 0,
+    this.status = 'active',
+    this.expiresAt = '',
+    this.createdAt = '',
+  });
+
+  factory NationalInvitation.fromJson(Map<String, dynamic> json) =>
+      NationalInvitation(
+        id: json['id'] as String? ?? '',
+        code: json['code'] as String? ?? '',
+        inviterId: json['inviter_id'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        note: json['note'] as String? ?? '',
+        maxUses: _toInt(json['max_uses']),
+        usedCount: _toInt(json['used_count']),
+        status: json['status'] as String? ?? 'active',
+        expiresAt: json['expires_at'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+      );
+
+  final String id;
+  final String code;
+  final String inviterId;
+  final String email;
+  final String note;
+  final int maxUses;
+  final int usedCount;
+  final String status;
+  final String expiresAt;
+  final String createdAt;
+
+  bool get isActive => status == 'active';
+
+  /// `EG`-prefixed display form of the code; the canonical stored form has the
+  /// prefix stripped.
+  String get codeDisplay => code.startsWith('EG-') ? code : 'EG-$code';
+
+  int get remainingUses => isActive ? (maxUses - usedCount) : 0;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NationalInvitation &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          code == other.code &&
+          inviterId == other.inviterId &&
+          email == other.email &&
+          note == other.note &&
+          maxUses == other.maxUses &&
+          usedCount == other.usedCount &&
+          status == other.status &&
+          expiresAt == other.expiresAt &&
+          createdAt == other.createdAt;
+
+  @override
+  int get hashCode => Object.hash(id, code, inviterId, email, note, maxUses,
+      usedCount, status, expiresAt, createdAt);
+}
+
+class NationalMembersPage {
+  const NationalMembersPage({
+    required this.members,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  final List<NationalMember> members;
+  final int total;
+  final int page;
+  final int limit;
 }
 
 class ProfilesPage {

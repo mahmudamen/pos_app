@@ -5,6 +5,7 @@ import '../../core/layout.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 import 'companies_screen.dart';
+import 'national_hub_screen.dart';
 import 'profile_edit_screen.dart';
 import 'profiles_screen.dart';
 
@@ -45,6 +46,20 @@ class CommunityHubScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _HubTile(
+                icon: Icons.public,
+                title: s.nationalCommunity,
+                subtitle: s.nationalMembership,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => NationalHubScreen(
+                      session: session,
+                      apiClient: apiClient,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               _HubTile(
                 icon: Icons.groups_outlined,
                 title: s.communityProfiles,

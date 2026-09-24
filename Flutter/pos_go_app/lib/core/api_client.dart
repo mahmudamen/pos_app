@@ -1200,7 +1200,8 @@ class ApiClient {
           .toList(),
       total: _toIntValue(meta['total']),
       page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
-      limit: _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
     );
   }
 
@@ -1263,7 +1264,8 @@ class ApiClient {
           .toList(),
       total: _toIntValue(meta['total']),
       page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
-      limit: _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
     );
   }
 
@@ -1289,7 +1291,8 @@ class ApiClient {
     final respond = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/community/profiles/${Uri.encodeComponent(userId)}'),
+        Uri.parse(
+            '$baseUrl/v1/community/profiles/${Uri.encodeComponent(userId)}'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1300,10 +1303,10 @@ class ApiClient {
       throw ApiException(_message(respond), code: _errorCode(respond));
     }
     final decoded = jsonDecode(respond.body) as Map<String, dynamic>;
-    final data = (decoded['data'] as Map<String, dynamic>?) ??
-        <String, dynamic>{};
-    final memberships =
-        (decoded['memberships'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+    final data =
+        (decoded['data'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+    final memberships = (decoded['memberships'] as List<dynamic>? ?? [])
+        .cast<Map<String, dynamic>>();
     if (memberships.isNotEmpty) {
       data['memberships'] = memberships;
     }
@@ -1376,7 +1379,8 @@ class ApiClient {
           .toList(),
       total: _toIntValue(meta['total']),
       page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
-      limit: _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
     );
   }
 
@@ -1537,6 +1541,213 @@ class ApiClient {
     }
   }
 
+  /// The caller's own national-community member row, or `null` when not a
+  /// member yet (`404 not_a_member`).
+  Future<NationalMember?> nationalMe(Session session) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/community/national/me'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode == 404) return null;
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return NationalMember.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Join the national community with an invitation code (any casing and the
+  /// optional `EG-` display prefix are normalized before sending).
+  Future<NationalMember> nationalJoin(Session session, String code) async {
+    var normalized =
+        code.trim().toUpperCase().replaceAll(RegExp('[^A-Z0-9]'), '');
+    if (normalized.startsWith('EG')) {
+      normalized = normalized.substring(2);
+    }
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/national/join'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'code': normalized}),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return NationalMember.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<NationalInvitation>> listNationalInvitations(
+      Session session) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/community/national/invitations'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return (jsonDecode(respond.body)['data'] as List<dynamic>? ?? [])
+        .map((e) => NationalInvitation.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<NationalInvitation> createNationalInvitation(
+    Session session, {
+    String email = '',
+    String note = '',
+    int maxUses = 1,
+    String? expiresAt,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/national/invitations'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (email.isNotEmpty) 'email': email,
+          if (note.isNotEmpty) 'note': note,
+          'max_uses': maxUses,
+          if (expiresAt != null && expiresAt.isNotEmpty)
+            'expires_at': expiresAt,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return NationalInvitation.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> revokeNationalInvitation(
+      Session session, String invitationId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.delete(
+        Uri.parse(
+            '$baseUrl/v1/community/national/invitations/${Uri.encodeComponent(invitationId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+  }
+
+  Future<NationalMembersPage> listNationalMembers(
+    Session session, {
+    String query = '',
+    String? level,
+    String? role,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+          '$baseUrl/v1/community/national/members'
+          '?page=$page&limit=$limit'
+          '${query.isEmpty ? '' : '&q=${Uri.encodeQueryComponent(query)}'}'
+          '${level == null || level.isEmpty ? '' : '&level=$level'}'
+          '${role == null || role.isEmpty ? '' : '&role=$role'}',
+        ),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body);
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return NationalMembersPage(
+      members: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => NationalMember.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: _toIntValue(meta['total']),
+      page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+    );
+  }
+
+  Future<NationalMember> getNationalMember(
+      Session session, String userId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/community/national/members/${Uri.encodeComponent(userId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return NationalMember.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<NationalMember> updateNationalMember(
+    Session session,
+    String userId, {
+    String? status,
+    String? role,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse(
+            '$baseUrl/v1/community/national/members/${Uri.encodeComponent(userId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (status != null && status.isNotEmpty) 'status': status,
+          if (role != null && role.isNotEmpty) 'role': role,
+        }),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return NationalMember.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
   Future<AdjustmentResult> createInventoryAdjustment(
     Session session, {
     required String productId,
@@ -1682,7 +1893,8 @@ class ApiClient {
     if (respond.statusCode != 200) {
       throw ApiException(_message(respond));
     }
-    return PurchasesPage.fromJson(jsonDecode(respond.body) as Map<String, dynamic>);
+    return PurchasesPage.fromJson(
+        jsonDecode(respond.body) as Map<String, dynamic>);
   }
 
   /// Current OCR meter state (scans used per window, configured caps, credit
@@ -1987,8 +2199,7 @@ class ApiClient {
         jsonDecode(respond.body)['data'] as Map<String, dynamic>);
   }
 
-  Future<void> fulfillProductRequest(
-      Session session, String requestId) async {
+  Future<void> fulfillProductRequest(Session session, String requestId) async {
     final respond = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
@@ -2120,8 +2331,7 @@ class ApiClient {
           'Authorization': 'Bearer $accessToken',
         },
         body: jsonEncode({
-          if (closingCashMinor != null)
-            'closing_cash_minor': closingCashMinor,
+          if (closingCashMinor != null) 'closing_cash_minor': closingCashMinor,
           if (managerPin.trim().isNotEmpty) 'manager_pin': managerPin.trim(),
         }),
       ),
@@ -2163,7 +2373,8 @@ class ApiClient {
     );
   }
 
-  Future<RegisterSession> sessionDetail(Session session, String sessionId) async {
+  Future<RegisterSession> sessionDetail(
+      Session session, String sessionId) async {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
@@ -2393,7 +2604,8 @@ class Product {
 
   /// True when the product was created within [within] of [now]. Products
   /// without a created_at (older backend, cached rows) are never "new".
-  bool isRecentlyAdded(DateTime now, {Duration within = const Duration(days: 7)}) {
+  bool isRecentlyAdded(DateTime now,
+      {Duration within = const Duration(days: 7)}) {
     final created = createdAt;
     if (created == null) return false;
     final diff = now.difference(created);
@@ -2424,7 +2636,8 @@ class SaleResult {
         subtotalMinor: (json['subtotal_minor'] as num).toInt(),
         totalMinor: (json['total_minor'] as num).toInt(),
         currency: json['currency'] as String,
-        paymentMethod: PaymentMethod.fromWire(json['payment_method'] as String?),
+        paymentMethod:
+            PaymentMethod.fromWire(json['payment_method'] as String?),
         discountCapped: json['discount_capped'] as bool? ?? false,
         discountWarning: json['discount_warning'] as String? ?? '',
       );
@@ -2518,7 +2731,8 @@ class SaleDetail {
         status: json['status'] as String? ?? 'completed',
         currency: json['currency'] as String? ?? 'EGP',
         items: (json['items'] as List<dynamic>? ?? [])
-            .map((item) => SaleDetailItem.fromJson(item as Map<String, dynamic>))
+            .map(
+                (item) => SaleDetailItem.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 
@@ -2635,7 +2849,8 @@ class Currency {
         nameEn: json['name_en'] as String,
         nameAr: json['name_ar'] as String? ?? json['name_en'] as String,
         symbol: json['symbol'] as String? ?? json['code'] as String,
-        digitsAfterDecimal: (json['digits_after_decimal'] as num?)?.toInt() ?? 2,
+        digitsAfterDecimal:
+            (json['digits_after_decimal'] as num?)?.toInt() ?? 2,
       );
 
   final String code;
@@ -2723,8 +2938,7 @@ class SyncPushResult {
     this.result = const {},
   });
 
-  factory SyncPushResult.fromJson(Map<String, dynamic> json) =>
-      SyncPushResult(
+  factory SyncPushResult.fromJson(Map<String, dynamic> json) => SyncPushResult(
         commandId: json['command_id'] as String? ?? '',
         status: json['status'] as String? ?? '',
         replayed: json['replayed'] as bool? ?? false,
@@ -2767,24 +2981,20 @@ class TenantSettings {
   factory TenantSettings.fromJson(Map<String, dynamic> json) => TenantSettings(
         defaultPaymentMethod: PaymentMethod.fromWire(
             json['pos.default_payment_method'] as String?),
-        showStockBadges:
-            (json['pos.show_stock_badges'] as String?) != 'false',
+        showStockBadges: (json['pos.show_stock_badges'] as String?) != 'false',
         receiptFooter: json['pos.receipt_footer'] as String? ?? '',
         allowNegativeStock:
             (json['inventory.allow_negative_stock'] as String?) == 'true',
-        discountMode: DiscountMode.fromSetting(
-            json['pos.discount_mode'] as String?),
+        discountMode:
+            DiscountMode.fromSetting(json['pos.discount_mode'] as String?),
         maxDiscountPct: _intSetting(json['pos.max_discount_pct']) ?? 0,
         managerDiscountOverride:
             (json['pos.manager.discount'] as String?) != 'false',
         managerClosePin: (json['pos.manager.close'] as String?) != 'false',
         stockType: json['pos.stock_type'] as String? ?? 'on_hand',
-        blockOutOfStock:
-            (json['pos.block_out_of_stock'] as String?) != 'false',
-        lowStockThreshold:
-            _intSetting(json['pos.low_stock_threshold']) ?? 5,
-        lowStockWarning:
-            (json['pos.low_stock_warning'] as String?) != 'false',
+        blockOutOfStock: (json['pos.block_out_of_stock'] as String?) != 'false',
+        lowStockThreshold: _intSetting(json['pos.low_stock_threshold']) ?? 5,
+        lowStockWarning: (json['pos.low_stock_warning'] as String?) != 'false',
         validateStockPayment:
             (json['pos.validate_stock_payment'] as String?) != 'false',
         refreshButton: (json['pos.refresh_button'] as String?) != 'false',
@@ -2830,8 +3040,7 @@ class TenantSettings {
     bool? allowNegativeStock,
   }) =>
       TenantSettings(
-        defaultPaymentMethod:
-            defaultPaymentMethod ?? this.defaultPaymentMethod,
+        defaultPaymentMethod: defaultPaymentMethod ?? this.defaultPaymentMethod,
         showStockBadges: showStockBadges ?? this.showStockBadges,
         receiptFooter: receiptFooter ?? this.receiptFooter,
         allowNegativeStock: allowNegativeStock ?? this.allowNegativeStock,

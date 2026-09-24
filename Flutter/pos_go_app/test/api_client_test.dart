@@ -794,6 +794,65 @@ expect(() => client.dashboardSummary(session),
     expect(staff.canManage, isFalse);
   });
 
+  test('NationalMember parses the Go wire shape', () {
+    final member = NationalMember.fromJson(const {
+      'user_id': 'user-1',
+      'display_name': 'Sara Chef',
+      'origin_tenant_id': 'tenant-1',
+      'joined_via': 'invite',
+      'invited_by': 'user-0',
+      'invited_by_name': 'Store Owner',
+      'role': 'moderator',
+      'status': 'active',
+      'level': 'gold',
+      'expertise_score': 640,
+      'joined_at': '2026-09-24 10:00:00',
+    });
+    expect(member.userId, 'user-1');
+    expect(member.displayName, 'Sara Chef');
+    expect(member.originTenantId, 'tenant-1');
+    expect(member.joinedVia, 'invite');
+    expect(member.invitedByName, 'Store Owner');
+    expect(member.role, 'moderator');
+    expect(member.isModerator, isTrue);
+    expect(member.isActive, isTrue);
+    expect(member.level, 'gold');
+    expect(member.expertiseScore, 640);
+  });
+
+  test('NationalInvitation parses and derives code + remaining uses', () {
+    final invitation = NationalInvitation.fromJson(const {
+      'id': 'inv-1',
+      'code': '',
+      'inviter_id': 'user-1',
+      'email': 'peer@example.com',
+      'note': 'co-founder',
+      'max_uses': 3,
+      'used_count': 1,
+      'status': 'active',
+      'expires_at': '2023-01-01T00:00:00Z',
+      'created_at': '2026-09-24 10:00:00',
+    });
+    expect(invitation.id, 'inv-1');
+    expect(invitation.maxUses, 3);
+    expect(invitation.usedCount, 1);
+    expect(invitation.isActive, isTrue);
+    expect(invitation.remainingUses, 2);
+    final withCode = NationalInvitation.fromJson(const {
+      'id': 'inv-2',
+      'code': 'ABCDEFGHJKMNPQ',
+      'inviter_id': 'user-1',
+      'email': '',
+      'note': '',
+      'max_uses': 1,
+      'used_count': 0,
+      'status': 'active',
+      'expires_at': '',
+      'created_at': '',
+    });
+    expect(withCode.codeDisplay, 'EG-ABCDEFGHJKMNPQ');
+  });
+
   test('listProfiles fetches /v1/community/profiles with meta', () async {
     final client = ApiClient(client: _ProfilesListClient());
     const session = Session(
@@ -923,6 +982,156 @@ expect(() => client.dashboardSummary(session),
       tenantId: 'tenant-1',
     );
     await client.removeCompanyMember(session, 'company-1', 'user-2');
+  });
+
+  test('nationalMe returns null when not a member yet (404)', () async {
+    final client = ApiClient(client: _NationalMeNoneClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final me = await client.nationalMe(session);
+    expect(me, isNull);
+  });
+
+  test('nationalMe returns the member row', () async {
+    final client = ApiClient(client: _NationalMeClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final me = await client.nationalMe(session);
+    expect(me, isNotNull);
+    expect(me!.displayName, 'Restaurant Admin');
+    expect(me.isModerator, isTrue);
+  });
+
+  test('nationalJoin posts the code and returns the membership', () async {
+    final client = ApiClient(client: _NationalJoinClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-2',
+      displayName: 'Sara Chef',
+      tenantId: 'tenant-1',
+    );
+    final member = await client.nationalJoin(session, 'EG-ABCDEFGHJKMNPQ');
+    expect(member.userId, 'user-2');
+    expect(member.level, 'bronze');
+    expect(member.expertiseScore, 10);
+  });
+
+  test('nationalJoin surfaces the expired code error code', () async {
+    final client = ApiClient(client: _NationalJoinExpiredClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-2',
+      displayName: 'Sara Chef',
+      tenantId: 'tenant-1',
+    );
+    await expectLater(
+      client.nationalJoin(session, 'EG-XXXXXX'),
+      throwsA(isA<ApiException>().having((e) => e.code, 'code', 'expired')),
+    );
+  });
+
+  test('createNationalInvitation returns the single-use code', () async {
+    final client = ApiClient(client: _CreateInvitationClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final invitation = await client.createNationalInvitation(
+      session,
+      email: 'peer@example.com',
+      note: 'co-founder',
+    );
+    expect(invitation.id, 'inv-1');
+    expect(invitation.codeDisplay, 'EG-ABCDEFGHJKMNPQ');
+    expect(invitation.maxUses, 1);
+  });
+
+  test('listNationalInvitations parses the list', () async {
+    final client = ApiClient(client: _InvitationsListClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final invitations = await client.listNationalInvitations(session);
+    expect(invitations, hasLength(2));
+    expect(invitations.first.note, 'co-founder');
+    expect(invitations.first.usedCount, 1);
+  });
+
+  test('revokeNationalInvitation DELETEs the invitation', () async {
+    final client = ApiClient(client: _RevokeInvitationClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    await client.revokeNationalInvitation(session, 'inv-1');
+  });
+
+  test('listNationalMembers fetches the directory with meta', () async {
+    final client = ApiClient(client: _MembersListClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final page = await client.listNationalMembers(session, level: 'gold');
+    expect(page.members, hasLength(2));
+    expect(page.total, 2);
+    expect(page.members.first.level, 'gold');
+  });
+
+  test('getNationalMember fetches one member detail', () async {
+    final client = ApiClient(client: _MemberDetailClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final member = await client.getNationalMember(session, 'user-2');
+    expect(member.userId, 'user-2');
+    expect(member.expertiseScore, 640);
+  });
+
+  test('updateNationalMember PATCHes status/role', () async {
+    final client = ApiClient(client: _UpdateMemberClient());
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+    );
+    final member = await client.updateNationalMember(
+      session,
+      'user-2',
+      role: 'moderator',
+    );
+    expect(member.role, 'moderator');
   });
 
   test('InventoryAdjustment parses the Go adjustment row', () {
@@ -3559,6 +3768,208 @@ class _RemoveMemberClient extends http.BaseClient {
     );
     expect(request.headers['Authorization'], 'Bearer access-token');
     const response = '{"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _nationalMemberJson =
+    '{"data":{"user_id":"user-1","display_name":"Restaurant Admin",'
+    '"origin_tenant_id":"tenant-1","joined_via":"invite","invited_by":"user-0",'
+    '"invited_by_name":"Store Owner","role":"moderator","status":"active",'
+    '"level":"gold","expertise_score":640,'
+    '"joined_at":"2026-09-24 10:00:00"},"meta":{"request_id":"t"}}';
+
+const _notMemberJson =
+    '{"error":{"code":"not_a_member","message":"you are not a member"}}';
+
+class _NationalMeClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/national/me');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    return http.StreamedResponse(
+      Stream.value(_nationalMemberJson.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _NationalMeNoneClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/national/me');
+    return http.StreamedResponse(
+      Stream.value(_notMemberJson.codeUnits),
+      404,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _NationalJoinClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/community/national/join');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['code'], 'ABCDEFGHJKMNPQ');
+    const response =
+        '{"data":{"user_id":"user-2","display_name":"Sara Chef",'
+        '"origin_tenant_id":"tenant-1","joined_via":"invite",'
+        '"invited_by":"user-1","invited_by_name":"Restaurant Admin",'
+        '"role":"member","status":"active","level":"bronze",'
+        '"expertise_score":10,"joined_at":"2026-09-24 12:00:00"},'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _NationalJoinExpiredClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/community/national/join');
+    const response =
+        '{"error":{"code":"expired","message":"invitation expired"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      410,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CreateInvitationClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/community/national/invitations');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['email'], 'peer@example.com');
+    expect(body['note'], 'co-founder');
+    expect(body['max_uses'], 1);
+    const response =
+        '{"data":{"id":"inv-1","code":"ABCDEFGHJKMNPQ",'
+        '"inviter_id":"user-1","email":"peer@example.com",'
+        '"note":"co-founder","max_uses":1,"used_count":0,'
+        '"status":"active","expires_at":"","created_at":"2026-09-24 12:00:00"},'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _InvitationsListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/national/invitations');
+    const response =
+        '{"data":[{"id":"inv-1","code":"","inviter_id":"user-1",'
+        '"email":"peer@example.com","note":"co-founder","max_uses":3,'
+        '"used_count":1,"status":"active","expires_at":"",'
+        '"created_at":"2026-09-24 12:00:00"},'
+        '{"id":"inv-2","code":"","inviter_id":"user-1","email":"",'
+        '"note":"","max_uses":1,"used_count":0,"status":"revoked",'
+        '"expires_at":"","created_at":"2026-09-24 12:30:00"}],'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _RevokeInvitationClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'DELETE');
+    expect(request.url.path, '/v1/community/national/invitations/inv-1');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response = '{"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _MembersListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/national/members');
+    expect(request.url.queryParameters['level'], 'gold');
+    const response =
+        '{"data":[{"user_id":"user-1","display_name":"Restaurant Admin",'
+        '"origin_tenant_id":"tenant-1","joined_via":"invite",'
+        '"invited_by":"user-0","role":"moderator","status":"active",'
+        '"level":"gold","expertise_score":640},'
+        '{"user_id":"user-2","display_name":"Sara Chef",'
+        '"origin_tenant_id":"tenant-2","joined_via":"invite",'
+        '"invited_by":"user-1","role":"member","status":"active",'
+        '"level":"bronze","expertise_score":10}],'
+        '"meta":{"total":2,"page":1,"limit":50,"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _MemberDetailClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/community/national/members/user-2');
+    const response =
+        '{"data":{"user_id":"user-2","display_name":"Sara Chef",'
+        '"origin_tenant_id":"tenant-2","joined_via":"invite",'
+        '"invited_by":"user-1","role":"member","status":"active",'
+        '"level":"gold","expertise_score":640},'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _UpdateMemberClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'PATCH');
+    expect(request.url.path, '/v1/community/national/members/user-2');
+    final body = jsonDecode(await request.finalize().bytesToString())
+        as Map<String, dynamic>;
+    expect(body['role'], 'moderator');
+    const response =
+        '{"data":{"user_id":"user-2","display_name":"Sara Chef",'
+        '"origin_tenant_id":"tenant-2","joined_via":"invite",'
+        '"invited_by":"user-1","role":"moderator","status":"active",'
+        '"level":"gold","expertise_score":640},'
+        '"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,
