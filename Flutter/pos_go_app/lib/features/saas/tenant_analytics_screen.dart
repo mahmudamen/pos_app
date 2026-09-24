@@ -300,6 +300,9 @@ class _AnalyticsBody extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
+            if (a.tenant.trialEndsAt.isNotEmpty) ...[
+              tooltipTrialCountdown(s, a.tenant.trialEndsAt, context),
+            ],
             Chip(
               label: Text('${s.users} ${a.users}'),
               visualDensity: VisualDensity.compact,
@@ -331,12 +334,20 @@ class _AnalyticsBody extends StatelessWidget {
           children: [
             _StatCard(
                 label: s.revenueToday,
-                value: s.formatMoney(a.today.revenueMinor, currency)),
-            _StatCard(label: s.salesCount, value: '${a.today.salesCount}'),
+                value: s.formatMoney(a.today.revenueMinor, currency),
+                icon: Icons.paid_outlined),
+            _StatCard(
+                label: s.salesCount,
+                value: '${a.today.salesCount}',
+                icon: Icons.point_of_sale_outlined),
             _StatCard(
                 label: s.avgSale,
-                value: s.formatMoney(a.today.avgSaleMinor, currency)),
-            _StatCard(label: s.itemsSold, value: '${a.today.itemsSold}'),
+                value: s.formatMoney(a.today.avgSaleMinor, currency),
+                icon: Icons.assessment_outlined),
+            _StatCard(
+                label: s.itemsSold,
+                value: '${a.today.itemsSold}',
+                icon: Icons.shopping_basket_outlined),
           ],
         ),
         if (a.revenueTrend.isNotEmpty) ...[
@@ -346,7 +357,7 @@ class _AnalyticsBody extends StatelessWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: _RevenueBars(trend: a.revenueTrend),
+              child: _RevenueBars(trend: a.revenueTrend, currency: currency),
             ),
           ),
         ],
@@ -396,13 +407,43 @@ String _fmtDate(AppStrings s, String iso) {
   return s.formatDate(parsed.toLocal());
 }
 
+/// Trial countdown chip (red when expiring within three days).
+Widget tooltipTrialCountdown(
+    AppStrings s, String trialEndsAt, BuildContext context) {
+  final end = DateTime.tryParse(trialEndsAt);
+  if (end == null || end.isBefore(DateTime.now())) {
+    return const SizedBox.shrink();
+  }
+  final days = end.difference(DateTime.now()).inDays;
+  final scheme = Theme.of(context).colorScheme;
+  if (days < 0) return const SizedBox.shrink();
+  final soon = days <= 3;
+  return Tooltip(
+    message: s.trialExpiresAt,
+    child: Chip(
+      avatar: Icon(
+        Icons.timer_outlined,
+        size: 16,
+        color: soon ? scheme.error : scheme.primary,
+      ),
+      label: Text(s.trialDaysLeft(days)),
+      visualDensity: VisualDensity.compact,
+      labelStyle: soon ? TextStyle(color: scheme.error) : null,
+      side: soon ? BorderSide(color: scheme.error) : null,
+    ),
+  );
+}
+
 class _RevenueBars extends StatelessWidget {
-  const _RevenueBars({required this.trend});
+  const _RevenueBars({required this.trend, required this.currency});
 
   final List<RevenueTrendPoint> trend;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    final scheme = Theme.of(context).colorScheme;
     final max =
         trend.fold<int>(0, (m, p) => p.revenueMinor > m ? p.revenueMinor : m);
     const barWidth = 34.0;
@@ -411,19 +452,25 @@ class _RevenueBars extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          for (final p in trend)
+          for (final (i, p) in trend.indexed)
             SizedBox(
               width: barWidth,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   if (max > 0)
-                    Container(
-                      height: 96 * (p.revenueMinor / max),
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(4),
+                    Tooltip(
+                      message:
+                          '${p.day} · ${s.formatMoney(p.revenueMinor, currency)}',
+                      child: Container(
+                        height: 96 * (p.revenueMinor / max),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: i == trend.length - 1
+                              ? scheme.tertiary
+                              : scheme.primary,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                     ),
                   const SizedBox(height: 4),
@@ -431,7 +478,14 @@ class _RevenueBars extends StatelessWidget {
                     p.day.length >= 5 ? p.day.substring(5) : p.day,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: i == trend.length - 1
+                              ? scheme.tertiary
+                              : null,
+                          fontWeight: i == trend.length - 1
+                              ? FontWeight.w700
+                              : null,
+                        ),
                   ),
                 ],
               ),
@@ -443,10 +497,11 @@ class _RevenueBars extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
+  const _StatCard({required this.label, required this.value, this.icon});
 
   final String label;
   final String value;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -458,7 +513,20 @@ class _StatCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: Theme.of(context).textTheme.bodySmall),
+              Row(
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 4),
+                  ],
+                  Expanded(
+                    child: Text(label,
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ),
+                ],
+              ),
               const SizedBox(height: 6),
               Text(value, style: Theme.of(context).textTheme.titleMedium),
             ],

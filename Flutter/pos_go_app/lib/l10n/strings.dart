@@ -266,6 +266,8 @@ class AppStrings {
   String get suspendedLabel => isArabic ? 'موقوفة' : 'Suspended';
   String get stoppedLabel => isArabic ? 'معطلة' : 'Stopped';
   String get activeLabel => isArabic ? 'نشطة' : 'Active';
+  String get needsAttention => isArabic ? 'يحتاج متابعة' : 'Needs attention';
+  String get trialExpiringSoon => isArabic ? 'تجارب تنتهي قريبًا' : 'Trials ending soon';
   String get tenantDetails => isArabic ? 'تفاصيل الجهة' : 'Tenant details';
   String get joinedOn => isArabic ? 'انضمت في' : 'Joined on';
   String get tenantAnalytics => isArabic ? 'تحليلات الجهة' : 'Tenant analytics';
@@ -752,6 +754,7 @@ class AppStrings {
       ? 'المجتمع الوطني متاح للمتاجر المصرية فقط'
       : 'The national community is available to Egyptian stores only.';
   String get memberUpdated => isArabic ? 'تم تحديث العضو' : 'Member updated';
+  String get confirmAction => isArabic ? 'تأكيد العملية' : 'Confirm action';
   String get promoteModerator =>
       isArabic ? 'ترقية إلى مشرف' : 'Promote to moderator';
   String get demoteModerator =>
@@ -1071,6 +1074,26 @@ class AppStrings {
         ? DateFormat('d MMM yyyy، HH:mm', 'ar')
         : DateFormat('MMM d, yyyy HH:mm');
     return fmt.format(date);
+  }
+
+  /// Localized trial countdown, e.g. "trial ends in 3 days" / "تنتهي التجربة خلال ٣ أيام".
+  String trialDaysLeft(int days) {
+    final n = isArabic ? _arDigits(days) : '$days';
+    final unit = isArabic
+        ? (days == 1 ? 'يوم' : 'أيام')
+        : (days == 1 ? 'day' : 'days');
+    return isArabic ? 'تنتهي التجربة خلال $n $unit' : 'trial ends in $n $unit';
+  }
+
+  static String _arDigits(int n) {
+    const ar = '٠١٢٣٤٥٦٧٨٩';
+    final s = '$n';
+    final buf = StringBuffer();
+    for (final ch in s.split('')) {
+      final d = ch.codeUnitAt(0) - 0x30;
+      buf.write(d >= 0 && d < 10 ? ar[d] : ch);
+    }
+    return buf.toString();
   }
 }
 

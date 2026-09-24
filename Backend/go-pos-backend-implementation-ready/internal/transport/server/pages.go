@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -39,6 +40,9 @@ type siteTemplateData struct {
 	Plans        []planCard
 	Compare      []compareRow
 	ComparePlans []string
+	// Shots holds the inline data-URI PNGs for the landing hero phone mockup.
+	// Typed template.URL so html/template renders the data: scheme unchecked.
+	Shots map[string]template.URL
 }
 
 // planCard is a display-ready subscription plan, localized for the pricing page.
@@ -87,6 +91,13 @@ func renderSite(c *gin.Context, page string, plans []planCard) {
 	data := siteTemplateData{
 		Page: page, Lang: lang, Dir: dir,
 		Year: time.Now().Year(), T: siteStrings[lang], Plans: plans,
+	}
+	if page == "index" {
+		data.Shots = map[string]template.URL{
+			"pos":       template.URL(assetPNGDataURI(shotPosPng)),
+			"dashboard": template.URL(assetPNGDataURI(shotDashPng)),
+			"sales":     template.URL(assetPNGDataURI(shotSalesPng)),
+		}
 	}
 	if page == "pricing" {
 		data.Compare, data.ComparePlans = buildCompare(lang, plans)

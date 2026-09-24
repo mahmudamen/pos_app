@@ -47,6 +47,7 @@ const _restaurant = SaasTenant(
   planFeatures: ['pos.basic', 'restaurant', 'pos.subdomain'],
   subdomain: 'nile-cafe.xamltech.com',
   subscriptionStatus: 'trial',
+  trialEndsAt: '2099-01-01T00:00:00Z',
   status: 'active',
   revenueMinor: 8000,
   totalSales: 4,
@@ -442,5 +443,78 @@ void main() {
 
     expect(find.text('nile-cafe.xamltech.com'), findsOneWidget);
     expect(find.text('cairo-books.xamltech.com'), findsOneWidget);
+  });
+
+  testWidgets('trial tenant card shows trial countdown chip',
+      (tester) async {
+    final api = _FakeSaasApi();
+    await tester.pumpWidget(
+        _wrap(ControlPanelScreen(session: _saasAdmin, apiClient: api)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tenants').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nile Cafe'), findsOneWidget);
+    expect(find.textContaining('trial ends in'), findsOneWidget);
+  });
+
+  testWidgets('overview flags suspended tenants under needs attention',
+      (tester) async {
+    final api = _FakeSaasApi();
+    await tester.pumpWidget(
+        _wrap(ControlPanelScreen(session: _saasAdmin, apiClient: api)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Needs attention'), findsOneWidget);
+    expect(find.textContaining('Suspended:'), findsOneWidget);
+    expect(find.textContaining('Suspended: 1'), findsOneWidget);
+  });
+
+  testWidgets('trial ending within 3 days surfaces red countdown and '
+      'attention chip', (tester) async {
+    final api = _FakeSaasApi();
+    final soonEnds =
+        DateTime.now().add(const Duration(days: 3)).toUtc().toIso8601String();
+    api.tenants = [
+      _restaurant,
+      _bookstore,
+      SaasTenant(
+        id: 't-3',
+        name: 'Soon Cafe',
+        slug: 'soon-cafe',
+        businessType: 'restaurant',
+        countryCode: 'EG',
+        currencyCode: 'EGP',
+        defaultLanguage: 'ar',
+        users: 1,
+        products: 4,
+        plan: 'trial',
+        planFeatures: const ['pos.basic', 'restaurant'],
+        subscriptionStatus: 'trial',
+        status: 'active',
+        revenueMinor: 0,
+        totalSales: 0,
+        trialEndsAt: soonEnds,
+        createdAt: '2026-09-20T09:00:00Z',
+      ),
+    ];
+    await tester.pumpWidget(
+        _wrap(ControlPanelScreen(session: _saasAdmin, apiClient: api)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Needs attention'), findsOneWidget);
+    expect(find.textContaining('Trials ending soon: 1'), findsOneWidget);
+
+    await tester.tap(find.text('Tenants').last);
+    await tester.pumpAndSettle();
+
+    await tester.dragUntilVisible(
+      find.text('Soon Cafe'),
+      find.byType(ListView).last,
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Soon Cafe'), findsOneWidget);
+    expect(find.textContaining('trial ends in 2 days'), findsOneWidget);
   });
 }

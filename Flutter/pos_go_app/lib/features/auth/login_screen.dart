@@ -208,182 +208,185 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(28),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      TextButton.icon(
-                        onPressed: _switchLanguage,
-                        style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact),
-                        icon: const Icon(Icons.language, size: 18),
-                        label:
-                            Text(s.isArabic ? 'English / EN' : 'العربية / AR'),
-                      ),
-                      IconButton(
-                        onPressed: _switchFont,
-                        tooltip: s.font,
-                        visualDensity: VisualDensity.compact,
-                        icon:
-                            const Icon(Icons.font_download_outlined, size: 18),
-                      ),
-                      IconButton(
-                        onPressed: _switchTheme,
-                        tooltip: s.appearance,
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.palette_outlined, size: 18),
-                      ),
-                    ],
-                  ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(
-                      'assets/xamltech_logo.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.contain,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _switchLanguage,
+                          style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact),
+                          icon: const Icon(Icons.language, size: 18),
+                          label: Text(
+                              s.isArabic ? 'English / EN' : 'العربية / AR'),
+                        ),
+                        IconButton(
+                          onPressed: _switchFont,
+                          tooltip: s.font,
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.font_download_outlined,
+                              size: 18),
+                        ),
+                        IconButton(
+                          onPressed: _switchTheme,
+                          tooltip: s.appearance,
+                          visualDensity: VisualDensity.compact,
+                          icon: const Icon(Icons.palette_outlined, size: 18),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text('POS Go',
-                      style: Theme.of(context).textTheme.displaySmall,
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 8),
-                  Text(s.signInSubtitle,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                      controller: _tenantController,
-                      focusNode: _tenantNode,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                          labelText: s.storeId,
-                          border: const OutlineInputBorder()),
-                      validator: _required,
-                      onFieldSubmitted: (_) => _nextField(_emailNode)),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                      controller: _emailController,
-                      focusNode: _emailNode,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                          labelText: s.email,
-                          border: const OutlineInputBorder()),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _required,
-                      onFieldSubmitted: (_) => _nextField(_passwordNode)),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                      controller: _passwordController,
-                      focusNode: _passwordNode,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                          labelText: s.password,
-                          border: const OutlineInputBorder()),
-                      obscureText: true,
-                      validator: _required,
-                      onFieldSubmitted: (_) => _nextField(_deviceNode)),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                      controller: _deviceController,
-                      focusNode: _deviceNode,
-                      textInputAction: TextInputAction.done,
-                      decoration: InputDecoration(
-                          labelText: s.terminalName,
-                          border: const OutlineInputBorder()),
-                      validator: _required,
-                      onFieldSubmitted: (_) => _submit()),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(
-                      child: _bootingMeta
-                          ? const SizedBox(
-                              height: 56,
-                              child: Center(
-                                  child: SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))),
-                            )
-                          : DropdownButtonFormField<String>(
-                              initialValue: _countryCode,
-                              isExpanded: true,
-                              decoration: InputDecoration(
-                                  labelText: s.country,
-                                  border: const OutlineInputBorder()),
-                              items: _countries
-                                  .map((c) => DropdownMenuItem(
-                                      value: c.code,
-                                      child: Text(
-                                          s.isArabic ? c.nameAr : c.nameEn)))
-                                  .toList(),
-                              onChanged: (v) {
-                                if (v == null) return;
-                                setState(() => _countryCode = v);
-                              },
-                            ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/xamltech_logo.png',
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _bootingMeta
-                          ? const SizedBox(height: 56)
-                          : DropdownButtonFormField<String>(
-                              initialValue: _currencyCode,
-                              isExpanded: true,
-                              decoration: InputDecoration(
-                                  labelText: s.currency,
-                                  border: const OutlineInputBorder()),
-                              items: _currencies
-                                  .map((c) => DropdownMenuItem(
-                                      value: c.code,
-                                      child: Text(
-                                          '${c.symbol} · ${s.isArabic ? c.nameAr : c.nameEn}')))
-                                  .toList(),
-                              onChanged: (v) {
-                                if (v == null) return;
-                                setState(() => _currencyCode = v);
-                              },
-                            ),
-                    ),
-                  ]),
-                  if (_error != null) ...[
+                    const SizedBox(height: 16),
+                    Text('POS Go',
+                        style: Theme.of(context).textTheme.displaySmall,
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 8),
+                    Text(s.signInSubtitle,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                        controller: _tenantController,
+                        focusNode: _tenantNode,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                            labelText: s.storeId,
+                            border: const OutlineInputBorder()),
+                        validator: _required,
+                        onFieldSubmitted: (_) => _nextField(_emailNode)),
                     const SizedBox(height: 12),
-                    Text(_error!,
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
+                    TextFormField(
+                        controller: _emailController,
+                        focusNode: _emailNode,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                            labelText: s.email,
+                            border: const OutlineInputBorder()),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: _required,
+                        onFieldSubmitted: (_) => _nextField(_passwordNode)),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                        controller: _passwordController,
+                        focusNode: _passwordNode,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                            labelText: s.password,
+                            border: const OutlineInputBorder()),
+                        obscureText: true,
+                        validator: _required,
+                        onFieldSubmitted: (_) => _nextField(_deviceNode)),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                        controller: _deviceController,
+                        focusNode: _deviceNode,
+                        textInputAction: TextInputAction.done,
+                        decoration: InputDecoration(
+                            labelText: s.terminalName,
+                            border: const OutlineInputBorder()),
+                        validator: _required,
+                        onFieldSubmitted: (_) => _submit()),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      Expanded(
+                        child: _bootingMeta
+                            ? const SizedBox(
+                                height: 56,
+                                child: Center(
+                                    child: SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))),
+                              )
+                            : DropdownButtonFormField<String>(
+                                initialValue: _countryCode,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                    labelText: s.country,
+                                    border: const OutlineInputBorder()),
+                                items: _countries
+                                    .map((c) => DropdownMenuItem(
+                                        value: c.code,
+                                        child: Text(
+                                            s.isArabic ? c.nameAr : c.nameEn)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setState(() => _countryCode = v);
+                                },
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _bootingMeta
+                            ? const SizedBox(height: 56)
+                            : DropdownButtonFormField<String>(
+                                initialValue: _currencyCode,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                    labelText: s.currency,
+                                    border: const OutlineInputBorder()),
+                                items: _currencies
+                                    .map((c) => DropdownMenuItem(
+                                        value: c.code,
+                                        child: Text(
+                                            '${c.symbol} · ${s.isArabic ? c.nameAr : c.nameEn}')))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setState(() => _currencyCode = v);
+                                },
+                              ),
+                      ),
+                    ]),
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      Text(_error!,
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error)),
+                    ],
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      value: _rememberMe,
+                      onChanged: (v) =>
+                          setState(() => _rememberMe = v ?? false),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      title: Text(s.rememberLogins),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _loading || _bootingMeta ? null : _login,
+                      icon: const Icon(Icons.login),
+                      label: Text(_loading ? s.signingIn : s.signIn),
+                    ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: _openPrivacy,
+                      child: Text(s.privacyPolicy),
+                    ),
                   ],
-                  const SizedBox(height: 8),
-                  CheckboxListTile(
-                    value: _rememberMe,
-                    onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                    contentPadding: EdgeInsets.zero,
-                    controlAffinity: ListTileControlAffinity.leading,
-                    dense: true,
-                    title: Text(s.rememberLogins),
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton.icon(
-                    onPressed: _loading || _bootingMeta ? null : _login,
-                    icon: const Icon(Icons.login),
-                    label: Text(_loading ? s.signingIn : s.signIn),
-                  ),
-                  const SizedBox(height: 4),
-                  TextButton(
-                    onPressed: _openPrivacy,
-                    child: Text(s.privacyPolicy),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

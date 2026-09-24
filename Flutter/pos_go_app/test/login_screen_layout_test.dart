@@ -41,4 +41,29 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('login card stays horizontally centered on wide screens',
+      (tester) async {
+    tester.view.physicalSize = const Size(1400 * 2, 900 * 2);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('en'),
+      supportedLocales: AppStrings.supportedLocales,
+      localizationsDelegates: const [AppStrings.delegate],
+      home: LoginScreen(
+        apiClient: ApiClient(),
+        sessionStore: SessionStore(),
+        onAuthenticated: (_) {},
+      ),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.takeException(), isNull);
+
+    final centerX =
+        tester.getCenter(find.widgetWithText(FilledButton, 'Sign in')).dx;
+    expect(centerX, closeTo(700, 5));
+  });
 }

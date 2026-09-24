@@ -18,6 +18,11 @@ const siteHead = `<!doctype html>
 <meta name="theme-color" content="#0a1320"/>
 <meta name="robots" content="{{if eq .Page "privacy"}}noindex{{else}}index, follow{{end}}"/>
 <meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta property="og:site_name" content="{{.T.brand}} — {{.T.tagline}}"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
+<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta property="og:locale" content="{{if eq .Lang "ar"}}ar_EG{{else}}en_GB{{end}}"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect x='4' y='4' width='88' height='88' rx='22' fill='%230f2233' stroke='%2322c55e' stroke-width='4'/%3E%3Ctext x='48' y='68' text-anchor='middle' font-family='Verdana' font-size='52' font-weight='700' fill='%2322c55e'%3EP%3C/text%3E%3C/svg%3E"/>
 <title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
 <style>` + siteCSS + `</style>
@@ -85,27 +90,54 @@ const siteIndexBody = `<main>
           <span class="s"><b>{{.T.stat4}}</b><small>{{.T.stat4L}}</small></span>
         </div>
       </div>
-      <aside class="receipt" aria-label="{{.T.recOrder}}">
-        <div class="receipt-head"><span>{{.T.brand}}</span><span>{{.T.recOrder}}</span></div>
-        <p class="receipt-date">{{.T.recDate}}</p>
-        <span class="stamp">{{.T.recStamp}}</span>
-        <hr class="receipt-rule"/>
-        <div class="receipt-row"><span class="receipt-item-name">{{.T.recItem1}}</span><span>{{.T.currency}} {{.T.recVal1}}</span></div>
-        <div class="receipt-row"><span class="receipt-item-name">{{.T.recItem2}}</span><span>{{.T.currency}} {{.T.recVal2}}</span></div>
-        <div class="receipt-row"><span class="receipt-item-name">{{.T.recItem3}}</span><span>{{.T.currency}} {{.T.recVal3}}</span></div>
-        <hr class="receipt-rule"/>
-        <div class="receipt-row muted"><span>{{.T.recSub}}</span><span>{{.T.currency}} 275.00</span></div>
-        <div class="receipt-row muted"><span>{{.T.recTip}}</span><span>{{.T.currency}} 15.00</span></div>
-        <hr class="receipt-rule"/>
-        <div class="receipt-total"><span>{{.T.recTotal}}</span><span class="money">{{.T.currency}} 290.00</span></div>
-        <div class="receipt-row muted"><span>{{.T.recPaid}}</span><span>{{.T.currency}} 290.00</span></div>
-        <div class="receipt-row muted"><span class="ok-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{.T.recPoints}}</span></div>
-        <p class="receipt-thanks">{{.T.recThanks}}</p>
-        <svg class="barcode" viewBox="0 0 240 28" fill="currentColor" preserveAspectRatio="none" aria-hidden="true">
-          <rect x="0" y="0" width="4" height="28"/><rect x="8" y="4" width="2" height="24"/><rect x="14" y="0" width="5" height="28"/><rect x="23" y="6" width="2" height="22"/><rect x="29" y="0" width="3" height="28"/><rect x="36" y="2" width="5" height="26"/><rect x="45" y="6" width="2" height="22"/><rect x="51" y="0" width="4" height="28"/><rect x="59" y="3" width="3" height="25"/><rect x="66" y="0" width="2" height="28"/><rect x="72" y="5" width="5" height="23"/><rect x="81" y="0" width="3" height="28"/><rect x="88" y="2" width="4" height="26"/><rect x="96" y="6" width="2" height="22"/><rect x="102" y="0" width="5" height="28"/><rect x="111" y="4" width="2" height="24"/><rect x="117" y="0" width="3" height="28"/><rect x="124" y="2" width="5" height="26"/><rect x="133" y="6" width="2" height="22"/><rect x="139" y="0" width="4" height="28"/><rect x="147" y="3" width="3" height="25"/><rect x="154" y="0" width="2" height="28"/><rect x="160" y="5" width="5" height="23"/><rect x="169" y="0" width="3" height="28"/><rect x="176" y="2" width="4" height="26"/><rect x="184" y="6" width="2" height="22"/><rect x="190" y="0" width="5" height="28"/><rect x="199" y="4" width="2" height="24"/><rect x="205" y="0" width="3" height="28"/><rect x="212" y="2" width="5" height="26"/><rect x="221" y="6" width="2" height="22"/><rect x="227" y="0" width="4" height="28"/><rect x="235" y="3" width="5" height="25"/>
-        </svg>
+      <aside class="stage" aria-label="{{.T.shotsLabel}}">
+        <div class="phone">
+          <span class="phone-speaker" aria-hidden="true"></span>
+          <span class="phone-front" aria-hidden="true">{{.T.brand}}</span>
+          <div class="phone-screen">
+            <img class="shot is-on" data-shot="pos" src="{{.Shots.pos}}" alt="{{.T.tabPos}}" width="440" height="977" loading="eager" decoding="async" fetchpriority="high"/>
+            <img class="shot" data-shot="dashboard" src="{{.Shots.dashboard}}" alt="{{.T.tabDash}}" width="440" height="977" loading="lazy" decoding="async"/>
+            <img class="shot" data-shot="sales" src="{{.Shots.sales}}" alt="{{.T.tabSales}}" width="440" height="977" loading="lazy" decoding="async"/>
+          </div>
+        </div>
+        <div class="stage-tabs" role="tablist" aria-label="{{.T.shotsTabs}}">
+          <button class="tab is-on" type="button" role="tab" aria-selected="true" data-shot="pos">{{.T.tabPos}}</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-shot="dashboard">{{.T.tabDash}}</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-shot="sales">{{.T.tabSales}}</button>
+        </div>
+        <div class="slip" aria-hidden="true">
+          <div class="slip-row"><span>{{.T.recItem1}}</span><span>{{.T.currency}} {{.T.recVal1}}</span></div>
+          <div class="slip-row"><span>{{.T.recItem2}}</span><span>{{.T.currency}} {{.T.recVal2}}</span></div>
+          <div class="slip-row"><span>{{.T.recItem3}}</span><span>{{.T.currency}} {{.T.recVal3}}</span></div>
+          <div class="slip-row muted"><span>{{.T.recSub}}</span><span>{{.T.currency}} 275.00</span></div>
+          <div class="slip-total"><span>{{.T.recTotal}}</span><span class="money">{{.T.currency}} 290.00</span></div>
+          <div class="slip-row muted"><span class="ok-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{.T.recPoints}}</span></div>
+          <svg class="barcode" viewBox="0 0 240 28" fill="currentColor" preserveAspectRatio="none" aria-hidden="true">
+            <rect x="0" y="0" width="4" height="28"/><rect x="8" y="4" width="2" height="24"/><rect x="14" y="0" width="5" height="28"/><rect x="23" y="6" width="2" height="22"/><rect x="29" y="0" width="3" height="28"/><rect x="36" y="2" width="5" height="26"/><rect x="45" y="6" width="2" height="22"/><rect x="51" y="0" width="4" height="28"/><rect x="59" y="3" width="3" height="25"/><rect x="66" y="0" width="2" height="28"/><rect x="72" y="5" width="5" height="23"/><rect x="81" y="0" width="3" height="28"/><rect x="88" y="2" width="4" height="26"/><rect x="96" y="6" width="2" height="22"/><rect x="102" y="0" width="5" height="28"/><rect x="111" y="4" width="2" height="24"/><rect x="117" y="0" width="3" height="28"/><rect x="124" y="2" width="5" height="26"/><rect x="133" y="6" width="2" height="22"/><rect x="139" y="0" width="4" height="28"/><rect x="147" y="3" width="3" height="25"/><rect x="154" y="0" width="2" height="28"/><rect x="160" y="5" width="5" height="23"/><rect x="169" y="0" width="3" height="28"/><rect x="176" y="2" width="4" height="26"/><rect x="184" y="6" width="2" height="22"/><rect x="190" y="0" width="5" height="28"/><rect x="199" y="4" width="2" height="24"/><rect x="205" y="0" width="3" height="28"/><rect x="212" y="2" width="5" height="26"/><rect x="221" y="6" width="2" height="22"/><rect x="227" y="0" width="4" height="28"/><rect x="235" y="3" width="5" height="25"/>
+          </svg>
+        </div>
       </aside>
     </section>
+    <script>
+      (function () {
+        var buttons = document.querySelectorAll('.stage .tab');
+        buttons.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var shot = btn.getAttribute('data-shot');
+            if (!shot) return;
+            buttons.forEach(function (b) {
+              b.classList.toggle('is-on', b === btn);
+              b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+            });
+            document.querySelectorAll('.stage .shot').forEach(function (img) {
+              var on = img.getAttribute('data-shot') === shot;
+              img.classList.toggle('is-on', on);
+              img.setAttribute('aria-hidden', on ? 'false' : 'true');
+            });
+          });
+        });
+      })();
+    </script>
 
     <section id="how" class="section">
       <span class="section-label">{{.T.secHow}}</span>

@@ -267,6 +267,7 @@ class _OverviewTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
     final summary = this.summary;
+    final attention = _attentionCounts(context, tenants, s);
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: MaxWidthBox(
@@ -281,15 +282,37 @@ class _OverviewTab extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  _StatCard(label: s.tenants, value: '${summary.totalTenants}'),
-                  _StatCard(label: s.users, value: '${summary.totalUsers}'),
-                  _StatCard(label: s.totalSales, value: '${summary.totalSales}'),
                   _StatCard(
-                      label: s.revenue,
-                      value: s.formatMoney(
-                          summary.revenueMinor, summary.supportedCurrency)),
+                      label: s.tenants,
+                      value: '${summary.totalTenants}',
+                      icon: Icons.storefront_outlined),
+                  _StatCard(
+                      label: s.users,
+                      value: '${summary.totalUsers}',
+                      icon: Icons.group_outlined),
+                  _StatCard(
+                      label: s.totalSales,
+                      value: '${summary.totalSales}',
+                      icon: Icons.point_of_sale_outlined),
+                  _StatCard(
+                    label: s.revenue,
+                    value: s.formatMoney(
+                        summary.revenueMinor, summary.supportedCurrency),
+                    icon: Icons.paid_outlined,
+                  ),
                 ],
               ),
+            if (attention.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(s.needsAttention,
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: attention,
+              ),
+            ],
             if (summary != null && summary.byBusiness.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text(s.businessType, style: Theme.of(context).textTheme.titleLarge),
@@ -334,6 +357,54 @@ class _OverviewTab extends StatelessWidget {
       counts[plan] = (counts[plan] ?? 0) + 1;
     }
     return counts;
+  }
+
+  /// Chips for tenants needing operator attention: suspended/stopped tenants
+  /// and active trials ending within three days.
+  List<Widget> _attentionCounts(
+      BuildContext context, SaasTenantsPage page, AppStrings s) {
+    final scheme = Theme.of(context).colorScheme;
+    var suspended = 0;
+    var stopped = 0;
+    var trialsSoon = 0;
+    final now = DateTime.now();
+    for (final t in page.tenants) {
+      if (t.status == 'suspended') {
+        suspended++;
+      } else if (t.status == 'disabled') {
+        stopped++;
+      }
+      if (t.plan == 'trial' && t.status != 'disabled' &&
+          t.trialEndsAt.isNotEmpty) {
+        final end = DateTime.tryParse(t.trialEndsAt);
+        if (end != null && end.difference(now).inDays <= 3) {
+          trialsSoon++;
+        }
+      }
+    }
+    return [
+      if (suspended > 0)
+        Chip(
+          avatar: const Icon(Icons.block, size: 16),
+          label: Text('${s.suspendedLabel}: $suspended'),
+          visualDensity: VisualDensity.compact,
+          backgroundColor: scheme.tertiaryContainer,
+        ),
+      if (stopped > 0)
+        Chip(
+          avatar: const Icon(Icons.stop_circle_outlined, size: 16),
+          label: Text('${s.stoppedLabel}: $stopped'),
+          visualDensity: VisualDensity.compact,
+          backgroundColor: scheme.errorContainer,
+        ),
+      if (trialsSoon > 0)
+        Chip(
+          avatar: const Icon(Icons.timer_outlined, size: 16),
+          label: Text('${s.trialExpiringSoon}: $trialsSoon'),
+          visualDensity: VisualDensity.compact,
+          backgroundColor: scheme.primaryContainer,
+        ),
+    ];
   }
 }
 
@@ -597,12 +668,43 @@ class _TenantCard extends StatelessWidget {
     return parts.join(' · ');
   }
 
+  /// Countdown chip for active trials, red when expiring within three days.
+  Widget _expiryChip(AppStrings s, SaasTenant t, ThemeData theme) {
+    final end = DateTime.tryParse(t.trialEndsAt);
+    if (end == null) return const SizedBox.shrink();
+    final days = end.difference(DateTime.now()).inDays;
+    if (days < 0) return const SizedBox.shrink();
+    final soon = days <= 3;
+    return Tooltip(
+      message: s.trialExpiresAt,
+      child: Chip(
+        avatar: Icon(
+          Icons.timer_outlined,
+          size: 14,
+          color: soon ? theme.colorScheme.error : theme.colorScheme.primary,
+        ),
+        label: Text(s.trialDaysLeft(days)),
+        visualDensity: VisualDensity.compact,
+        labelStyle: soon
+            ? TextStyle(color: theme.colorScheme.error)
+            : null,
+        side: soon ? BorderSide(color: theme.colorScheme.error) : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
     final t = tenant;
     final currency = t.currencyCode.isEmpty ? 'EGP' : t.currencyCode;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final iconColor = t.status == 'disabled'
+        ? scheme.error
+        : t.status == 'suspended'
+            ? scheme.tertiary
+            : scheme.primary;
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
@@ -613,7 +715,7 @@ class _TenantCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(Icons.storefront_outlined),
+              Icon(Icons.storefront_outlined, color: iconColor),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -659,6 +761,8 @@ class _TenantCard extends StatelessWidget {
                             visualDensity: VisualDensity.compact,
                             backgroundColor: theme.colorScheme.error,
                           ),
+                        if (t.plan == 'trial' && t.trialEndsAt.isNotEmpty)
+                          _expiryChip(s, t, theme),
                         if (t.subscriptionStatus.isNotEmpty &&
                             t.subscriptionStatus != 'active' &&
                             t.subscriptionStatus != 'trial')
@@ -894,13 +998,19 @@ class _AuditTab extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    this.icon,
+  });
 
   final String label;
   final String value;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       width: 150,
       child: Card(
@@ -909,9 +1019,19 @@ class _StatCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: Theme.of(context).textTheme.bodyMedium),
+              Row(
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: theme.colorScheme.primary),
+                    const SizedBox(width: 6),
+                  ],
+                  Expanded(
+                    child: Text(label, style: theme.textTheme.bodyMedium),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
-              Text(value, style: Theme.of(context).textTheme.headlineSmall),
+              Text(value, style: theme.textTheme.headlineSmall),
             ],
           ),
         ),

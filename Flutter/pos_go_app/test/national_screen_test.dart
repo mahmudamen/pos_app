@@ -252,7 +252,66 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Promote to moderator'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Confirm action'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    await tester.pumpAndSettle();
+
     expect(api.lastRole, 'moderator');
     expect(find.text('Member updated'), findsOneWidget);
+  });
+
+  testWidgets('directory moderation menu promotes without opening detail',
+      (tester) async {
+    final api = _FakeNationalApi();
+    await tester
+        .pumpWidget(_wrap(NationalMembersScreen(
+      session: _manager,
+      apiClient: api,
+      canModerate: true,
+      myUserId: _owner.userId,
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Promote to moderator'), findsOneWidget);
+    expect(find.text('Suspend member'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(PopupMenuItem<String>, 'Promote to moderator'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Confirm action'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    await tester.pumpAndSettle();
+
+    expect(api.lastRole, 'moderator');
+    expect(find.text('Member updated'), findsOneWidget);
+  });
+
+  testWidgets('cancelling the confirm dialog does not moderate',
+      (tester) async {
+    final api = _FakeNationalApi();
+    await tester
+        .pumpWidget(_wrap(NationalMembersScreen(
+      session: _manager,
+      apiClient: api,
+      canModerate: true,
+      myUserId: _owner.userId,
+    )));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(PopupMenuItem<String>, 'Suspend member'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Confirm action'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(api.lastStatus, isNull);
+    expect(find.text('Member updated'), findsNothing);
   });
 }

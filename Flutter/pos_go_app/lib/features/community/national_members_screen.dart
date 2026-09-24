@@ -69,6 +69,63 @@ class _NationalMembersScreenState extends State<NationalMembersScreen> {
     }
   }
 
+  /// Moderator quick-action from the directory: confirm, call the API, toast,
+  /// reload the current page.
+  Future<void> _moderate(
+      BuildContext context, NationalMember member, String action) async {
+    final s = AppStrings.of(context);
+    final message = switch (action) {
+      'promote' => s.promoteModerator,
+      'demote' => s.demoteModerator,
+      'suspend' => s.suspendMember,
+      _ => s.restoreMember,
+    };
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.confirmAction),
+        content: Text('$message? · ${member.displayName}'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true), child: Text(s.ok)),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+    try {
+      await widget.apiClient.updateNationalMember(
+        widget.session,
+        member.userId,
+        status: action == 'suspend'
+            ? 'suspended'
+            : action == 'restore'
+                ? 'active'
+                : null,
+        role: action == 'promote'
+            ? 'moderator'
+            : action == 'demote'
+                ? 'member'
+                : null,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(s.memberUpdated),
+        behavior: SnackBarBehavior.floating,
+      ));
+      _load(page: _currentPage);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(s.actionFailed),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
@@ -156,9 +213,31 @@ class _NationalMembersScreenState extends State<NationalMembersScreen> {
 
     return Column(
       children: [
+        if (total > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text('${s.membersLabel}: $total',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      )),
+            ),
+          ),
         Expanded(
           child: members.isEmpty
-              ? Center(child: Text(s.noMembers))
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.group_outlined,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.outline),
+                      const SizedBox(height: 12),
+                      Text(s.noMembers),
+                    ],
+                  ),
+                )
               : RefreshIndicator(
                   onRefresh: () => _load(page: _currentPage),
                   child: ListView.separated(
@@ -186,12 +265,43 @@ class _NationalMembersScreenState extends State<NationalMembersScreen> {
                           ],
                         ),
                         subtitle: Text(nationalLevelLabel(s, member.level)),
-                        trailing: Text(
-                          nationalStatusLabel(s, member.status),
-                          style: member.isActive
-                              ? null
-                              : TextStyle(
-                                  color: Theme.of(context).colorScheme.error),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              nationalStatusLabel(s, member.status),
+                              style: member.isActive
+                                  ? null
+                                  : TextStyle(
+                                      color:
+                                          Theme.of(context).colorScheme.error),
+                            ),
+                            if (widget.canModerate &&
+                                member.userId != widget.myUserId)
+                              PopupMenuButton<String>(
+                                tooltip: s.confirmAction,
+                                onSelected: (action) =>
+                                    _moderate(context, member, action),
+                                itemBuilder: (_) => [
+                                  if (member.isModerator)
+                                    PopupMenuItem(
+                                        value: 'demote',
+                                        child: Text(s.demoteModerator))
+                                  else
+                                    PopupMenuItem(
+                                        value: 'promote',
+                                        child: Text(s.promoteModerator)),
+                                  if (member.isActive)
+                                    PopupMenuItem(
+                                        value: 'suspend',
+                                        child: Text(s.suspendMember))
+                                  else
+                                    PopupMenuItem(
+                                        value: 'restore',
+                                        child: Text(s.restoreMember)),
+                                ],
+                              ),
+                          ],
                         ),
                         onTap: () => Navigator.of(context)
                             .push(
@@ -297,6 +407,26 @@ class _NationalMemberDetailScreenState
     }
   }
 
+  /// Confirmation gate for moderation actions.
+  Future<bool> _confirm(String message) async {
+    final s = AppStrings.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.confirmAction),
+        content: Text(message),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(s.cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true), child: Text(s.ok)),
+        ],
+      ),
+    );
+    return ok == true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
@@ -386,6 +516,10 @@ class _NationalMemberDetailScreenState
                       onPressed: _busy
                           ? null
                           : () async {
+                              if (!await _confirm(
+                                  '${s.demoteModerator}? · ${member.displayName}')) {
+                                return;
+                              }
                               final ok = await _update(
                                   role: member.role == 'admin'
                                       ? 'member'
@@ -402,6 +536,10 @@ class _NationalMemberDetailScreenState
                       onPressed: _busy
                           ? null
                           : () async {
+                              if (!await _confirm(
+                                  '${s.promoteModerator}? · ${member.displayName}')) {
+                                return;
+                              }
                               final ok = await _update(role: 'moderator');
                               if (ok && context.mounted) {
                                 Navigator.of(context).pop(true);
@@ -415,6 +553,10 @@ class _NationalMemberDetailScreenState
                       onPressed: _busy
                           ? null
                           : () async {
+                              if (!await _confirm(
+                                  '${s.suspendMember}? · ${member.displayName}')) {
+                                return;
+                              }
                               final ok = await _update(status: 'suspended');
                               if (ok && context.mounted) {
                                 Navigator.of(context).pop(true);
@@ -428,6 +570,10 @@ class _NationalMemberDetailScreenState
                       onPressed: _busy
                           ? null
                           : () async {
+                              if (!await _confirm(
+                                  '${s.restoreMember}? · ${member.displayName}')) {
+                                return;
+                              }
                               final ok = await _update(status: 'active');
                               if (ok && context.mounted) {
                                 Navigator.of(context).pop(true);

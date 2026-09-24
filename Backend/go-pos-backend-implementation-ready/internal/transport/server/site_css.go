@@ -149,40 +149,69 @@ a:hover { color: var(--accent-hi); }
   .stats .s { padding-inline-end: 18px; }
 }
 
-/* ---------- ESC/POS style receipt (hero artifact) ---------- */
-.receipt {
-  position: relative; max-width: 360px; justify-self: end; width: 100%;
+/* ---------- product stage: phone mockup + tab switcher + printer slip ---------- */
+.stage { position: relative; display: grid; gap: 14px; justify-items: center; }
+.phone {
+  position: relative; width: 248px; padding: 12px;
+  background: linear-gradient(180deg, #182433, #0d1722);
+  border: 1px solid var(--border-strong); border-radius: 42px;
+  box-shadow: var(--shadow);
+}
+.phone::before {
+  content: ""; position: absolute; inset: 0; border-radius: 42px; pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.phone-speaker {
+  position: absolute; z-index: 2; top: 20px; inset-inline-start: 50%;
+  translate: -50% 0; width: 66px; height: 20px; border-radius: 999px;
+  background: #0a1420; border: 1px solid rgba(148, 187, 214, 0.25);
+}
+.phone-front {
+  position: absolute; z-index: 2; bottom: 22px; inset-inline-start: 50%;
+  translate: -50% 0; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-3); font-weight: 600;
+}
+.phone-screen {
+  position: relative; overflow: hidden; border-radius: 32px;
+  aspect-ratio: 440 / 977; background: #060b12;
+  outline: 1px solid rgba(148, 187, 214, 0.14);
+}
+.shot { width: 100%; height: 100%; object-fit: cover; display: none; }
+.shot.is-on { display: block; animation: rpaper 0.4s ease both; }
+.stage-tabs {
+  display: inline-flex; gap: 4px; padding: 4px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
+}
+.tab {
+  appearance: none; border: 0; cursor: pointer; font: inherit;
+  font-size: 13px; font-weight: 600; color: var(--text-2);
+  padding: 8px 16px; border-radius: 999px; background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tab:hover { color: var(--text); }
+.tab.is-on { background: var(--accent); color: var(--accent-text); }
+.slip {
+  position: absolute; z-index: 3; width: 234px;
+  inset-block-end: -26px; inset-inline-end: 4px;
   background: linear-gradient(180deg, #0f1d2c, #0c1723);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: 26px 24px 20px;
-  font-family: var(--mono); font-size: 12.5px; color: var(--text-2);
-  animation: rpaper 0.5s ease both;
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 16px 16px 12px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--text-2);
+  animation: rpaper 0.5s ease 0.15s both;
 }
-@keyframes rpaper { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (max-width: 880px) { .receipt { justify-self: center; } }
-.receipt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: var(--text); font-weight: 600; letter-spacing: 0.01em; }
-.receipt-date { margin: 3px 0 14px; color: var(--text-3); font-size: 11.5px; }
-.receipt .stamp {
-  position: absolute; inset-inline-end: 22px; top: 66px; rotate: -14deg;
-  color: var(--accent); border: 2px solid var(--accent); border-radius: 6px;
-  padding: 3px 10px; font-weight: 700; letter-spacing: 0.12em; font-size: 11px; opacity: 0.92;
-}
-.receipt-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
-.receipt-row + .receipt-row { margin-top: 7px; }
-.receipt-item-name { overflow-wrap: anywhere; }
-.receipt .muted { color: var(--text-3); }
-.receipt-rule { border: 0; border-top: 1px dashed rgba(148, 187, 214, 0.35); margin: 12px 0; }
-.receipt-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 16px; color: var(--text); font-weight: 700; }
-.receipt-total .money { color: var(--accent); font-variant-numeric: tabular-nums; }
-.receipt .ok-line { display: flex; align-items: center; gap: 7px; }
-.receipt .ok-line svg { width: 14px; height: 14px; color: var(--accent); flex: none; }
-.receipt-thanks { margin: 14px 0 0; text-align: center; color: var(--text-3); font-size: 11.5px; }
+.slip-row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; padding: 1.5px 0; }
+.slip-row span:first-child { overflow-wrap: anywhere; }
+.slip .muted { color: var(--text-3); }
+.slip-total { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0 2px; font-size: 15px; color: var(--text); font-weight: 700; }
+.slip-total .money { color: var(--accent); font-variant-numeric: tabular-nums; }
+.slip .ok-line { display: flex; align-items: center; gap: 6px; }
+.slip .ok-line svg { width: 12px; height: 12px; color: var(--accent); flex: none; }
 .barcode { display: block; width: 100%; height: 26px; margin-top: 13px; opacity: 0.85; }
-.receipt-total { animation: rtotal 1s ease 0.85s both; }
-@keyframes rtotal {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.03); color: var(--accent-hi); }
-  100% { transform: scale(1); }
+.slip .barcode { height: 18px; margin-top: 8px; }
+@keyframes rpaper { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (max-width: 880px) {
+  .stage { padding-bottom: 0; }
+  .slip { position: static; inset-block-end: auto; inset-inline-end: auto; width: 210px; }
 }
 
 /* ---------- sections ---------- */
