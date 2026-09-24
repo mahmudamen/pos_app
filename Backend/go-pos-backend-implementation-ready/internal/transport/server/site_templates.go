@@ -68,6 +68,16 @@ const siteIndexBody = `<main>
           <a class="btn btn-primary" href="/admin/">{{.T.ctaPrimary}}</a>
           <a class="btn btn-ghost" href="/pricing">{{.T.ctaSecondary}}</a>
         </div>
+        <div class="applinks">
+          <a class="applink" href="https://play.google.com/store/apps/details?id=com.xamltech.pos_go" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 1.8l9.6 10.2L3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1zM14.3 12.6L16.8 10l5.6 3.2c.8.5.8 1.7 0 2.2l-5.6 3.2-2.5-2.6a1.7 1.7 0 0 1 0-3.4zM14.3 11.4a1.7 1.7 0 0 0 0-3.4l2.5-2.6L22.4 8a1.6 1.6 0 0 1 0 2.1l.1.1-2.6 2.6-5.6-3.4z"/><path d="M3.6 1.8l9.6 10.2L14.8 10 6.2 1.5z"/></svg>
+            <span><b>{{.T.storePlay}}</b><small>{{.T.storePlaySub}}</small></span>
+          </a>
+          <a class="applink" href="/apk/pos_go.apk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7.5" y="8.5" width="9" height="9" rx="2.2"/><path d="M9.5 8.5V6.8a2.5 2.5 0 0 1 5 0v1.7"/><circle cx="10.6" cy="12.4" r="0.8" fill="currentColor"/><circle cx="13.4" cy="12.4" r="0.8" fill="currentColor"/></svg>
+            <span><b>{{.T.downloadApk}}</b><small>{{.T.apkHint}}</small></span>
+          </a>
+        </div>
         <div class="stats">
           <span class="s"><b>{{.T.stat1}}</b><small>{{.T.stat1L}}</small></span>
           <span class="s"><b>{{.T.stat2}}</b><small>{{.T.stat2L}}</small></span>
@@ -259,6 +269,10 @@ const siteFoot = `<footer class="site-footer">
       <a href="/private">{{.T.navPrivacy}}</a>
       <a href="/admin/">{{.T.navAdmin}}</a>
       <a href="mailto:{{.T.contact}}">{{.T.contact}}</a>
+    </div>
+    <div class="footer-links">
+      <a href="https://play.google.com/store/apps/details?id=com.xamltech.pos_go" target="_blank" rel="noopener">{{.T.storePlay}}</a>
+      <a href="/apk/pos_go.apk">{{.T.downloadApk}}</a>
     </div>
     <div class="footer-text">
       <span>© {{.Year}} XAMLtech · {{.T.footerRights}}</span>

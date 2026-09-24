@@ -120,6 +120,20 @@ a:hover { color: var(--accent-hi); }
 }
 .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
+/* app download links under the hero CTAs */
+.applinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.applink {
+  display: inline-flex; align-items: center; gap: 11px;
+  padding: 9px 14px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); color: var(--text); text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.applink svg { width: 22px; height: 22px; flex: none; color: var(--accent); }
+.applink span { display: grid; gap: 1px; line-height: 1.15; }
+.applink b { font-size: 13.5px; font-weight: 600; }
+.applink small { font-size: 11.5px; color: var(--text-3); }
+.applink:hover { border-color: var(--border-strong); background: var(--surface-2); }
+
 /* ---------- hero stats (metrics as the single accent) ---------- */
 .stats { display: flex; gap: 30px; margin-top: 34px; flex-wrap: wrap; }
 .stats .s { display: grid; gap: 3px; padding-inline-end: 30px; border-inline-end: 1px solid var(--border); }
