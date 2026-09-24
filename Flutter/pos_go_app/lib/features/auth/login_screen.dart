@@ -69,8 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _loadMeta();
   }
 
-  void _nextField(FocusNode node) =>
-      FocusScope.of(context).requestFocus(node);
+  void _nextField(FocusNode node) => FocusScope.of(context).requestFocus(node);
 
   void _submit() {
     if (_deviceNode.hasFocus) {
@@ -144,8 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
       current: widget.themeSetting,
       isArabic: AppStrings.of(context).isArabic,
-      onThemePreferenceChanged:
-          widget.onThemePreferenceChanged ?? (_) {},
+      onThemePreferenceChanged: widget.onThemePreferenceChanged ?? (_) {},
       onThemeAccentChanged: widget.onThemeAccentChanged ?? (_) {},
     );
   }
@@ -208,10 +206,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     return Scaffold(
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Padding(
-            padding: const EdgeInsets.all(28),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(28),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
             child: Form(
               key: _formKey,
               child: Column(
@@ -228,13 +226,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextButton.styleFrom(
                             visualDensity: VisualDensity.compact),
                         icon: const Icon(Icons.language, size: 18),
-                        label: Text(s.isArabic ? 'English / EN' : 'العربية / AR'),
+                        label:
+                            Text(s.isArabic ? 'English / EN' : 'العربية / AR'),
                       ),
                       IconButton(
                         onPressed: _switchFont,
                         tooltip: s.font,
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.font_download_outlined, size: 18),
+                        icon:
+                            const Icon(Icons.font_download_outlined, size: 18),
                       ),
                       IconButton(
                         onPressed: _switchTheme,
@@ -267,7 +267,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       focusNode: _tenantNode,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                          labelText: s.storeId, border: const OutlineInputBorder()),
+                          labelText: s.storeId,
+                          border: const OutlineInputBorder()),
                       validator: _required,
                       onFieldSubmitted: (_) => _nextField(_emailNode)),
                   const SizedBox(height: 12),
@@ -276,7 +277,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       focusNode: _emailNode,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                          labelText: s.email, border: const OutlineInputBorder()),
+                          labelText: s.email,
+                          border: const OutlineInputBorder()),
                       keyboardType: TextInputType.emailAddress,
                       validator: _required,
                       onFieldSubmitted: (_) => _nextField(_passwordNode)),
@@ -286,7 +288,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       focusNode: _passwordNode,
                       textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
-                          labelText: s.password, border: const OutlineInputBorder()),
+                          labelText: s.password,
+                          border: const OutlineInputBorder()),
                       obscureText: true,
                       validator: _required,
                       onFieldSubmitted: (_) => _nextField(_deviceNode)),
@@ -296,7 +299,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       focusNode: _deviceNode,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
-                          labelText: s.terminalName, border: const OutlineInputBorder()),
+                          labelText: s.terminalName,
+                          border: const OutlineInputBorder()),
                       validator: _required,
                       onFieldSubmitted: (_) => _submit()),
                   const SizedBox(height: 12),
@@ -309,19 +313,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                   child: SizedBox(
                                       width: 22,
                                       height: 22,
-                                      child: CircularProgressIndicator(strokeWidth: 2))),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2))),
                             )
                           : DropdownButtonFormField<String>(
                               initialValue: _countryCode,
+                              isExpanded: true,
                               decoration: InputDecoration(
                                   labelText: s.country,
                                   border: const OutlineInputBorder()),
                               items: _countries
                                   .map((c) => DropdownMenuItem(
                                       value: c.code,
-                                      child: Text(s.isArabic
-                                          ? c.nameAr
-                                          : c.nameEn)))
+                                      child: Text(
+                                          s.isArabic ? c.nameAr : c.nameEn)))
                                   .toList(),
                               onChanged: (v) {
                                 if (v == null) return;
@@ -335,6 +340,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? const SizedBox(height: 56)
                           : DropdownButtonFormField<String>(
                               initialValue: _currencyCode,
+                              isExpanded: true,
                               decoration: InputDecoration(
                                   labelText: s.currency,
                                   border: const OutlineInputBorder()),
@@ -386,15 +392,16 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  String? _required(String? value) =>
-      value == null || value.trim().isEmpty ? AppStrings.of(context).required : null;
+  String? _required(String? value) => value == null || value.trim().isEmpty
+      ? AppStrings.of(context).required
+      : null;
 
   Future<void> _openPrivacy() async {
     final ok = await launchUrl(Uri.parse(_privacyPolicyUrl),
         mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(AppStrings.of(context).privacyPolicy)));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.of(context).privacyPolicy)));
     }
   }
 }
