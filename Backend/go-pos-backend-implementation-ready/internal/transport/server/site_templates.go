@@ -64,8 +64,8 @@ const sitePlansGrid = `{{range .Plans}}
 
 const siteIndexBody = `<main>
   <div class="container">
-    <section class="hero">
-      <div>
+<section class="hero">
+      <div class="hero-copy">
         <span class="pill">{{.T.heroPill}}</span>
         <h1 class="hero-title">{{.T.heroTitle}}</h1>
         <p class="hero-lead">{{.T.heroLead}}</p>
@@ -90,52 +90,70 @@ const siteIndexBody = `<main>
           <span class="s"><b>{{.T.stat4}}</b><small>{{.T.stat4L}}</small></span>
         </div>
       </div>
-      <aside class="stage" aria-label="{{.T.shotsLabel}}">
-        <div class="phone">
-          <span class="phone-speaker" aria-hidden="true"></span>
-          <span class="phone-front" aria-hidden="true">{{.T.brand}}</span>
-          <div class="phone-screen">
-            <img class="shot is-on" data-shot="pos" src="{{.Shots.pos}}" alt="{{.T.tabPos}}" width="440" height="977" loading="eager" decoding="async" fetchpriority="high"/>
-            <img class="shot" data-shot="dashboard" src="{{.Shots.dashboard}}" alt="{{.T.tabDash}}" width="440" height="977" loading="lazy" decoding="async"/>
-            <img class="shot" data-shot="sales" src="{{.Shots.sales}}" alt="{{.T.tabSales}}" width="440" height="977" loading="lazy" decoding="async"/>
-          </div>
+    </section>
+
+    <section id="gallery" class="section gallery-section" aria-label="{{.T.secGallery}}">
+      <span class="section-label">{{.T.secGallery}}</span>
+      <h2 class="section-title">{{.T.galTitle}}</h2>
+      <p class="section-sub">{{.T.galLead}}</p>
+      <div class="gallery">
+        <div class="gal-track" tabindex="0">
+          {{range .Gallery}}<figure class="gitem">
+            <img src="{{.Src}}" alt="{{.Caption}}" width="{{.Width}}" height="{{.Height}}" loading="lazy" decoding="async"/>
+            <figcaption>{{.Caption}}</figcaption>
+          </figure>
+          {{end}}
         </div>
-        <div class="stage-tabs" role="tablist" aria-label="{{.T.shotsTabs}}">
-          <button class="tab is-on" type="button" role="tab" aria-selected="true" data-shot="pos">{{.T.tabPos}}</button>
-          <button class="tab" type="button" role="tab" aria-selected="false" data-shot="dashboard">{{.T.tabDash}}</button>
-          <button class="tab" type="button" role="tab" aria-selected="false" data-shot="sales">{{.T.tabSales}}</button>
-        </div>
-        <div class="slip" aria-hidden="true">
-          <div class="slip-row"><span>{{.T.recItem1}}</span><span>{{.T.currency}} {{.T.recVal1}}</span></div>
-          <div class="slip-row"><span>{{.T.recItem2}}</span><span>{{.T.currency}} {{.T.recVal2}}</span></div>
-          <div class="slip-row"><span>{{.T.recItem3}}</span><span>{{.T.currency}} {{.T.recVal3}}</span></div>
-          <div class="slip-row muted"><span>{{.T.recSub}}</span><span>{{.T.currency}} 275.00</span></div>
-          <div class="slip-total"><span>{{.T.recTotal}}</span><span class="money">{{.T.currency}} 290.00</span></div>
-          <div class="slip-row muted"><span class="ok-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>{{.T.recPoints}}</span></div>
-          <svg class="barcode" viewBox="0 0 240 28" fill="currentColor" preserveAspectRatio="none" aria-hidden="true">
-            <rect x="0" y="0" width="4" height="28"/><rect x="8" y="4" width="2" height="24"/><rect x="14" y="0" width="5" height="28"/><rect x="23" y="6" width="2" height="22"/><rect x="29" y="0" width="3" height="28"/><rect x="36" y="2" width="5" height="26"/><rect x="45" y="6" width="2" height="22"/><rect x="51" y="0" width="4" height="28"/><rect x="59" y="3" width="3" height="25"/><rect x="66" y="0" width="2" height="28"/><rect x="72" y="5" width="5" height="23"/><rect x="81" y="0" width="3" height="28"/><rect x="88" y="2" width="4" height="26"/><rect x="96" y="6" width="2" height="22"/><rect x="102" y="0" width="5" height="28"/><rect x="111" y="4" width="2" height="24"/><rect x="117" y="0" width="3" height="28"/><rect x="124" y="2" width="5" height="26"/><rect x="133" y="6" width="2" height="22"/><rect x="139" y="0" width="4" height="28"/><rect x="147" y="3" width="3" height="25"/><rect x="154" y="0" width="2" height="28"/><rect x="160" y="5" width="5" height="23"/><rect x="169" y="0" width="3" height="28"/><rect x="176" y="2" width="4" height="26"/><rect x="184" y="6" width="2" height="22"/><rect x="190" y="0" width="5" height="28"/><rect x="199" y="4" width="2" height="24"/><rect x="205" y="0" width="3" height="28"/><rect x="212" y="2" width="5" height="26"/><rect x="221" y="6" width="2" height="22"/><rect x="227" y="0" width="4" height="28"/><rect x="235" y="3" width="5" height="25"/>
-          </svg>
-        </div>
-      </aside>
+        <button class="gal-btn prev" type="button" aria-label="{{.T.galPrev}}">‹</button>
+        <button class="gal-btn next" type="button" aria-label="{{.T.galNext}}">›</button>
+      </div>
+      <div class="gal-dots" role="tablist" aria-label="{{.T.secGallery}}">
+        {{range .Gallery}}<button class="dot" type="button" role="tab" aria-label="{{.Caption}}"></button>{{end}}
+      </div>
     </section>
     <script>
       (function () {
-        var buttons = document.querySelectorAll('.stage .tab');
-        buttons.forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var shot = btn.getAttribute('data-shot');
-            if (!shot) return;
-            buttons.forEach(function (b) {
-              b.classList.toggle('is-on', b === btn);
-              b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
-            });
-            document.querySelectorAll('.stage .shot').forEach(function (img) {
-              var on = img.getAttribute('data-shot') === shot;
-              img.classList.toggle('is-on', on);
-              img.setAttribute('aria-hidden', on ? 'false' : 'true');
-            });
+        var track = document.querySelector('.gal-track');
+        if (!track) return;
+        var items = Array.prototype.slice.call(track.querySelectorAll('.gitem'));
+        var dots = Array.prototype.slice.call(document.querySelectorAll('.gal-dots .dot'));
+        function stepPx() {
+          var gap = parseFloat(getComputedStyle(track).columnGap) || 18;
+          return items.length ? items[0].getBoundingClientRect().width + gap : 320;
+        }
+        function dir() { return getComputedStyle(track).direction === 'rtl' ? -1 : 1; }
+        document.querySelectorAll('.gal-btn').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var k = b.classList.contains('next') ? 1 : -1;
+            track.scrollBy({ left: dir() * k * stepPx(), behavior: 'smooth' });
           });
         });
+        function mark() {
+          var r = track.getBoundingClientRect();
+          var mid = r.left + r.width / 2, best = 0, bd = 1e9;
+          items.forEach(function (it, i) {
+            var ir = it.getBoundingClientRect();
+            var d = Math.abs(ir.left + ir.width / 2 - mid);
+            if (d < bd) { bd = d; best = i; }
+          });
+          dots.forEach(function (d, i) {
+            d.classList.toggle('is-on', i === best);
+            d.setAttribute('aria-selected', i === best ? 'true' : 'false');
+          });
+        }
+        track.addEventListener('scroll', function () {
+          clearTimeout(track._t);
+          track._t = setTimeout(mark, 60);
+        }, { passive: true });
+        dots.forEach(function (d, i) {
+          d.addEventListener('click', function () {
+            if (!items[i]) return;
+            var ir = items[i].getBoundingClientRect();
+            var r = track.getBoundingClientRect();
+            track.scrollBy({ left: ir.left + ir.width / 2 - (r.left + r.width / 2), behavior: 'smooth' });
+          });
+        });
+        mark();
       })();
     </script>
 

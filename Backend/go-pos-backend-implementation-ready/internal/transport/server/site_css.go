@@ -91,14 +91,16 @@ a:hover { color: var(--accent-hi); }
 .btn-sm { padding: 10px 16px; font-size: 14px; border-radius: 10px; }
 .btn-block { width: 100%; }
 
-/* ---------- hero ---------- */
+/* ---------- hero (centered, the gallery carries the visuals) ---------- */
 .hero {
-  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 56px; align-items: center; padding: 64px 0 36px;
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  place-items: center; padding: 76px 0 26px;
 }
 @media (max-width: 880px) {
-  .hero { grid-template-columns: 1fr; gap: 44px; padding-top: 34px; }
+  .hero { padding-top: 40px; }
 }
+.hero-copy { text-align: center; max-width: 820px; }
+.hero-copy .hero-actions, .hero-copy .applinks, .hero-copy .stats { justify-content: center; }
 .pill {
   display: inline-flex; align-items: center; gap: 9px;
   font-size: 12.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
@@ -116,7 +118,7 @@ a:hover { color: var(--accent-hi); }
 }
 .hero-lead {
   color: var(--text-2); font-size: clamp(1rem, 1.2vw + 0.4rem, 1.125rem);
-  max-width: 56ch; margin: 0 0 30px; text-wrap: pretty;
+  max-width: 56ch; margin: 0 auto 30px; text-wrap: pretty;
 }
 .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
@@ -149,69 +151,51 @@ a:hover { color: var(--accent-hi); }
   .stats .s { padding-inline-end: 18px; }
 }
 
-/* ---------- product stage: phone mockup + tab switcher + printer slip ---------- */
-.stage { position: relative; display: grid; gap: 14px; justify-items: center; }
-.phone {
-  position: relative; width: 248px; padding: 12px;
-  background: linear-gradient(180deg, #182433, #0d1722);
-  border: 1px solid var(--border-strong); border-radius: 42px;
-  box-shadow: var(--shadow);
+/* ---------- screenshot gallery: real app screens in a scroll-snap carousel ---------- */
+.gallery-section { padding-top: 4px; }
+.gallery { position: relative; }
+.gal-track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(240px, 300px);
+  gap: 20px; overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; padding: 8px 2px 20px;
+  scrollbar-width: none;
 }
-.phone::before {
-  content: ""; position: absolute; inset: 0; border-radius: 42px; pointer-events: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+.gal-track::-webkit-scrollbar { display: none; }
+.gitem {
+  scroll-snap-align: center; margin: 0;
+  border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+  background: var(--surface-2); box-shadow: var(--shadow);
 }
-.phone-speaker {
-  position: absolute; z-index: 2; top: 20px; inset-inline-start: 50%;
-  translate: -50% 0; width: 66px; height: 20px; border-radius: 999px;
-  background: #0a1420; border: 1px solid rgba(148, 187, 214, 0.25);
+.gitem img {
+  display: block; width: 100%; height: auto;
+  aspect-ratio: 600 / 1334; object-fit: cover;
 }
-.phone-front {
-  position: absolute; z-index: 2; bottom: 22px; inset-inline-start: 50%;
-  translate: -50% 0; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--text-3); font-weight: 600;
+.gitem figcaption {
+  padding: 12px 16px 14px; font-size: 13.5px; font-weight: 600; color: var(--text-2);
+  border-top: 1px solid var(--border); text-align: center;
 }
-.phone-screen {
-  position: relative; overflow: hidden; border-radius: 32px;
-  aspect-ratio: 440 / 977; background: #060b12;
-  outline: 1px solid rgba(148, 187, 214, 0.14);
+.gal-btn {
+  position: absolute; z-index: 2; top: 45%; translate: 0 -50%;
+  width: 46px; height: 46px; border-radius: 50%;
+  appearance: none; cursor: pointer; font-size: 22px; line-height: 1;
+  color: var(--text); background: rgba(13, 24, 38, 0.92);
+  border: 1px solid var(--border-strong);
+  display: grid; place-items: center; padding: 0;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
-.shot { width: 100%; height: 100%; object-fit: cover; display: none; }
-.shot.is-on { display: block; animation: rpaper 0.4s ease both; }
-.stage-tabs {
-  display: inline-flex; gap: 4px; padding: 4px;
-  border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
+.gal-btn:hover { border-color: var(--accent); color: var(--accent); }
+.gal-btn.prev { inset-inline-start: 4px; }
+.gal-btn.next { inset-inline-end: 4px; }
+.gal-dots { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.gal-dots .dot {
+  width: 9px; height: 9px; padding: 0; border-radius: 50%;
+  appearance: none; cursor: pointer; border: 1px solid transparent;
+  background: var(--border-strong); transition: background 0.15s ease, transform 0.15s ease;
 }
-.tab {
-  appearance: none; border: 0; cursor: pointer; font: inherit;
-  font-size: 13px; font-weight: 600; color: var(--text-2);
-  padding: 8px 16px; border-radius: 999px; background: transparent;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.tab:hover { color: var(--text); }
-.tab.is-on { background: var(--accent); color: var(--accent-text); }
-.slip {
-  position: absolute; z-index: 3; width: 234px;
-  inset-block-end: -26px; inset-inline-end: 4px;
-  background: linear-gradient(180deg, #0f1d2c, #0c1723);
-  border: 1px solid var(--border); border-radius: 14px;
-  box-shadow: var(--shadow); padding: 16px 16px 12px;
-  font-family: var(--mono); font-size: 11.5px; color: var(--text-2);
-  animation: rpaper 0.5s ease 0.15s both;
-}
-.slip-row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; padding: 1.5px 0; }
-.slip-row span:first-child { overflow-wrap: anywhere; }
-.slip .muted { color: var(--text-3); }
-.slip-total { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0 2px; font-size: 15px; color: var(--text); font-weight: 700; }
-.slip-total .money { color: var(--accent); font-variant-numeric: tabular-nums; }
-.slip .ok-line { display: flex; align-items: center; gap: 6px; }
-.slip .ok-line svg { width: 12px; height: 12px; color: var(--accent); flex: none; }
-.barcode { display: block; width: 100%; height: 26px; margin-top: 13px; opacity: 0.85; }
-.slip .barcode { height: 18px; margin-top: 8px; }
-@keyframes rpaper { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (max-width: 880px) {
-  .stage { padding-bottom: 0; }
-  .slip { position: static; inset-block-end: auto; inset-inline-end: auto; width: 210px; }
+.gal-dots .dot.is-on { background: var(--accent); transform: scale(1.3); }
+@media (max-width: 640px) {
+  .gal-track { grid-auto-columns: 70%; gap: 14px; }
+  .gal-btn { display: none; }
 }
 
 /* ---------- sections ---------- */

@@ -201,6 +201,48 @@ func TestPricingServesFallbackPlansWithoutDatabase(t *testing.T) {
 	}
 }
 
+func TestLandingGalleryEmbedsRealScreenshots(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+
+	// The gallery card row, dots and arrows are present...
+	for _, want := range []string{`class="gal-track"`, `class="gal-dots"`, `class="gal-btn prev"`, `class="gal-btn next"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("index body missing %q", want)
+		}
+	}
+	// ...every embedded screenshot shows a real PNG data URI with a caption...
+	for i, cap := range []string{"Checkout", "Cart &amp; payment", "Today's dashboard", "Sales history", "Customers &amp; loyalty", "Cash sessions", "Community hub", "Egypt community"} {
+		if !strings.Contains(body, `data:image/png;base64,`) {
+			t.Fatalf("no embedded screenshot data URI found")
+		}
+		// strip the first (already-counted) data URI so each image counts once
+		idx := strings.Index(body, `data:image/png;base64,`)
+		if idx < 0 {
+			t.Fatalf("embed %d missing after %d images", i, i)
+		}
+		body = body[idx+len(`data:image/png;base64,`):]
+		if i == 0 && !strings.Contains(body, cap) {
+			t.Errorf("gallery caption %q not rendered", cap)
+		}
+	}
+	// The old phone-mockup stage is gone.
+	for _, gone := range []string{`class="phone"`, `class="stage-tabs"`, `class="slip"`} {
+		if strings.Contains(body, gone) {
+			t.Errorf("index still contains removed %q markup", gone)
+		}
+	}
+}
+
 func TestSitePagesServeArabicRTL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()

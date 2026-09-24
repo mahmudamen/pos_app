@@ -40,9 +40,18 @@ type siteTemplateData struct {
 	Plans        []planCard
 	Compare      []compareRow
 	ComparePlans []string
-	// Shots holds the inline data-URI PNGs for the landing hero phone mockup.
-	// Typed template.URL so html/template renders the data: scheme unchecked.
-	Shots map[string]template.URL
+	// Gallery holds the inline data-URI screenshots for the landing gallery,
+	// captioned per language. Src is typed template.URL so html/template
+	// renders the data: scheme unchecked.
+	Gallery []siteGalleryItem
+}
+
+// siteGalleryItem is one captioned screenshot in the landing gallery.
+type siteGalleryItem struct {
+	Src     template.URL
+	Caption string
+	Width   int
+	Height  int
 }
 
 // planCard is a display-ready subscription plan, localized for the pricing page.
@@ -93,10 +102,14 @@ func renderSite(c *gin.Context, page string, plans []planCard) {
 		Year: time.Now().Year(), T: siteStrings[lang], Plans: plans,
 	}
 	if page == "index" {
-		data.Shots = map[string]template.URL{
-			"pos":       template.URL(assetPNGDataURI(shotPosPng)),
-			"dashboard": template.URL(assetPNGDataURI(shotDashPng)),
-			"sales":     template.URL(assetPNGDataURI(shotSalesPng)),
+		stringsT := siteStrings[lang]
+		for _, a := range galleryAssets {
+			data.Gallery = append(data.Gallery, siteGalleryItem{
+				Src:     template.URL(assetPNGDataURI(a.Png)),
+				Caption: stringsT[a.Key],
+				Width:   a.Width,
+				Height:  a.Height,
+			})
 		}
 	}
 	if page == "pricing" {
