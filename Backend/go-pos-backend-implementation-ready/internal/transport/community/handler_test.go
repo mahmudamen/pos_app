@@ -69,6 +69,14 @@ func TestRoutesRegistered(t *testing.T) {
 		"POST /v1/community/jobs/:id/apply",
 		"GET /v1/community/jobs/:id/applications",
 		"PATCH /v1/community/applications/:id",
+		"GET /v1/community/me",
+		"POST /v1/community/join",
+		"GET /v1/community/invitations",
+		"POST /v1/community/invitations",
+		"DELETE /v1/community/invitations/:id",
+		"GET /v1/community/members",
+		"GET /v1/community/members/:id",
+		"PATCH /v1/community/members/:id",
 	} {
 		if !registered[want] {
 			t.Fatalf("route %s not registered", want)

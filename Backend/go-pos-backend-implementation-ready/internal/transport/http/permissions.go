@@ -40,6 +40,13 @@ func init() {
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "jobs", "read")
 	grant([]string{"owner", "manager", "saas_admin"}, "jobs", "write")
 	grant([]string{"owner", "manager", "saas_admin"}, "jobs", "manage")
+	// National community (docs/24): any authenticated role may attempt to join /
+	// invite; real gating is the community_members row checked in the handler
+	// (e.g. guests can be invited but may not join unless offered a code).
+	grant([]string{"owner", "manager", "cashier", "guest", "saas_admin"}, "community", "invite")
+	// community.moderate is NOT in the static matrix: moderation rides on the
+	// national membership role (moderator/admin) or the saas_admin org role,
+	// both checked dynamically in the national handlers.
 }
 
 // HasPermission reports whether role may perform action on resource.

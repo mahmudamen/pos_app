@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
@@ -14,16 +16,22 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Handler serves the tenant-scoped community workstream (slice 1: staff
-// profiles + companies; slices 2-4 add jobs, badges/endorsements, forum in
-// the same package). See docs/23_COMMUNITY_JOBS_PROFILES.md.
+// Handler serves the community workstream: the tenant-scoped staff hub
+// (profiles + companies; jobs; slices add badges/endorsements + forum per
+// docs/23_COMMUNITY_JOBS_PROFILES.md) and the Egypt national community
+// (invitation-gated membership — docs/24_NATIONAL_COMMUNITY.md).
 type Handler struct {
-	pool   *pgxpool.Pool
-	tokens security.TokenManager
+	pool        *pgxpool.Pool
+	tokens      security.TokenManager
+	joinLimiter ratelimit.Limiter // per-IP guard on national join (invite-code brute force)
 }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
-	return &Handler{pool: pool, tokens: tokens}
+	return &Handler{
+		pool:        pool,
+		tokens:      tokens,
+		joinLimiter: ratelimit.NewMemory(20, time.Hour),
+	}
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
@@ -50,6 +58,18 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	group.POST("/jobs/:id/apply", h.applyToJob)
 	group.GET("/jobs/:id/applications", h.listApplications)
 	group.PATCH("/applications/:id", h.updateApplicationStatus)
+
+	// Profiles are a tenant-scoped hub; jobs the tenant board. All national
+	// routes are member-gated with requireInviter/requireMember inside the
+	// handlers themselves (national tables are cross-tenant, NOT tenant-RLS'd).
+	group.GET("/me", h.nationalMe)
+	group.POST("/join", h.joinCommunity)
+	group.GET("/invitations", h.listInvitations)
+	group.POST("/invitations", h.createInvitation)
+	group.DELETE("/invitations/:id", h.revokeInvitation)
+	group.GET("/members", h.listMembers)
+	group.GET("/members/:id", h.getMember)
+	group.PATCH("/members/:id", h.updateMember)
 }
 
 // StaffProfile is the public wire shape of one staff member's profile.

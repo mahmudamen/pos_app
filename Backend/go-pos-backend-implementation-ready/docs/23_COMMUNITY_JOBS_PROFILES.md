@@ -9,6 +9,11 @@ but is deliberately **tenant-scoped** (per-store staff), not cross-tenant,
 so it reuses the existing FORCE-RLS multi-tenancy, RBAC, and sync machinery.
 Each slice ships backend + Flutter + tests together, one commit per slice.
 
+> **National layer:** `docs/24_NATIONAL_COMMUNITY.md` extends this to a
+> cross-store, Egypt-only network (invitation-gated membership, blog, shared job
+> board, expertise score, strikes, platform badges). The forum (slice 4, migration
+> `047`) becomes the national discussion space there.
+
 | Slice | Backend | Flutter | Status |
 |-------|---------|---------|--------|
 | 1. Profiles + companies | migration `044`, module `internal/transport/community` (profiles.go, companies.go), RBAC `community.*` | `lib/core/community.dart`, `lib/features/community/`, hub entry from POS app bar | planned |

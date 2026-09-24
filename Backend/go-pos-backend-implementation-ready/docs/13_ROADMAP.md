@@ -64,6 +64,23 @@ Status legend:
 - [ ] F6 Receipt QR + printing: extend ESC/POS + JSON receipts with ETA QR (mandatory once `eta_enabled`).
 - [ ] F7 Go-live + ops: 2-week ETA preprod soak, prod cut-over, expired/rejected batch triage, VAT-with-old-ETA-verified-numbers acceptance, runbook additions to `docs/11_OPERATIONS.md`.
 
+## Phase G — Egypt national community (POS COPILOT network)
+
+> Detailed plan: `docs/24_NATIONAL_COMMUNITY.md`. The store-scoped staff community
+> (docs/23, slices 1–2 shipped; tenant badges + forum next) gains a **national,
+> Egypt-only** layer: invitation-gated membership, a staff blog, a shared national job
+> board, an expertise score + leaderboard, a strikes moderation system, and platform
+> badges. National tables are handler-gated, **not** tenant-RLS'd — a deliberate,
+> documented exception (docs/24 decision log; FORCE RLS stays on all tenant tables).
+
+- [x] G0 Spec + roadmap (docs/24_NATIONAL_COMMUNITY.md).
+- [x] G1 Membership + invitations (migration `048`): `community_members` (score/level/status) + `community_invitations` (hashed single-use codes) — `me`/`join`/`members`/`invitations`, `community.invite` / `community.moderate`.**Backend shipped** (handler-gated, EG gate via `tenants.country_code`, saas_admin bootstrap-inviter, per-IP join rate limit, directory hides suspended, moderation on member role or saas_admin; openapi regen 126 paths). Flutter pending (National hub tab).
+- [ ] G2 Blog / knowledge hub (migration `049`): `blog_posts` + categories, draft/published, featured, views; publishing earns expertise points.
+- [ ] G3 National job board (migration `050`): `hub_jobs` (direct post or **promote a tenant `job_offers`**), Egypt governorates, EGP salaries, apply with resume snapshot.
+- [ ] G4 Expertise score + leaderboard (migration `051`): `expertise_events` ledger, deterministic levels bronze→platinum, `?period=` leaderboard.
+- [ ] G5 Strikes / moderation (migration `052`): `community_strikes` (weight 1–3, 90-day expiry), warning/mute/suspend thresholds, lift/revoke.
+- [ ] G6 National badges (migration `053`): `national_badge_definitions` + `national_user_badges`, auto-award rules (first steps, first post, popular author, people person, hired, respected, clean record).
+
 ## Definition of done
 
 Same as docs/04_TASKS.md: gofmt-clean, vet-clean, tested, tenant-isolated, typed errors,

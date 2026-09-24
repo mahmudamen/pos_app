@@ -185,6 +185,19 @@ BEGIN
 END
 $$;
 
+-- National community (migration 048): membership + invitation codes. These
+-- tables are deliberately NOT tenant-RLS'd (cross-tenant, Egypt-wide — see
+-- docs/24_NATIONAL_COMMUNITY.md); the app role needs full DML and every corner
+-- case is gated in the handlers by membership + RBAC.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE community_members TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE community_invitations TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)
