@@ -3790,7 +3790,7 @@ class _NationalMeClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'GET');
-    expect(request.url.path, '/v1/community/national/me');
+    expect(request.url.path, '/v1/community/me');
     expect(request.headers['Authorization'], 'Bearer access-token');
     return http.StreamedResponse(
       Stream.value(_nationalMemberJson.codeUnits),
@@ -3804,7 +3804,7 @@ class _NationalMeNoneClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'GET');
-    expect(request.url.path, '/v1/community/national/me');
+    expect(request.url.path, '/v1/community/me');
     return http.StreamedResponse(
       Stream.value(_notMemberJson.codeUnits),
       404,
@@ -3817,7 +3817,7 @@ class _NationalJoinClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'POST');
-    expect(request.url.path, '/v1/community/national/join');
+    expect(request.url.path, '/v1/community/join');
     expect(request.headers['Authorization'], 'Bearer access-token');
     final body = jsonDecode(await request.finalize().bytesToString())
         as Map<String, dynamic>;
@@ -3841,7 +3841,7 @@ class _NationalJoinExpiredClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'POST');
-    expect(request.url.path, '/v1/community/national/join');
+    expect(request.url.path, '/v1/community/join');
     const response =
         '{"error":{"code":"expired","message":"invitation expired"}}';
     return http.StreamedResponse(
@@ -3856,7 +3856,7 @@ class _CreateInvitationClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'POST');
-    expect(request.url.path, '/v1/community/national/invitations');
+    expect(request.url.path, '/v1/community/invitations');
     final body = jsonDecode(await request.finalize().bytesToString())
         as Map<String, dynamic>;
     expect(body['email'], 'peer@example.com');
@@ -3880,7 +3880,7 @@ class _InvitationsListClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'GET');
-    expect(request.url.path, '/v1/community/national/invitations');
+    expect(request.url.path, '/v1/community/invitations');
     const response =
         '{"data":[{"id":"inv-1","code":"","inviter_id":"user-1",'
         '"email":"peer@example.com","note":"co-founder","max_uses":3,'
@@ -3902,7 +3902,7 @@ class _RevokeInvitationClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'DELETE');
-    expect(request.url.path, '/v1/community/national/invitations/inv-1');
+    expect(request.url.path, '/v1/community/invitations/inv-1');
     expect(request.headers['Authorization'], 'Bearer access-token');
     const response = '{"meta":{"request_id":"t"}}';
     return http.StreamedResponse(
@@ -3917,7 +3917,7 @@ class _MembersListClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'GET');
-    expect(request.url.path, '/v1/community/national/members');
+    expect(request.url.path, '/v1/community/members');
     expect(request.url.queryParameters['level'], 'gold');
     const response =
         '{"data":[{"user_id":"user-1","display_name":"Restaurant Admin",'
@@ -3941,7 +3941,7 @@ class _MemberDetailClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'GET');
-    expect(request.url.path, '/v1/community/national/members/user-2');
+    expect(request.url.path, '/v1/community/members/user-2');
     const response =
         '{"data":{"user_id":"user-2","display_name":"Sara Chef",'
         '"origin_tenant_id":"tenant-2","joined_via":"invite",'
@@ -3960,7 +3960,7 @@ class _UpdateMemberClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     expect(request.method, 'PATCH');
-    expect(request.url.path, '/v1/community/national/members/user-2');
+    expect(request.url.path, '/v1/community/members/user-2');
     final body = jsonDecode(await request.finalize().bytesToString())
         as Map<String, dynamic>;
     expect(body['role'], 'moderator');

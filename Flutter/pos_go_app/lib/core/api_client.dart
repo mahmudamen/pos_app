@@ -1547,7 +1547,7 @@ class ApiClient {
     final respond = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/community/national/me'),
+        Uri.parse('$baseUrl/v1/community/me'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1573,7 +1573,7 @@ class ApiClient {
     final respond = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/community/national/join'),
+        Uri.parse('$baseUrl/v1/community/join'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1594,7 +1594,7 @@ class ApiClient {
     final respond = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/community/national/invitations'),
+        Uri.parse('$baseUrl/v1/community/invitations'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1619,7 +1619,7 @@ class ApiClient {
     final respond = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/community/national/invitations'),
+        Uri.parse('$baseUrl/v1/community/invitations'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1647,7 +1647,7 @@ class ApiClient {
       session,
       (accessToken) => _client.delete(
         Uri.parse(
-            '$baseUrl/v1/community/national/invitations/${Uri.encodeComponent(invitationId)}'),
+            '$baseUrl/v1/community/invitations/${Uri.encodeComponent(invitationId)}'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1671,7 +1671,7 @@ class ApiClient {
       session,
       (accessToken) => _client.get(
         Uri.parse(
-          '$baseUrl/v1/community/national/members'
+          '$baseUrl/v1/community/members'
           '?page=$page&limit=$limit'
           '${query.isEmpty ? '' : '&q=${Uri.encodeQueryComponent(query)}'}'
           '${level == null || level.isEmpty ? '' : '&level=$level'}'
@@ -1705,7 +1705,7 @@ class ApiClient {
       session,
       (accessToken) => _client.get(
         Uri.parse(
-            '$baseUrl/v1/community/national/members/${Uri.encodeComponent(userId)}'),
+            '$baseUrl/v1/community/members/${Uri.encodeComponent(userId)}'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1729,7 +1729,7 @@ class ApiClient {
       session,
       (accessToken) => _client.patch(
         Uri.parse(
-            '$baseUrl/v1/community/national/members/${Uri.encodeComponent(userId)}'),
+            '$baseUrl/v1/community/members/${Uri.encodeComponent(userId)}'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
