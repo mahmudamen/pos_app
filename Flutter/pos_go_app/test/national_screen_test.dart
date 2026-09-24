@@ -67,6 +67,7 @@ class _FakeNationalApi extends ApiClient {
   _FakeNationalApi();
 
   NationalMember? me = _owner;
+  bool empty = false;
   int joinCalls = 0;
   int createInvitationCalls = 0;
   int revokeCalls = 0;
@@ -115,6 +116,14 @@ class _FakeNationalApi extends ApiClient {
     int page = 1,
     int limit = 50,
   }) async {
+    if (empty) {
+      return NationalMembersPage(
+        members: const [],
+        total: 0,
+        page: page,
+        limit: limit,
+      );
+    }
     return NationalMembersPage(
       members: const [_owner, _chef],
       total: 2,
@@ -313,5 +322,20 @@ void main() {
 
     expect(api.lastStatus, isNull);
     expect(find.text('Member updated'), findsNothing);
+  });
+
+  testWidgets('members directory shows the empty state', (tester) async {
+    final api = _FakeNationalApi()..empty = true;
+    await tester.pumpWidget(_wrap(NationalMembersScreen(
+      session: _manager,
+      apiClient: api,
+      canModerate: true,
+      myUserId: _owner.userId,
+    )));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.group_outlined), findsOneWidget);
+    expect(find.text('No members yet'), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 }
