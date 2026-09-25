@@ -31,7 +31,7 @@ class ApiClient {
   final Future<void> Function(Session session)? onSessionRefreshed;
   final String baseUrl = const String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:8080',
+    defaultValue: 'https://api.xamltech.com',
   );
 
   /// Newest session known to be valid. Its refresh token is the only one that

@@ -737,6 +737,15 @@ class AppStrings {
       isArabic ? 'تم إلغاء الدعوة' : 'Invitation revoked';
   String get searchMembers => isArabic ? 'ابحث عن عضو...' : 'Search members...';
   String get noMembers => isArabic ? 'لا يوجد أعضاء بعد' : 'No members yet';
+  String get noMembersFound => isArabic
+      ? 'لا يوجد أعضاء مطابقون لبحثك'
+      : 'No members match your search';
+  String get noMembersHint => isArabic
+      ? 'ادعُ زملاءك من المهنة للانضمام إلى المجتمع'
+      : 'Invite peers you work with to join the community';
+  String get noResultsHint => isArabic
+      ? 'جرّب اسماً أو مستوىً آخر'
+      : 'Try a different name or level';
   String get joinedViaLabel => isArabic ? 'انضم عبر' : 'Joined via';
   String get invitedByLabel => isArabic ? 'دعاه' : 'Invited by';
   String get openedTo => isArabic ? 'دعوة إلى' : 'Invitation for';
@@ -761,6 +770,27 @@ class AppStrings {
       isArabic ? 'إزالة الإشراف' : 'Remove moderation';
   String get suspendMember => isArabic ? 'إيقاف العضو' : 'Suspend member';
   String get restoreMember => isArabic ? 'استعادة العضو' : 'Restore member';
+  String get moderation => isArabic ? 'الإشراف' : 'Moderation';
+  String get confirmPromote =>
+      isArabic ? 'الترقية إلى مشرف؟' : 'Promote to moderator?';
+  String get confirmPromoteBody => isArabic
+      ? 'سيتمكن العضو من إدارة أعضاء المجتمع الوطني.'
+      : 'This member will be able to moderate national community members.';
+  String get confirmDemote =>
+      isArabic ? 'إزالة الإشراف؟' : 'Remove moderation?';
+  String get confirmDemoteBody => isArabic
+      ? 'سيصبح العضو عضواً عادياً دون صلاحيات إشراف.'
+      : 'The member becomes a regular member without moderation powers.';
+  String get confirmSuspend =>
+      isArabic ? 'إيقاف هذا العضو؟' : 'Suspend this member?';
+  String get confirmSuspendBody => isArabic
+      ? 'لن يظهر العضو في الدليل ولن يحتفظ بصلاحيات الإشراف.'
+      : 'The member will be hidden from the directory and lose moderation powers.';
+  String get confirmRestore =>
+      isArabic ? 'استعادة هذا العضو؟' : 'Restore this member?';
+  String get confirmRestoreBody => isArabic
+      ? 'سيظهر العضو مرة أخرى في دليل الأعضاء.'
+      : 'The member will reappear in the member directory.';
   String get joinedAs =>
       isArabic ? 'أنت عضو منذ' : 'You have been a member since';
   String get allItems => isArabic ? 'الكل' : 'All';

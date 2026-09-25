@@ -116,7 +116,8 @@ class _FakeNationalApi extends ApiClient {
     int page = 1,
     int limit = 50,
   }) async {
-    if (empty) {
+    final filtering = query.isNotEmpty || (level != null && level.isNotEmpty);
+    if (empty || filtering) {
       return NationalMembersPage(
         members: const [],
         total: 0,
@@ -261,8 +262,11 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Promote to moderator'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Confirm action'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    expect(find.text('Promote to moderator?'), findsOneWidget);
+    await tester.tap(find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.widgetWithText(FilledButton, 'Promote to moderator'),
+    ));
     await tester.pumpAndSettle();
 
     expect(api.lastRole, 'moderator');
@@ -288,11 +292,15 @@ void main() {
     expect(find.text('Promote to moderator'), findsOneWidget);
     expect(find.text('Suspend member'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(PopupMenuItem<String>, 'Promote to moderator'));
+    await tester.tap(
+        find.widgetWithText(PopupMenuItem<String>, 'Promote to moderator'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Confirm action'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    expect(find.text('Promote to moderator?'), findsOneWidget);
+    await tester.tap(find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.widgetWithText(FilledButton, 'Promote to moderator'),
+    ));
     await tester.pumpAndSettle();
 
     expect(api.lastRole, 'moderator');
@@ -316,7 +324,13 @@ void main() {
     await tester.tap(find.widgetWithText(PopupMenuItem<String>, 'Suspend member'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Confirm action'), findsOneWidget);
+    expect(find.text('Suspend this member?'), findsOneWidget);
+    expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(FilledButton, 'Suspend member'),
+        ),
+        findsOneWidget);
     await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
     await tester.pumpAndSettle();
 
@@ -336,6 +350,28 @@ void main() {
 
     expect(find.byIcon(Icons.group_outlined), findsOneWidget);
     expect(find.text('No members yet'), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
+  });
+
+  testWidgets('filtered directory search shows the no-results empty state',
+      (tester) async {
+    final api = _FakeNationalApi();
+    await tester.pumpWidget(_wrap(NationalMembersScreen(
+      session: _manager,
+      apiClient: api,
+      canModerate: true,
+      myUserId: _owner.userId,
+    )));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.search_off), findsOneWidget);
+    expect(find.text('No members match your search'), findsOneWidget);
+    expect(find.text('No members yet'), findsNothing);
+    expect(find.byIcon(Icons.group_outlined), findsNothing);
     expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 }

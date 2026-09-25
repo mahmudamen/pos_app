@@ -40,6 +40,7 @@ const siteHead = `<!doctype html>
     </a>
     <div class="nav-links">
       <a href="/#features">{{.T.navFeatures}}</a>
+      <a href="/#copilot">{{.T.navCopilot}}</a>
       <a href="/#verticals">{{.T.navVerticals}}</a>
       <a href="/pricing">{{.T.navPricing}}</a>
       <a href="/private">{{.T.navPrivacy}}</a>
@@ -194,9 +195,42 @@ const siteIndexBody = `<main>
           <h3>{{.T.f5t}}</h3><p>{{.T.f5d}}</p>
         </div>
         <div class="feature">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l6.5 2.6v5c0 4.3-2.7 7.6-6.5 9.4-3.8-1.8-6.5-5.1-6.5-9.4v-5z"/><path d="M9.2 9.2h.01M14.8 14.8h.01M10.6 13.4l2.8-2.8"/></svg>
-          <h3>{{.T.f6t}}</h3><p>{{.T.f6d}}</p>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.6 4.4 4.4 1.6-4.4 1.6L12 15.5l-1.6-4.4L6 10.4l4.4-1.6z"/><path d="M18.5 15.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg>
+          <h3>{{.T.f7t}}</h3><p>{{.T.f7d}}</p>
         </div>
+      </div>
+    </section>
+
+    <section id="copilot" class="section copilot-sec">
+      <div class="copt-card">
+        <span class="copt-live"><i aria-hidden="true"></i>{{.T.coptPill}}</span>
+        <h2 class="copt-title">{{.T.coptTitleLead}} <span class="co-grad">{{.T.coptTitleAccent}}</span></h2>
+        <p class="copt-lead">{{.T.coptLead}}</p>
+        <div class="copt-stats">
+          <div class="copt-stat"><small>{{.T.coptS1L}}</small><b class="c-s1">{{.T.coptS1V}}</b><em>{{.T.coptS1S}}</em></div>
+          <div class="copt-stat"><small>{{.T.coptS2L}}</small><b class="c-s2">{{.T.coptS2V}}</b><em>{{.T.coptS2S}}</em></div>
+          <div class="copt-stat"><small>{{.T.coptS3L}}</small><b class="c-s3">{{.T.coptS3V}}</b><em>{{.T.coptS3S}}</em></div>
+        </div>
+      </div>
+      <div class="copt-grid">
+        <div class="copt-feat">
+          <span class="copt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.6 4.4 4.4 1.6-4.4 1.6L12 15.5l-1.6-4.4L6 10.4l4.4-1.6z"/><path d="M18.5 15.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg></span>
+          <h3>{{.T.coptC1t}}</h3><p>{{.T.coptC1d}}</p>
+        </div>
+        <div class="copt-feat">
+          <span class="copt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.2a8.5 8.5 0 0 1-8.5 8.5c-1.4 0-2.7-.3-3.9-.9L3 20l1.2-5.6A8.5 8.5 0 0 1 3 11.2a8.5 8.5 0 0 1 17 0z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg></span>
+          <h3>{{.T.coptC2t}}</h3><p>{{.T.coptC2d}}</p>
+        </div>
+        <div class="copt-feat">
+          <span class="copt-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3L4 14h6l-1 7 9-11h-6z"/></svg></span>
+          <h3>{{.T.coptC3t}}</h3><p>{{.T.coptC3d}}</p>
+        </div>
+      </div>
+      <div class="copt-cta-row">
+        <span class="copt-cta-wrap">
+          <span class="copt-halo" aria-hidden="true"></span>
+          <a class="copt-cta" href="#plans"><span class="copt-label">{{.T.coptCta}}</span><span class="copt-arrow" aria-hidden="true">→</span><span class="copt-shimmer" aria-hidden="true"></span></a>
+        </span>
       </div>
     </section>
 
@@ -310,6 +344,7 @@ const siteFoot = `<footer class="site-footer">
     </div>
     <div class="footer-links" aria-label="{{.T.navLabel}}">
       <a href="/#features">{{.T.navFeatures}}</a>
+      <a href="/#copilot">{{.T.navCopilot}}</a>
       <a href="/#verticals">{{.T.navVerticals}}</a>
       <a href="/#how">{{.T.secHow}}</a>
       <a href="/#faq">{{.T.secFAQ}}</a>

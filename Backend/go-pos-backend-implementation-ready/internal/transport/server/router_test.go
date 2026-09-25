@@ -144,7 +144,7 @@ func TestIndexServesBrandedLandingWithoutDatabase(t *testing.T) {
 		t.Fatalf("Content-Type = %q, want text/html", ct)
 	}
 	body := rec.Body.String()
-	for _, want := range []string{"POS.Go", "XAMLtech", "Admin sign in", "/admin/"} {
+	for _, want := range []string{"POS.Go", "XAMLtech", "Sign in", "/admin/"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("index body missing %q", want)
 		}
