@@ -1,0 +1,135 @@
+# Example nginx vhosts for the three public surfaces.
+#
+# Reference for hosts that terminate TLS with nginx in front of the API (the
+# containerized stack uses deployments/caddy/Caddyfile instead). Copy to
+# /etc/nginx/sites-available/, adjust `root` paths and the ACME location, then
+# enable and reload:
+#
+#   ln -s ../sites-available/xamltech_surfaces.conf /etc/nginx/sites-enabled/
+#   nginx -t && systemctl reload nginx
+#
+# The API container is bound to 127.0.0.1:8080 and enforces the same split on
+# the Host header (SURFACE_ROUTING_ENABLED=true), so proxy_host mistakes show up
+# as 404 not_available_on_host rather than as a data leak.
+
+# --- shared pieces ------------------------------------------------------------
+# ACME challenge for certificate renewal (HTTP only) and the security headers
+# the Go app already sets (X-Frame-Options, nosniff, HSTS, XSS, Referrer-Policy)
+# are intentionally not repeated here: the app's SecurityHeaders middleware is the
+# single source of truth, and duplicating them causes double headers.
+
+# --- xamltech.com : company site, no API --------------------------------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name xamltech.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name xamltech.com;
+
+    ssl_certificate     /etc/letsencrypt/live/xamltech.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/xamltech.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        include /etc/nginx/proxy_params;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# --- api.xamltech.com : console, control plane, admin SPA ---------------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name api.xamltech.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name api.xamltech.com;
+
+    ssl_certificate     /etc/letsencrypt/live/api.xamltech.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.xamltech.com/privkey.pem;
+
+    # The built React console (web_admin/dist deployed to /var/www/pos-admin).
+    location /admin/ {
+        alias /var/www/pos-admin/;
+        try_files $uri $uri/ /admin/index.html;
+    }
+
+    # Sign-in and the control plane. /private and /pricing are intentionally not
+    # published here: this hostname is the console only.
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        include /etc/nginx/proxy_params;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# --- posgo.xamltech.com : POS.Go landing, self-order, store API ---------------
+server {
+    listen 80;
+    listen [::]:80;
+    server_name posgo.xamltech.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name posgo.xamltech.com;
+
+    ssl_certificate     /etc/letsencrypt/live/posgo.xamltech.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/posgo.xamltech.com/privkey.pem;
+
+    # The Android package linked from the company site footer.
+    location /apk/ {
+        alias /var/www/pos-apk/;
+        autoindex off;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        include /etc/nginx/proxy_params;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -483,8 +483,48 @@ func clearEnv() {
 		"EMAIL_TOKEN_TTL", "OTP_TTL",
 		"REQUIRE_EMAIL_VERIFICATION", "REQUIRE_PHONE_VERIFICATION",
 		"REQUIRE_DEVICE_INTEGRITY", "PROMO_TRIALS_ENABLED",
+		"SURFACE_ROUTING_ENABLED", "COMPANY_DOMAIN", "SAAS_DOMAIN", "POS_DOMAIN",
+		"TRUSTED_PROXIES",
 	}
 	for _, k := range keys {
 		_ = os.Unsetenv(k)
+	}
+}
+
+func TestLoadTrustedProxiesDefaultAndOverride(t *testing.T) {
+	clearEnv()
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load(): %v", err)
+	}
+	if len(cfg.TrustedProxyCIDRs) != len(DefaultTrustedProxies()) {
+		t.Fatalf("default TrustedProxyCIDRs has %d entries, want %d",
+			len(cfg.TrustedProxyCIDRs), len(DefaultTrustedProxies()))
+	}
+
+	t.Setenv("TRUSTED_PROXIES", "10.0.0.0/8,127.0.0.1/32")
+	cfg, err = Load()
+	if err != nil {
+		t.Fatalf("Load() with TRUSTED_PROXIES: %v", err)
+	}
+	if len(cfg.TrustedProxyCIDRs) != 2 ||
+		cfg.TrustedProxyCIDRs[0] != "10.0.0.0/8" ||
+		cfg.TrustedProxyCIDRs[1] != "127.0.0.1/32" {
+		t.Fatalf("TrustedProxyCIDRs = %v, want the override", cfg.TrustedProxyCIDRs)
+	}
+}
+
+func TestLoadRejectsUntrustworthyTrustedProxies(t *testing.T) {
+	clearEnv()
+
+	t.Setenv("TRUSTED_PROXIES", "0.0.0.0/0")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() accepted TRUSTED_PROXIES=0.0.0.0/0, which re-opens the spoofing hole")
+	}
+
+	t.Setenv("TRUSTED_PROXIES", "not-a-cidr")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() accepted a non-CIDR TRUSTED_PROXIES entry")
 	}
 }

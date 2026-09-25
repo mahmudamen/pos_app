@@ -12,6 +12,7 @@ import (
 	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/transport/access"
+	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -472,6 +473,13 @@ func (h *Handler) login(c *gin.Context) {
 		writeError(c, http.StatusUnauthorized, "invalid_credentials", "email or password is incorrect")
 		return
 	}
+	// The three public domains hold disjoint audiences: the console host signs
+	// in platform operators, the POS host signs in store staff. Checked before
+	// the session row is written so a rejected sign-in leaves no trace.
+	if !httptransport.AllowsRole(httptransport.Surface(c), role) {
+		httptransport.AbortRoleNotOnSurface(c)
+		return
+	}
 
 	permissions := access.ResolveFromDB(ctx, tx, tenantID, userID, role)
 
@@ -488,7 +496,7 @@ func (h *Handler) login(c *gin.Context) {
 	}
 
 	sessionID := uuid.New()
-	refreshToken, err := h.tokens.Issue(time.Now(), security.RefreshToken, tenantID, userID, deviceUUID.String(), sessionID.String())
+	refreshToken, err := h.tokens.IssueWithRole(time.Now(), security.RefreshToken, tenantID, userID, deviceUUID.String(), sessionID.String(), role)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to issue session")
 		return
@@ -569,7 +577,20 @@ func (h *Handler) refresh(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
 		return
 	}
-	newRefresh, err := h.tokens.Issue(time.Now(), security.RefreshToken, claims.TenantID, claims.UserID, claims.DeviceID, claims.SessionID)
+	// The role is re-read from the database instead of the token claim so a
+	// demoted user cannot keep a session alive with a stale token, and so the
+	// refreshed access token keeps the role every permission check reads.
+	var role string
+	if err = tx.QueryRow(ctx, `SELECT role FROM users WHERE id = $1::uuid AND tenant_id = $2::uuid AND is_active`,
+		claims.UserID, claims.TenantID).Scan(&role); err != nil {
+		writeError(c, http.StatusUnauthorized, "invalid_refresh", "refresh token is invalid or the account is no longer active")
+		return
+	}
+	if !httptransport.AllowsRole(httptransport.Surface(c), role) {
+		httptransport.AbortRoleNotOnSurface(c)
+		return
+	}
+	newRefresh, err := h.tokens.IssueWithRole(time.Now(), security.RefreshToken, claims.TenantID, claims.UserID, claims.DeviceID, claims.SessionID, role)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to issue refresh token")
 		return
@@ -605,7 +626,7 @@ func (h *Handler) refresh(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit refresh")
 		return
 	}
-	access, err := h.tokens.Issue(time.Now(), security.AccessToken, claims.TenantID, claims.UserID, claims.DeviceID, claims.SessionID)
+	access, err := h.tokens.IssueWithRole(time.Now(), security.AccessToken, claims.TenantID, claims.UserID, claims.DeviceID, claims.SessionID, role)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to issue access token")
 		return

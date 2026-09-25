@@ -185,6 +185,113 @@ describe('ApiClient', () => {
     client.clearUser()
     expect(client.readUser()).toBeNull()
   })
+
+  it('lists community profiles with search + chief filter params', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    await client.listProfiles(1, 50, 'omar', true)
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('/community/profiles?')
+    expect(url).toContain('q=omar')
+    expect(url).toContain('role=chief')
+    expect(url).toContain('page=1')
+  })
+
+  it('myProfile returns null on 404 and the profile on 200', async () => {
+    fetchMock.mockResolvedValueOnce(ERR('profile_not_found', 'no profile', 404))
+    expect(await client.myProfile()).toBeNull()
+
+    fetchMock.mockResolvedValueOnce(OK({ user_id: 'u1', display_name: 'Ali', has_profile: true }))
+    const profile = await client.myProfile()
+    expect(profile?.display_name).toBe('Ali')
+    expect(profile?.has_profile).toBe(true)
+  })
+
+  it('upsertMyProfile PUTs to /v1/community/profiles/me', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ user_id: 'u1', display_name: 'Ali', skills: ['go', 'sql'], has_profile: true }))
+    await client.upsertMyProfile({ headline: 'Shop owner', skills: ['go', 'sql'] })
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('http://api.test/v1/community/profiles/me')
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(String(init.body))).toEqual({ headline: 'Shop owner', skills: ['go', 'sql'] })
+  })
+
+  it('lists companies with search params and unwraps company detail + members', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    await client.listCompanies(2, 25, 'xam')
+    expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/v1/community/companies?page=2&limit=25&q=xam')
+
+    fetchMock.mockResolvedValueOnce(
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            data: { id: 'c1', name: 'XAMLtech', members_count: 2 },
+            members: [{ id: 'm1' }],
+            meta: { request_id: 'r' },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    )
+    const detail = await client.getCompany('c1')
+    expect(detail?.company.name).toBe('XAMLtech')
+    expect(detail?.members.length).toBe(1)
+
+    fetchMock.mockResolvedValueOnce(ERR('company_not_found', 'nope', 404))
+    expect(await client.getCompany('c1')).toBeNull()
+  })
+
+  it('creates a company and adds a member', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ id: 'c1' }))
+    await client.createCompany({ name: 'XAMLtech', city: 'Cairo' })
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('http://api.test/v1/community/companies')
+    expect(JSON.parse(String(init.body))).toEqual({ name: 'XAMLtech', city: 'Cairo' })
+
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm1' }))
+    await client.addCompanyMember('c1', { user_id: 'u1', role: 'owner', title: 'Founder' })
+    const [murl, minit] = fetchMock.mock.calls[1] as [string, RequestInit]
+    expect(murl).toBe('http://api.test/v1/community/companies/c1/members')
+    expect(JSON.parse(String(minit.body))).toEqual({ user_id: 'u1', role: 'owner', title: 'Founder' })
+  })
+
+  it('lists jobs with type + mine filters and applies to a job', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    await client.listJobs(1, 50, '', 'full_time', true)
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('/community/jobs?')
+    expect(url).toContain('type=full_time')
+    expect(url).toContain('mine=true')
+
+    fetchMock.mockResolvedValueOnce(OK({ id: 'app-1' }))
+    await client.applyJob('job-1')
+    const [aurl, ainit] = fetchMock.mock.calls[1] as [string, RequestInit]
+    expect(aurl).toBe('http://api.test/v1/community/jobs/job-1/apply')
+    expect(ainit.method).toBe('POST')
+  })
+
+  it('nationalMe returns null on 404 and the member on 200', async () => {
+    fetchMock.mockResolvedValueOnce(ERR('not_found', 'no membership', 404))
+    expect(await client.nationalMe()).toBeNull()
+
+    fetchMock.mockResolvedValueOnce(OK({ user_id: 'u1', display_name: 'Ali', role: 'member', status: 'active', level: 'bronze', expertise_score: 10 }))
+    const member = await client.nationalMe()
+    expect(member?.level).toBe('bronze')
+  })
+
+  it('joins the national community and lists members with level/role filters', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ user_id: 'u1', display_name: 'Ali', role: 'member', status: 'active', level: 'bronze', expertise_score: 0 }))
+    await client.nationalJoin('EG-ABCDEFGHJKLM')
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('http://api.test/v1/community/join')
+    expect(JSON.parse(String(init.body))).toEqual({ code: 'EG-ABCDEFGHJKLM' })
+
+    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 20, total: 0 } }))
+    await client.listNationalMembers(1, 20, 'ali', 'silver', 'moderator')
+    const murl = fetchMock.mock.calls[1][0] as string
+    expect(murl).toContain('/community/members?')
+    expect(murl).toContain('level=silver')
+    expect(murl).toContain('role=moderator')
+  })
 })
 
 describe('deviceId', () => {

@@ -1,6 +1,7 @@
 package server_test
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -144,7 +145,7 @@ func TestIndexServesBrandedLandingWithoutDatabase(t *testing.T) {
 		t.Fatalf("Content-Type = %q, want text/html", ct)
 	}
 	body := rec.Body.String()
-	for _, want := range []string{"POS.Go", "XAMLtech", "Sign in", "/admin/"} {
+	for _, want := range []string{"POS.Go", "XAMLtech", "Sign in", "/admin/", "SaaS admin"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("index body missing %q", want)
 		}
@@ -201,7 +202,7 @@ func TestPricingServesFallbackPlansWithoutDatabase(t *testing.T) {
 	}
 }
 
-func TestLandingGalleryEmbedsRealScreenshots(t *testing.T) {
+func TestLandingGalleryServesExternalizedScreenshots(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
 	server.Register(engine, server.Deps{Config: config.Config{}})
@@ -214,32 +215,88 @@ func TestLandingGalleryEmbedsRealScreenshots(t *testing.T) {
 	}
 	body := rec.Body.String()
 
-	// The gallery card row, dots and arrows are present...
-	for _, want := range []string{`class="gal-track"`, `class="gal-dots"`, `class="gal-btn prev"`, `class="gal-btn next"`} {
+	// The gallery card row, phone-mockup frames, dots and arrows are present...
+	for _, want := range []string{`class="gal-track"`, `class="gal-dots"`, `class="gal-btn prev"`, `class="gal-btn next"`, `class="phone"`, `class="phone-screen"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("index body missing %q", want)
 		}
 	}
-	// ...every embedded screenshot shows a real PNG data URI with a caption...
-	for i, cap := range []string{"Checkout", "Cart &amp; payment", "Today's dashboard", "Sales history", "Customers &amp; loyalty", "Cash sessions", "Community hub", "Egypt community"} {
-		if !strings.Contains(body, `data:image/png;base64,`) {
-			t.Fatalf("no embedded screenshot data URI found")
+	// ...each screenshot is served from /screenshots/:name (not a data URI)...
+	for i, want := range []string{
+		`"/screenshots/checkout"`, `"/screenshots/cart"`, `"/screenshots/dashboard"`, `"/screenshots/sales"`,
+		`"/screenshots/customers"`, `"/screenshots/sessions"`, `"/screenshots/community"`, `"/screenshots/national"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("gallery image %d: missing %q", i, want)
 		}
-		// strip the first (already-counted) data URI so each image counts once
-		idx := strings.Index(body, `data:image/png;base64,`)
-		if idx < 0 {
-			t.Fatalf("embed %d missing after %d images", i, i)
-		}
-		body = body[idx+len(`data:image/png;base64,`):]
-		if i == 0 && !strings.Contains(body, cap) {
+	}
+	if strings.Contains(body, "data:image/png;base64,") {
+		t.Error("index still inlines screenshots as base64 data URIs")
+	}
+	// ...captions render...
+	for _, cap := range []string{"Checkout", "Cart &amp; payment", "Today&#39;s dashboard", "Sales history", "Customers &amp; loyalty", "Cash sessions", "Community hub", "Egypt community"} {
+		if !strings.Contains(body, cap) {
 			t.Errorf("gallery caption %q not rendered", cap)
 		}
 	}
+	// The screenshot route serves the embedded PNG with long-lived caching.
+	for _, name := range []string{"checkout", "national"} {
+		srec := httptest.NewRecorder()
+		engine.ServeHTTP(srec, httptest.NewRequest(http.MethodGet, "/screenshots/"+name, nil))
+		if srec.Code != http.StatusOK {
+			t.Errorf("/screenshots/%s: expected 200, got %d", name, srec.Code)
+		}
+		if ct := srec.Header().Get("Content-Type"); ct != "image/png" {
+			t.Errorf("/screenshots/%s: expected image/png, got %q", name, ct)
+		}
+		if cc := srec.Header().Get("Cache-Control"); !strings.Contains(cc, "max-age=31536000") {
+			t.Errorf("/screenshots/%s: missing long-lived Cache-Control", name)
+		}
+	}
+	srec := httptest.NewRecorder()
+	engine.ServeHTTP(srec, httptest.NewRequest(http.MethodGet, "/screenshots/missing", nil))
+	if srec.Code != http.StatusNotFound {
+		t.Errorf("/screenshots/missing: expected 404, got %d", srec.Code)
+	}
 	// The old phone-mockup stage is gone.
-	for _, gone := range []string{`class="phone"`, `class="stage-tabs"`, `class="slip"`} {
+	for _, gone := range []string{`class="stage-tabs"`, `class="slip"`} {
 		if strings.Contains(body, gone) {
 			t.Errorf("index still contains removed %q markup", gone)
 		}
+	}
+}
+
+func TestLandingRendersAllFeaturesModules(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{`id="all"`, `class="all-grid"`, `class="all-card"`, "Everything included", "Every module, in one app."} {
+		if !strings.Contains(body, want) {
+			t.Errorf("index body missing %q", want)
+		}
+	}
+	for _, title := range []string{
+		"Sell fast", "Payments &amp; splitting", "Registers &amp; cash", "Inventory &amp; stock",
+		"Lots &amp; variants", "Discounts &amp; approvals", "Reports &amp; analytics",
+		"Customers &amp; loyalty", "Receipts &amp; refunds", "Multi-device sync",
+		"Team &amp; community", "Owner&#39;s control plane",
+	} {
+		if !strings.Contains(body, title) {
+			t.Errorf("module title %q not rendered", title)
+		}
+	}
+	if !strings.Contains(body, `href="/#all"`) {
+		t.Error("nav missing the all-features link")
+	}
+	if !strings.Contains(body, `href="/#gallery"`) {
+		t.Error("nav missing the gallery link")
 	}
 }
 
@@ -320,5 +377,250 @@ func TestPricingServesCompareTableAndFAQ(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("pricing body missing %q", want)
 		}
+	}
+}
+
+// surfaceEngine registers the real route table with the three public domains
+// enabled, i.e. how production is configured.
+func surfaceEngine(t *testing.T) *gin.Engine {
+	t.Helper()
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{Surfaces: config.SurfaceRouting{
+		Enabled:       true,
+		CompanyDomain: config.DefaultCompanyDomain,
+		SaaSDomain:    config.DefaultSaaSDomain,
+		POSDomain:     config.DefaultPOSDomain,
+	}}})
+	return engine
+}
+
+func hostGet(t *testing.T, engine *gin.Engine, host, path string) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	req.Host = host
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, req)
+	return rec
+}
+
+func TestSurfaceRootServesTheRightPagePerDomain(t *testing.T) {
+	engine := surfaceEngine(t)
+
+	// xamltech.com — the studio's own home page.
+	rec := hostGet(t, engine, config.DefaultCompanyDomain, "/")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("company root: got %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{
+		"XAMLtech", "Software studio", "What we build", "How we work", "Start here",
+		"https://" + config.DefaultPOSDomain, "https://" + config.DefaultSaaSDomain + "/admin/",
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("company home missing %q", want)
+		}
+	}
+	// The product landing is not the company home.
+	for _, unwanted := range []string{"Point of sale that keeps selling", "Everything included", "class=\"gal-track\""} {
+		if strings.Contains(body, unwanted) {
+			t.Errorf("company home should not contain product-page copy %q", unwanted)
+		}
+	}
+
+	// posgo.xamltech.com — the POS.Go product landing.
+	rec = hostGet(t, engine, config.DefaultPOSDomain, "/")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("POS root: got %d, want 200", rec.Code)
+	}
+	body = rec.Body.String()
+	for _, want := range []string{"POS.Go", "Point of sale that keeps selling", `class="gal-track"`, "Starter", "Business", "Enterprise"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("POS landing missing %q", want)
+		}
+	}
+
+	// api.xamltech.com — straight to the console.
+	rec = hostGet(t, engine, config.DefaultSaaSDomain, "/")
+	if rec.Code != http.StatusFound {
+		t.Fatalf("SaaS root: got %d, want 302", rec.Code)
+	}
+	if loc := rec.Header().Get("Location"); loc != "/admin/" {
+		t.Errorf("SaaS root Location = %q, want /admin/", loc)
+	}
+}
+
+func TestSurfaceKeepsPricingAndPrivacyOnTheProductAndCompanyDomains(t *testing.T) {
+	engine := surfaceEngine(t)
+	for _, host := range []string{config.DefaultCompanyDomain, config.DefaultPOSDomain} {
+		for path, want := range map[string][]string{
+			"/pricing": {"Simple pricing", "Starter", "/private"},
+			"/private": {"Privacy Policy", "support@xamltech.com"},
+		} {
+			rec := hostGet(t, engine, host, path)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("%s%s: got %d, want 200", host, path, rec.Code)
+			}
+			for _, fragment := range want {
+				if !strings.Contains(rec.Body.String(), fragment) {
+					t.Errorf("%s%s missing %q", host, path, fragment)
+				}
+			}
+		}
+	}
+}
+
+func TestSurfaceGatesTheAPIByDomain(t *testing.T) {
+	engine := surfaceEngine(t)
+
+	// The console host only carries the control plane.
+	for _, path := range []string{"/v1/saas/summary", "/v1/saas/tenants", "/v1/platform/audit"} {
+		if rec := hostGet(t, engine, config.DefaultSaaSDomain, path); rec.Code != http.StatusUnauthorized {
+			t.Errorf("SaaS %s = %d, want 401 (reaches the saas_admin guard)", path, rec.Code)
+		}
+	}
+	for _, path := range []string{"/v1/sales", "/v1/products", "/v1/sync/pull", "/v1/registers/current"} {
+		rec := hostGet(t, engine, config.DefaultSaaSDomain, path)
+		if rec.Code != http.StatusNotFound {
+			t.Errorf("SaaS %s = %d, want 404", path, rec.Code)
+		}
+		if code := errorCode(t, rec); code != "not_available_on_host" {
+			t.Errorf("SaaS %s error code = %q, want not_available_on_host", path, code)
+		}
+	}
+
+	// The POS host only carries the store API.
+	for _, path := range []string{"/v1/sales", "/v1/products", "/v1/sync/pull", "/v1/registers/current", "/v1/settings"} {
+		if rec := hostGet(t, engine, config.DefaultPOSDomain, path); rec.Code != http.StatusUnauthorized {
+			t.Errorf("POS %s = %d, want 401 (reaches the access-token guard)", path, rec.Code)
+		}
+	}
+	for _, path := range []string{"/v1/saas/summary", "/v1/platform/audit"} {
+		if rec := hostGet(t, engine, config.DefaultPOSDomain, path); rec.Code != http.StatusNotFound {
+			t.Errorf("POS %s = %d, want 404", path, rec.Code)
+		}
+	}
+
+	// The company host serves no API.
+	if rec := hostGet(t, engine, config.DefaultCompanyDomain, "/v1/sales"); rec.Code != http.StatusNotFound {
+		t.Errorf("company /v1/sales = %d, want 404", rec.Code)
+	}
+
+	// Probes and reference data stay reachable everywhere the API is.
+	for _, host := range []string{config.DefaultSaaSDomain, config.DefaultPOSDomain} {
+		if rec := hostGet(t, engine, host, "/health/live"); rec.Code != http.StatusOK {
+			t.Errorf("%s /health/live = %d, want 200", host, rec.Code)
+		}
+		if rec := hostGet(t, engine, host, "/v1/meta/countries"); rec.Code != http.StatusServiceUnavailable {
+			t.Errorf("%s /v1/meta/countries = %d, want 503 (no pool)", host, rec.Code)
+		}
+	}
+}
+
+func TestSurfaceRejectsUnconfiguredHosts(t *testing.T) {
+	engine := surfaceEngine(t)
+	for _, host := range []string{"evil.com", "xamltech.com.attacker.io", "shop.xamltech.com"} {
+		rec := hostGet(t, engine, host, "/health/live")
+		if rec.Code != http.StatusNotFound {
+			t.Errorf("host %q: got %d, want 404", host, rec.Code)
+		}
+		if code := errorCode(t, rec); code != "unknown_host" {
+			t.Errorf("host %q error code = %q, want unknown_host", host, code)
+		}
+	}
+}
+
+func TestSurfaceDisabledKeepsSingleDomainBehaviour(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+	// With routing off every host still serves the POS.Go landing and the whole
+	// API — the pre-split behaviour.
+	for _, host := range []string{config.DefaultSaaSDomain, config.DefaultPOSDomain, "localhost"} {
+		if rec := hostGet(t, engine, host, "/"); rec.Code != http.StatusOK ||
+			!strings.Contains(rec.Body.String(), "Point of sale that keeps selling") {
+			t.Errorf("%s / = %d, want the POS.Go landing", host, rec.Code)
+		}
+		if rec := hostGet(t, engine, host, "/v1/sales"); rec.Code != http.StatusUnauthorized {
+			t.Errorf("%s /v1/sales = %d, want 401", host, rec.Code)
+		}
+	}
+}
+
+func TestSurfaceCompanyHomeServesArabicRTL(t *testing.T) {
+	engine := surfaceEngine(t)
+	rec := hostGet(t, engine, config.DefaultCompanyDomain, "/?lang=ar")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("company home (ar): got %d, want 200", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{`lang="ar"`, `dir="rtl"`, "ما نبنيه", "كيف نعمل", "ابدأ من هنا", "English"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("company home (ar) missing %q", want)
+		}
+	}
+	if v := rec.Header().Get("Vary"); !strings.Contains(v, "Accept-Language") {
+		t.Errorf("company home missing Vary: Accept-Language")
+	}
+}
+
+func errorCode(t *testing.T, rec *httptest.ResponseRecorder) string {
+	t.Helper()
+	var payload struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode error body: %v (body=%s)", err, rec.Body.String())
+	}
+	return payload.Error.Code
+}
+
+// Register is the only place the engine's trusted-proxy list is configured,
+// and the OpenAPI generator and every handler test build their engine through
+// it, so this is the regression guard for the X-Forwarded-For spoofing hole.
+func TestRegisterRestrictsTheTrustedProxyList(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	if err := engine.SetTrustedProxies([]string{"0.0.0.0/0", "::/0"}); err != nil {
+		t.Fatalf("SetTrustedProxies: %v", err)
+	}
+	engine.GET("/ip", func(c *gin.Context) {
+		c.String(http.StatusOK, c.ClientIP())
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/ip", nil)
+	req.RemoteAddr = "127.0.0.1:5555"
+	req.Header.Set("X-Forwarded-For", "203.0.113.9")
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, req)
+
+	if got := recorder.Body.String(); got != "203.0.113.9" {
+		t.Fatalf("ClientIP() = %q, want the spoofed entry to be ignored as 127.0.0.1", got)
+	}
+}
+
+func TestRegisterHonoursATrustedProxyOverride(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{
+		Config: config.Config{TrustedProxyCIDRs: []string{"127.0.0.1/32"}},
+	})
+	engine.GET("/ip", func(c *gin.Context) {
+		c.String(http.StatusOK, c.ClientIP())
+	})
+
+	// Cloudflare is no longer trusted, so the edge hop itself is the answer.
+	req := httptest.NewRequest(http.MethodGet, "/ip", nil)
+	req.RemoteAddr = "127.0.0.1:5555"
+	req.Header.Set("X-Forwarded-For", "203.0.113.9, 104.16.0.1")
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, req)
+
+	if got := recorder.Body.String(); got != "104.16.0.1" {
+		t.Fatalf("ClientIP() = %q, want the untrusted edge hop 104.16.0.1", got)
 	}
 }

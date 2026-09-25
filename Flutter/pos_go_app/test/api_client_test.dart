@@ -2434,6 +2434,79 @@ expect(() => client.dashboardSummary(session),
       );
     });
   });
+  group('public surface split', () {
+    const testSession = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+      role: 'manager',
+    );
+
+    test('the store and console defaults are the two production hostnames', () {
+      final client = ApiClient(client: _HostRecorder('{}'));
+      expect(client.baseUrl, 'https://posgo.xamltech.com');
+      expect(client.saasBaseUrl, 'https://api.xamltech.com');
+    });
+
+    test('store calls go to the POS host', () async {
+      final recorder = _HostRecorder('{"data":[],"meta":{}}');
+      final client = ApiClient(client: recorder);
+      await client.products(testSession);
+      expect(recorder.seen.single.host, 'posgo.xamltech.com');
+    });
+
+    test('sign-in posts to the POS host', () async {
+      final recorder = _HostRecorder(_loginJson);
+      final client = ApiClient(client: recorder);
+      await client.login(
+        tenantId: 'tenant-1',
+        email: 'manager@demo-grocery.com',
+        password: 'admin',
+        deviceId: 'device-1',
+        deviceName: 'Counter 1',
+      );
+      expect(recorder.seen.single.host, 'posgo.xamltech.com');
+      expect(recorder.seen.single.path, '/v1/auth/login');
+    });
+
+    test('control-plane calls go to the console host', () async {
+      const summary = '{"data":{"total_tenants":1,"total_users":2,'
+          '"total_sales":3,"revenue_minor":400,"by_business":[]},'
+          '"meta":{"request_id":"t"}}';
+      final recorder = _HostRecorder(summary);
+      final client = ApiClient(client: recorder);
+      final platformSession = testSession.copyWith(role: 'saas_admin');
+      await client.saasSummary(platformSession);
+      await client.platformTrialSettings(platformSession);
+      expect(
+        recorder.seen.map((uri) => uri.host),
+        everyElement('api.xamltech.com'),
+      );
+      expect(recorder.seen.map((uri) => uri.path), [
+        '/v1/saas/summary',
+        '/v1/platform/trial/settings',
+      ]);
+    });
+
+    test('a console account rejection keeps the wrong_surface code', () async {
+      final client = ApiClient(client: _WrongSurfaceClient());
+      try {
+        await client.login(
+          tenantId: 'tenant-1',
+          email: 'admin@posgo.saas',
+          password: 'admin',
+          deviceId: 'device-1',
+          deviceName: 'Counter 1',
+        );
+        fail('login should have been rejected');
+      } on ApiException catch (error) {
+        expect(error.isWrongSurface, isTrue);
+        expect(error.isTrialExpired, isFalse);
+      }
+    });
+  });
 }
 
 class _FakeClient extends http.BaseClient {
@@ -3956,6 +4029,7 @@ class _MemberDetailClient extends http.BaseClient {
   }
 }
 
+
 class _UpdateMemberClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -3973,6 +4047,42 @@ class _UpdateMemberClient extends http.BaseClient {
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _loginJson =
+    '{"data":{"access_token":"access-token","refresh_token":"refresh-token",'
+    '"user":{"id":"user-1","display_name":"Manager","role":"manager"},'
+    '"tenant":{"id":"tenant-1","name":"Demo"}},"meta":{"request_id":"t"}}';
+
+class _HostRecorder extends http.BaseClient {
+  _HostRecorder(this.body);
+
+  final String body;
+  final List<Uri> seen = <Uri>[];
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    seen.add(request.url);
+    return http.StreamedResponse(
+      Stream.value(const Utf8Encoder().convert(body)),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _WrongSurfaceClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    const response =
+        '{"error":{"code":"wrong_surface","message":"sign in with a '
+        'platform administrator account"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(const Utf8Encoder().convert(response)),
+      403,
       headers: {'content-type': 'application/json'},
     );
   }

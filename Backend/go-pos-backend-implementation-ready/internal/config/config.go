@@ -67,6 +67,16 @@ type Config struct {
 	VAPIDPrivateKey string
 	VAPIDSubject    string
 
+	// Surfaces splits the three public domains (company / SaaS console / POS
+	// API). Inert unless SURFACE_ROUTING_ENABLED is true.
+	Surfaces SurfaceRouting
+
+	// TrustedProxyCIDRs is the list of hops whose X-Forwarded-For entries are
+	// believed when deriving the client IP that the per-IP rate limiters key
+	// off. TRUSTED_PROXIES overrides it; empty means loopback, the private
+	// container network, and Cloudflare's published edge ranges.
+	TrustedProxyCIDRs []string
+
 	Trial TrialConfig
 }
 
@@ -291,6 +301,14 @@ func Load() (Config, error) {
 	c.VAPIDPublicKey = envOr("VAPID_PUBLIC_KEY", "")
 	c.VAPIDPrivateKey = envOr("VAPID_PRIVATE_KEY", "")
 	c.VAPIDSubject = envOr("VAPID_SUBJECT", "mailto:support@xamltech.com")
+
+	if c.Surfaces, err = loadSurfaceRouting(); err != nil {
+		return Config{}, err
+	}
+
+	if c.TrustedProxyCIDRs, err = ParseTrustedProxies(envOr("TRUSTED_PROXIES", "")); err != nil {
+		return Config{}, err
+	}
 
 	trial, err := loadTrialConfig()
 	if err != nil {

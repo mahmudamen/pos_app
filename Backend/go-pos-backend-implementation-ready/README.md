@@ -4,7 +4,7 @@ This repository is the implementation baseline for a multi-tenant Go POS SaaS ba
 
 ## Stack
 
-- Go 1.23+
+- Go 1.26+
 - Gin HTTP API
 - PostgreSQL 16
 - Redis 7
@@ -87,12 +87,27 @@ Running it requires only Docker — not a local Go toolchain.
 ```
 
 The first run creates `.env.prod` from `.env.prod.example` and fills in random
-DB/JWT secrets. Set `SITE_DOMAIN` (and `CORS_ALLOWED_ORIGINS`) in `.env.prod`,
-then re-run. Builds `pos-prod`: postgres + redis + one-shot migrate service +
-immutable API image + Caddy (automatic TLS for a real domain, ports 80/443).
-Migrations run automatically inside the stack (same image, goose binary +
-migrations baked in). The API is only bound to `127.0.0.1:8080`; the network
+DB/JWT secrets. Set the three public domains (and `CORS_ALLOWED_ORIGINS`) in
+`.env.prod`, then re-run. Builds `pos-prod`: postgres + redis + one-shot migrate
+service + immutable API image + Caddy (automatic TLS for real domains, ports
+80/443). Migrations run automatically inside the stack (same image, goose binary
++ migrations baked in). The API is only bound to `127.0.0.1:8080`; the network
 between Caddy → API → Postgres/Redis stays private.
+
+### Public surfaces
+
+| Domain | Serves |
+|---|---|
+| `xamltech.com` (`COMPANY_DOMAIN`) | company site: brand page, pricing, privacy. No API. |
+| `api.xamltech.com` (`SAAS_DOMAIN`) | console sign-in, `/v1/saas` + `/v1/platform`, `/admin/` React app. |
+| `posgo.xamltech.com` (`POS_DOMAIN`) | POS.Go landing, self-ordering, `/apk`, the store API. |
+
+`SURFACE_ROUTING_ENABLED=true` (the production default) makes the API classify
+every request by `Host` and refuse anything that belongs to another surface:
+`404 not_available_on_host` for a path on the wrong domain, `403
+wrong_surface` when a store account signs in on the console domain (or the other
+way round). It is inert while disabled, which is what local development, the
+OpenAPI generator and a single-domain deployment rely on.
 
 ### Notes
 

@@ -364,3 +364,118 @@ export interface StoreSubscription {
   current_period_end?: string
   cancel_at_period_end?: boolean
 }
+
+// ---- community (POS.Go community) ----------------------------------------
+
+export interface StaffProfile {
+  user_id: string
+  display_name: string
+  email: string
+  headline: string
+  bio: string
+  avatar_url: string
+  location: string
+  years_experience: number
+  is_chief: boolean
+  skills: string[]
+  resume: Record<string, unknown>
+  has_profile: boolean
+}
+
+export interface ProfileInput {
+  headline?: string
+  bio?: string
+  avatar_url?: string
+  location?: string
+  years_experience?: number
+  is_chief?: boolean
+  skills?: string[]
+}
+
+export interface ProfileMembership {
+  id: string
+  company_id: string
+  user_id: string
+  display_name: string
+  role: string
+  title: string
+  created_at: string
+}
+
+export interface Company {
+  id: string
+  name: string
+  slug: string
+  description: string
+  industry: string
+  website: string
+  logo_url: string
+  city: string
+  is_active: boolean
+  created_at: string
+  members_count: number
+}
+
+export interface CompanyMember extends ProfileMembership {}
+
+export interface CompanyDetail {
+  company: Company
+  members: CompanyMember[]
+}
+
+export interface CompanyInput {
+  name: string
+  slug?: string
+  description?: string
+  industry?: string
+  website?: string
+  logo_url?: string
+  city?: string
+}
+
+export interface JobOffer {
+  id: string
+  company_id: string
+  company_name: string
+  title: string
+  description: string
+  employment_type: string
+  location: string
+  salary_minor: number
+  salary_currency: string
+  skill_tags: string[]
+  is_active: boolean
+  closes_at: string
+  created_by: string
+  created_at: string
+  updated_at: string
+  applied: boolean
+  applications: number
+}
+
+export interface NationalMember {
+  user_id: string
+  display_name: string
+  origin_tenant_id: string
+  joined_via: string
+  invited_by: string
+  invited_by_name?: string
+  role: string
+  status: string
+  level: string
+  expertise_score: number
+  joined_at: string
+}
+
+export interface NationalInvitation {
+  id: string
+  code?: string
+  inviter_id: string
+  email: string
+  note: string
+  max_uses: number
+  used_count: number
+  status: string
+  expires_at: string
+  created_at: string
+}

@@ -7,3 +7,8 @@ build/
 coverage/
 .env
 dist/
+
+# Release signing material
+android/key.properties
+*.jks
+*.keystore

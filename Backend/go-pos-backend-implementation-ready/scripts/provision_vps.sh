@@ -8,7 +8,7 @@
 #   1. Preflight    : root/sudo, Ubuntu/Debian, amd64/arm64, >=2 GB RAM
 #   2. Baseline     : apt packages (curl, git, ca-certificates, gnupg, ufw,
 #                     unattended-upgrades, python3+pip+venv, postgresql-client)
-#   3. Go toolchain : go1.23.x from the official tarball -> /usr/local/go
+#   3. Go toolchain : go1.26.x from the official tarball -> /usr/local/go
 #   4. Docker       : Docker Engine + Compose v2 + Buildx from the docker repo
 #   5. Firewall     : ufw allow OpenSSH/80/443; enable
 #   6. Requirements : verify docker, compose, go, python3, psql, git, openssl
@@ -30,10 +30,13 @@
 #   POS_REPO_URL   git URL to clone from (skips clone if unset + already in a checkout)
 #   POS_BRANCH     branch to clone            [default: backend-deploy]
 #   POS_HOME       where to clone/expect repo [default: /opt/pos]
-#   SITE_DOMAIN    public hostname (Caddy TLS) [default: localhost]
+#   SITE_DOMAIN    public hostname of the POS surface (Caddy TLS) [default: localhost]
+#   COMPANY_DOMAIN company-site hostname        [default: xamltech.com]
+#   SAAS_DOMAIN    console hostname             [default: api.xamltech.com]
+#   POS_DOMAIN     POS.Go hostname              [default: posgo.xamltech.com]
 #   SCRAPE_IP      metrics collector source IP [default: 127.0.0.1]
 #   CORS_ALLOWED   Origin allowlist for browsers [default: https://$SITE_DOMAIN]
-#   GO_VERSION     Go toolchain version        [default: 1.23.12]
+#   GO_VERSION     Go toolchain version        [default: 1.26.8]
 #   SKIP_PKGS=1    skip apt baseline package install
 #   SKIP_GO=1      skip Go toolchain install
 #   SKIP_DOCKER=1  skip Docker install
@@ -86,9 +89,12 @@ POS_BRANCH="${POS_BRANCH:-backend-deploy}"
 POS_HOME="${POS_HOME:-/opt/pos}"
 BACKEND_DIR="${POS_HOME}/Backend/go-pos-backend-implementation-ready"
 SITE_DOMAIN="${SITE_DOMAIN:-localhost}"
+COMPANY_DOMAIN="${COMPANY_DOMAIN:-xamltech.com}"
+SAAS_DOMAIN="${SAAS_DOMAIN:-api.xamltech.com}"
+POS_DOMAIN="${POS_DOMAIN:-posgo.xamltech.com}"
 SCRAPE_IP="${SCRAPE_IP:-127.0.0.1}"
-CORS_ALLOWED="${CORS_ALLOWED:-https://${SITE_DOMAIN}}"
-GO_VERSION="${GO_VERSION:-1.23.12}"
+CORS_ALLOWED="${CORS_ALLOWED:-https://${COMPANY_DOMAIN},https://${SAAS_DOMAIN},https://${POS_DOMAIN}}"
+GO_VERSION="${GO_VERSION:-1.26.8}"
 SKIP_PKGS="${SKIP_PKGS:-0}"
 SKIP_GO="${SKIP_GO:-0}"
 SKIP_DOCKER="${SKIP_DOCKER:-0}"
@@ -280,6 +286,9 @@ else
     POSTGRES_PASSWORD=$($SUDO openssl rand -hex 24)
     sed -i \
         -e "s|^SITE_DOMAIN=.*|SITE_DOMAIN=${SITE_DOMAIN}|" \
+        -e "s|^COMPANY_DOMAIN=.*|COMPANY_DOMAIN=${COMPANY_DOMAIN}|" \
+        -e "s|^SAAS_DOMAIN=.*|SAAS_DOMAIN=${SAAS_DOMAIN}|" \
+        -e "s|^POS_DOMAIN=.*|POS_DOMAIN=${POS_DOMAIN}|" \
         -e "s|^CORS_ALLOWED_ORIGINS=.*|CORS_ALLOWED_ORIGINS=${CORS_ALLOWED}|" \
         -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${POSTGRES_PASSWORD}|" \
         -e "s|^JWT_ACCESS_SECRET=.*|JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}|" \
@@ -341,17 +350,22 @@ echo -e "${GREEN}POS backend is provisioned.${NC}"
 echo "  Repo            : $POS_HOME (branch: $POS_BRANCH)"
 echo "  Backend dir     : $BACKEND_DIR"
 echo "  Config          : $BACKEND_DIR/.env.prod"
-echo "  API             : http://$SITE_DOMAIN/  (Caddy TLS, reverse_proxy -> api:8080)"
+echo "  Company site    : https://$COMPANY_DOMAIN/  (brand page, no API)"
+echo "  Console         : https://$SAAS_DOMAIN/admin/  (SaaS sign-in + control plane)"
+echo "  POS.Go          : https://$POS_DOMAIN/  (landing, self-order, store API)"
 echo "  Health          : http://$SITE_DOMAIN/health/live  /health/ready"
 echo "  Metrics         : http://127.0.0.1:9090/metrics (Caddy :9090, source IP $SCRAPE_IP only)"
 if [ "$SITE_DOMAIN" = "localhost" ]; then
     warn "SITE_DOMAIN is still 'localhost' — set it in .env.prod to a public domain for automatic TLS."
 fi
+warn "Point COMPANY_DOMAIN, SAAS_DOMAIN and POS_DOMAIN at this host (DNS A records) and"
+warn "make sure SURFACE_ROUTING_ENABLED=true in .env.prod, or the API will serve every"
+warn "surface on every domain."
 echo
 echo "Back it up (cron, daily 3:00 AM):"
 echo "  0 3 * * * $BACKEND_DIR/scripts/backup.sh >> /var/log/pos-backup.log 2>&1"
 echo
 echo "Flutter production APK (from a dev machine, then sign/adb install):"
-echo "  flutter build apk --release --dart-define=API_BASE_URL=https://${SITE_DOMAIN}"
+echo "  flutter build apk --release --dart-define=API_BASE_URL=https://${POS_DOMAIN}"
 echo
 echo "User '$SUDO_USER' may need to re-login for the docker group + Go PATH to apply."

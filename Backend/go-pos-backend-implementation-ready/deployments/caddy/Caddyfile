@@ -1,14 +1,63 @@
 # Caddy reverse proxy for the containerized production stack.
-# SITE_DOMAIN is provided by docker-compose.prod.yml (set it in .env.prod).
-# With a real domain, Caddy provisions and renews TLS automatically.
-{$SITE_DOMAIN:localhost} {
-	reverse_proxy api:8080
+#
+# Three disjoint public surfaces (values come from docker-compose.prod.yml, set
+# them in .env.prod). The Go app enforces the same split on the Host header
+# (SURFACE_ROUTING_ENABLED), so a misconfigured upstream cannot leak the control
+# plane onto the POS domain or the store API onto the console domain:
+#
+#   {$COMPANY_DOMAIN}  company site      — no API at all
+#   {$SAAS_DOMAIN}     console           — sign-in, /v1/saas, /v1/platform, /admin/ SPA
+#   {$POS_DOMAIN}      POS.Go            — landing, self-ordering, the store API, /apk
+#
+# With real domains Caddy provisions and renews TLS automatically. Static assets
+# live in deployments/caddy/web (mounted read-only at /srv/web).
+(common) {
+	encode gzip zstd
 
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "no-referrer"
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+# Company site: brand page, pricing and the privacy policy. No API surface.
+{$COMPANY_DOMAIN:localhost} {
+	import common
+	reverse_proxy api:8080
+}
+
+# Console: platform operators only. /admin/ is the React single-page app; every
+# other path is the control-plane API.
+{$SAAS_DOMAIN:localhost} {
+	import common
+
+	handle /admin/* {
+		try_files {path} /admin/index.html
+		file_server {
+			root /srv/web
+		}
+	}
+
+	handle {
+		reverse_proxy api:8080
+	}
+}
+
+# POS.Go: the install site, the self-order page, the APK and the store API.
+{$POS_DOMAIN:localhost} {
+	import common
+
+	handle /apk/* {
+		file_server {
+			root /srv/web
+		}
+	}
+
+	handle {
+		reverse_proxy api:8080
 	}
 }
 

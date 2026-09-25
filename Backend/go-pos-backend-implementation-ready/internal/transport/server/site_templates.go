@@ -14,17 +14,17 @@ const siteHead = `<!doctype html>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<meta name="color-scheme" content="dark"/>
-<meta name="theme-color" content="#0a1320"/>
+<meta name="color-scheme" content="light"/>
+<meta name="theme-color" content="#f7f9fb"/>
 <meta name="robots" content="{{if eq .Page "privacy"}}noindex{{else}}index, follow{{end}}"/>
-<meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
-<meta property="og:site_name" content="{{.T.brand}} — {{.T.tagline}}"/>
+<meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta property="og:site_name" content="{{if eq .Page "company"}}{{.T.companyName}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
-<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else if eq .Page "company"}}{{.T.companyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
+<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
 <meta property="og:locale" content="{{if eq .Lang "ar"}}ar_EG{{else}}en_GB{{end}}"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect x='4' y='4' width='88' height='88' rx='22' fill='%230f2233' stroke='%2322c55e' stroke-width='4'/%3E%3Ctext x='48' y='68' text-anchor='middle' font-family='Verdana' font-size='52' font-weight='700' fill='%2322c55e'%3EP%3C/text%3E%3C/svg%3E"/>
-<title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
+<title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else if eq .Page "company"}}{{.T.companyName}} — {{.T.companyTagline}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
 <style>` + siteCSS + `</style>
 </head>
 <body>
@@ -36,16 +36,29 @@ const siteHead = `<!doctype html>
         <circle cx="69" cy="27" r="7" fill="currentColor"/>
         <text x="48" y="68" text-anchor="middle" font-family="Verdana, sans-serif" font-size="52" font-weight="700" fill="currentColor">P</text>
       </svg>
-      <span><b>{{.T.brand}}</b><small>{{.T.brandSub}}</small></span>
+      <span><b>{{if eq .Page "company"}}{{.T.companyName}}{{else}}{{.T.brand}}{{end}}</b><small>{{if eq .Page "company"}}{{.T.companyBrandSub}}{{else}}{{.T.brandSub}}{{end}}</small></span>
     </a>
     <div class="nav-links">
+      {{if eq .Page "company"}}
+      <a href="/#work">{{.T.companyNavWork}}</a>
+      <a href="/#approach">{{.T.companyNavApproach}}</a>
+      <a href="mailto:{{.T.contact}}">{{.T.companyNavContact}}</a>
+      {{else}}
       <a href="/#features">{{.T.navFeatures}}</a>
+      <a href="/#gallery">{{.T.navGallery}}</a>
+      <a href="/#all">{{.T.navAll}}</a>
       <a href="/#copilot">{{.T.navCopilot}}</a>
       <a href="/#verticals">{{.T.navVerticals}}</a>
       <a href="/pricing">{{.T.navPricing}}</a>
       <a href="/private">{{.T.navPrivacy}}</a>
+      {{end}}
       <a class="lang" href="?lang={{if eq .Lang "ar"}}en{{else}}ar{{end}}">{{.T.navLang}}</a>
-      <a class="btn btn-primary btn-sm" href="/admin/">{{.T.navAdmin}}</a>
+      {{if eq .Page "company"}}
+      <a class="btn btn-ghost btn-sm" href="{{.SaaSURL}}/admin/">{{.T.companyNavConsole}}</a>
+      <a class="btn btn-primary btn-sm" href="{{.POSURL}}">{{.T.companyNavProduct}}</a>
+      {{else}}
+      <a class="btn btn-primary btn-sm" href="{{.SaaSURL}}/admin/">{{.T.navAdmin}}</a>
+      {{end}}
     </div>
   </nav>
 </header>`
@@ -59,7 +72,7 @@ const sitePlansGrid = `{{range .Plans}}
   <p class="desc">{{.Description}}</p>
   <div class="price"><span class="amount">{{.Price}}</span><span class="per">{{.Currency}} &nbsp;/ {{.Period}}</span></div>
   <ul>{{range .Features}}<li>{{.}}</li>{{end}}</ul>
-  <div class="fill"><a class="btn {{if .Featured}}btn-primary{{else}}btn-ghost{{end}} btn-block" href="/admin/">{{$.T.ctaPlan}}</a></div>
+  <div class="fill"><a class="btn {{if .Featured}}btn-primary{{else}}btn-ghost{{end}} btn-block" href="{{$.SaaSURL}}/admin/">{{$.T.ctaPlan}}</a></div>
 </div>
 {{end}}`
 
@@ -71,7 +84,7 @@ const siteIndexBody = `<main>
         <h1 class="hero-title">{{.T.heroTitle}}</h1>
         <p class="hero-lead">{{.T.heroLead}}</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="/admin/">{{.T.ctaPrimary}}</a>
+          <a class="btn btn-primary" href="{{.SaaSURL}}/admin/">{{.T.ctaPrimary}}</a>
           <a class="btn btn-ghost" href="/pricing">{{.T.ctaSecondary}}</a>
         </div>
         <div class="applinks">
@@ -100,7 +113,7 @@ const siteIndexBody = `<main>
       <div class="gallery">
         <div class="gal-track" tabindex="0">
           {{range .Gallery}}<figure class="gitem">
-            <img src="{{.Src}}" alt="{{.Caption}}" width="{{.Width}}" height="{{.Height}}" loading="lazy" decoding="async"/>
+            <div class="phone"><div class="phone-screen"><img src="{{.Src}}" alt="{{.Caption}}" width="{{.Width}}" height="{{.Height}}" loading="lazy" decoding="async"/></div></div>
             <figcaption>{{.Caption}}</figcaption>
           </figure>
           {{end}}
@@ -198,6 +211,21 @@ const siteIndexBody = `<main>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.6 4.4 4.4 1.6-4.4 1.6L12 15.5l-1.6-4.4L6 10.4l4.4-1.6z"/><path d="M18.5 15.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg>
           <h3>{{.T.f7t}}</h3><p>{{.T.f7d}}</p>
         </div>
+      </div>
+    </section>
+
+    <section id="all" class="section">
+      <span class="section-label">{{.T.secAll}}</span>
+      <h2 class="section-title">{{.T.allTitle}}</h2>
+      <p class="section-sub">{{.T.allLead}}</p>
+      <div class="all-grid">
+        {{range .Modules}}
+        <article class="all-card">
+          <div class="all-head"><span class="all-ico" aria-hidden="true">{{.Icon}}</span><h3>{{.Title}}</h3></div>
+          <p class="lead">{{.Detail}}</p>
+          <ul>{{range .Points}}<li>{{.}}</li>{{end}}</ul>
+        </article>
+        {{end}}
       </div>
     </section>
 
@@ -336,39 +364,134 @@ const sitePrivacyBody = `<main>
   </div>
 </main>`
 
+// siteCompanyBody is the XAMLtech company home, served on the company domain.
+// It reuses the POS.Go light system (same hero, section, feature and step
+// primitives) so both sites read as one brand, but it talks about the studio —
+// what it builds and how it works — and links out to the two product domains
+// instead of into the API.
+const siteCompanyBody = `<main>
+  <div class="container">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="pill">{{.T.companyPill}}</span>
+        <h1 class="hero-title">{{.T.companyHeroTitle}}</h1>
+        <p class="hero-lead">{{.T.companyHeroLead}}</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="{{.POSURL}}">{{.T.companyCtaProduct}}</a>
+          <a class="btn btn-ghost" href="mailto:{{.T.contact}}">{{.T.companyCtaContact}}</a>
+        </div>
+        <div class="stats">
+          <span class="s"><b>{{.T.companyStat1}}</b><small>{{.T.companyStat1L}}</small></span>
+          <span class="s"><b>{{.T.companyStat2}}</b><small>{{.T.companyStat2L}}</small></span>
+          <span class="s"><b>{{.T.companyStat3}}</b><small>{{.T.companyStat3L}}</small></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="work" class="section">
+      <span class="section-label">{{.T.companySecWork}}</span>
+      <h2 class="section-title">{{.T.companyWorkTitle}}</h2>
+      <p class="section-sub">{{.T.companyWorkLead}}</p>
+      <div class="feature-grid">
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a15 15 0 0 1 18 0"/><path d="M7.5 13a9 9 0 0 1 9 0"/><circle cx="12" cy="17.5" r="0.8" fill="currentColor"/><path d="M4 4l16 16"/></svg>
+          <h3>{{.T.companyWork1t}}</h3><p>{{.T.companyWork1d}}</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2.2"/><path d="M3 9h18M9 9v12"/></svg>
+          <h3>{{.T.companyWork2t}}</h3><p>{{.T.companyWork2d}}</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 20.5S8.5 15.6 7 11.2a5.1 5.1 0 0 1 9-4.1 5.1 5.1 0 0 1 9 4.1c-1.5 4.4-8 9.3-8 9.3z"/><path d="M12 12v9M12 12l6.6-3.6M12 12l-6.6-3.6"/></svg>
+          <h3>{{.T.companyWork3t}}</h3><p>{{.T.companyWork3d}}</p>
+        </div>
+      </div>
+      <p class="section-note"><a href="{{.POSURL}}">{{.T.companyWorkLink}}</a></p>
+    </section>
+
+    <section id="approach" class="section">
+      <span class="section-label">{{.T.companySecApproach}}</span>
+      <h2 class="section-title">{{.T.companyApproachTitle}}</h2>
+      <p class="section-sub">{{.T.companyApproachLead}}</p>
+      <ol class="steps">
+        <li><span class="step-num" aria-hidden="true">1</span><div><h3>{{.T.companyApp1t}}</h3><p>{{.T.companyApp1d}}</p></div></li>
+        <li><span class="step-num" aria-hidden="true">2</span><div><h3>{{.T.companyApp2t}}</h3><p>{{.T.companyApp2d}}</p></div></li>
+        <li><span class="step-num" aria-hidden="true">3</span><div><h3>{{.T.companyApp3t}}</h3><p>{{.T.companyApp3d}}</p></div></li>
+      </ol>
+    </section>
+
+    <section id="contact" class="section">
+      <span class="section-label">{{.T.companySecStart}}</span>
+      <h2 class="section-title">{{.T.companyStartTitle}}</h2>
+      <p class="section-sub">{{.T.companyStartLead}}</p>
+      <div class="plans">
+        <div class="plan featured">
+          <span class="plan-tag">{{.T.companyStartTag}}</span>
+          <h3>{{.T.companyStart1t}}</h3>
+          <p class="desc">{{.T.companyStart1d}}</p>
+          <ul><li>{{.T.companyStart1a}}</li><li>{{.T.companyStart1b}}</li></ul>
+          <div class="fill"><a class="btn btn-primary btn-block" href="{{.POSURL}}">{{.T.companyStart1cta}}</a></div>
+        </div>
+        <div class="plan">
+          <h3>{{.T.companyStart2t}}</h3>
+          <p class="desc">{{.T.companyStart2d}}</p>
+          <ul><li>{{.T.companyStart2a}}</li><li>{{.T.companyStart2b}}</li></ul>
+          <div class="fill"><a class="btn btn-ghost btn-block" href="mailto:{{.T.contact}}">{{.T.companyStart2cta}}</a></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>`
+
 const siteFoot = `<footer class="site-footer">
   <div class="footer container">
     <div class="footer-brand">
-      <b>{{.T.brand}} <small>{{.T.brandSub}}</small></b>
-      <p>{{.T.footerTag}}</p>
+      <b>{{if eq .Page "company"}}{{.T.companyName}}{{else}}{{.T.brand}}{{end}} <small>{{if eq .Page "company"}}{{.T.companyBrandSub}}{{else}}{{.T.brandSub}}{{end}}</small></b>
+      <p>{{if eq .Page "company"}}{{.T.companyFooterTag}}{{else}}{{.T.footerTag}}{{end}}</p>
     </div>
     <div class="footer-links" aria-label="{{.T.navLabel}}">
+      {{if eq .Page "company"}}
+      <a href="/#work">{{.T.companyNavWork}}</a>
+      <a href="/#approach">{{.T.companyNavApproach}}</a>
+      <a href="/#contact">{{.T.companySecStart}}</a>
+      <a href="/private">{{.T.navPrivacy}}</a>
+      {{else}}
       <a href="/#features">{{.T.navFeatures}}</a>
+      <a href="/#all">{{.T.navAll}}</a>
+      <a href="/#gallery">{{.T.navGallery}}</a>
       <a href="/#copilot">{{.T.navCopilot}}</a>
       <a href="/#verticals">{{.T.navVerticals}}</a>
       <a href="/#how">{{.T.secHow}}</a>
       <a href="/#faq">{{.T.secFAQ}}</a>
+      {{end}}
     </div>
     <div class="footer-links">
+      {{if eq .Page "company"}}
+      <a href="{{.POSURL}}">{{.T.companyNavProduct}}</a>
+      <a href="{{.SaaSURL}}/admin/">{{.T.companyNavConsole}}</a>
+      <a href="/private">{{.T.navPrivacy}}</a>
+      {{else}}
       <a href="/pricing">{{.T.navPricing}}</a>
       <a href="/private">{{.T.navPrivacy}}</a>
-      <a href="/admin/">{{.T.navAdmin}}</a>
+      <a href="{{.SaaSURL}}/admin/">{{.T.navAdmin}}</a>
+      {{end}}
       <a href="mailto:{{.T.contact}}">{{.T.contact}}</a>
     </div>
     <div class="footer-links">
       <a href="https://play.google.com/store/apps/details?id=com.xamltech.pos_go" target="_blank" rel="noopener">{{.T.storePlay}}</a>
-      <a href="/apk/pos_go.apk">{{.T.downloadApk}}</a>
+      <a href="{{if eq .Page "company"}}{{.POSURL}}{{end}}/apk/pos_go.apk">{{.T.downloadApk}}</a>
     </div>
     <div class="footer-text">
       <span>© {{.Year}} XAMLtech · {{.T.footerRights}}</span>
+      <span><a class="footer-tiny" href="{{.SaaSURL}}/admin/">{{.T.footerSaas}}</a></span>
     </div>
   </div>
 </footer>
 </body>
 </html>`
 
-// siteTemplates holds the three public pages keyed by their renderSite page
-// name. sitePlansGrid is shared by the index + pricing bodies above.
+// siteTemplates holds the public pages keyed by their renderSite page name.
+// sitePlansGrid is shared by the index + pricing bodies above.
 var siteTemplates = parseSiteTemplates()
 
 func parseSiteTemplates() *template.Template {
@@ -377,6 +500,7 @@ func parseSiteTemplates() *template.Template {
 		"index":   siteHead + siteIndexBody + siteFoot,
 		"pricing": siteHead + sitePricingBody + siteFoot,
 		"privacy": siteHead + sitePrivacyBody + siteFoot,
+		"company": siteHead + siteCompanyBody + siteFoot,
 	} {
 		template.Must(t.New(name).Parse(src))
 	}

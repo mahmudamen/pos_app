@@ -31,13 +31,31 @@ Let's Encrypt cert installed + auto-renewed.
 
 See `docs/19_RELEASE_NOTES.md`.
 
-## ~~Pending — requires YOU (DNS)~~ DONE
+## DNS and TLS
+
+The stack now publishes three hostnames from one container
+(`posgo.xamltech.com`, `api.xamltech.com`, `xamltech.com`), each with its own
+certificate, and the API enforces the split itself on the `Host` header. The
+Cloudflare procedure for the POS surface — DNS record, proxy status, SSL mode,
+the rules that break a native client, origin rollout, verification and rollback
+— is in **`docs/25_CLOUDFLARE_POSGO.md`**.
+
+Stale items from the single-hostname era, kept only as history:
 
 1. ~~Add DNS `A` record: `api.xamltech.com → 197.44.6.42`~~ ✅ Done (Cloudflare)
-2. ~~`certbot --nginx -d api.xamltech.com`~~ ✅ Done — Let's Encrypt cert
-   installed, auto-renewal configured; HSTS max-age set to 2 years by the Go
-   SecurityHeaders middleware; nginx adds no duplicate security headers.
-3. (Recommended) Stop root password login — add your personal SSH public key to
+2. ~~`certbot --nginx -d api.xamltech.com`~~ Superseded — TLS is now terminated
+   by the `pos-prod-caddy` container, which provisions and renews certificates
+   for all three hostnames from `caddy_data`. HSTS and the other security
+   headers still come only from the Go `SecurityHeaders` middleware.
+3. ~~Harden the client IP~~ ✅ Done in the app. `server.Register` now calls
+   `engine.SetTrustedProxies` with loopback + the private container network +
+   Cloudflare's published edge ranges (`TRUSTED_PROXIES` overrides), so
+   `X-Forwarded-For` is walked right-to-left and the client-controlled leftmost
+   entry is discarded. Regression-tested in
+   `internal/transport/http/clientip_test.go`; see section 4 of
+   `docs/25_CLOUDFLARE_POSGO.md`. Nothing to do at deploy time beyond shipping
+   the build.
+4. (Recommended) Stop root password login — add your personal SSH public key to
    `/root/.ssh/authorized_keys`, then:
    ```
    sed -i 's/^PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config

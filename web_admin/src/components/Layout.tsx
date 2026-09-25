@@ -21,6 +21,7 @@ const STORE_NAV: NavItem[] = [
   { to: '/purchases', label: 'Purchases', end: false },
   { to: '/inventory', label: 'Inventory', end: false },
   { to: '/subscription', label: 'Subscription', end: false },
+  { to: '/community', label: 'Community', end: false },
 ]
 
 const CASHIER_NAV: NavItem[] = STORE_NAV.filter(

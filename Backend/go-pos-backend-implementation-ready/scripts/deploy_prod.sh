@@ -90,7 +90,7 @@ if ! docker compose --env-file .env.prod -f deployments/docker/docker-compose.pr
   mkdir -p /tmp/pos-swap
   cat > /tmp/pos-swap/Dockerfile.swap <<'SWAP'
 FROM pos-api:latest AS base
-FROM golang:1.23-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download

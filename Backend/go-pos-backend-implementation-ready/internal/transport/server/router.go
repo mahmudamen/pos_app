@@ -64,6 +64,16 @@ func Register(engine *gin.Engine, d Deps) {
 		logger = slog.Default()
 	}
 
+	// Trust only the hops that can append X-Forwarded-For, so the per-IP rate
+	// limiters cannot be reset by a caller-supplied header. Applied here so the
+	// API, the OpenAPI generator and the tests all get the same engine policy.
+	trusted := d.Config.TrustedProxyCIDRs
+	if len(trusted) == 0 {
+		trusted = config.DefaultTrustedProxies()
+	}
+	httptransport.LogTrustedProxies(logger, trusted,
+		httptransport.ConfigureTrustedProxies(engine, trusted))
+
 	if d.Metrics != nil {
 		engine.Use(d.Metrics.Middleware())
 	}
@@ -74,6 +84,7 @@ func Register(engine *gin.Engine, d Deps) {
 		httptransport.RequestLogger(logger),
 		httptransport.Recovery(logger),
 		httptransport.MaxBodySize(d.Config.HTTPMaxBodyBytes),
+		httptransport.SurfaceRouting(d.Config.Surfaces),
 	)
 
 	if d.Metrics != nil {
@@ -95,7 +106,7 @@ func Register(engine *gin.Engine, d Deps) {
 		c.JSON(status, gin.H{"status": map[bool]string{true: "ready", false: "not_ready"}[ready()]})
 	})
 
-	registerSitePages(engine, d.Pool)
+	registerSitePages(engine, d.Pool, d.Config.Surfaces)
 
 	api := engine.Group("/v1")
 	authHandler := authtransport.NewHandler(d.Pool, d.Config)

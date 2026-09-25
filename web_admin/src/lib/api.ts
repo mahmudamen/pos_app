@@ -4,22 +4,30 @@ import type {
   BillingSummary,
   Category,
   CategoryInput,
+  Company,
+  CompanyDetail,
+  CompanyInput,
+  CompanyMember,
   DashboardSummary,
   InventoryAdjustment,
   InventoryAdjustmentInput,
   Invoice,
   InvoiceStatus,
+  JobOffer,
   LoginResponse,
+  NationalMember,
   Page,
   Plan,
   Product,
   ProductInput,
   ProductPatch,
+  ProfileInput,
   Provider,
   Purchase,
   PurchaseInput,
   RecentInvoice,
   SaleSummary,
+  StaffProfile,
   StoreSubscription,
   StoreUser,
   StoreUserInput,
@@ -156,6 +164,41 @@ export class ApiClient {
       )
     }
     return (json as { data?: T })?.data as T
+  }
+
+  private async requestEnvelope<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const token = this.token()
+    const headers: Record<string, string> = {}
+    if (body !== undefined) {
+      headers['Content-Type'] = 'application/json'
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const res = await fetch(`${this.baseUrl}/v1${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+    const text = await res.text()
+    let json: unknown = null
+    if (text) {
+      try {
+        json = JSON.parse(text)
+      } catch {
+        json = null
+      }
+    }
+    if (!res.ok) {
+      const error = (json as { error?: { code?: string; message?: string } })
+        ?.error
+      throw new ApiError(
+        res.status,
+        error?.code ?? 'request_failed',
+        error?.message ?? `HTTP ${res.status}`,
+      )
+    }
+    return json as T
   }
 
   // ---- auth -------------------------------------------------------------
@@ -415,6 +458,156 @@ export class ApiClient {
       'POST',
       '/subscription/change-plan',
       { plan_code: planCode },
+    )
+  }
+
+  // ---- community ---------------------------------------------------------
+  listProfiles(
+    page = 1,
+    limit = 50,
+    q = '',
+    chief = false,
+  ): Promise<Page<StaffProfile>> {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (q) {
+      qs.set('q', q)
+    }
+    if (chief) {
+      qs.set('role', 'chief')
+    }
+    return this.request<Page<StaffProfile>>(
+      'GET',
+      `/community/profiles?${qs.toString()}`,
+    )
+  }
+
+  async myProfile(): Promise<StaffProfile | null> {
+    try {
+      return await this.request<StaffProfile>('GET', '/community/profiles/me')
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return null
+      }
+      throw err
+    }
+  }
+
+  upsertMyProfile(input: ProfileInput): Promise<StaffProfile> {
+    return this.request<StaffProfile>('PUT', '/community/profiles/me', input)
+  }
+
+  listCompanies(page = 1, limit = 50, q = ''): Promise<Page<Company>> {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (q) {
+      qs.set('q', q)
+    }
+    return this.request<Page<Company>>(
+      'GET',
+      `/community/companies?${qs.toString()}`,
+    )
+  }
+
+  async getCompany(id: string): Promise<CompanyDetail | null> {
+    try {
+      const json = await this.requestEnvelope<{
+        data?: Company
+        members?: CompanyMember[]
+      }>('GET', `/community/companies/${id}`)
+      if (!json.data) {
+        return null
+      }
+      return { company: json.data, members: json.members ?? [] }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return null
+      }
+      throw err
+    }
+  }
+
+  createCompany(input: CompanyInput): Promise<{ id: string }> {
+    return this.request<{ id: string }>('POST', '/community/companies', input)
+  }
+
+  addCompanyMember(
+    companyId: string,
+    input: { user_id: string; role?: string; title?: string },
+  ): Promise<{ id: string }> {
+    return this.request<{ id: string }>(
+      'POST',
+      `/community/companies/${companyId}/members`,
+      input,
+    )
+  }
+
+  listJobs(
+    page = 1,
+    limit = 50,
+    q = '',
+    type = '',
+    mine = false,
+  ): Promise<Page<JobOffer>> {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (q) {
+      qs.set('q', q)
+    }
+    if (type) {
+      qs.set('type', type)
+    }
+    if (mine) {
+      qs.set('mine', 'true')
+    }
+    return this.request<Page<JobOffer>>(
+      'GET',
+      `/community/jobs?${qs.toString()}`,
+    )
+  }
+
+  applyJob(id: string): Promise<{ id: string }> {
+    return this.request<{ id: string }>(
+      'POST',
+      `/community/jobs/${id}/apply`,
+      {},
+    )
+  }
+
+  async nationalMe(): Promise<NationalMember | null> {
+    try {
+      return await this.request<NationalMember>('GET', '/community/me')
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        return null
+      }
+      throw err
+    }
+  }
+
+  nationalJoin(code: string): Promise<NationalMember> {
+    return this.request<NationalMember>('POST', '/community/join', {
+      code,
+    })
+  }
+
+  listNationalMembers(
+    page = 1,
+    limit = 20,
+    q = '',
+    level = '',
+    role = '',
+  ): Promise<Page<NationalMember>> {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (q) {
+      qs.set('q', q)
+    }
+    if (level) {
+      qs.set('level', level)
+    }
+    if (role) {
+      qs.set('role', role)
+    }
+    return this.request<Page<NationalMember>>(
+      'GET',
+      `/community/members?${qs.toString()}`,
     )
   }
 }

@@ -37,8 +37,8 @@ export function LoginPage() {
       <form className="login-card card" onSubmit={onSubmit}>
         <div className="login-brand">
           <span className="brand-mark">P</span>
-          <h1>POS.Go Admin</h1>
-          <p>Subscriptions, plans &amp; billing control plane</p>
+          <h1>Sign in</h1>
+          <p>Your store, community &amp; console</p>
         </div>
         <ErrorBanner error={error} />
         <label>
@@ -47,7 +47,7 @@ export function LoginPage() {
             type="text"
             required
             value={tenant}
-            placeholder="platform tenant uuid"
+            placeholder="tenant id or slug"
             onChange={(e) => setTenant(e.target.value)}
           />
         </label>
@@ -74,6 +74,10 @@ export function LoginPage() {
         <button type="submit" className="btn primary" disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
+        <p className="login-foot">
+          Store staff and community members sign in here. POS.Go routes you to
+          your store console or the community automatically.
+        </p>
       </form>
     </div>
   )

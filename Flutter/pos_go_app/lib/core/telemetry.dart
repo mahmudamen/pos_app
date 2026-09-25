@@ -16,7 +16,7 @@ class Telemetry {
   static final Telemetry instance = Telemetry._();
 
   /// Build identifier reported with every event; keep in sync with pubspec.
-  static const String buildVersion = '0.2.0+2';
+  static const String buildVersion = '1.0.0+3';
 
   ApiClient? _api;
   Session? _session;

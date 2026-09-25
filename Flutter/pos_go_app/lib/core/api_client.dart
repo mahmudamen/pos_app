@@ -29,8 +29,20 @@ class ApiClient {
 
   final http.Client _client;
   final Future<void> Function(Session session)? onSessionRefreshed;
+
+  /// The store API. Production serves it on its own hostname; the console
+  /// domain refuses these paths (and refuses store accounts at sign-in).
   final String baseUrl = const String.fromEnvironment(
     'API_BASE_URL',
+    defaultValue: 'https://posgo.xamltech.com',
+  );
+
+  /// The control plane lives on the console domain. A build that ships the
+  /// platform console points this at the same host as [baseUrl]; the default
+  /// keeps `/v1/saas` and `/v1/platform` off the POS domain even when a
+  /// developer overrides `API_BASE_URL` for a local backend.
+  final String saasBaseUrl = const String.fromEnvironment(
+    'SAAS_API_BASE_URL',
     defaultValue: 'https://api.xamltech.com',
   );
 
@@ -450,7 +462,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/saas/summary'),
+        Uri.parse('$saasBaseUrl/v1/saas/summary'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -473,7 +485,7 @@ class ApiClient {
     String? status,
     bool includeInternal = false,
   }) async {
-    final uri = Uri.parse('$baseUrl/v1/saas/tenants').replace(
+    final uri = Uri.parse('$saasBaseUrl/v1/saas/tenants').replace(
       queryParameters: {
         'page': '$page',
         'limit': '$limit',
@@ -536,7 +548,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/analytics'),
+        Uri.parse('$saasBaseUrl/v1/saas/tenants/$tenantId/analytics'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -554,7 +566,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/saas/billing/summary'),
+        Uri.parse('$saasBaseUrl/v1/saas/billing/summary'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -572,7 +584,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/saas/plans'),
+        Uri.parse('$saasBaseUrl/v1/saas/plans'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -591,7 +603,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/saas/payment-providers'),
+        Uri.parse('$saasBaseUrl/v1/saas/payment-providers'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -612,7 +624,7 @@ class ApiClient {
     int page = 1,
     int limit = 50,
   }) async {
-    final uri = Uri.parse('$baseUrl/v1/saas/subscriptions').replace(
+    final uri = Uri.parse('$saasBaseUrl/v1/saas/subscriptions').replace(
       queryParameters: {
         'page': '$page',
         'limit': '$limit',
@@ -639,7 +651,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/subscription'),
+        Uri.parse('$saasBaseUrl/v1/saas/tenants/$tenantId/subscription'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -663,7 +675,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/subscription'),
+        Uri.parse('$saasBaseUrl/v1/saas/tenants/$tenantId/subscription'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -691,7 +703,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/subscriptions/$subscriptionId/status'),
+        Uri.parse('$saasBaseUrl/v1/saas/subscriptions/$subscriptionId/status'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -715,7 +727,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/subscriptions/$subscriptionId/change-plan'),
+        Uri.parse('$saasBaseUrl/v1/saas/subscriptions/$subscriptionId/change-plan'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -737,7 +749,7 @@ class ApiClient {
     int page = 1,
     int limit = 50,
   }) async {
-    final uri = Uri.parse('$baseUrl/v1/saas/invoices').replace(
+    final uri = Uri.parse('$saasBaseUrl/v1/saas/invoices').replace(
       queryParameters: {
         'page': '$page',
         'limit': '$limit',
@@ -779,7 +791,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/invoices'),
+        Uri.parse('$saasBaseUrl/v1/saas/tenants/$tenantId/invoices'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -811,7 +823,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/invoices/$invoiceId/pay'),
+        Uri.parse('$saasBaseUrl/v1/saas/invoices/$invoiceId/pay'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -836,7 +848,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/invoices/$invoiceId/void'),
+        Uri.parse('$saasBaseUrl/v1/saas/invoices/$invoiceId/void'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -859,7 +871,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/invoices/$invoiceId/refund'),
+        Uri.parse('$saasBaseUrl/v1/saas/invoices/$invoiceId/refund'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -881,7 +893,7 @@ class ApiClient {
     int page = 1,
     int limit = 50,
   }) async {
-    final uri = Uri.parse('$baseUrl/v1/saas/users').replace(
+    final uri = Uri.parse('$saasBaseUrl/v1/saas/users').replace(
       queryParameters: {
         'page': '$page',
         'limit': '$limit',
@@ -922,7 +934,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/saas/tenants/$tenantId/users'),
+        Uri.parse('$saasBaseUrl/v1/saas/tenants/$tenantId/users'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -968,7 +980,7 @@ class ApiClient {
       session,
       (accessToken) => _client.get(
         Uri.parse(
-            '$baseUrl/v1/platform/trial/entitlements?limit=$limit&offset=$offset'),
+            '$saasBaseUrl/v1/platform/trial/entitlements?limit=$limit&offset=$offset'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -994,7 +1006,7 @@ class ApiClient {
       session,
       (accessToken) => _client.post(
         Uri.parse(
-            '$baseUrl/v1/platform/trial/entitlements/$entitlementId/$action'),
+            '$saasBaseUrl/v1/platform/trial/entitlements/$entitlementId/$action'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1020,7 +1032,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/platform/audit?limit=$limit&offset=$offset'),
+        Uri.parse('$saasBaseUrl/v1/platform/audit?limit=$limit&offset=$offset'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1038,7 +1050,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.get(
-        Uri.parse('$baseUrl/v1/platform/trial/settings'),
+        Uri.parse('$saasBaseUrl/v1/platform/trial/settings'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -1059,7 +1071,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.put(
-        Uri.parse('$baseUrl/v1/platform/trial/settings'),
+        Uri.parse('$saasBaseUrl/v1/platform/trial/settings'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1083,7 +1095,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/suspend'),
+        Uri.parse('$saasBaseUrl/v1/platform/tenants/$tenantId/suspend'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1106,7 +1118,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/activate'),
+        Uri.parse('$saasBaseUrl/v1/platform/tenants/$tenantId/activate'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1131,7 +1143,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/stop'),
+        Uri.parse('$saasBaseUrl/v1/platform/tenants/$tenantId/stop'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1157,7 +1169,7 @@ class ApiClient {
     final response = await _authenticatedRequest(
       session,
       (accessToken) => _client.post(
-        Uri.parse('$baseUrl/v1/platform/tenants/$tenantId/backup'),
+        Uri.parse('$saasBaseUrl/v1/platform/tenants/$tenantId/backup'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -2687,6 +2699,10 @@ class ApiException implements Exception {
   final String? code;
 
   bool get isTrialExpired => code == 'trial_expired';
+
+  /// The account is valid but belongs to the other public surface: platform
+  /// operators sign in on the console domain, store staff on the POS domain.
+  bool get isWrongSurface => code == 'wrong_surface';
 
   @override
   String toString() => message;

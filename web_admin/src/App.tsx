@@ -17,6 +17,11 @@ import { StoreProductsPage } from './pages/store/StoreProductsPage'
 import { StorePurchasesPage } from './pages/store/StorePurchasesPage'
 import { StoreSalesPage } from './pages/store/StoreSalesPage'
 import { StoreSubscriptionPage } from './pages/store/StoreSubscriptionPage'
+import { CommunityHubPage } from './pages/community/CommunityHubPage'
+import { CommunityProfilesPage } from './pages/community/CommunityProfilesPage'
+import { CommunityCompaniesPage } from './pages/community/CommunityCompaniesPage'
+import { CommunityJobsPage } from './pages/community/CommunityJobsPage'
+import { CommunityNationalPage } from './pages/community/CommunityNationalPage'
 
 function Guard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -57,6 +62,11 @@ function AppRoutes() {
         )}
         <Route path="sales" element={<StoreSalesPage />} />
         <Route path="inventory" element={<StoreInventoryPage />} />
+        <Route path="community" element={<CommunityHubPage />} />
+        <Route path="community/profiles" element={<CommunityProfilesPage />} />
+        <Route path="community/companies" element={<CommunityCompaniesPage />} />
+        <Route path="community/jobs" element={<CommunityJobsPage />} />
+        <Route path="community/national" element={<CommunityNationalPage />} />
       </Route>
     </Routes>
   )

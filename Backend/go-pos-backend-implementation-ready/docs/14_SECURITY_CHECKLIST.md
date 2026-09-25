@@ -68,6 +68,16 @@ target host before go-live.
       impractical; session cap `MAX_SESSIONS_PER_USER` set to a low value.
       Evidence: `/auth/login` is wrapped in `LoginRateLimitWith`; config
       requires `LOGIN_RATE_MAX >= 1` and `MAX_SESSIONS_PER_USER >= 1`.
+- [x] Every per-IP limiter keys off a client IP the caller cannot forge.
+      Gin's default trusted-proxy list accepts the leftmost `X-Forwarded-For`
+      entry, which the caller writes, so a spoofed header would hand out a
+      fresh login/SaaS/registration/join bucket per request.
+      Evidence: `server.Register` calls `ConfigureTrustedProxies` with
+      loopback + private ranges + Cloudflare's published edge CIDRs
+      (`internal/config/clientip.go`); `TRUSTED_PROXIES` overrides and
+      `0.0.0.0/0` / `::/0` are rejected at startup by `config.Load`.
+      `TestLoginRateLimitCannotBeResetByASpoofedHeader` and
+      `TestClientIPIgnoresASpoofedLeftmostEntry` pin the behaviour.
 - [x] RLS FORCE is active on all tenant tables (verified by the
       DB-010 integration test: cross-tenant reads are denied/filtered).
       Evidence: migrations `FORCE ROW LEVEL SECURITY`; `TestRLSIsolatesTenants`
@@ -138,6 +148,6 @@ target host before go-live.
       `make integration-test`.
 - [x] OS patched; container image pulled from a pinned digest; non-root user
       in the image (see `Dockerfile`). Evidence: both stages pin
-      `golang:1.23-alpine` / `alpine:3.20` by `@sha256:` digest, the runtime
+      `golang:1.26-alpine` / `alpine:3.20` by `@sha256:` digest, the runtime
       runs `USER pos-api`, and the prod compose pins postgres/redis/caddy by
       digest. *Deploy step:* confirm the host OS itself is patched.

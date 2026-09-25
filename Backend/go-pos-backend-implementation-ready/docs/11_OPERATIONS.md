@@ -57,7 +57,7 @@ files changed), build just the binary offline by reusing the cached layers:
 # on the VPS, in the repo checkout:
 cat > /tmp/Dockerfile.swap <<'EOF'
 # syntax=docker/dockerfile:1
-FROM golang:1.23-alpine@sha256:383395b794dffa5b53012a212365d40c8e37109a626ca30d6151c8348d380b5f AS build
+FROM golang:1.26-alpine@sha256:8ac98ca534ac3f51e1f420a1dd2c15e74c75cfa0f23f3ad27eb5d7236c349a0c AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download          # cache hit → no network
@@ -85,7 +85,7 @@ Notes:
 
 ### Fresh Ubuntu VPS (first boot)
 
-One-shot provisioner: installs Docker+Compose v2, Go 1.23, python3, `psql`, ufw,
+One-shot provisioner: installs Docker+Compose v2, Go 1.26, python3, `psql`, ufw,
 clones `POS_BRANCH`, generates `.env.prod` (random JWT + DB secrets), starts the
 whole production stack and health-checks it. Idempotent.
 
@@ -101,6 +101,45 @@ POS_REPO_URL=https://github.com/<you>/pos.git POS_BRANCH=backend-deploy \
 After that: set a real `SITE_DOMAIN` in `.env.prod` if not provided, confirm
 `/health/ready` (needs Redis — the stack runs it), schedule
 `scripts/backup.sh` on cron (`0 3 * * * ...`), and verify a restore once (below).
+
+### Three public domains (surface routing)
+
+Production publishes three hostnames from the same API container, and the API
+enforces the split itself (`SURFACE_ROUTING_ENABLED=true`):
+
+| `Host` | Served |
+|---|---|
+| `xamltech.com` | company site (`/`, `/pricing`, `/private`). Every `/v1/*` is 404. |
+| `api.xamltech.com` | `/v1/auth/*`, `/v1/meta/*`, `/v1/saas/*`, `/v1/platform/*`, `/admin/` static app, `/` → `/admin/`. Sign-in requires `saas_admin`. |
+| `posgo.xamltech.com` | `/v1/*` store API (except the control plane), landing, `/selforder`, `/sw.js`, `/apk`. Sign-in rejects `saas_admin`. |
+
+Operational consequences:
+
+- Point all three DNS A/AAAA records at the same host and keep
+  `SURFACE_ROUTING_ENABLED=true` in `.env.prod`; the Caddyfile serves each
+  hostname separately and the app re-checks the `Host` header, so an upstream
+  that forwards the wrong vhost cannot leak a surface.
+- `unknown_host` (404) means a request arrived on a hostname that is none of the
+  three — usually a stale vhost or a typo in DNS. Loopback and the Compose
+  service names bypass the check, so `/health/*` and the container-to-container
+  hop keep working.
+- `not_available_on_host` (404) means the client called a path belonging to
+  another surface: a POS build pointed at `api.`, or the console pointed at
+  `posgo.`. Fix the client's `API_BASE_URL`, not the server.
+- `wrong_surface` (403) is a credentials problem, not a routing one: the account
+  exists but belongs to the other audience. Store staff sign in on
+  `posgo.`, platform operators on `api.`.
+- Keep the routing flag `false` for a single-domain deployment (a staging box with
+  one hostname), otherwise every host must be listed.
+
+Hosts that terminate TLS with nginx use
+`deployments/nginx/xamltech_surfaces.conf.example` (the containerized stack uses
+`deployments/caddy/Caddyfile`). Both are examples: nothing here touches a live
+server, and the vhosts still need real certificates and a real ACME location.
+
+Publishing `posgo.xamltech.com` through Cloudflare (DNS record, proxy status,
+SSL mode, the edge rules that break a native POS client, origin rollout,
+verification, rollback): `docs/25_CLOUDFLARE_POSGO.md`.
 
 See `scripts/provision_vps.sh` for the full env-var switches (`SKIP_*` etc.).
 

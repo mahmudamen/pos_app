@@ -1,16 +1,13 @@
 package server
 
-import (
-	_ "embed"
-	"encoding/base64"
-)
+import _ "embed"
 
 // Real on-device product screenshots, downscaled from the Flutter screenshot
 // tour (1080x2400 -> 600px wide, lossless PNG) and embedded into the binary.
-// The landing gallery renders all of them side by side so visitors see the
-// actual app screens, not a drawing. Inlining as data URIs keeps the pages
-// offline by construction (no extra routes for the OpenAPI generator, nothing
-// for nginx to proxy).
+// The landing gallery renders all of them side by side — framed in phone
+// mockups — so visitors see the actual app screens, not a drawing. The images
+// are served from the /screenshots/:name route (long-lived cache headers) so
+// the HTML stays light instead of inlining the PNGs as base64 data URIs.
 var (
 	//go:embed assets/gal1.png
 	gal1Png []byte
@@ -31,24 +28,31 @@ var (
 )
 
 // galleryAssets lists every embedded screenshot in gallery order. The caption
-// key maps into the per-language site strings (site_strings.go / _ar).
+// key maps into the per-language site strings (site_strings.go / _ar); Name is
+// the URL segment served by /screenshots/:name.
 var galleryAssets = []struct {
 	Key    string
+	Name   string
 	Png    []byte
 	Width  int
 	Height int
 }{
-	{"galCheckout", gal1Png, 600, 1334},
-	{"galCart", gal2Png, 600, 1334},
-	{"galDash", gal3Png, 600, 1334},
-	{"galSales", gal4Png, 600, 1334},
-	{"galCustomers", gal5Png, 600, 1334},
-	{"galSessions", gal6Png, 600, 1334},
-	{"galCommunity", gal7Png, 600, 1334},
-	{"galNational", gal8Png, 600, 1334},
+	{"galCheckout", "checkout", gal1Png, 600, 1334},
+	{"galCart", "cart", gal2Png, 600, 1334},
+	{"galDash", "dashboard", gal3Png, 600, 1334},
+	{"galSales", "sales", gal4Png, 600, 1334},
+	{"galCustomers", "customers", gal5Png, 600, 1334},
+	{"galSessions", "sessions", gal6Png, 600, 1334},
+	{"galCommunity", "community", gal7Png, 600, 1334},
+	{"galNational", "national", gal8Png, 600, 1334},
 }
 
-// assetPNGDataURI base64-encodes a PNG for inline <img src="data:image/png;base64,...">.
-func assetPNGDataURI(png []byte) string {
-	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(png)
+// screenshotByName returns the embedded PNG for a /screenshots/:name segment.
+func screenshotByName(name string) ([]byte, bool) {
+	for _, a := range galleryAssets {
+		if a.Name == name {
+			return a.Png, true
+		}
+	}
+	return nil, false
 }

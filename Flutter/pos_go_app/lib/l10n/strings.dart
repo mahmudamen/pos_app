@@ -125,6 +125,9 @@ class AppStrings {
   String get trialExpired => isArabic
       ? 'انتهت الفترة التجريبية لمتجرك. جدد الاشتراك للمتابعة.'
       : 'Your store trial has ended. Renew to continue.';
+  String get wrongSurfaceLogin => isArabic
+      ? 'هذا حساب إدارة المنصة. سجّل الدخول من لوحة التحكم على api.xamltech.com'
+      : 'This is a platform console account. Sign in at api.xamltech.com';
   String get continueLabel => isArabic ? 'متابعة' : 'Continue';
   String get skipLabel => isArabic ? 'لاحقًا' : 'Skip';
   String get interestTitle =>

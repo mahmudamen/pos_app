@@ -11,7 +11,7 @@ import '../../l10n/strings.dart';
 import '../settings/font_picker_sheet.dart';
 import '../settings/theme_picker_sheet.dart';
 
-const String _privacyPolicyUrl = 'https://api.xamltech.com/private';
+const String _privacyPolicyUrl = 'https://xamltech.com/private';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen(
@@ -191,7 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
         final s = AppStrings.of(context);
         setState(() => _error = (error is ApiException && error.isTrialExpired)
             ? s.trialExpired
-            : error.toString());
+            : error is ApiException && error.isWrongSurface
+                ? s.wrongSurfaceLogin
+                : error.toString());
       }
     } finally {
       if (mounted) setState(() => _loading = false);
