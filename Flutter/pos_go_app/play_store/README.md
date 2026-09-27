@@ -139,6 +139,32 @@ Still open:
    `1ad661b0-38ad-461e-a2ca-d25e321b528e`, plan `trial`) — stop or delete it
    once the device test is done.
 
+## Verified on 2026-09-27 (before the first upload)
+
+The reviewer flow was driven end to end against production over
+`https://posgo.xamltech.com`, with `curl` standing in for the app:
+
+| Step | Endpoint | Result |
+|---|---|---|
+| Create a trial store | `POST /v1/auth/register` | 201 — 10 seeded products, owner user, `access_level: admin`, trial active for 13 days |
+| Sign in | `POST /v1/auth/login` | 200 — the tenant id from sign-up is the login `tenant_id` |
+| Open the till | `POST /v1/registers/open` | 201 — 500.00 EGP opening float |
+| Ring up a sale | `POST /v1/sales` | 201 — 16.00 EGP cash, stock decremented |
+| Receipt | `GET /v1/sales/:id/receipt` | 200 JSON |
+| Thermal print | `GET /v1/sales/:id/receipt/print` | 200 `application/vnd.escpos`, 617 bytes of real ESC/POS |
+| Close the till | `POST /v1/registers/:id/close` | 200 — expected 516.00, counted 500.00, difference −16.00 (the uncounted cash sale) |
+
+So a Play reviewer who installs the app and signs up gets a working store
+immediately, with no credentials to hand out — which is what the App access
+answer claims.
+
+The release artifacts were re-verified after that change: both signed with the
+uploaded key `6B:3C:FE:…:EB`, `zipalign -P 16` clean on the APK **and** the AAB,
+every `.so` `LOAD` segment aligned to 16 KB, permissions limited to `INTERNET`
++ `WAKE_LOCK` (plus Flutter's own receiver permission), and the three baked URLs
+(`posgo.xamltech.com`, `posgo.xamltech.com/private`, `api.xamltech.com` for the
+SaaS panel) identical in all three ABIs with no stale apex privacy URL.
+
 ## Limits enforced by `tool/check_store_listing.py`
 
 | Asset | Requirement |
