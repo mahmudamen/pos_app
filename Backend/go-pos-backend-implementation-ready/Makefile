@@ -56,3 +56,7 @@ openapi: ## Regenerate docs/openapi.json from the Gin route table
 	go run ./cmd/openapi
 
 check: fmt vet test
+
+## verify-prod: smoke-test both production hosts from the outside edge (needs network)
+verify-prod:
+	@bash scripts/verify_prod.sh

@@ -52,6 +52,25 @@ data-deletion request page Google Play requires for apps that can create an
 account. Because nginx proxies everything except `/admin/`, `/apk/` and
 `/.well-known/`, adding a page requires only a Go deploy — no nginx change.
 
+## Post-deploy verification
+
+`scripts/verify_prod.sh` smoke-tests both production hosts from the outside
+edge: `/health/live`, the landing, `/pricing`, `/private`, `/delete-account`,
+the console SPA, `/v1/meta/countries`, and a real `POST /v1/auth/login` against
+`posgo.xamltech.com` and `api.xamltech.com`. It exits non-zero on the first
+failure, so it works as a deploy gate:
+
+```bash
+# on the VPS
+curl -fsSL -o /usr/local/bin/pos-verify.sh \
+  https://raw.githubusercontent.com/<org>/<repo>/main/Backend/go-pos-backend-implementation-ready/scripts/verify_prod.sh
+bash /usr/local/bin/pos-verify.sh
+```
+
+It needs no database, no SSH and no secrets — the login it performs uses the
+public `demo-book-store` tenant. Run it after every `compose up -d api` and
+after any nginx reload or certificate change.
+
 ## Deployment
 
 1. Build immutable application artifact.
