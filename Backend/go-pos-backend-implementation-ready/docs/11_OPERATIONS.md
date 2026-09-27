@@ -52,6 +52,16 @@ data-deletion request page Google Play requires for apps that can create an
 account. Because nginx proxies everything except `/admin/`, `/apk/` and
 `/.well-known/`, adding a page requires only a Go deploy — no nginx change.
 
+`GET /google79d5199d984f63af.html` is also public: the Search Console
+HTML-file ownership token, embedded verbatim from
+`internal/transport/server/assets/` and served byte-for-byte (Google compares
+the body exactly — no template, no trailing newline) on every public surface,
+since which domain the property is verified against is chosen in the Search
+Console UI. It is live on `posgo.xamltech.com` and `api.xamltech.com`.
+**`xamltech.com` is not covered** — the apex domain is a separate Cloudflare
+Pages site, so verification against it must be done with a DNS TXT record or by
+adding the file to the Pages deployment, not through this app.
+
 ## Post-deploy verification
 
 `scripts/verify_prod.sh` smoke-tests both production hosts from the outside

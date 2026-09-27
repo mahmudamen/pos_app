@@ -235,6 +235,16 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 	engine.GET("/delete-account", func(c *gin.Context) {
 		renderSite(c, "delete", nil, origins)
 	})
+	// Search Console ownership verification. Served verbatim from the embedded
+	// file (Google compares the body byte for byte) on every public surface, and
+	// deliberately cacheable for a day so a re-crawl is cheap but an edit still
+	// propagates quickly. No auth, no DB, no template.
+	engine.GET(googleSiteVerificationPath, func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=86400")
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Header("X-Robots-Tag", "noindex")
+		_, _ = c.Writer.Write(googleSiteVerification)
+	})
 	// The landing gallery screenshots, served as static PNGs with long-lived
 	// cache headers so the HTML stays light and repeat visits are instant.
 	engine.GET("/screenshots/:name", func(c *gin.Context) {

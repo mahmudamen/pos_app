@@ -654,3 +654,29 @@ func TestRegisterHonoursATrustedProxyOverride(t *testing.T) {
 		t.Fatalf("ClientIP() = %q, want the untrusted edge hop 104.16.0.1", got)
 	}
 }
+
+func TestGoogleSiteVerificationServedVerbatim(t *testing.T) {
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/google79d5199d984f63af.html", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("verification file = %d, want 200", rec.Code)
+	}
+	// Search Console matches the body byte for byte: no template, no added
+	// markup, no trailing newline.
+	const want = "google-site-verification: google79d5199d984f63af.html"
+	if got := rec.Body.String(); got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "text/html") {
+		t.Errorf("Content-Type = %q, want text/html", ct)
+	}
+	if cc := rec.Header().Get("Cache-Control"); !strings.Contains(cc, "max-age") {
+		t.Errorf("Cache-Control = %q, want a max-age so re-crawls are cheap", cc)
+	}
+	if tag := rec.Header().Get("X-Robots-Tag"); tag != "noindex" {
+		t.Errorf("X-Robots-Tag = %q, want noindex", tag)
+	}
+}

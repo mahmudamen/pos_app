@@ -101,6 +101,7 @@ func surfaceEngine(t *testing.T, routing config.SurfaceRouting) *gin.Engine {
 	engine.GET("/private", echo)
 	engine.GET("/selforder", echo)
 	engine.GET("/screenshots/hero", echo)
+	engine.GET(googleVerifyPath, echo)
 	return engine
 }
 
@@ -284,5 +285,21 @@ func TestAbortRoleNotOnSurfaceMessagesPerHost(t *testing.T) {
 		if !strings.Contains(body, "wrong_surface") || !strings.Contains(body, c.want) {
 			t.Errorf("surface %q: body = %s, want code wrong_surface and %q", c.surface, body, c.want)
 		}
+	}
+}
+
+func TestGoogleVerificationPublishedOnEverySurface(t *testing.T) {
+	engine := surfaceEngine(t, testRouting())
+	for _, host := range []string{
+		config.DefaultCompanyDomain, config.DefaultPOSDomain, config.DefaultSaaSDomain,
+	} {
+		rec := call(t, engine, host, http.MethodGet, googleVerifyPath)
+		if rec.Code != http.StatusOK {
+			t.Errorf("%s %s = %d, want 200", host, googleVerifyPath, rec.Code)
+		}
+	}
+	// A near-miss token must not be published — the route is the exact file.
+	if rec := call(t, engine, config.DefaultPOSDomain, http.MethodGet, "/google.html"); rec.Code != http.StatusNotFound {
+		t.Errorf("/google.html = %d, want 404", rec.Code)
 	}
 }

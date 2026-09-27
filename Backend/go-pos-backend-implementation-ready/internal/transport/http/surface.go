@@ -20,6 +20,12 @@ var sharedRoutes = []string{
 	"/v1/auth/logout",
 }
 
+// googleVerifyPath is the Search Console HTML-file verification token, published
+// on all three surfaces (see publicRoutes). It lives here as a literal because
+// the gate is the http package and the served bytes are the server package's
+// concern; the two are kept in step by TestGoogleVerificationPublishedOnEverySurface.
+const googleVerifyPath = "/google79d5199d984f63af.html"
+
 // RequiredSurface is the only surface a path may be served on, or
 // config.SurfaceUnknown when the path is shared (or not a gated API path).
 func RequiredSurface(path string) config.Surface {
@@ -50,10 +56,15 @@ func under(path, prefix string) bool {
 // is a brochure plus legal pages, the POS domain adds the self-order and
 // install pages, and the console domain publishes nothing but its redirect to
 // the admin single-page app.
+//
+// The Search Console verification file is on every surface: it is an inert
+// 53-byte ownership token, and which domain the property is verified against is
+// chosen in the Search Console UI, so gating it per host would only make
+// verification fail on the domain that happens to be submitted.
 var publicRoutes = map[config.Surface][]string{
-	config.SurfaceCompany: {"/", "/pricing", "/private", "/screenshots", "/delete-account"},
-	config.SurfacePOS:     {"/", "/pricing", "/private", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account"},
-	config.SurfaceSaaS:    {"/"},
+	config.SurfaceCompany: {"/", "/pricing", "/private", "/screenshots", "/delete-account", googleVerifyPath},
+	config.SurfacePOS:     {"/", "/pricing", "/private", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account", googleVerifyPath},
+	config.SurfaceSaaS:    {"/", googleVerifyPath},
 }
 
 // ServesAPI reports whether an API path is published on the surface. The company

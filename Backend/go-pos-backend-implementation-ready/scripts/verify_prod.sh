@@ -40,6 +40,24 @@ ok_url "$base/"
 ok_url "$base/private"
 ok_url "$base/pricing"
 ok_url "$base/delete-account"
+
+# Search Console fetches the ownership token and compares the body byte for
+# byte, so a 200 with the wrong bytes is still a failure. Checked on both hosts
+# because either can be the verified domain.
+verify_token() {
+  local h="$1"
+  local want='google-site-verification: google79d5199d984f63af.html'
+  local got
+  got=$(curl -sS -m 20 "https://${h}.xamltech.com/google79d5199d984f63af.html" || echo "")
+  if [[ "$got" == "$want" ]]; then
+    say "OK  200  ${h}.xamltech.com/google79d5199d984f63af.html (exact)"
+  else
+    say "ERR      ${h}.xamltech.com/google79d5199d984f63af.html body mismatch: $got"
+    exit 1
+  fi
+}
+verify_token posgo
+verify_token api
 ok_url "$api/health/live"
 ok_url "$api/admin/"
 ok_url "$api/v1/meta/countries"

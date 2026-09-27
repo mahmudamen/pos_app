@@ -56,3 +56,18 @@ func screenshotByName(name string) ([]byte, bool) {
 	}
 	return nil, false
 }
+
+// Google Search Console HTML-file ownership verification. Google fetches
+// /google79d5199d984f63af.html over HTTP(S) and matches the body byte for byte,
+// so the file is embedded and served verbatim — no template, no added markup
+// and no trailing newline. It answers on every public surface because the
+// property can be verified against the POS domain, the console domain or the
+// company domain, and which one is submitted is decided in the Search Console
+// UI rather than here.
+var (
+	//go:embed assets/google79d5199d984f63af.html
+	googleSiteVerification []byte
+)
+
+// googleSiteVerificationPath is the exact path Search Console requests.
+const googleSiteVerificationPath = "/google79d5199d984f63af.html"

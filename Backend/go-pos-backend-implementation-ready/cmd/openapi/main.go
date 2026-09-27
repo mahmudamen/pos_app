@@ -204,9 +204,18 @@ func requiredSecurity(path string) []map[string][]string {
 		strings.HasPrefix(path, "/metrics") ||
 		strings.HasPrefix(path, "/v1/meta/") ||
 		strings.HasPrefix(path, "/v1/selforder/") ||
+		strings.HasPrefix(path, "/screenshots/") ||
 		path == "/v1/auth/login" ||
 		path == "/selforder" ||
 		path == "/sw.js"
+	// The site pages rendered by the Go app (registerSitePages) plus the
+	// Search Console verification file are all served without auth, and the
+	// surface gate in internal/transport/http publishes them on every public
+	// host. Anything else needs a Bearer token.
+	switch path {
+	case "/", "/pricing", "/private", "/delete-account", "/google79d5199d984f63af.html":
+		return nil
+	}
 	if public {
 		return nil
 	}

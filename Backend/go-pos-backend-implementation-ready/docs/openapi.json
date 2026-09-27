@@ -54,11 +54,6 @@
           ""
         ],
         "operationId": "Get",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -79,11 +74,26 @@
           "delete-account"
         ],
         "operationId": "GetDelete-account",
-        "security": [
-          {
-            "bearerAuth": []
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
           }
+        }
+      }
+    },
+    "/google79d5199d984f63af.html": {
+      "get": {
+        "tags": [
+          "google79d5199d984f63af.html"
         ],
+        "operationId": "GetGoogle79d5199d984f63af.html",
         "responses": {
           "default": {
             "content": {
@@ -144,11 +154,6 @@
           "pricing"
         ],
         "operationId": "GetPricing",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -169,11 +174,6 @@
           "private"
         ],
         "operationId": "GetPrivate",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "default": {
             "content": {
@@ -194,11 +194,6 @@
           ":name"
         ],
         "operationId": "GetScreenshotsName",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "responses": {
           "default": {
             "content": {
