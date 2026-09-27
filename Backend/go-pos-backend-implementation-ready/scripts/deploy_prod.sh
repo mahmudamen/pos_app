@@ -16,6 +16,9 @@
 #      offline reusing cached layers, per AGENTS.md)
 #   4. rebuild + restart the api service, wait for /health/ready
 #   5. smoke-test the new /v1/purchases + /v1/purchases/ocr/* endpoints
+#   6. run scripts/verify_prod.sh from the VPS — the public-host gate (both
+#      nginx vhosts, TLS, the HTML pages, and a real login). Non-zero exits
+#      the deploy as failed.
 #
 # Idempotency: every remote step is guarded by DO-blocks / retries; safe to
 # re-invoke. The VPS network route is intermittently flaky (documented) so the
@@ -69,7 +72,8 @@ sshx() {
 }
 
 # ---------------------------------------------------------------------------
-log "== 1/5 rsync worktree → $SSH_TARGET"
+# ---------------------------------------------------------------------------
+log "== 1/6 rsync worktree → $SSH_TARGET"
 rsync -azh --delete \
   --exclude '.git' --exclude '.gitignore' \
   --exclude '.env*' --exclude '*.env' \
@@ -77,10 +81,10 @@ rsync -azh --delete \
   -e "ssh $SSH_BASE_ARGS" \
   "$ROOT/" "$SSH_TARGET:$DEPLOY_DIR/" || die "rsync failed (flaky route — re-run)"
 
-log "== 2/5 apply prod grants (idempotent DO-blocks, covers 035/036 tables)"
+log "== 2/6 apply prod grants (idempotent DO-blocks, covers 035/036 tables)"
 sshx "cd $DEPLOY_DIR && docker compose --env-file .env.prod -f $COMPOSE_REL exec -T postgres sh -c 'psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 -f /app/scripts/grants_prod.sql' 2>&1 || echo GRANTS_FALLBACK_PSQL; echo grants_done"
 
-log "== 3/5 rebuild migrate image (035/036 baked) + run goose up"
+log "== 3/6 rebuild migrate image (035/036 baked) + run goose up"
 REMOTE_MIGRATE=$(cat <<'REMOTE'
 set -e
 cd /opt/pos/Backend/go-pos-backend-implementation-ready
@@ -111,10 +115,23 @@ REMOTE
 )
 sshx "$REMOTE_MIGRATE"
 
-log "== 4/5 rebuild + restart api, wait for ready"
+log "== 4/6 rebuild + restart api, wait for ready"
 sshx "cd $DEPLOY_DIR && docker compose --env-file .env.prod -f $COMPOSE_REL up -d --build api 2>&1 && for i in \$(seq 1 30); do if curl -sf \"http://127.0.0.1:8080/health/ready\" >/dev/null 2>&1; then echo API_READY; break; fi; sleep 2; done"
 
-log "== 5/5 smoke the new OCR/purchases endpoints"
+log "== 5/6 smoke the new OCR/purchases endpoints"
 sshx "cd $DEPLOY_DIR && curl -sf http://127.0.0.1:8080/health/ready && echo && curl -s -o /dev/null -w 'purchases_status=%{http_code}\n' http://127.0.0.1:8080/v1/purchases/ocr/usage 2>&1; echo SMOKE_DONE"
+
+# Step 6 is the public gate: run from the VPS so the request path is
+# Cloudflare -> nginx -> Go, i.e. the same one a real client uses. The internal
+# smoke above only proves 127.0.0.1:8080 answers; this proves DNS, TLS and both
+# vhosts are intact. Fails the deploy on the first failed check.
+log "== 6/6 public-host verification (scripts/verify_prod.sh from the VPS)"
+# Deliberately NOT sshx: a non-zero exit here means "the app is unhealthy",
+# not "the VPS is unreachable", and retrying an unhealthy app just delays the
+# signal. Run it once and fail loudly.
+if ! ssh $SSH_BASE_ARGS "$SSH_TARGET" "bash $DEPLOY_DIR/scripts/verify_prod.sh"; then
+  die "public verification failed — the deploy is NOT healthy (see output above)"
+fi
+log "   public hosts verified (both vhosts, TLS, HTML pages, login)"
 
 log "== ✅ deploy complete. Run the Flutter OCR E2E against https://api.xamltech.com next."

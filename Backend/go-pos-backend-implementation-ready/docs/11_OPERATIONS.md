@@ -71,6 +71,24 @@ It needs no database, no SSH and no secrets — the login it performs uses the
 public `demo-book-store` tenant. Run it after every `compose up -d api` and
 after any nginx reload or certificate change.
 
+`scripts/deploy_prod.sh` does it for you: it is **step 6/6** and a failure
+aborts the deploy with `FATAL: public verification failed`, so a deploy can
+never report success while DNS, TLS or a vhost is broken. It is a plain `ssh`,
+not the retrying `sshx` helper, because a non-zero exit means "unhealthy app",
+not "unreachable VPS" — retrying only delays the signal.
+
+```bash
+# full deploy from the dev box — step 6 runs the gate automatically
+SSH_TARGET=root@197.44.6.42 scripts/deploy_prod.sh
+
+# nginx or cert change, no Go rebuild
+ssh root@197.44.6.42 'nginx -t && systemctl reload nginx && pos-verify.sh'
+```
+
+If you deployed by hand (rsync + `compose up -d api`), run the gate yourself
+before calling it done — locally on the dev box with `make verify-prod`, or on
+the box with `pos-verify.sh`.
+
 ## Deployment
 
 1. Build immutable application artifact.
