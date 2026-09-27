@@ -2,7 +2,7 @@
 
 Package: `com.xamltech.pos_go` · Version 1.0.0 (code 3) · Category: Business
 Contact: support@xamltech.com · Website: https://xamltech.com
-Privacy policy: https://xamltech.com/private
+Privacy policy: https://posgo.xamltech.com/private
 
 Every field below is delimited by `field:` markers so
 `tool/check_store_listing.py` can enforce the Play Console limits. Do not
@@ -83,7 +83,7 @@ BUILT FOR EGYPT
 • VAT-aware profit reporting and an Egyptian community for staff and shop owners
 
 Support: support@xamltech.com
-Privacy: https://xamltech.com/private
+Privacy: https://posgo.xamltech.com/private
 <!-- /field -->
 
 ## Release notes for 1.0.0 (max 500)

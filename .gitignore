@@ -28,8 +28,15 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Release signing material and store-upload credentials (never commit)
+# Release signing material and store-upload credentials (never commit).
+# .secrets/ holds the live upload key and the offsite-backup drop folders.
+# Back up pos-go-release.jks + credentials.txt into .secrets/play/offsite/ and
+# copy that folder somewhere durable and private — nothing under .secrets/ is
+# ever tracked, by design: a lost upload key is unrecoverable once Play App
+# Signing is enrolled except through Google's key-reset request.
 .secrets/
 Flutter/pos_go_app/android/key.properties
 *.jks
 *.keystore
+*.p12
+*.pfx

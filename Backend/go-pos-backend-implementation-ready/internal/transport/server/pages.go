@@ -229,6 +229,12 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 	engine.GET("/private", func(c *gin.Context) {
 		renderSite(c, "privacy", nil, origins)
 	})
+	// Public data-deletion request page. Google Play requires a self-service
+	// deletion path for apps that can create an account, and "Create store" on
+	// the sign-in screen provisions a trial tenant.
+	engine.GET("/delete-account", func(c *gin.Context) {
+		renderSite(c, "delete", nil, origins)
+	})
 	// The landing gallery screenshots, served as static PNGs with long-lived
 	// cache headers so the HTML stays light and repeat visits are instant.
 	engine.GET("/screenshots/:name", func(c *gin.Context) {

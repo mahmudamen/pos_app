@@ -78,7 +78,7 @@ rsync -azh --delete \
   "$ROOT/" "$SSH_TARGET:$DEPLOY_DIR/" || die "rsync failed (flaky route — re-run)"
 
 log "== 2/5 apply prod grants (idempotent DO-blocks, covers 035/036 tables)"
-sshx "cd $DEPLOY_DIR && docker compose --env-file .env.prod -f $COMPOSE_REL exec -T postgres psql -U postgres -d pos -v ON_ERROR_STOP=1 -f /app/scripts/grants_prod.sql 2>&1 || echo GRANTS_FALLBACK_PSQL; echo grants_done"
+sshx "cd $DEPLOY_DIR && docker compose --env-file .env.prod -f $COMPOSE_REL exec -T postgres sh -c 'psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -v ON_ERROR_STOP=1 -f /app/scripts/grants_prod.sql' 2>&1 || echo GRANTS_FALLBACK_PSQL; echo grants_done"
 
 log "== 3/5 rebuild migrate image (035/036 baked) + run goose up"
 REMOTE_MIGRATE=$(cat <<'REMOTE'
@@ -90,7 +90,7 @@ if ! docker compose --env-file .env.prod -f deployments/docker/docker-compose.pr
   mkdir -p /tmp/pos-swap
   cat > /tmp/pos-swap/Dockerfile.swap <<'SWAP'
 FROM pos-api:latest AS base
-FROM golang:1.26-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download

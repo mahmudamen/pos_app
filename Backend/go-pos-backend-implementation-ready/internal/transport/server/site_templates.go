@@ -16,15 +16,15 @@ const siteHead = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="color-scheme" content="light"/>
 <meta name="theme-color" content="#f7f9fb"/>
-<meta name="robots" content="{{if eq .Page "privacy"}}noindex{{else}}index, follow{{end}}"/>
-<meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta name="robots" content="{{if or (eq .Page "privacy") (eq .Page "delete")}}noindex{{else}}index, follow{{end}}"/>
+<meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
 <meta property="og:site_name" content="{{if eq .Page "company"}}{{.T.companyName}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else if eq .Page "company"}}{{.T.companyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
-<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else if eq .Page "delete"}}{{.T.deleteTitle}}{{else if eq .Page "company"}}{{.T.companyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
+<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
 <meta property="og:locale" content="{{if eq .Lang "ar"}}ar_EG{{else}}en_GB{{end}}"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect x='4' y='4' width='88' height='88' rx='22' fill='%230f2233' stroke='%2322c55e' stroke-width='4'/%3E%3Ctext x='48' y='68' text-anchor='middle' font-family='Verdana' font-size='52' font-weight='700' fill='%2322c55e'%3EP%3C/text%3E%3C/svg%3E"/>
-<title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else if eq .Page "company"}}{{.T.companyName}} — {{.T.companyTagline}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
+<title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else if eq .Page "delete"}}{{.T.deleteTitle}} — {{.T.brand}}{{else if eq .Page "company"}}{{.T.companyName}} — {{.T.companyTagline}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
 <style>` + siteCSS + `</style>
 </head>
 <body>
@@ -359,7 +359,37 @@ const sitePrivacyBody = `<main>
       <h2>{{.T.s6t}}</h2><p>{{.T.s6b}}</p>
       <h2>{{.T.s7t}}</h2><p>{{.T.s7b}}</p>
       <h2>{{.T.s8t}}</h2><p>{{.T.s8b}}</p>
-      <p class="section-note"><a href="/">{{.T.privacyBack}}</a></p>
+      <p class="section-note"><a href="/delete-account">{{.T.privacyDeleteLink}}</a></p>
+    <p class="section-note"><a href="/">{{.T.privacyBack}}</a></p>
+    </section>
+  </div>
+</main>`
+
+// siteDeleteBody is the public data-deletion request page. Google Play requires
+// a self-service deletion path for any app that can create an account, and the
+// app can: "Create store" on the sign-in screen provisions a trial tenant. The
+// page states the email channel, exactly what is removed, what the law makes us
+// keep, and the turnaround.
+const siteDeleteBody = `<main>
+  <div class="container">
+    <div class="page-head">
+      <span class="section-label">{{.T.deleteLabel}}</span>
+      <h1 class="page-title">{{.T.deleteTitle}}</h1>
+      <p class="section-sub">{{.T.deleteUpdated}}</p>
+    </div>
+    <section class="section prose">
+      <p>{{.T.deleteIntro}}</p>
+      <h2>{{.T.d1t}}</h2>
+      <p>{{.T.d1b}}</p>
+      <ul><li>{{.T.d1a}}</li><li>{{.T.d1b2}}</li></ul>
+      <h2>{{.T.d2t}}</h2>
+      <ul><li>{{.T.d2a}}</li><li>{{.T.d2b}}</li><li>{{.T.d2c}}</li><li>{{.T.d2d}}</li></ul>
+      <h2>{{.T.d3t}}</h2><p>{{.T.d3b}}</p>
+      <h2>{{.T.d4t}}</h2><p>{{.T.d4b}}</p>
+      <h2>{{.T.d5t}}</h2><p>{{.T.d5b}}</p>
+      <h2>{{.T.d6t}}</h2><p>{{.T.d6b}}</p>
+      <p class="section-note"><a href="/private">{{.T.deletePrivacyLink}}</a></p>
+      <p class="section-note"><a href="/">{{.T.deleteBack}}</a></p>
     </section>
   </div>
 </main>`
@@ -500,6 +530,7 @@ func parseSiteTemplates() *template.Template {
 		"index":   siteHead + siteIndexBody + siteFoot,
 		"pricing": siteHead + sitePricingBody + siteFoot,
 		"privacy": siteHead + sitePrivacyBody + siteFoot,
+		"delete":  siteHead + siteDeleteBody + siteFoot,
 		"company": siteHead + siteCompanyBody + siteFoot,
 	} {
 		template.Must(t.New(name).Parse(src))

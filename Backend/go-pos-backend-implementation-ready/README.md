@@ -4,7 +4,7 @@ This repository is the implementation baseline for a multi-tenant Go POS SaaS ba
 
 ## Stack
 
-- Go 1.26+
+- Go 1.27+
 - Gin HTTP API
 - PostgreSQL 16
 - Redis 7

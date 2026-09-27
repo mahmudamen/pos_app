@@ -1,9 +1,16 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- The INTERNET permission is required for development. Specifically,
          the Flutter tool needs it to communicate with the running application
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug builds may talk to a cleartext backend (http://10.0.2.2:8080 in
+         local development). The main manifest sets usesCleartextTraffic="false"
+         so release builds fail closed, so the override has to be declared
+         explicitly or the manifest merger rejects the build.
+    -->
     <application
-        android:usesCleartextTraffic="true" />
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic" />
 </manifest>

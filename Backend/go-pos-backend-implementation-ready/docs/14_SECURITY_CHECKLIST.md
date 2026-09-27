@@ -148,6 +148,6 @@ target host before go-live.
       `make integration-test`.
 - [x] OS patched; container image pulled from a pinned digest; non-root user
       in the image (see `Dockerfile`). Evidence: both stages pin
-      `golang:1.26-alpine` / `alpine:3.20` by `@sha256:` digest, the runtime
+      `golang:1.27-alpine` / `alpine:3.20` by `@sha256:` digest, the runtime
       runs `USER pos-api`, and the prod compose pins postgres/redis/caddy by
       digest. *Deploy step:* confirm the host OS itself is patched.

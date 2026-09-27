@@ -51,8 +51,8 @@ func under(path, prefix string) bool {
 // install pages, and the console domain publishes nothing but its redirect to
 // the admin single-page app.
 var publicRoutes = map[config.Surface][]string{
-	config.SurfaceCompany: {"/", "/pricing", "/private", "/screenshots"},
-	config.SurfacePOS:     {"/", "/pricing", "/private", "/screenshots", "/selforder", "/sw.js", "/apk"},
+	config.SurfaceCompany: {"/", "/pricing", "/private", "/screenshots", "/delete-account"},
+	config.SurfacePOS:     {"/", "/pricing", "/private", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account"},
 	config.SurfaceSaaS:    {"/"},
 }
 

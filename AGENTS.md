@@ -6,7 +6,7 @@ Workspace for a POS (point-of-sale) SaaS: a Go/Gin backend plus a Flutter client
 
 Do not edit anything outside these three paths:
 
-- `Backend/go-pos-backend-implementation-ready/` — the Go backend (module `github.com/example/pos-api`, Go 1.26). This is the active backend.
+- `Backend/go-pos-backend-implementation-ready/` — the Go backend (module `github.com/example/pos-api`, Go 1.27 / toolchain go1.27.1, digest-pinned `golang:1.27-alpine` build stage). This is the active backend.
 - `Flutter/pos_go_app/` — the Flutter client for that backend. Intentionally has **no Firebase**; uses plain `http`, `sqflite`, `flutter_secure_storage`.
 - `Backend/backend_spec_go.md`, `Flutter/flutter_pos_spec.md`, `Flutter/skills_tasks_spec.md` — design specs.
 

@@ -2,7 +2,7 @@
 
 Package: `com.xamltech.pos_go` · الإصدار 1.0.0 (الرمز 3) · الفئة: الأعمال
 البريد: support@xamltech.com · الموقع: https://xamltech.com
-سياسة الخصوصية: https://xamltech.com/private
+سياسة الخصوصية: https://posgo.xamltech.com/private
 
 ## اسم التطبيق (30 حرفًا كحد أقصى)
 
@@ -75,7 +75,7 @@ POS Go: نقطة بيع تعمل أوفلاين
 • تقارير ربح مدركة للضريبة، ومجتمع مصري للموظفين وأصحاب المحلات
 
 الدعم: support@xamltech.com
-الخصوصية: https://xamltech.com/private
+الخصوصية: https://posgo.xamltech.com/private
 <!-- /field -->
 
 ## ملاحظات الإصدار للإصدار 1.0.0 (500 حرف كحد أقصى)

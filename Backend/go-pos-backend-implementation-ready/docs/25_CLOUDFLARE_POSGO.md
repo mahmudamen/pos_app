@@ -4,8 +4,13 @@ Step-by-step for putting the POS.Go surface behind Cloudflare DNS and TLS. The
 goal is a hostname that an Android till can trust without warnings, that serves
 the store API, and that cannot be used to reach the control plane.
 
-Everything here is a procedure, not a description of a finished state: nothing
-in this file has been executed. Run it top to bottom.
+> **Status (2026-09-27).** The DNS record from step 2 is live (grey cloud, A
+> only) and the origin serves the name: TLS terminates in **host nginx**, not in
+> the `caddy` container — see `deployments/nginx/posgo.xamltech.conf`, which is
+> the file installed on the VPS, and "The edge is host nginx" in
+> `docs/11_OPERATIONS.md`. Steps 3 and 4 are decisions you still have to make in
+> the Cloudflare dashboard (turning on the orange cloud changes them); step 5's
+> Caddy commands do not apply to this host, use the nginx file instead.
 
 - [1. Prerequisites](#1-prerequisites)
 - [2. The DNS record](#2-the-dns-record)
@@ -164,65 +169,59 @@ treat the login limiter as advisory only.
 
 ## 5. Origin side: make the server serve the hostname
 
-Do this **while the record is still grey-cloud**, so Caddy can solve the ACME
+Do this **while the record is still grey-cloud**, so the edge can solve the ACME
 challenge.
+
+**On the production VPS the edge is host nginx** (only `postgres`, `redis`,
+`migrate` and `api` run there), so the Caddy steps below do not apply. Use the
+committed vhost instead:
 
 ```bash
 ssh -o BatchMode=yes -i ~/.ssh/id_ed25519 root@197.44.6.42
 cd /opt/pos/Backend/go-pos-backend-implementation-ready
+
+install -m 644 deployments/nginx/posgo.xamltech.conf \
+    /etc/nginx/sites-available/posgo.xamltech.conf
+ln -sfn /etc/nginx/sites-available/posgo.xamltech.conf \
+    /etc/nginx/sites-enabled/posgo.xamltech.conf
 ```
 
-1. The three hostnames must be in `.env.prod`:
+Order matters, because `nginx -t` fails while the certificate files are absent:
 
-   ```bash
-   grep -E '^(COMPANY_DOMAIN|SAAS_DOMAIN|POS_DOMAIN)=' .env.prod
-   # COMPANY_DOMAIN=xamltech.com
-   # SAAS_DOMAIN=api.xamltech.com
-   # POS_DOMAIN=posgo.xamltech.com
-   ```
+1. Enable only the port-80 block (ACME path + 301 to https), then
+   `nginx -t && systemctl reload nginx`.
+2. `certbot certonly --nginx -d posgo.xamltech.com`.
+3. Enable the 443 block and reload again.
+4. `ls -la /var/www/apk/pos_go.apk` — the APK the landing links to has to be
+   physically present.
+5. `certbot renew --cert-name posgo.xamltech.com --dry-run` to prove renewal.
 
-   If `POS_DOMAIN` is missing, add it. The Caddy container and the API both
-   read it.
+The API reads these keys from `.env.prod`:
 
-2. Surface routing must be on, or the API will not enforce the split:
+```bash
+grep -E '^(COMPANY_DOMAIN|SAAS_DOMAIN|POS_DOMAIN)=' .env.prod
+# COMPANY_DOMAIN=xamltech.com
+# SAAS_DOMAIN=api.xamltech.com
+# POS_DOMAIN=posgo.xamltech.com
+```
 
-   ```bash
-   grep SURFACE_ROUTING_ENABLED .env.prod     # true
-   ```
+They are currently at their compose defaults and surface routing is **off**
+(`SURFACE_ROUTING_ENABLED=false`), so the host serves the same routes as
+`api.xamltech.com`. That is enough for the Android client; turning routing on
+(`/v1/saas/*`, `/v1/platform/*` and `/admin/` move off this hostname) is a
+separate change with its own check — see step 3 of this document and
+`docs/11_OPERATIONS.md` → "Three public domains".
 
-   With it off, `posgo.xamltech.com` would happily serve the control plane too.
+If you do run the containerised edge instead (`deployments/caddy/Caddyfile`):
 
-3. Bring up the edge and the API:
+```bash
+docker compose --env-file .env.prod -f deployments/docker/docker-compose.prod.yml \
+  up -d --build caddy api
+```
 
-   ```bash
-   docker compose --env-file .env.prod -f deployments/docker/docker-compose.prod.yml \
-     up -d --build caddy api
-   ```
-
-   `caddy_data` persists the certificates, so this only has to happen once.
-   Caddy obtains certificates for all three hostnames on start; a failure here
-   means port 80 is blocked or the record still resolves to Cloudflare.
-
-4. Watch the issuance instead of guessing:
-
-   ```bash
-   docker logs -f pos-prod-caddy | grep -iE "certificate|obtain|error"
-   ```
-
-   Look for `certificate obtained successfully` for `posgo.xamltech.com`.
-
-5. `/apk/*` is served from a bind mount rather than the API, so the installer
-   file has to be physically present, and its name has to match the one the
-   landing page links to:
-
-   ```bash
-   ls -la deployments/caddy/web/posgo/            # Caddy serves this directory
-   grep -o '/apk/[^"]*' deployments/caddy/web/posgo/index.html
-   ```
-
-   The Go template links `/apk/pos_go.apk`; copy the freshly built APK there
-   under that name, or update both together. A missing file gives a 404 on the
-   download button, which is the most visible thing on the landing page.
+`caddy_data` persists the certificates, so this only has to happen once.
+Caddy obtains certificates for all three hostnames on start; a failure here
+means port 80 is blocked or the record still resolves to Cloudflare.
 
 ## 6. Verify end to end
 

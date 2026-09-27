@@ -171,6 +171,35 @@ func TestPrivacyServesPublicPolicyPage(t *testing.T) {
 			t.Errorf("privacy body missing %q", want)
 		}
 	}
+	if !strings.Contains(body, `href="/delete-account"`) {
+		t.Error("privacy page must link to the deletion request page")
+	}
+}
+
+// Google Play requires a public deletion path for any app that can create an
+// account, and the sign-in screen can provision a trial tenant.
+func TestDeleteAccountServesPublicDeletionPage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/delete-account", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "text/html; charset=utf-8" {
+		t.Fatalf("Content-Type = %q, want text/html", rec.Header().Get("Content-Type"))
+	}
+	body := rec.Body.String()
+	for _, want := range []string{
+		"Delete your POS.Go data", "support@xamltech.com",
+		"Store ID", "thirty days", `href="/private"`, `content="noindex"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("deletion body missing %q", want)
+		}
+	}
 }
 
 func TestPricingServesFallbackPlansWithoutDatabase(t *testing.T) {
@@ -305,7 +334,7 @@ func TestSitePagesServeArabicRTL(t *testing.T) {
 	engine := gin.New()
 	server.Register(engine, server.Deps{Config: config.Config{}})
 
-	for _, path := range []string{"/", "/pricing", "/private"} {
+	for _, path := range []string{"/", "/pricing", "/private", "/delete-account"} {
 		req := httptest.NewRequest(http.MethodGet, path+"?lang=ar", nil)
 		rec := httptest.NewRecorder()
 		engine.ServeHTTP(rec, req)
@@ -454,8 +483,9 @@ func TestSurfaceKeepsPricingAndPrivacyOnTheProductAndCompanyDomains(t *testing.T
 	engine := surfaceEngine(t)
 	for _, host := range []string{config.DefaultCompanyDomain, config.DefaultPOSDomain} {
 		for path, want := range map[string][]string{
-			"/pricing": {"Simple pricing", "Starter", "/private"},
-			"/private": {"Privacy Policy", "support@xamltech.com"},
+			"/pricing":        {"Simple pricing", "Starter", "/private"},
+			"/private":        {"Privacy Policy", "support@xamltech.com"},
+			"/delete-account": {"Delete your POS.Go data", "support@xamltech.com"},
 		} {
 			rec := hostGet(t, engine, host, path)
 			if rec.Code != http.StatusOK {

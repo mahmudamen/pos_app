@@ -73,6 +73,31 @@
         }
       }
     },
+    "/delete-account": {
+      "get": {
+        "tags": [
+          "delete-account"
+        ],
+        "operationId": "GetDelete-account",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "tags": [

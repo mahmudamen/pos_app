@@ -11,7 +11,7 @@ import '../../l10n/strings.dart';
 import '../settings/font_picker_sheet.dart';
 import '../settings/theme_picker_sheet.dart';
 
-const String _privacyPolicyUrl = 'https://xamltech.com/private';
+const String _privacyPolicyUrl = 'https://posgo.xamltech.com/private';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen(

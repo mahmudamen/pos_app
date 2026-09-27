@@ -8,7 +8,7 @@
 #   1. Preflight    : root/sudo, Ubuntu/Debian, amd64/arm64, >=2 GB RAM
 #   2. Baseline     : apt packages (curl, git, ca-certificates, gnupg, ufw,
 #                     unattended-upgrades, python3+pip+venv, postgresql-client)
-#   3. Go toolchain : go1.26.x from the official tarball -> /usr/local/go
+#   3. Go toolchain : go1.27.x from the official tarball -> /usr/local/go
 #   4. Docker       : Docker Engine + Compose v2 + Buildx from the docker repo
 #   5. Firewall     : ufw allow OpenSSH/80/443; enable
 #   6. Requirements : verify docker, compose, go, python3, psql, git, openssl
@@ -36,7 +36,7 @@
 #   POS_DOMAIN     POS.Go hostname              [default: posgo.xamltech.com]
 #   SCRAPE_IP      metrics collector source IP [default: 127.0.0.1]
 #   CORS_ALLOWED   Origin allowlist for browsers [default: https://$SITE_DOMAIN]
-#   GO_VERSION     Go toolchain version        [default: 1.26.8]
+#   GO_VERSION     Go toolchain version        [default: 1.27.1]
 #   SKIP_PKGS=1    skip apt baseline package install
 #   SKIP_GO=1      skip Go toolchain install
 #   SKIP_DOCKER=1  skip Docker install
@@ -94,7 +94,7 @@ SAAS_DOMAIN="${SAAS_DOMAIN:-api.xamltech.com}"
 POS_DOMAIN="${POS_DOMAIN:-posgo.xamltech.com}"
 SCRAPE_IP="${SCRAPE_IP:-127.0.0.1}"
 CORS_ALLOWED="${CORS_ALLOWED:-https://${COMPANY_DOMAIN},https://${SAAS_DOMAIN},https://${POS_DOMAIN}}"
-GO_VERSION="${GO_VERSION:-1.26.8}"
+GO_VERSION="${GO_VERSION:-1.27.1}"
 SKIP_PKGS="${SKIP_PKGS:-0}"
 SKIP_GO="${SKIP_GO:-0}"
 SKIP_DOCKER="${SKIP_DOCKER:-0}"
