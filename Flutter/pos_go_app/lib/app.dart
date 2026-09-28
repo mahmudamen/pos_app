@@ -8,6 +8,7 @@ import 'core/fonts.dart';
 import 'core/session_store.dart';
 import 'core/storage/local_database.dart';
 import 'core/telemetry.dart';
+import 'core/push.dart';
 import 'core/theme.dart';
 import 'features/auth/login_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
@@ -46,7 +47,47 @@ class _PosAppState extends State<PosApp> {
     );
     Telemetry.instance.configure(_apiClient);
     Telemetry.instance.install();
+    _initPush();
     _restoreSession();
+  }
+
+  /// Wires up FCM, tolerating a build with no Firebase config.
+  ///
+  /// Fire-and-forget and deliberately not awaited: push is an enhancement, and
+  /// a device that cannot register must still reach the login screen. The
+  /// status is reported to telemetry (metadata only, never the token) because
+  /// "push silently does nothing" is otherwise impossible to diagnose from a
+  /// bug report.
+  Future<void> _initPush() async {
+    try {
+      final status = await PushService.instance.initialize();
+      if (!status.isReady) {
+        Telemetry.instance.reportEvent(
+          'push_unavailable',
+          payload: {'reason': status.detail ?? status.kind.name},
+        );
+        return;
+      }
+      if (status.kind == PushStatusKind.needsPermission) {
+        final granted = await PushService.instance.requestPermission();
+        Telemetry.instance.reportEvent(
+          'push_permission',
+          payload: {'granted': granted},
+        );
+        return;
+      }
+      Telemetry.instance.reportEvent(
+        'push_ready',
+        // project_id is a public identifier and is the single most useful thing
+        // to see in a bug report. The token never appears here.
+        payload: {'project_id': PushService.instance.projectId ?? ''},
+      );
+    } catch (error) {
+      Telemetry.instance.reportEvent(
+        'push_error',
+        payload: {'detail': error.toString()},
+      );
+    }
   }
 
   Future<void> _restoreSession() async {

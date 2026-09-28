@@ -12,3 +12,9 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Firebase config. Not a secret in the cryptographic sense, but it identifies
+# the Firebase project and is per-developer/project specific, so it is
+# generated locally rather than committed. Android only reads this exact path.
+google-services.json
+**/google-services.json

@@ -141,13 +141,33 @@ Still open — none of these are code problems:
    rm -f /tmp/pos-go-play-keys.zip
    ```
 
-   (`gpg` and `openssl` are both present; `age` is not installed on this box. To
-   restore: `gpg --decrypt pos-go-play-keys.zip.gpg > keys.zip && unzip keys.zip`.)
+   (`gpg` and `openssl` are both present; `age` is not installed on this box, so
+   the archive is `.gpg` and stays `.gpg`. To restore:
+   `gpg --decrypt pos-go-play-keys.zip.gpg > keys.zip && unzip keys.zip`.)
 
-   Then upload only the `.zip.age` to encrypted cloud storage and confirm the
-   checksum after restoring. The keystore's own fingerprint is
-   `d5dede31ffa1ea9488d8de7d9a039885017b34a1f61d5748393e948a0d4153e6`; the
-   **certificate** fingerprint `6B:3C:FE:…:EB` is public (it is in every APK).
+   Then upload the `pos-go-play-keys.zip.gpg` — the encrypted file only, never
+   the plaintext zip — to encrypted cloud storage or a password-manager
+   attachment, and **verify the copy you put there** by decrypting it and
+   re-running the checks in `verify_backup.sh`. A backup that has never been
+   restored is not a backup.
+
+   Three values to keep, and they are easy to confuse:
+
+   - `6B:3C:FE:…:EB` — the **signing certificate** fingerprint. Public, and it
+     is in every release APK. Verify with
+     `keytool -printcert -jarfile app-release.aab | grep SHA256`. This is the
+     only one of the three written down here.
+   - The **SHA-256 of the keystore file itself** — a `sha256sum` of the `.jks`,
+     *not* a certificate fingerprint. `keytool` will never print it, so do not
+     go looking for it in `keytool` output and conclude the key is corrupt. It
+     is recorded as `JKS_SHA256:` in `.secrets/play/credentials.txt`, which is
+     gitignored, so the value derived from a secret never lands in git history.
+   - The `sha256sum` of the `.gpg` you uploaded — a third value, and the only
+     one that proves *that particular copy* arrived intact.
+
+   `verify_backup.sh` compares all three for you, so you do not have to
+   transcribe any of them by hand.
+
    Once Play App Signing is enrolled, a lost upload key means a Google
    key-reset request — hence do this before the first upload, not after.
 4. **Confirm the Play listing state** for `com.xamltech.pos_go`: if the package

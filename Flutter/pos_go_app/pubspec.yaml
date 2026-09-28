@@ -1,7 +1,7 @@
 name: pos_go_app
 description: Offline-first POS client for the Go POS API.
 publish_to: none
-version: 1.0.0+3
+version: 1.0.0+4
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -21,6 +21,13 @@ dependencies:
   image_picker: ^1.2.3
   image: ^4.10.1
   qr_flutter: ^4.1.0
+  # Firebase. Only used for push: there is no Firestore or Firebase Auth here,
+  # the POS keeps its own JWT auth and Postgres-backed store. Every call site
+  # must go through lib/core/push.dart, which reports push as unavailable when
+  # the app has no google-services.json rather than throwing -- that keeps
+  # config-less builds (CI, fresh clones) working.
+  firebase_core: ^3.15.2
+  firebase_messaging: ^15.2.10
 
 dev_dependencies:
   flutter_test:

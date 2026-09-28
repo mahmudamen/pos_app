@@ -16,7 +16,7 @@ and land with the next deploy. The fourth is a decision, not a defect.
 |---|--------|-------|-----|
 | 1 | Invoice capture shipped in the app but **disabled on production** — `OCR_ENABLED` defaults `false` and `docker-compose.prod.yml` never forwarded it, so `POST /v1/purchases/ocr` answered `503 ocr_unavailable` behind a manager-visible button | `docker-compose.prod.yml`, `.env.prod.example` | Forward the flag **and** the metering windows, with non-zero production defaults |
 | 2 | The public site advertised a **Copilot that does not exist** — "always on", "24/7", "grounded in your store's real data" | `site_strings.go`, `site_strings_ar.go` | Rewritten to describe only what ships: on-device Tesseract, Arabic + English, human-confirmed |
-| 3 | `plans.features` **gated nothing** — serialised into SaaS responses and rendered in `/pricing`, never read by a single branch, so a sold feature had no way to say no | `internal/plans` (new), `purchases/handler.go`, migration `049` | A real entitlement check, enforced on `POST /v1/purchases/ocr` |
+| 3 | `plans.features` **gated nothing** — serialised into SaaS responses and rendered in `/pricing`, never read by a single branch, so a sold feature had no way to say no | `internal/plans` (new), `purchases/handler.go`, migrations `049` + `050` | A real entitlement check, enforced on `POST /v1/purchases/ocr` |
 | 4 | OCR **audit trail discarded** — the backend persisted `match_score` and `row_text` for exactly this purpose; the Flutter client sent `0` and `''`, and never showed the merchant a confidence score | `purchases.dart`, `ocr_review_screen.dart`, scan-line JSON | Round-trip completed; sub-60 matches now flagged in the review UI |
 
 ### Why defect 3 was not fixed the obvious way
@@ -30,7 +30,12 @@ refused a scan it has paid for, and a bug in the meter locks a shop out of
 stock-taking entirely.
 
 So migration `049` grants `ocr_capture` to **every** seeded plan and the handler
-gates on entitlement alone. If OCR becomes a price differentiator, the fix is
+gates on entitlement alone.
+
+That decision is what exposed the `050` defect, and it is worth being explicit
+about the ordering: granting rather than gating was the conservative choice, but
+gating is what turned a dangling plan code into a customer-facing 402. The
+enforcement was not wrong — the data was. If OCR becomes a price differentiator, the fix is
 one `DELETE` from `starter`/`trial` in a new migration, with no handler change.
 Recorded here because the next engineer will otherwise read the migration and
 assume it was an oversight.
@@ -64,23 +69,101 @@ existing install without it, and it does not expire. Every other line in this
 document is a day of work. This is an afternoon of work, and it is the one that
 protects all of them.
 
+Three things were wrong with the instructions as written, and each would have
+failed at the moment they were needed:
+
+1. They told you to upload a `.zip.age` file that no procedure ever creates.
+   The box has `gpg` and no `age`, so the archive is `.gpg`. Corrected
+   everywhere, including the `offsite` staging notes.
+2. The keystore **file** checksum was labelled the keystore "fingerprint". It is
+   a `sha256sum` of the `.jks`; `keytool` never prints it, so anyone comparing
+   it against certificate output would conclude the backup was corrupt. The
+   three values — certificate fingerprint (public, in every APK), keystore file
+   checksum, and archive checksum — are now named separately.
+3. Nothing ever checked the backup. A backup that has never been restored is a
+   guess.
+
+`Flutter/pos_go_app/play_store/verify_backup.sh` now exists for that last point.
+It needs no passphrase to check the live key, and with the archive it proves the
+archive decrypts to *this* keystore:
+
+```bash
+Flutter/pos_go_app/play_store/verify_backup.sh                      # local key
+GPG_PASSPHRASE='…' …/verify_backup.sh .secrets/play/offsite/pos-go-play-keys.zip.gpg
+```
+
+All paths through it are tested: correct passphrase, wrong passphrase, a
+missing archive, and the one that matters — an archive that decrypts to a
+*different* keystore, which it flags loudly rather than reporting success. The
+keystore file checksum is read from the gitignored `credentials.txt`
+(`JKS_SHA256:`) rather than hardcoded in the tracked script, so a value derived
+from a secret never enters git history.
+
+**What still cannot be done from here:** `.secrets/play/offsite/` is a copy on
+the same NVMe — same device id, different inode. It survives an accidental
+`rm`, and nothing else: not disk failure, not theft, not ransomware. One
+encrypted copy has to physically leave this machine, into storage you control.
+Until that has happened, treat this item as open.
+
 ### B3. Eight commits are unpushed
 
 `pos` is one commit ahead, `pos-go` is five. Nothing in this document is
 visible to the world until both are pushed.
 
-### B4. Migration `049` has never been applied
+### B4. Migrations `049` and `050` — `049` verified, `050` mandatory
 
-Forward-only, additive, no new tables, so **no `grants_prod.sql` change is
-needed** — it only rewrites the `plans.features` JSONB array. Run it before the
-API that reads it, and confirm with:
+Both are forward-only and additive. `049` rewrites the `plans.features` JSONB
+array; `050` inserts two catalog rows. **Neither adds a table, so neither needs
+a `grants_prod.sql` change.**
+
+`049` is **applied and verified** against a real Postgres: 36/36 plan rows now
+carry `ocr_capture`, the `Down` removes it from all 36, and a re-`up` restores
+all 36. Dedupe-guarded, so both directions are idempotent.
+
+`050` is the one that matters, and it exists because `049`'s enforcement landed
+on a latent data defect:
+
+> `tenants.plan` has defaulted to the literal `'standard'` since migration
+> `016`, but **no row with code `standard` was ever inserted into `plans`.**
+> 3,187 rows in the dev database hold it. Because features were display-only
+> until now, nothing noticed. The moment `/v1/purchases/ocr` started resolving
+> entitlements with a `LEFT JOIN` and failing closed, **every existing customer
+> would have been refused invoice capture** with a 402 that read like a genuine
+> plan gap.
+
+`050` seeds `standard` and `test` with `is_active = FALSE`, so they resolve for
+entitlements while staying off the public pricing page (which selects
+`WHERE is_active`). Verified: all 3,786 tenant plan codes now resolve, and the
+active plan set is unchanged.
+
+**Apply `050` before the API that reads it.** On a database where the only
+plans are the seeded ones, expect roughly a 3,000-row `UPDATE`. Confirm with:
 
 ```sql
-SELECT code, features FROM plans ORDER BY code;
+-- must return zero rows
+SELECT DISTINCT t.plan FROM tenants t
+  LEFT JOIN plans p ON p.code = t.plan WHERE p.code IS NULL;
+
+-- must return only sellable plans
+SELECT code FROM plans WHERE is_active ORDER BY price_minor, code;
 ```
 
-Every row should contain `ocr_capture`. A tenant whose row does not get
-`402 plan_limit_exceeded` on invoice capture.
+Three DB-backed invariants in
+`internal/transport/purchases/plan_entitlement_integration_test.go` now hold
+this in place: every tenant plan code resolves, the legacy tiers stay
+unsellable, and the default tier is entitled to invoice capture. The first was
+verified non-vacuous by deleting the `standard` row inside a rolled-back
+transaction and watching the predicate report it.
+
+### A correction to this document
+
+An earlier draft of this file said the catalog seeds "4 plans". It seeds 6
+sellable ones in the dev database — `starter`, `trial`, `tiny`, `business`,
+`enterprise`, and `cafe` — plus 30 throwaway `cafe18d…` rows from load
+testing, and `AGENTS.md` claims 21. None of those numbers is load-bearing, but
+the discrepancy is itself worth a look before launch: it suggests plan rows and
+tenant plan codes have drifted apart for a long time, which is exactly the
+condition `050` repairs.
 
 ---
 
@@ -118,7 +201,10 @@ These cannot be proven from the dev box, and each has bitten before.
 - **Surface the entitlement in the API response** so the client can say "not in
   your plan" instead of showing a raw `402`. `plans.Missing` is written and
   unused; wiring it into the error body is a few lines.
-- **Fix the AGENTS.md plan count.** It claims 21 plans; migrations seed 4.
+- **Reconcile the plan catalog with reality.** The catalog, the tenant plan
+  codes and `AGENTS.md` all disagree (see the correction below). `050` repairs
+  the dangling codes; the remaining `cafe18d…` load-test rows should be swept
+  so nobody reads a 40-row catalog as a product decision.
 - **Add `plan_limit_exceeded` to the Flutter map** so it becomes a human
   sentence rather than a status code.
 - **Reconcile the two public narratives.** The site now describes invoice

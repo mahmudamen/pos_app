@@ -69,6 +69,27 @@ android {
     }
 }
 
+// Firebase is opt-in per build so a checkout without the config still compiles.
+// Without this, adding the plugin above would break every build that has no
+// google-services.json -- including CI, which has no Firebase project.
+//
+// Set FCM=1 (or add google-services.json) to enable. When it is off, the app
+// builds and runs normally; Firebase.initializeApp simply is never called, and
+// lib/core/push.dart reports push as unavailable instead of throwing.
+//
+// Note: this only decides whether the *plugin* is applied. Once any firebase_*
+// package is in pubspec.yaml the Dart side is always compiled in, so the runtime
+// guard in lib/core/push.dart is what actually keeps a config-less build safe.
+val hasFirebaseConfig = file("google-services.json").exists()
+if (project.hasProperty("FCM") || hasFirebaseConfig) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.lifecycle(
+        "Firebase: no android/app/google-services.json, building without it. " +
+            "Push notifications will be unavailable in this build.",
+    )
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
