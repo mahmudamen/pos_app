@@ -147,8 +147,12 @@ func (h *Handler) ocrScan(c *gin.Context) {
 		return
 	}
 	if !plans.HasFeature(features, plans.FeaturePurchaseOCR) {
-		writeError(c, http.StatusPaymentRequired, "plan_limit_exceeded",
-			"invoice capture is not included in this plan; upgrade to use supplier invoice scanning")
+		// Name the entitlement that is missing rather than returning a bare
+		// 402: the client can then say "not in your plan" instead of
+		// surfacing a status code to the merchant.
+		writeErrorFields(c, http.StatusPaymentRequired, "plan_limit_exceeded",
+			"invoice capture is not included in this plan; upgrade to use supplier invoice scanning",
+			gin.H{"missing_features": plans.Missing(features, []string{plans.FeaturePurchaseOCR})})
 		return
 	}
 
@@ -917,4 +921,15 @@ func (h *Handler) ocrUsage(c *gin.Context) {
 
 func writeError(c *gin.Context, status int, code, message string) {
 	c.JSON(status, gin.H{"error": gin.H{"code": code, "message": message, "request_id": c.GetString("request_id")}})
+}
+
+// writeErrorFields is writeError plus caller-supplied fields merged into the
+// error object, for responses that have to be specific about *why* (which
+// entitlement is missing) instead of only that they failed.
+func writeErrorFields(c *gin.Context, status int, code, message string, extra gin.H) {
+	body := gin.H{"code": code, "message": message, "request_id": c.GetString("request_id")}
+	for k, v := range extra {
+		body[k] = v
+	}
+	c.JSON(status, gin.H{"error": body})
 }

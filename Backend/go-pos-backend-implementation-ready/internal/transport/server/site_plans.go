@@ -17,10 +17,20 @@ var planTranslations = map[string]map[string]struct{ Name, Desc string }{
 }
 
 // featureTranslations localizes plan feature keys into display labels.
+//
+// This table is deliberately kept to features that actually exist. An earlier
+// draft also carried pos.advanced, e_invoice, self_order, refunds,
+// discount_policy and billing: no seeded plan grants them and no code reads
+// them, so they were a list of promises with nothing behind them, which is
+// the failure this table is most likely to cause. The reverse mistake was
+// just as real — pos.subdomain is granted to every plan by migration 041 and
+// had no entry, so the live /pricing page rendered the raw key to customers in
+// five places. A key that is missing here degrades to the raw string, so the
+// table must cover every key the plans actually carry.
 var featureTranslations = map[string]map[string]string{
 	"en": {
 		"pos.basic":          "Core point of sale",
-		"pos.advanced":       "Advanced point of sale",
+		"pos.subdomain":      "Your own store subdomain",
 		"inventory.basic":    "Basic inventory",
 		"inventory.advanced": "Advanced inventory",
 		"dashboard.basic":    "Basic dashboard",
@@ -30,16 +40,11 @@ var featureTranslations = map[string]map[string]string{
 		"pharmacy":           "Pharmacies (lots & expiry)",
 		"textile":            "Textile (sizes & colours)",
 		"sync.multi_device":  "Multi-device sync",
-		"e_invoice":          "E-invoice ready",
-		"ocr_capture":        "OCR purchase capture",
-		"self_order":         "QR self-ordering",
-		"refunds":            "Refunds & returns",
-		"discount_policy":    "Discount policy & manager PIN",
-		"billing":            "Monthly billing in EGP",
+		"ocr_capture":        "Invoice capture (OCR)",
 	},
 	"ar": {
 		"pos.basic":          "نقاط بيع أساسية",
-		"pos.advanced":       "نقاط بيع متقدمة",
+		"pos.subdomain":      "نطاق فرعي خاص بمتجرك",
 		"inventory.basic":    "مخزون أساسي",
 		"inventory.advanced": "مخزون متقدم",
 		"dashboard.basic":    "لوحة تحكم أساسية",
@@ -49,11 +54,6 @@ var featureTranslations = map[string]map[string]string{
 		"pharmacy":           "صيدليات (دفعات وانتهاء صلاحية)",
 		"textile":            "أقمشة وأزياء (مقاسات وألوان)",
 		"sync.multi_device":  "مزامنة متعددة الأجهزة",
-		"e_invoice":          "جاهز للفاتورة الإلكترونية",
-		"ocr_capture":        "التقاط الفواتير بـ OCR",
-		"self_order":         "طلب ذاتي عبر QR",
-		"refunds":            "مرتجعات ومرتجعات",
-		"discount_policy":    "سياسة الخصم ورقم PIN للمدير",
-		"billing":            "فوترة شهرية بالجنيه المصري",
+		"ocr_capture":        "التقاط الفواتير (OCR)",
 	},
 }

@@ -230,6 +230,31 @@ Schedule daily with cron (`crontab -e`):
 30 2 * * * cd /srv/pos && . .env >/dev/null 2>&1 && ./scripts/backup.sh >>/var/log/pos-backup.log 2>&1
 ```
 
+#### The production VPS cannot run `backup.sh` directly
+
+`scripts/backup.sh` is written for a host that can reach PostgreSQL over TCP.
+On the production VPS the database lives on a **private docker network with no
+published port**, so a host-side `pg_dump` has nothing to connect to — and
+`backup.sh` is also not executable there (rsync lands it 0644). Both were found
+the hard way: the runbook claimed a daily cron, and production had **no cron
+entry, no timer and an empty backup directory**.
+
+`/opt/pos/backup_daily.sh` is what actually runs, installed as
+`/etc/cron.d/pos-backup` at 03:17:
+
+```bash
+docker exec pos-prod-postgres pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  --no-owner --no-privileges | gzip -9 > "$BACKUP_DIR/pos-<stamp>.sql.gz"
+gzip -t "$out" || { rm -f "$out"; exit 1; }     # never rotate in a truncated dump
+```
+
+Check it is actually running, not just installed:
+
+```bash
+tail -3 /var/log/pos-backup.log        # "backup ok: … (116K)" once a day
+ls -la /opt/pos/backups/               # expect a fresh file per day
+```
+
 Notes:
 
 - `--no-owner/--no-privileges` keep roles out of the dump; tenant RLS and the

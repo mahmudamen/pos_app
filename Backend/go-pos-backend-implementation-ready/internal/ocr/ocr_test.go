@@ -3,6 +3,7 @@ package ocr
 import (
 	"context"
 	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -172,4 +173,62 @@ func TestEngineAvailableReflectsConfig(t *testing.T) {
 	}
 	// Enabled engine availability mirrors the host PATH; skip if no tesseract.
 	_ = exec.Command // keep the binary presence probe honest in a unit test
+}
+
+// TestParseInvoiceNeverPanicsOnUnpriceableRows is a regression test for a 500
+// on the Arabic path. Both multiply branches derive pricePos from
+// numberBefore/numberAfter, so a row containing "x" with no usable number
+// before it left pricePos at -1 and the next line indexed toks[-1] — a panic
+// that the Recovery middleware reported to the merchant as a bare
+// "internal server error". Reproduced from a real production scan.
+func TestParseInvoiceNeverPanicsOnUnpriceableRows(t *testing.T) {
+	rows := []string{
+		"× 12.50",                   // multiply, nothing before it
+		"جبنه × 45.00",              // Arabic name, multiply, no qty
+		"اسمنت 20 ×",                // multiply as the last token
+		"×",                         // a multiply on its own
+		"x",                         // latin x alone
+		"سعر ×",                     // Arabic word then multiply
+		"7 ×",                       // a number then a bare multiply
+		"جنيه 12.50",                // no multiply, one number
+		strings.Repeat("×", 40),     // pathological multiply run
+		strings.Repeat("س 7 ×", 30), // pathological mixed run
+	}
+	for _, row := range rows {
+		row := row
+		t.Run(row, func(t *testing.T) {
+			// The contract is only that this returns: no panic, and whatever it
+			// decides is either a priced item or a row for human review.
+			res := ParseInvoice(row)
+			for _, item := range res.Items {
+				if item.UnitPriceMinor < 0 {
+					t.Errorf("negative price invented: %+v", item)
+				}
+			}
+		})
+	}
+}
+
+// A full multi-line invoice mixing the shapes above must still parse its good
+// rows: one unpriceable line must not take the rest of the document with it.
+func TestParseInvoiceKeepsGoodRowsAroundAnUnpriceableOne(t *testing.T) {
+	text := strings.Join([]string{
+		"فاتورة مورد",
+		"× 12.50",
+		"جبنه بيضاء 5 × 45.00",
+		"اسمنت 20 ×",
+		"زيت عباد شمس 2 x 90",
+	}, "\n")
+	res := ParseInvoice(text)
+	if len(res.Items) == 0 {
+		t.Fatal("expected the well-formed rows to survive")
+	}
+	for _, item := range res.Items {
+		if item.Quantity <= 0 {
+			t.Errorf("item with no quantity: %+v", item)
+		}
+	}
+	if len(res.Discarded) == 0 {
+		t.Error("expected the unpriceable rows to be reported for review")
+	}
 }

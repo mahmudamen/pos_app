@@ -206,16 +206,29 @@ func parseLine(raw string) (LineItem, bool) {
 	}
 
 	qty := 1.0
-	if qtyPos >= 0 {
+	if qtyPos >= 0 && qtyPos < len(toks) {
 		qty = toks[qtyPos].value
 		if qty <= 0 {
 			qty = 1.0
 		}
 	}
+	// A line with no price cannot become a line item. It is reported verbatim
+	// in Discarded for human review instead, which is the honest outcome: a
+	// fabricated price is worse than a row the merchant has to look at.
+	//
+	// This guard is not theoretical. pricePos could reach -1 whenever the line
+	// contains a multiply sign with no number before it — both multiply branches
+	// derive pricePos from numberBefore/numberAfter, and an Arabic row whose
+	// digits OCR mangled leaves the "x" with nothing usable around it. That
+	// indexed toks[-1] and panicked the request (500 to the merchant) on
+	// production; the Recovery middleware hid the crash behind a generic error.
+	if pricePos < 0 || pricePos >= len(toks) {
+		return LineItem{}, false
+	}
 	unitPrice := toks[pricePos].value
 	unitPriceMinor := int64(math.Round(unitPrice * 100))
 	_total := int64(0)
-	if totalPos >= 0 {
+	if totalPos >= 0 && totalPos < len(toks) {
 		_total = int64(math.Round(toks[totalPos].value * 100))
 	}
 	totalMinor := int64(math.Round(qty * unitPrice * 100)) // server re-derives on apply

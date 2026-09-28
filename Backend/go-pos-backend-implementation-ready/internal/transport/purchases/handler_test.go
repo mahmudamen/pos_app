@@ -2,6 +2,7 @@ package purchases
 
 import (
 	"bytes"
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/ocr"
+	"github.com/example/pos-api/internal/plans"
 	"github.com/gin-gonic/gin"
 )
 
@@ -204,5 +206,57 @@ func TestOCRScanAcceptsMultipart(t *testing.T) {
 	// nil pool wins over the OCR path (matches the documented ordering)
 	if recorder.Code != http.StatusServiceUnavailable {
 		t.Fatalf("expected 503, got %d", recorder.Code)
+	}
+}
+
+func TestWriteErrorFieldsNamesTheMissingEntitlement(t *testing.T) {
+	// A bare 402 told the merchant nothing they could act on. The body now
+	// carries the missing entitlement keys, which is what lets the client say
+	// "not in your plan" instead of showing a status code.
+	router, group := setup()
+	group.GET("/probe", func(c *gin.Context) {
+		writeErrorFields(c, http.StatusPaymentRequired, "plan_limit_exceeded",
+			"invoice capture is not included in this plan",
+			gin.H{"missing_features": plans.Missing(`["pos.basic"]`,
+				[]string{plans.FeaturePurchaseOCR})})
+	})
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/probe", nil))
+	if recorder.Code != http.StatusPaymentRequired {
+		t.Fatalf("expected 402, got %d", recorder.Code)
+	}
+	var body struct {
+		Error struct {
+			Code            string   `json:"code"`
+			Message         string   `json:"message"`
+			RequestID       string   `json:"request_id"`
+			MissingFeatures []string `json:"missing_features"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode: %v (%s)", err, recorder.Body.String())
+	}
+	if body.Error.Code != "plan_limit_exceeded" {
+		t.Fatalf("code = %q", body.Error.Code)
+	}
+	if len(body.Error.MissingFeatures) != 1 ||
+		body.Error.MissingFeatures[0] != plans.FeaturePurchaseOCR {
+		t.Fatalf("missing_features = %#v", body.Error.MissingFeatures)
+	}
+	// The base envelope keys must survive the merge.
+	if body.Error.Message == "" {
+		t.Fatal("message was dropped by the extra-field merge")
+	}
+}
+
+func TestWriteErrorOmitsExtraFieldsByDefault(t *testing.T) {
+	router, group := setup()
+	group.GET("/probe", func(c *gin.Context) {
+		writeError(c, http.StatusConflict, "conflict", "nope")
+	})
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/probe", nil))
+	if strings.Contains(recorder.Body.String(), "missing_features") {
+		t.Fatalf("plain writeError must not gain fields: %s", recorder.Body.String())
 	}
 }

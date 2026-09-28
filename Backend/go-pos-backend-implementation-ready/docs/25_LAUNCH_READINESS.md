@@ -1,12 +1,47 @@
 # 25 — Launch readiness, and the last phase before it
 
-Status: active. This is the gate list, not a feature list. Anything in
+Status: **blockers B4 cleared, all five "Should" items done, three new defects
+found by the post-deploy checks and fixed.** What is left is what a machine
+cannot do: two human answers (B1, B2) and a push (B3).
+
+This is the gate list, not a feature list. Anything in
 **Blockers** stops a release; anything in **Should** stops only if it is cheap.
 
 Written after the defect sweep of 2026-09-28, in which four defects were found
 that all shared one shape: **a feature was advertised, built or assumed, and
 nothing enforced or even enabled it.** Three of the four are fixed in the tree
 and land with the next deploy. The fourth is a decision, not a defect.
+
+---
+
+## 0. What the post-deploy pass found (2026-09-28, all fixed)
+
+The checks in §3 exist because "deployed" and "working" are different claims.
+Running them for real found three more instances of the exact same shape as the
+original sweep — assumed, not verified — and one of them was a crash on the
+primary-language path.
+
+| # | Finding | Evidence | Fix |
+|---|---------|----------|-----|
+| 5 | **`tesseract` had no English pack.** `docker exec pos-prod-api tesseract --list-langs` printed `ara` alone. The Dockerfile installed `tesseract-ocr-data-ara` and relied on `tesseract-ocr` to bring the English data along, which on alpine it does not. Every English invoice degraded while Arabic scanned fine | live container, pre-fix | `Dockerfile` installs `tesseract-ocr-data-eng` explicitly and **asserts both `.traineddata` files exist at build time**, so this cannot regress silently again. Verified live: `ara` + `eng`, and a real English invoice scan returns 200 with parsed lines (`Cement 50kg bag 20 x 185.00` → qty 20, 18500 minor, score 100) |
+| 6 | **Arabic invoice scans returned 500.** `POST /v1/purchases/ocr` panicked: `runtime error: index out of range [-1]` at `internal/ocr/parser.go:215`. `qtyPos` and `totalPos` were both guarded with `>= 0`; `pricePos` was not, and either multiply branch can leave it at `-1` on a row where OCR mangles the digits around `×`. The Recovery middleware turned the panic into a bare `internal server error` | prod logs + reproduced | `parser.go` refuses to build an item with no price and reports the row verbatim in `Discarded` for human review — a fabricated price is worse than a flagged row. `TestParseInvoiceNeverPanicsOnUnpriceableRows` covers ten shapes and **panics again if the guard is removed** |
+| 7 | **Production had no backups at all.** The runbook claimed a daily cron; there was no cron entry, no systemd timer and an empty backup directory, on the box that had just taken two migrations. `scripts/backup.sh` could not have worked there anyway: the database is on a private docker network with no published port | live VPS | `/opt/pos/backup_daily.sh` + `/etc/cron.d/pos-backup` (03:17), dumping **inside** the postgres container, with a `gzip -t` integrity gate so a truncated dump is never rotated in. Run once by hand: 116K, integrity OK. `docs/11_OPERATIONS.md` now documents why the script cannot run on that host |
+
+**A fourth finding is *not* fixed, because nothing can fix it from here:** the
+app requests `POST_NOTIFICATIONS` and registers an FCM token on first launch,
+but the backend has **no send path** — `grep -r "firebase\|fcm\|messaging/send"`
+over `internal/` returns nothing. The merchant is asked to consent to
+notifications that can never arrive. Either ship a sender or stop asking; the
+permission and the Data safety form should not imply a feature that does not
+exist. Recorded because the Play listing upload is the moment it becomes
+visible to Google.
+
+Also fixed while in the same file: the live `/pricing` page was leaking the raw
+key `pos.subdomain` in five places, because migration `041` grants that feature
+to every plan and `siteTranslations` had no entry for it. Now labelled
+"Your own store subdomain" / "نطاق فرعي خاص بمتجرك", and the six unshipped
+labels the Should list flagged (`pos.advanced`, `e_invoice`, `self_order`,
+`refunds`, `discount_policy`, `billing`) are gone.
 
 ---
 
@@ -105,12 +140,27 @@ the same NVMe — same device id, different inode. It survives an accidental
 encrypted copy has to physically leave this machine, into storage you control.
 Until that has happened, treat this item as open.
 
-### B3. Eight commits are unpushed
+### B3. Commits are unpushed — blocked on a key, not on the work
 
-`pos` is one commit ahead, `pos-go` is five. Nothing in this document is
-visible to the world until both are pushed.
+`pos` is ahead of `origin` and `pos-go` is five commits ahead. Nothing in this
+document is visible to the world until both are pushed.
 
-### B4. Migrations `049` and `050` — `049` verified, `050` mandatory
+The blocker is authentication, not anything in the tree: this box's only SSH
+key is the VPS deploy key, which GitHub does not know, and `gh` is logged out.
+
+```bash
+gh auth login && gh auth setup-git      # or add a GitHub-authorized key
+git fetch origin && git rebase origin/origin   # remote has an equal-but-differently-hashed twin
+git push origin origin
+```
+
+### B4. Migrations `049` and `050` — **CLEARED on production 2026-09-28**
+
+Production is at goose **50**. `ocr_capture` is on 12/12 plans, the sellable
+catalog is unchanged (`starter, trial, business, enterprise`), and the dangling
+`standard` code that would have 402'd every existing customer is resolved. The
+history below is kept because the ordering constraint is the part worth
+keeping.
 
 Both are forward-only and additive. `049` rewrites the `plans.features` JSONB
 array; `050` inserts two catalog rows. **Neither adds a table, so neither needs
@@ -169,49 +219,63 @@ condition `050` repairs.
 
 ## 3. Verify after deploy — not before
 
-These cannot be proven from the dev box, and each has bitten before.
+Run 2026-09-28 against the deploy that took migrations to 50. Every line is a
+check that was actually executed, not an intention.
 
-- **OCR actually works on production.** Needs a real tenant token; the
-  unauthenticated probe only proves the route is routed.
-  `docker exec pos-prod-api tesseract --list-langs` must print **both** `ara`
-  and `eng` — the image installs `tesseract-ocr-data-ara` explicitly and relies
-  on `tesseract-ocr` pulling in the English pack. If `eng` is absent, every
-  English invoice silently degrades. Do not assume it.
-- **Metering is not unbounded.** Confirm `OCR_DAY_LIMIT` etc. resolved to
-  `100/500/2000` in the running container. Each scan is synchronous on the
-  request goroutine, so an unlimited tenant can saturate a core and stall the
-  API for every other merchant.
-- **The site no longer claims a Copilot.** Fetch `/` and `/?lang=ar`, and
-  confirm the section describes invoice capture, not an assistant. The Arabic
-  copy is a separate string table and has no test coverage.
-- **The footer GitHub link is live** (`18ccaa2`).
-- **The App Bundle is re-uploaded** from the fixed source, since the signing
-  key and the OCR entitlement both changed.
+- [x] **OCR actually works on production.** Logged in as a real tenant
+      (`admin@demo-restaurant`) and POSTed a generated invoice to
+      `/v1/purchases/ocr`. English: **200**, rows parsed with prices and a
+      match score. Arabic: **200** after fix 6, previously 500.
+- [x] **Both tesseract languages are present.** `ara` and `eng` — after fix 5.
+      *This is the check that would have caught the missing English pack.*
+- [x] **Metering is not unbounded.** The running container reports
+      `OCR_ENABLED=true`, `OCR_DAY_LIMIT=100`, `OCR_WEEK_LIMIT=500`,
+      `OCR_MONTH_LIMIT=2000`.
+- [x] **The site no longer claims a Copilot.** `/` and `/?lang=ar` contain no
+      "always on", "24/7" or "grounded in your store's real data". The Arabic
+      copy explicitly names the drawer/Z-report assistant as *the next release*.
+      The remaining "copilot" hits are CSS class names.
+- [x] **The footer GitHub link is live** (`18ccaa2`) →
+      `https://github.com/mahmudamen/pos-go`.
+- [x] **Migrations to 50**, dangling plan codes: none, sellable catalog
+      unchanged (`starter, trial, business, enterprise`), `ocr_capture` on
+      12/12 plans, `standard` resolves again.
+- [x] **`scripts/verify_prod.sh` green** — both vhosts, TLS, the HTML pages and
+      a real login, 13/13.
+- [ ] **The App Bundle is re-uploaded** from this source, since the signing key
+      and the OCR entitlement both changed. *Still needs a human at the console.*
+- [ ] **OCR reviewed on a real phone.** The curl scan proves the server; it does
+      not prove the on-device camera → blur check → review flow. Needs the
+      emulator or a handset.
 
 ---
 
 ## 4. Should — cheap, and they are the difference between a launch and a demo
 
-- **Delete the dead `oc/capture` display labels.** `site_plans.go` defines
-  `pos.advanced`, `e_invoice`, `refunds`, `discount_policy`, `billing` and
-  `discount_policy` on top of `ocr_capture`; no seeded plan carries them and no
-  code reads them. They render nowhere today, but they are a list of promises
-  with no implementation behind them, which is the exact failure this document
-  exists to prevent.
-- **Surface the entitlement in the API response** so the client can say "not in
-  your plan" instead of showing a raw `402`. `plans.Missing` is written and
-  unused; wiring it into the error body is a few lines.
-- **Reconcile the plan catalog with reality.** The catalog, the tenant plan
-  codes and `AGENTS.md` all disagree (see the correction below). `050` repairs
-  the dangling codes; the remaining `cafe18d…` load-test rows should be swept
-  so nobody reads a 40-row catalog as a product decision.
-- **Add `plan_limit_exceeded` to the Flutter map** so it becomes a human
-  sentence rather than a status code.
-- **Reconcile the two public narratives.** The site now describes invoice
-  capture honestly and `pos-go/ROADMAP.md` says the assistant is "not started".
-  Consistent as of this commit — keep it that way, because the site is the one
-  that gets read by customers and the roadmap is the one that gets read by
-  engineers.
+All five are done (2026-09-28).
+
+- [x] **Delete the dead display labels.** `site_plans.go` no longer carries
+      `pos.advanced`, `e_invoice`, `self_order`, `refunds`, `discount_policy`
+      or `billing`: no seeded plan grants them and no code reads them. The
+      reverse mistake was fixed at the same time — `pos.subdomain` *is*
+      granted to every plan and had no label, so the live pricing page printed
+      the raw key.
+- [x] **Surface the entitlement in the API response.** The 402 body now carries
+      `missing_features`, so the client can say "not in your plan" instead of
+      showing a status code. `plans.Missing` is no longer dead code.
+- [x] **Reconcile the plan catalog with reality.** All 34 `cafe…` load-test
+      rows are swept from the dev database (`cafe18d…` plus the `cafe` plan
+      itself — `grep` confirms no migration seeds either; the only `cafe` in
+      `migrations/` is the Nescafe product row). Production never had them: 10
+      rows, 4 sellable. Dev is now 7 rows / 5 sellable, matching the catalog.
+- [x] **`plan_limit_exceeded` in the Flutter map.** `mapApiError` is
+      code-aware and 402s become a typed `PlanLimitException`; `ApiException`
+      gained `isPlanLimit` / `isScanLimit`; the purchases screen shows a
+      localized sentence (Arabic included) and offers the credit top-up when
+      the meter is the thing that ran out.
+- [x] **Reconcile the two public narratives.** The site describes invoice
+      capture honestly, in both languages, and names the assistant as the next
+      release. Verified live, not just in the source.
 
 ---
 
