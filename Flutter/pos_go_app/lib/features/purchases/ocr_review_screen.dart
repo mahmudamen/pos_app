@@ -39,6 +39,8 @@ class _EditableLine {
     required this.matchedProduct,
     required this.priceMinor,
     required this.salePriceMinor,
+    required this.matchScore,
+    required this.rowText,
   });
 
   final String name;
@@ -49,6 +51,15 @@ class _EditableLine {
   Product? matchedProduct;
   int priceMinor;
   int salePriceMinor;
+
+  /// Server-side confidence for [matchedProduct], 0 when nothing was matched.
+  /// Carried through to purchase_items.match_score so the stored purchase can
+  /// be audited against what the parser actually believed.
+  final int matchScore;
+
+  /// The raw invoice row this line was parsed from, stored on
+  /// purchase_items.row_text for the same reason.
+  final String rowText;
 
   int get salePriceValue => int.tryParse(salePriceController.text.trim()) ?? 0;
   int get priceValue => int.tryParse(priceController.text.trim()) ?? 0;
@@ -107,6 +118,8 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
           matchedProduct: matched,
           priceMinor: line.unitPriceMinor,
           salePriceMinor: salePrice,
+          matchScore: line.matchScore,
+          rowText: line.rowText,
         ));
       }
       if (!mounted) return;
@@ -210,8 +223,8 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
               ? 'piece'
               : line.unitController.text.trim(),
           unitPriceMinor: line.priceValue,
-          matchScore: 0,
-          rowText: '',
+          matchScore: line.matchScore,
+          rowText: line.rowText,
         ));
       }
       final result = await widget.apiClient.applyPurchase(
@@ -364,6 +377,11 @@ class _OcrReviewScreenState extends State<OcrReviewScreen> {
   }
 }
 
+/// Above this the server already refused to auto-attach a product (Go
+/// `minMatchScore = 40`), so this is a stricter, advisory line: it flags a
+/// match that passed but is not something to trust without a glance.
+const int lowMatchConfidence = 60;
+
 class _LineCard extends StatelessWidget {
   const _LineCard({
     required this.index,
@@ -421,6 +439,22 @@ class _LineCard extends StatelessWidget {
                                     .onSurfaceVariant,
                           ),
                         ),
+                        // A match just over the server's 40-point accept
+                        // threshold is not the same as a confident one, and
+                        // the merchant is the only person who can tell the
+                        // difference. Without this the two look identical and
+                        // a wrong product silently becomes stock.
+                        if (line.matchedProduct != null &&
+                            line.matchScore < lowMatchConfidence) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${strings.lowConfidenceMatch} (${line.matchScore}%)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

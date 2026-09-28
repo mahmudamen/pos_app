@@ -18,6 +18,7 @@ class OcrLine {
     this.productId = '',
     this.productName = '',
     this.matchScore = 0,
+    this.rowText = '',
   });
 
   factory OcrLine.fromJson(Map<String, dynamic> json) => OcrLine(
@@ -30,6 +31,7 @@ class OcrLine {
         productId: json['product_id'] as String? ?? '',
         productName: json['product_name'] as String? ?? '',
         matchScore: (json['match_score'] as num?)?.toInt() ?? 0,
+        rowText: json['row_text'] as String? ?? '',
       );
 
   final String name;
@@ -41,6 +43,7 @@ class OcrLine {
   final String productId;
   final String productName;
   final int matchScore;
+  final String rowText;
 }
 
 @immutable

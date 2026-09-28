@@ -991,6 +991,8 @@ class AppStrings {
   String get ocrAppliedSubtitle => isArabic ? 'المجموع' : 'Total';
   String get supplierField => isArabic ? 'المورد' : 'Supplier';
   String get invoiceNumber => isArabic ? 'رقم الفاتورة' : 'Invoice no.';
+  String get lowConfidenceMatch =>
+      isArabic ? 'تطابق ضعيف، راجعه' : 'Low confidence — check this match';
   String get newProduct => isArabic ? 'منتج جديد' : 'New product';
   String get matchedProduct => isArabic ? 'مطابق' : 'Matched';
   String get changeProduct => isArabic ? 'تغيير المنتج' : 'Change product';

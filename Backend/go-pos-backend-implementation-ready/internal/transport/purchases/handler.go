@@ -10,6 +10,7 @@ package purchases
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/ocr"
+	"github.com/example/pos-api/internal/plans"
 	httptransport "github.com/example/pos-api/internal/transport/http"
 	notificationstransport "github.com/example/pos-api/internal/transport/notifications"
 	"github.com/gin-gonic/gin"
@@ -84,6 +86,7 @@ type ScanLine struct {
 	ProductID      string  `json:"product_id,omitempty"`
 	ProductName    string  `json:"product_name,omitempty"`
 	MatchScore     int     `json:"match_score"`
+	RowText        string  `json:"row_text,omitempty"`
 }
 
 type purchaseLineRequest struct {
@@ -132,6 +135,23 @@ func (h *Handler) ocrScan(c *gin.Context) {
 		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
 		return
 	}
+
+	// Plan entitlement gate. Invoice capture is a sold feature, and until
+	// internal/plans existed there was no code anywhere that could say no to a
+	// tenant whose plan did not include it — `plans.features` was rendered into
+	// a pricing table and otherwise ignored. This is the first real read of it.
+	features, err := h.loadPlanFeatures(c.Request.Context(), claims.TenantID)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable",
+			"unable to load plan entitlements")
+		return
+	}
+	if !plans.HasFeature(features, plans.FeaturePurchaseOCR) {
+		writeError(c, http.StatusPaymentRequired, "plan_limit_exceeded",
+			"invoice capture is not included in this plan; upgrade to use supplier invoice scanning")
+		return
+	}
+
 	if !h.ocr.Available() {
 		writeError(c, http.StatusServiceUnavailable, "ocr_unavailable",
 			"OCR is not configured; enable OCR_ENABLED and install tesseract with Arabic data")
@@ -251,6 +271,11 @@ func (h *Handler) ocrScan(c *gin.Context) {
 		scan := ScanLine{
 			Name: item.Name, Quantity: item.Quantity, Unit: item.Unit,
 			UnitPriceMinor: item.UnitPriceMinor, TotalMinor: item.TotalMinor, Score: item.Score,
+			// The source row travels back to the client so it can be stored on
+			// purchase_items.row_text. Without it the audit column is always
+			// empty and a merchant cannot tell what the parser actually read
+			// when a line books at the wrong price.
+			RowText: item.RowText,
 		}
 		if item.Name != "" {
 			key := ocr.NormalizeKey(item.Name)
@@ -733,6 +758,29 @@ func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {
 // its scan-borrowing credit balance (tenants.ocr_credits_remaining). It runs
 // in a tenant-scoped transaction so RLS FORCE sees the right tenant on the
 // same connection as the reads.
+// loadPlanFeatures reads the raw `plans.features` blob for the tenant's
+// current plan. A tenant with no plan row, or a plan with no features, yields
+// an empty string, which plans.Parse turns into "no entitlements" rather than
+// an error — the same shape the pricing page already assumes.
+func (h *Handler) loadPlanFeatures(ctx context.Context, tenantID string) (string, error) {
+	var features sql.NullString
+	err := h.pool.QueryRow(ctx,
+		`SELECT p.features
+		   FROM tenants t
+		   LEFT JOIN plans p ON p.code = t.plan
+		  WHERE t.id = $1`, tenantID).Scan(&features)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", nil
+		}
+		return "", err
+	}
+	if !features.Valid {
+		return "", nil
+	}
+	return features.String, nil
+}
+
 func (h *Handler) loadOCRUsage(ctx context.Context, tenantID string) (OCRWindows, int64, error) {
 	if h.pool == nil {
 		return OCRWindows{}, 0, nil
