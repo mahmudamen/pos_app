@@ -2124,6 +2124,28 @@ expect(() => client.dashboardSummary(session),
     });
   });
 
+  group('plan limits', () {
+    test('isPlanLimit flags the 402 plan gate and isScanLimit does not', () {
+      const gated = ApiException('invoice capture is not included',
+          code: 'plan_limit_exceeded');
+      expect(gated.isPlanLimit, isTrue);
+      expect(gated.isScanLimit, isFalse);
+    });
+
+    test('isScanLimit flags a metered 402 and isPlanLimit does not', () {
+      const metered = ApiException('OCR scan limit reached',
+          code: 'ocr_window_limit_reached');
+      expect(metered.isScanLimit, isTrue);
+      expect(metered.isPlanLimit, isFalse);
+    });
+
+    test('an unrelated error is neither', () {
+      const other = ApiException('nope', code: 'validation_error');
+      expect(other.isPlanLimit, isFalse);
+      expect(other.isScanLimit, isFalse);
+    });
+  });
+
   group('logout', () {
     test('sends Bearer token and expects 204', () async {
       final client = ApiClient(client: _LogoutClient());

@@ -179,6 +179,24 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         _loadPurchases();
         _loadMeter();
       }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      final s = AppStrings.of(context);
+      // A 402 is the one error the merchant can act on, so it gets a sentence
+      // in their language and a route to the fix instead of a raw code.
+      final text = e.isPlanLimit
+          ? s.planNotIncluded
+          : e.isScanLimit
+              ? s.ocrLimitReached
+              : e.toString();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(text),
+          action: e.isScanLimit
+              ? SnackBarAction(label: s.topUp, onPressed: _topup)
+              : null,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text(e.toString())));

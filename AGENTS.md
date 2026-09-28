@@ -54,10 +54,24 @@ The POS v1.0 release is **live on production** as Docker `pos-prod-*` services:
   Services: `postgres` (postgres:16-alpine, private net, strong random password),
   `redis`, `migrate` (runs goose embedded at `/app/migrations`), `api`
   (`pos-api:latest`, bound **127.0.0.1:8080** — no external exposure).
-- `.env.prod`: `HOST_IP=127.0.0.1`, `APP_DB_USER=pos_app_rls` (least privilege).
-- DB: postgres DB `pos` at goose version 34. The app role `pos_app_rls` is a
+- `.env.prod`: `HOST_IP=127.0.0.1`, `APP_DB_USER=pos_app_rls` (least privilege),
+  `OCR_ENABLED=true`, `OCR_DAY_LIMIT=100` / `WEEK=500` / `MONTH=2000`.
+- DB: postgres DB `pos` at goose version **50** (as of 2026-09-28; 46 tenants,
+  4 sellable plans + 6 internal/inactive). The app role `pos_app_rls` is a
   limited-grant role — new tables must get grants via `scripts/grants_prod.sql`
   (see Backend gotchas) or prod-only `permission denied` errors appear.
+- **Backups on the VPS run through `/opt/pos/backup_daily.sh`**
+  (`/etc/cron.d/pos-backup`, 03:17), *not* `scripts/backup.sh`: the database is
+  on a private docker network with no published port, so the dump has to run
+  inside the `pos-prod-postgres` container. Check it with
+  `tail -3 /var/log/pos-backup.log` and `ls -la /opt/pos/backups/`.
+- **The `pos-api` image must carry both tesseract language packs.** The
+  Dockerfile installs `tesseract-ocr-data-ara` *and* `tesseract-ocr-data-eng` and
+  asserts both `.traineddata` files at build time — `tesseract-ocr` does not
+  pull English in on alpine, and its absence silently degraded every English
+  invoice scan. Verify after any image rebuild:
+  `docker exec pos-prod-api tesseract --list-langs` must print `ara` **and**
+  `eng`.
 - HTTPS: host nginx terminates TLS for `api.xamltech.com`. DNS (via
   Cloudflare) → `197.44.6.42` is live and a trusted **Let's Encrypt** cert is
   installed + auto-renews (certbot in the HTTP `server` block serves
@@ -144,7 +158,7 @@ The tours sign in against **production** (`https://posgo.xamltech.com`, seeded d
 - Raw 20:9 captures land in `Flutter/pos_go_app/screenshots/` and are **gitignored**. `make_store_screenshots.py` skips a language whose captures are absent and leaves its already-built output alone, so an Arabic-only run does not fail on the missing English captures.
 - Data-dependent screens (sales history, customers) look sparse in **both** sets — the demo tenant is sparse — so the two listings stay consistent; seed the tenant first if a fuller list is wanted.
 - The signing/upload key stays outside the repo (`.secrets/play/`, gitignored); its cert is SHA-256 `6B:3C:FE:…:EB`, verifiable with `keytool -printcert -jarfile app-release.aab`. Once Play App Signing is enrolled, the digest Play Integrity reports becomes Google's app-signing cert, **not** that one.
-- Open drift: `pubspec.yaml` is `1.0.0+4` while `listing/store_listing_en.md` still says "code 3", so `check_store_listing.py` fails on `pubspec versionCode 4 is not mentioned in the listing` until that listing line is updated.
+- Version metadata is aligned at **`1.0.0+5`** across `pubspec.yaml`, `Telemetry.buildVersion` and both listing headers; `check_store_listing.py` is green ("Store pack is consistent and within Play's limits"). The release artifacts (62.7 MB AAB / 65.4 MB universal APK, release key `6B:3C:FE:…:EB`, targetSdk 36) are built and verified but **not yet uploaded**.
 
 ## Completed work
 

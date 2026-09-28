@@ -2704,6 +2704,15 @@ class ApiException implements Exception {
   /// operators sign in on the console domain, store staff on the POS domain.
   bool get isWrongSurface => code == 'wrong_surface';
 
+  /// 402 because the tenant's plan does not grant the feature. The body names
+  /// the missing entitlements, so the UI can say "not in your plan" in the
+  /// user's language rather than pasting the server's English sentence.
+  bool get isPlanLimit => code == 'plan_limit_exceeded';
+
+  /// 402 from the OCR meter: every active window is spent and the credit
+  /// balance is empty. Actionable — the shop can top up and continue.
+  bool get isScanLimit => code == 'ocr_window_limit_reached';
+
   @override
   String toString() => message;
 }

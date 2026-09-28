@@ -91,15 +91,14 @@ Privacy: https://posgo.xamltech.com/private
 <!-- field: release_notes -->
 First public release.
 
-• Offline checkout: sales keep working without internet, replay on reconnect
-• Cash, card and mobile payments, with splits
-• Discount policy with manager PIN approval
-• Cash sessions per terminal, with Z-report
-• Stock badges, low-stock warnings, manual adjustments
-• Supplier invoice scanning updates stock and cost
-• Dashboard, sales history, refunds
-• Thermal printers and receipt preview
-• Customers, loyalty, self-order QR menu
+• Sells with no internet: sales queue and replay on reconnect
+• Cash, card and mobile, split any way, with cash rounding
+• Discount policy with manager PIN and per-user access levels
+• One cash session per terminal, with Z-report
+• Stock counts, low-stock warnings and adjustments
+• Scan a supplier invoice to update stock and cost
+• Dashboard, sales history, refunds, customers and loyalty
+• Receipt preview and thermal printer support
 • Arabic and English, right to left
 <!-- /field -->
 

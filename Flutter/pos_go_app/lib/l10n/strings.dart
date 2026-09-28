@@ -954,6 +954,13 @@ class AppStrings {
       isArabic ? 'حصة فحص الفواتير (OCR)' : 'Invoice scan usage (OCR)';
   String get ocrUsageUnavailable =>
       isArabic ? 'تعذّر تحميل حصة الفحص' : 'Could not load scan usage';
+  String get planNotIncluded => isArabic
+      ? 'هذه الميزة غير متاحة في باقتك. قم بالترقية لتفعيل التقاط الفواتير.'
+      : 'This feature is not in your plan. Upgrade to enable invoice capture.';
+  String get ocrLimitReached => isArabic
+      ? 'انتهت حصة الفحص اليومية والأسبوعية والشهرية. اشحن رصيد الفحوصات للمتابعة.'
+      : 'You have used your daily, weekly and monthly scan allowance. '
+          'Top up scan credits to continue.';
   String get ocrUnmetered => isArabic ? 'فحص غير محدود' : 'Unlimited scans';
   String get ocrWindowDay => isArabic ? 'اليوم' : 'Today';
   String get ocrWindowWeek => isArabic ? 'الأسبوع' : 'This week';
