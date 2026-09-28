@@ -329,6 +329,60 @@ func TestLandingRendersAllFeaturesModules(t *testing.T) {
 	}
 }
 
+func TestSiteFooterLinksToPublicGitHubRepoInBothLanguages(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	// Surface routing on, so "/" is exercised on the POS host and on the company
+	// host: both render the same footer column, and the company variant swaps
+	// some of its neighbours, so the link must not be tied to one branch.
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{Surfaces: config.SurfaceRouting{
+		Enabled:       true,
+		CompanyDomain: config.DefaultCompanyDomain,
+		SaaSDomain:    config.DefaultSaaSDomain,
+		POSDomain:     config.DefaultPOSDomain,
+	}}})
+
+	// The public docs repo is the only GitHub surface a visitor may follow, so
+	// assert the href itself rather than just a label: a translation that drops
+	// the key or a template edit that removes the anchor must fail here.
+	checked := 0
+	for _, tc := range []struct{ lang, wantLabel string }{
+		{"en", "Release notes &amp; roadmap on GitHub"},
+		{"ar", "ملاحظات الإصدارات وخطة العمل على GitHub"},
+	} {
+		for _, host := range []string{config.DefaultPOSDomain, config.DefaultCompanyDomain} {
+			for _, path := range []string{"/", "/pricing"} {
+				// The company surface only serves its own page, so ask for what
+				// that host actually serves rather than assuming a shared route.
+				req := httptest.NewRequest(http.MethodGet, path+"?lang="+tc.lang, nil)
+				req.Host = host
+				rec := httptest.NewRecorder()
+				engine.ServeHTTP(rec, req)
+				if rec.Code != http.StatusOK {
+					continue // path not served on this surface; covered elsewhere
+				}
+				checked++
+				body := rec.Body.String()
+				for _, want := range []string{
+					`href="https://github.com/mahmudamen/pos-go"`,
+					`target="_blank"`,
+					`rel="noopener"`,
+					tc.wantLabel,
+				} {
+					if !strings.Contains(body, want) {
+						t.Errorf("%s (host %s, lang %s) body missing %q", path, host, tc.lang, want)
+					}
+				}
+			}
+		}
+	}
+	// Guard against the loop silently skipping everything (a config change that
+	// 404s every combination would otherwise leave this test green forever).
+	if checked < 4 {
+		t.Fatalf("only %d page/language combinations rendered; the assertions above would be vacuous", checked)
+	}
+}
+
 func TestSitePagesServeArabicRTL(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()

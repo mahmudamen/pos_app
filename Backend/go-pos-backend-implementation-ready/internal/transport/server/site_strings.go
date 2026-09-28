@@ -28,6 +28,7 @@ var siteStrings = map[string]map[string]string{
 		"storePlaySub": "Android · free trial",
 		"downloadApk":  "Download APK",
 		"apkHint":      "Direct install · com.xamltech.pos_go",
+		"githubRepo":   "Release notes & roadmap on GitHub",
 		"stat1":        "17",
 		"stat1L":       "business verticals",
 		"stat2":        "15",

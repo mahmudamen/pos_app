@@ -510,6 +510,7 @@ const siteFoot = `<footer class="site-footer">
     <div class="footer-links">
       <a href="https://play.google.com/store/apps/details?id=com.xamltech.pos_go" target="_blank" rel="noopener">{{.T.storePlay}}</a>
       <a href="{{if eq .Page "company"}}{{.POSURL}}{{end}}/apk/pos_go.apk">{{.T.downloadApk}}</a>
+      <a href="https://github.com/mahmudamen/pos-go" target="_blank" rel="noopener">{{.T.githubRepo}}</a>
     </div>
     <div class="footer-text">
       <span>© {{.Year}} XAMLtech · {{.T.footerRights}}</span>

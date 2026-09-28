@@ -25,6 +25,7 @@ var siteStringsAR = map[string]string{
 	"storePlaySub": "أندرويد · نسخة تجريبية مجانية",
 	"downloadApk":  "تحميل ملف APK",
 	"apkHint":      "تثبيت مباشر · com.xamltech.pos_go",
+	"githubRepo":   "ملاحظات الإصدارات وخطة العمل على GitHub",
 	"stat1":        "١٧",
 	"stat1L":       "قطاعًا تجاريًا",
 	"stat2":        "١٥",
