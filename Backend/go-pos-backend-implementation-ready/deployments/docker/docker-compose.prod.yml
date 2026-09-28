@@ -84,6 +84,18 @@ services:
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-false}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-300}
       RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-1m}
+      # Invoice capture (Tesseract). The Purchases screen ships in the Android
+      # app for managers, so this has to be on or that button is dead in a
+      # merchant's hands. The metering limits are deliberately NOT 0 (=unlimited)
+      # on production: OCR runs synchronously on the request goroutine, so an
+      # unbounded tenant can saturate a core and stall the API for everyone.
+      OCR_ENABLED: ${OCR_ENABLED:-true}
+      TESSERACT_BIN: ${TESSERACT_BIN:-tesseract}
+      TESSERACT_LANGS: ${TESSERACT_LANGS:-ara+eng}
+      TESSERACT_PSM: ${TESSERACT_PSM:-6}
+      OCR_DAY_LIMIT: ${OCR_DAY_LIMIT:-100}
+      OCR_WEEK_LIMIT: ${OCR_WEEK_LIMIT:-500}
+      OCR_MONTH_LIMIT: ${OCR_MONTH_LIMIT:-2000}
     depends_on:
       migrate:
         condition: service_completed_successfully
