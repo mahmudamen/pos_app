@@ -117,6 +117,35 @@ flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8080   # local backend (
 
 Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'s compact reporter (see `flutter_01.log`) — an upstream terminal-width bug, not a test failure; work around it with a wider terminal or `--reporter expanded`.
 
+## Google Play store assets (`Flutter/pos_go_app/play_store/`)
+
+Everything Play needs is committed here (listing text, `graphics/icon-512.png`, `graphics/feature-graphic-1024x500.png`, both screenshot sets) **except the raw captures**; `play_store/README.md` is the authority for the release and carries the full pre-upload checklist.
+
+**Phone screenshots — one set per listing language.** Both are 1080×1920 24-bit RGB (9:16, no alpha) and walk the **same eight screens** (sign in, POS grid, cart, dashboard, sales history, customers, cash sessions, community), so the en-US and ar-EG listings show the same product in each language. Arabic is the app's primary locale, so the ar-EG set is RTL — the layout real users get:
+
+| Set | Captured by | Output |
+|---|---|---|
+| en-US | `integration_test/screenshot_tour_test.dart` | `play_store/screenshots/phone/01..08-*.png` |
+| ar-EG | `integration_test/screenshot_tour_ar_test.dart` (forces the `ar` locale) | `play_store/screenshots/phone-ar/ar-01..08-*.png` |
+
+```bash
+cd Flutter/pos_go_app
+emulator -avd posTest -no-window -no-audio -gpu swiftshader_indirect &
+flutter drive --profile --driver=test_driver/screenshot_driver.dart \
+  --target=integration_test/screenshot_tour_ar_test.dart -d emulator-5554
+python3 tool/make_store_screenshots.py       # both languages, or pass "ar"
+python3 tool/check_store_listing.py         # Play limits for BOTH sets
+```
+
+The tours sign in against **production** (`https://posgo.xamltech.com`, seeded demo tenant `demo-restaurant`), so the screens carry real data. Gotchas, all learned the hard way:
+
+- **`--profile`, never the default debug build**: debug paints the red `DEBUG` ribbon over every frame, which does not belong in a listing. `--release` cannot be used at all — the tour needs the VM service, which release builds do not expose. `src/profile/AndroidManifest.xml` was also missing `tools:replace="android:usesCleartextTraffic"`, which broke *every* profile build repo-wide until it was fixed (it now mirrors the debug manifest).
+- **`tester.enterText` is a no-op on a device**: `integration_test` binds with `registerTestTextInput = false`, so there is no test text input to deliver the text through — confirmed by the emulator sending **zero** `POST /v1/auth/login` to prod while the test waited. Both tours prefill through `SessionStore.saveRememberedLogin` (the app's own *remember logins* path) and then tap the sign-in button, so the sign-in on screen is still a real one. A second `pumpWidget` of the same widget type **reuses the State** — pump a placeholder in between, or `initState` never re-reads the store and the fields stay empty (which fails validation with "مطلوب").
+- Raw 20:9 captures land in `Flutter/pos_go_app/screenshots/` and are **gitignored**. `make_store_screenshots.py` skips a language whose captures are absent and leaves its already-built output alone, so an Arabic-only run does not fail on the missing English captures.
+- Data-dependent screens (sales history, customers) look sparse in **both** sets — the demo tenant is sparse — so the two listings stay consistent; seed the tenant first if a fuller list is wanted.
+- The signing/upload key stays outside the repo (`.secrets/play/`, gitignored); its cert is SHA-256 `6B:3C:FE:…:EB`, verifiable with `keytool -printcert -jarfile app-release.aab`. Once Play App Signing is enrolled, the digest Play Integrity reports becomes Google's app-signing cert, **not** that one.
+- Open drift: `pubspec.yaml` is `1.0.0+4` while `listing/store_listing_en.md` still says "code 3", so `check_store_listing.py` fails on `pubspec versionCode 4 is not mentioned in the listing` until that listing line is updated.
+
 ## Completed work
 
 ### Backend — features

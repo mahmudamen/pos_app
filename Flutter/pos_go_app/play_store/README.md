@@ -11,7 +11,8 @@ exact commands that produced the artifacts in this directory.
 | Universal APK | `../build/app/outputs/flutter-apk/app-release.apk` | 64.8 MB | Sideload / manual distribution only |
 | App icon | `graphics/icon-512.png` | 512×512 RGBA | Console → App content → App icon |
 | Feature graphic | `graphics/feature-graphic-1024x500.png` | 1024×500 | Console → Main store listing |
-| Phone screenshots | `screenshots/phone/01..08-*.png` | 1080×1920 RGB | Upload in numbered order |
+| Phone screenshots (en-US) | `screenshots/phone/01..08-*.png` | 1080×1920 RGB | Upload in numbered order |
+| Phone screenshots (ar-EG) | `screenshots/phone-ar/ar-01..08-*.png` | 1080×1920 RGB | Same eight screens, RTL; one set per listing language |
 
 Both binaries are signed with the release key (not the debug key) and point at
 production:
@@ -44,6 +45,52 @@ without Play App Signing, a lost key means a new package name.
 
 When `android/key.properties` is absent the release build falls back to the
 debug key and prints a warning — that fallback artifact must never be uploaded.
+
+## Screenshots
+
+Two 9:16 sets, one per listing language, both shot on a 1080×2400 emulator
+against production and reduced by `tool/make_store_screenshots.py`:
+
+| Set | Captured by | Output |
+|---|---|---|
+| en-US | `integration_test/screenshot_tour_test.dart` | `screenshots/phone/01..08-*.png` |
+| ar-EG | `integration_test/screenshot_tour_ar_test.dart` (forces the `ar` locale) | `screenshots/phone-ar/ar-01..08-*.png` |
+
+Both tours walk the same eight screens — sign in, POS grid, cart, dashboard,
+sales history, customers, cash sessions, community — so the two listings show
+the same product in each language. Arabic is the app's primary locale, so the
+ar-EG set is RTL, which is the layout real users get.
+
+```bash
+cd Flutter/pos_go_app
+emulator -avd posTest -no-window -no-audio -gpu swiftshader_indirect &
+flutter drive --profile \
+  --driver=test_driver/screenshot_driver.dart \
+  --target=integration_test/screenshot_tour_ar_test.dart -d emulator-5554
+python3 tool/make_store_screenshots.py          # both languages
+python3 tool/make_store_screenshots.py ar       # just the Arabic set
+```
+
+Notes for anyone re-running this:
+
+- **`--profile`, not the default debug build.** Debug paints the red `DEBUG`
+  ribbon over the top-right of every frame, which is not something to put in a
+  store listing. Profile keeps the VM service the driver needs. (`--release`
+  cannot be used at all: the tour runs on the VM service, which release builds
+  do not expose.)
+- **The tours sign in for real** against `https://posgo.xamltech.com` with the
+  seeded demo tenant `demo-restaurant`, so the data on screen is production
+  data. Nothing is typed: `integration_test` binds with
+  `registerTestTextInput = false`, so `tester.enterText` is a no-op on a
+  device. The form is filled the way the app fills it when *remember logins*
+  is on — through `SessionStore.saveRememberedLogin` — and the sign-in button is
+  tapped, so the sign-in on screen is still a real one.
+- The raw 20:9 captures land in `screenshots/` and are **not committed**.
+  `make_store_screenshots.py` skips a language whose captures are absent and
+  leaves the already-built output alone, so a run that only needs the Arabic
+  set will not fail on the missing English ones.
+- `tool/check_store_listing.py` validates both sets against Play's phone
+  screenshot rules, so it will tell you if either one drifts.
 
 ## Rebuilding
 
@@ -85,7 +132,8 @@ Bump the version before each upload: `version: X.Y.Z+N` in `pubspec.yaml` and
 1. **App content**
    - App icon: `graphics/icon-512.png`
    - Feature graphic: `graphics/feature-graphic-1024x500.png`
-   - Phone screenshots: `screenshots/phone/` in numeric order
+   - Phone screenshots: `screenshots/phone/` in numeric order for the default
+     (en-US) listing, `screenshots/phone-ar/` for ar-EG
    - Privacy policy URL: https://posgo.xamltech.com/private
 2. **Store listing** — copy from `listing/store_listing_en.md` (en-US) and
    `listing/store_listing_ar.md` (ar-EG). The `field:` blocks are the exact

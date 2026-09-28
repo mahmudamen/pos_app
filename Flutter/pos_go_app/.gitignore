@@ -12,3 +12,8 @@ dist/
 android/key.properties
 *.jks
 *.keystore
+
+# Raw 20:9 screenshot-tour captures of a live backend. Only the 9:16 store
+# output under play_store/screenshots/ is tracked, so this is anchored to the
+# app root -- a bare `screenshots/` would swallow that too.
+/screenshots/

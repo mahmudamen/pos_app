@@ -45,6 +45,24 @@ void main() {
     fail('Timed out waiting for $finder');
   }
 
+  /// Signs in by tapping the submit button. The soft keyboard is dismissed
+  /// first: while it is up it owns the taps aimed at the button, and the tap
+  /// is silently swallowed.
+  Future<void> submit(
+    WidgetTester tester,
+    Session? Function() authed, {
+    String buttonLabel = 'تسجيل الدخول',
+  }) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump(const Duration(milliseconds: 600));
+    final button = find.text(buttonLabel);
+    expect(button, findsOneWidget, reason: 'sign-in button $buttonLabel');
+    await tester.ensureVisible(button);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(button);
+    await tester.pump(const Duration(milliseconds: 400));
+  }
+
   Widget harness(Widget home) => MaterialApp(
         debugShowCheckedModeBanner: false,
         locale: const Locale('ar'),
@@ -79,19 +97,33 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await binding.takeScreenshot('ar-01-login');
 
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'معرف المتجر'), tenant);
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'البريد الإلكتروني'), email);
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'كلمة المرور'), password);
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'اسم الطرفية'), 'posTab');
-    await tester.pump(const Duration(milliseconds: 200));
+    // ---------- ar-01b login, credentials filled in ----------
+    // tester.enterText is a no-op here: integration_test binds with
+    // registerTestTextInput = false, so on a device there is no test text
+    // input to deliver the text through. The form is filled the way the app
+    // itself fills it when "remember logins" is on -- through SessionStore --
+    // and the submit button is then tapped, so the login is still a real one
+    // made by the real screen.
+    await store.saveRememberedLogin(const RememberedLogin(
+      tenantId: tenant,
+      email: email,
+      password: password,
+      deviceName: 'posTab',
+    ));
+    // A placeholder in between, so the second LoginScreen is a new State and
+    // its initState actually reads the store back.
+    await tester.pumpWidget(harness(const SizedBox.shrink()));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpWidget(harness(LoginScreen(
+      apiClient: api,
+      sessionStore: store,
+      onAuthenticated: (s) => authed = s,
+    )));
+    await pumpUntil(tester, find.text('تسجيل الدخول'));
+    await tester.pump(const Duration(milliseconds: 1500));
+    expect(find.text(tenant), findsOneWidget, reason: 'prefilled tenant');
     await binding.takeScreenshot('ar-01b-login-filled');
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pump();
-    tester.takeException();
+    await submit(tester, () => authed);
 
     // Wait for the real async login to complete and report the session.
     final loginEnd = DateTime.now().add(const Duration(seconds: 40));

@@ -28,6 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PLAY = ROOT / "play_store"
 LISTING = PLAY / "listing"
 SHOTS = PLAY / "screenshots/phone"
+SHOTS_AR = PLAY / "screenshots/phone-ar"
 GRAPHICS = PLAY / "graphics"
 
 LIMITS = {"title": 30, "short": 80, "full": 4000, "release_notes": 500,
@@ -107,9 +108,19 @@ def check_images() -> None:
             ok("feature graphic 1024x500")
 
     print("phone screenshots")
-    shots = sorted(SHOTS.glob("*.png")) + sorted(SHOTS.glob("*.jpg"))
+    for directory, locale in ((SHOTS, "en-US"), (SHOTS_AR, "ar-EG")):
+        check_shots(directory, locale)
+
+
+def check_shots(directory: Path, locale: str) -> None:
+    shots = sorted(directory.glob("*.png")) + sorted(directory.glob("*.jpg"))
+    if not shots:
+        fail(f"{locale}: no phone screenshots in "
+             f"{directory.relative_to(ROOT)}")
+        return
     if not 2 <= len(shots) <= 8:
-        fail(f"phone screenshots must number 2..8, found {len(shots)}")
+        fail(f"{locale}: phone screenshots must number 2..8, found "
+             f"{len(shots)}")
     for shot in shots:
         image = Image.open(shot)
         width, height = image.size
@@ -124,11 +135,11 @@ def check_images() -> None:
         elif max(width, height) > 3840:
             problem = f"longest side {max(width, height)} > 3840"
         if problem:
-            fail(f"{shot.name}: {problem}")
+            fail(f"{locale} {shot.name}: {problem}")
         else:
-            ok(f"{shot.name}: {width}x{height} ratio {ratio:.4f}")
-    if shots:
-        print(f"  ({len(shots)} phone screenshots)")
+            ok(f"{locale} {shot.name}: {width}x{height} ratio {ratio:.4f}")
+    print(f"  ({locale}: {len(shots)} phone screenshots in "
+          f"{directory.relative_to(ROOT)})")
 
 
 AAPT2 = sorted(

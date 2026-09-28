@@ -10,18 +10,24 @@ status bar and the bottom nav of every screen intact.
 
 Output is 24-bit RGB PNG with no alpha channel, which is what Play asks for.
 
-Usage:  python3 tool/make_store_screenshots.py
+One set per Play listing language. The raw captures come from
+`integration_test/screenshot_tour_test.dart` (English) and
+`screenshot_tour_ar_test.dart` (Arabic, whose files carry an `ar-` prefix), and
+each set keeps its own output directory so the two are uploaded per locale.
+
+Usage:  python3 tool/make_store_screenshots.py [en ar]
 """
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "screenshots"
-OUT = ROOT / "play_store/screenshots/phone"
+OUT = ROOT / "play_store/screenshots"
 
 CANVAS = (1080, 1920)      # 9:16, the narrowest ratio Play accepts
 PANEL = (CANVAS[0] - 864) // 2
@@ -43,6 +49,16 @@ FEATURED = [
     "07-session-reports",
     "08-community-hub",
 ]
+
+# Play listing language -> (output directory, raw-capture prefix). Arabic is
+# the app's primary locale, so the ar-EG listing ships the RTL set.
+LANGUAGES = {
+    "en": (OUT / "phone", ""),
+    "ar": (OUT / "phone-ar", "ar-"),
+}
+
+# Suffix of the integration_test tour that captures each language.
+TOUR = {"en": "", "ar": "_ar"}
 
 
 def gradient(size: tuple[int, int], top: tuple[int, int, int], bottom: tuple[int, int, int],
@@ -102,13 +118,42 @@ def build(source: Path, target: Path) -> None:
           f"{(target.stat().st_size) // 1024} KB")
 
 
+def build_set(language: str) -> None:
+    out, prefix = LANGUAGES[language]
+    sources = [SRC / f"{prefix}{name}.png" for name in FEATURED]
+    present = [s for s in sources if s.exists()]
+    if not present:
+        # The raw captures are not committed (they are 20:9 device grabs of a
+        # live backend), so a set that has never been re-captured is skipped
+        # rather than failing the run that only needs the other language.
+        print(f"{language}: no raw captures in {SRC.relative_to(ROOT)}/ "
+              f"({prefix or 'no '}prefix). Already-built output in "
+              f"{out.relative_to(ROOT)}/ is left alone; re-capture with")
+        print(f"    flutter drive --driver=test_driver/screenshot_driver.dart \\")
+        print(f"      --target=integration_test/screenshot_tour{TOUR[language]}_test.dart \\")
+        print(f"      -d <device> --profile")
+        return
+    missing = [s for s in sources if not s.exists()]
+    if missing:
+        raise SystemExit(
+            f"{language}: {len(missing)} of {len(sources)} captures missing, "
+            f"starting with {missing[0]}")
+    print(f"{language} phone screenshots (9:16, 24-bit RGB, no alpha) -> "
+          f"{out.relative_to(ROOT)}")
+    for name, source in zip(FEATURED, sources):
+        build(source, out / f"{prefix}{name}.png")
+
+
 def main() -> None:
-    print("Play phone screenshots (9:16, 24-bit RGB, no alpha)")
-    for name in FEATURED:
-        source = SRC / f"{name}.png"
-        if not source.exists():
-            raise SystemExit(f"missing source screenshot: {source}")
-        build(source, OUT / f"{name}.png")
+    wanted = [arg for arg in sys.argv[1:] if not arg.startswith("-")] \
+        or list(LANGUAGES)
+    for language in wanted:
+        if language not in LANGUAGES:
+            raise SystemExit(
+                f"unknown language {language!r}; pick from "
+                f"{', '.join(LANGUAGES)}")
+    for language in wanted:
+        build_set(language)
 
 
 if __name__ == "__main__":
