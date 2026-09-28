@@ -1,4 +1,4 @@
-# POS.Go — Google Play release 1.0.0 (versionCode 3)
+# POS.Go — Google Play release 1.0.0 (versionCode 5)
 
 Everything needed to publish `com.xamltech.pos_go` to Google Play, plus the
 exact commands that produced the artifacts in this directory.
@@ -7,8 +7,8 @@ exact commands that produced the artifacts in this directory.
 
 | What | Path | Size | Notes |
 |---|---|---|---|
-| Play App Bundle | `../build/app/outputs/bundle/release/app-release.aab` | 62.0 MB | **Upload this to Play** |
-| Universal APK | `../build/app/outputs/flutter-apk/app-release.apk` | 64.8 MB | Sideload / manual distribution only |
+| Play App Bundle | `../build/app/outputs/bundle/release/app-release.aab` | 62.7 MB | **Upload this to Play** |
+| Universal APK | `../build/app/outputs/flutter-apk/app-release.apk` | 65.4 MB | Sideload / manual distribution only |
 | App icon | `graphics/icon-512.png` | 512×512 RGBA | Console → App content → App icon |
 | Feature graphic | `graphics/feature-graphic-1024x500.png` | 1024×500 | Console → Main store listing |
 | Phone screenshots (en-US) | `screenshots/phone/01..08-*.png` | 1080×1920 RGB | Upload in numbered order |
@@ -21,9 +21,14 @@ production:
 - `SAAS_API_BASE_URL=https://api.xamltech.com`
 
 Verified from the built artifacts: package `com.xamltech.pos_go`, versionName
-`1.0.0`, versionCode `3`, `minSdk` 24, `targetSdk` 36, `compileSdk` 36,
-release-only cleartext disabled, permissions `INTERNET` + `WAKE_LOCK` plus
-Flutter's app-private receiver permission.
+`1.0.0`, versionCode `5`, `minSdk` 24, `targetSdk` 36, `compileSdk` 36,
+release-only cleartext disabled, ABIs `arm64-v8a` / `armeabi-v7a` / `x86_64`.
+Permissions: `INTERNET`, `WAKE_LOCK`, `ACCESS_NETWORK_STATE`,
+`POST_NOTIFICATIONS` and `com.google.android.c2dm.permission.RECEIVE` (the last
+three come from push notifications), plus Flutter's app-private receiver
+permission. The push permissions are new since the first artifact — the Data
+safety form in `listing/data_safety.md` has to declare the messaging data to
+match, or the listing and the binary disagree.
 
 ## Signing
 
@@ -115,7 +120,7 @@ Bump the version before each upload: `version: X.Y.Z+N` in `pubspec.yaml` and
 
 ## What changed for the store, versus the app you were testing
 
-- Version `0.2.0+2` → `1.0.0+3`.
+- Version `0.2.0+2` → `1.0.0+5`.
 - `compileSdk`/`targetSdk` pinned to 36, `minSdk` pinned to 24 (previously
   inherited from the Flutter toolchain, so this is now explicit).
 - Real release signing replaces the debug key.
@@ -221,7 +226,7 @@ Still open — none of these are code problems:
 4. **Confirm the Play listing state** for `com.xamltech.pos_go`: if the package
    already exists there, `versionCode` must exceed the uploaded one, and the
    upload key must be the one enrolled (or reset through Play). The artifacts
-   are currently `1.0.0` code `3`, so anything already on Play means a bump.
+   are currently `1.0.0` code `5`, so anything already on Play means a bump.
 5. **Resolve the [verify] items** in `listing/data_safety.md` and
    `listing/content_rating.md` — especially whether in-app scan-credit top-ups
    can ever spend real money (if yes, Play Billing becomes mandatory). The

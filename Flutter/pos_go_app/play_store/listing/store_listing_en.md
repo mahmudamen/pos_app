@@ -1,6 +1,6 @@
 # POS.Go — Google Play listing (en-US)
 
-Package: `com.xamltech.pos_go` · Version 1.0.0 (code 3) · Category: Business
+Package: `com.xamltech.pos_go` · Version 1.0.0 (code 5) · Category: Business
 Contact: support@xamltech.com · Website: https://xamltech.com
 Privacy policy: https://posgo.xamltech.com/private
 

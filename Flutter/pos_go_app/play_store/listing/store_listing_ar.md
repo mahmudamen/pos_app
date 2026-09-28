@@ -1,6 +1,6 @@
 # POS.Go — Google Play listing (ar / ar-EG)
 
-Package: `com.xamltech.pos_go` · الإصدار 1.0.0 (الرمز 3) · الفئة: الأعمال
+Package: `com.xamltech.pos_go` · الإصدار 1.0.0 (الرمز 5) · الفئة: الأعمال
 البريد: support@xamltech.com · الموقع: https://xamltech.com
 سياسة الخصوصية: https://posgo.xamltech.com/private
 
