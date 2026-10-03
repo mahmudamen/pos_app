@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/api_client.dart';
+import '../../core/app_exception.dart';
 import '../../core/focus_mode.dart';
 import '../../core/fonts.dart';
 import '../../core/payments.dart';
@@ -101,6 +102,10 @@ class _PosScreenState extends State<PosScreen> {
   String? _catalogError;
   TenantSettings _settings = const TenantSettings();
   RegisterSession? _registerSession;
+
+  /// The shift running on this device because the server could not be reached.
+  /// Mutually exclusive with [_registerSession] once reconciliation succeeds.
+  LocalRegisterSession? _localSession;
   PrinterStatus _printerStatus = PrinterStatus.noPrinter;
   late final PrinterService _printerService =
       widget.printerService ?? PrinterService();
@@ -179,10 +184,23 @@ class _PosScreenState extends State<PosScreen> {
       if (!mounted) return;
       setState(() {
         _registerSession = current;
+        // A server session wins: it is the one the Z-report will read.
+        if (current != null) _localSession = null;
         _sessionLoading = false;
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
+      // The network cut: carry on with the shift this device recorded, so the
+      // cashier can keep trading instead of being locked out of their till.
+      if (isTransportFailure(error)) {
+        final local = await widget.localDatabase?.openLocalSession();
+        if (!mounted) return;
+        setState(() {
+          if (local != null) _localSession = local;
+          _sessionLoading = false;
+        });
+        return;
+      }
       setState(() => _sessionLoading = false);
     }
   }
@@ -615,6 +633,7 @@ class _PosScreenState extends State<PosScreen> {
         children: [
           _SessionBar(
             session: _registerSession,
+            localSession: _localSession,
             loading: _sessionLoading,
             strings: s,
             currency: widget.session.currencyCode,
@@ -749,15 +768,30 @@ class _PosScreenState extends State<PosScreen> {
       messenger.showSnackBar(
           SnackBar(content: Text('${s.posSession} ${s.statusOpen}')));
     } catch (error) {
+      final db = widget.localDatabase;
+      if (!isTransportFailure(error) || db == null) {
+        if (!mounted) return;
+        messenger.showSnackBar(SnackBar(content: Text(error.toString())));
+        return;
+      }
+      // Offline: take the float on the record and open the shift locally. The
+      // cashier can trade all shift; replay opens the server session after.
+      final local = LocalRegisterSession.open(
+        id: const Uuid().v4(),
+        openingCashMinor: openingMinor,
+      );
+      await db.saveLocalSession(local);
       if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(error.toString())));
+      setState(() => _localSession = local);
+      messenger.showSnackBar(SnackBar(content: Text(s.sessionOpenedOffline)));
     }
   }
 
   Future<void> _finishSessionFlow(BuildContext context) async {
     final s = AppStrings.of(context);
     final session = _registerSession;
-    if (session == null) return;
+    final local = _localSession;
+    if (session == null && local == null) return;
     final messenger = ScaffoldMessenger.of(context);
     final controller = TextEditingController();
     final countedMinor = await showDialog<int>(
@@ -804,6 +838,21 @@ class _PosScreenState extends State<PosScreen> {
       if (pin == null || !context.mounted) return;
       managerPin = pin;
     }
+    // A shift taken offline has no server session to close yet. Record the
+    // count on the device; reconciliation closes the server session to match
+    // once the link is back.
+    if (session == null && local != null) {
+      final db = widget.localDatabase;
+      if (db != null) {
+        await db.saveLocalSession(local.closed(countedCashMinor: countedMinor));
+        if (!mounted) return;
+        setState(() => _localSession = null);
+        messenger.showSnackBar(
+            SnackBar(content: Text('${s.zReport} ${s.sessionClosedOffline}')));
+        return;
+      }
+    }
+    if (session == null) return;
     try {
       final closed = await widget.apiClient.closeSession(
         widget.session,
@@ -939,7 +988,9 @@ class _PosScreenState extends State<PosScreen> {
       if (error is ApiException) {
         if (!mounted) return;
         messenger.showSnackBar(SnackBar(content: Text(error.toString())));
-      } else {
+      } else if (isTransportFailure(error)) {
+        // The network cut mid-checkout. Take the sale locally and let the sync
+        // push carry it when the link returns.
         final db = widget.localDatabase;
         if (db != null) {
           await db.enqueue(PendingCommand(
@@ -956,6 +1007,12 @@ class _PosScreenState extends State<PosScreen> {
               if (payments.isNotEmpty)
                 'payments': payments.map((p) => p.toJson()).toList(),
               if (_registerSession != null) 'session_id': _registerSession!.id,
+              // A shift that only exists on this device must not claim a
+              // server session_id: the server would reject an unknown session
+              // and the sale would be lost. The local id travels as its own
+              // field and is swapped for the real one during reconciliation.
+              if (_localSession != null)
+                'local_session_id': _localSession!.id,
               if (tableId != null) 'table_id': tableId,
               if (discountMinor > 0) 'discount_minor': discountMinor,
               if (roundingMinor > 0) 'rounding_minor': roundingMinor,
@@ -970,6 +1027,11 @@ class _PosScreenState extends State<PosScreen> {
           if (!mounted) return;
           messenger.showSnackBar(SnackBar(content: Text(error.toString())));
         }
+      } else {
+        // Not a transport failure and not an API rejection: a bug. Showing it
+        // beats queueing a sale the server never accepted.
+        if (!mounted) return;
+        messenger.showSnackBar(SnackBar(content: Text(error.toString())));
       }
     } finally {
       if (mounted) setState(() => _checkingOut = false);
@@ -1030,24 +1092,67 @@ class _PosScreenState extends State<PosScreen> {
     }
   }
 
+  /// Opens the server session for a shift taken offline, so the sales about to
+  /// be replayed land inside it and show up in the Z-report.
+  ///
+  /// Returns the server session id the queued sales should be attributed to, or
+  /// null when there is nothing to reconcile or the open call failed. A failure
+  /// here is not fatal: the sales still replay, they just carry no session until
+  /// the next attempt, which is better than stranding them in the queue.
+  Future<String?> _reconcileLocalSession(LocalDatabase db) async {
+    LocalRegisterSession? local;
+    try {
+      local = await db.openLocalSession();
+    } catch (_) {
+      // Reading the local shift is best effort. A storage hiccup must not stop
+      // the queued sales from reaching the server.
+      return null;
+    }
+    if (local == null) return null;
+    if (_registerSession != null) return _registerSession!.id;
+    try {
+      final opened = await widget.apiClient.openSession(
+        widget.session,
+        openingCashMinor: local.openingCashMinor,
+      );
+      if (!mounted) return opened.id;
+      setState(() {
+        _registerSession = opened;
+        _localSession = null;
+      });
+      return opened.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> _replayPending() async {
     final db = widget.localDatabase;
     if (db == null) return;
     final pending = await db.pendingCommands();
     final queued = pending.where((c) => c.operation == 'create_sale').toList();
     if (queued.isEmpty) return;
+
+    // Pair the queue with a real session first, when there is a device-local
+    // shift waiting for one. A sale that belongs to no shift still replays: it
+    // is better recorded unattributed than left rotting in the queue.
+    final serverSessionId = await _reconcileLocalSession(db);
     var synced = 0;
     var attention = 0;
     for (final command in queued) {
       if (synced >= _pendingBatchLimit) break;
       try {
         final payload = jsonDecode(command.payload) as Map<String, dynamic>;
+        final localSessionId = payload.remove('local_session_id') as String?;
+        final effectiveSessionId = serverSessionId ?? _registerSession?.id;
         final commands = <SyncPushCommand>[
           SyncPushCommand(
             commandId: command.id,
             operation: 'sale.create',
             payload: {
               ...payload,
+              if (localSessionId != null && effectiveSessionId != null)
+                'session_id': effectiveSessionId,
               'idempotency_key': command.idempotencyKey,
             },
           ),
@@ -1765,6 +1870,7 @@ class _PaymentSheetState extends State<PaymentSheet> {
 class _SessionBar extends StatelessWidget {
   const _SessionBar({
     required this.session,
+    required this.localSession,
     required this.loading,
     required this.strings,
     required this.currency,
@@ -1774,6 +1880,9 @@ class _SessionBar extends StatelessWidget {
   });
 
   final RegisterSession? session;
+
+  /// The offline shift, shown when there is no server session to report.
+  final LocalRegisterSession? localSession;
   final bool loading;
   final AppStrings strings;
   final String currency;
@@ -1785,6 +1894,7 @@ class _SessionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final current = session;
+    final local = localSession;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: loading
@@ -1794,7 +1904,7 @@ class _SessionBar extends StatelessWidget {
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: current == null
+                child: current == null && local == null
                     ? Row(
                         children: [
                           Icon(Icons.play_circle_outline,
@@ -1818,18 +1928,27 @@ class _SessionBar extends StatelessWidget {
                       )
                     : Row(
                         children: [
-                          Icon(Icons.bolt, color: Colors.green.shade700),
+                          Icon(
+                            current != null ? Icons.bolt : Icons.cloud_off,
+                            color: current != null
+                                ? Colors.green.shade700
+                                : theme.colorScheme.tertiary,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${strings.posSession} ${_shortId(current.id)}',
+                                  current != null
+                                      ? '${strings.posSession} ${_shortId(current.id)}'
+                                      : '${strings.posSession} ${_shortId(local!.id)} · ${strings.sessionOfflineBadge}',
                                   style: theme.textTheme.titleSmall,
                                 ),
                                 Text(
-                                  '${current.openedBy} · ${strings.formatMoney(current.summary.expectedCashMinor, currency)} ${strings.expectedCash}',
+                                  current != null
+                                      ? '${current.openedBy} · ${strings.formatMoney(current.summary.expectedCashMinor, currency)} ${strings.expectedCash}'
+                                      : '${strings.startingCash} ${strings.formatMoney(local!.openingCashMinor, currency)}',
                                   style: theme.textTheme.bodySmall,
                                 ),
                               ],

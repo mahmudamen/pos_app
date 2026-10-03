@@ -368,6 +368,31 @@
         }
       }
     },
+    "/v1/auth/unlock-pin": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "PostV1AuthUnlock-pin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/auth/verify-pin": {
       "post": {
         "tags": [

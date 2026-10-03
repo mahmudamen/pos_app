@@ -118,6 +118,15 @@ class _FakeLocalDatabase extends LocalDatabase {
   Future<void> markComplete(String id) async {
     commands.removeWhere((c) => c.id == id);
   }
+
+  @override
+  Future<void> saveLocalSession(LocalRegisterSession session) async {}
+
+  @override
+  Future<LocalRegisterSession?> openLocalSession() async => null;
+
+  @override
+  Future<List<LocalRegisterSession>> localSessions() async => const [];
 }
 
 Widget _wrap(Widget child) {

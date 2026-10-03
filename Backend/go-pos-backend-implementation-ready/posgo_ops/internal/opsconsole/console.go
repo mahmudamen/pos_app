@@ -224,7 +224,8 @@ func New(ctx context.Context, cfg Config) (*Console, runtime.Widget, error) {
 		})
 		c.signedIn.Set(true)
 		c.note(statusInfo, "using the supplied access token")
-		c.refreshAll()	}
+		c.refreshAll()
+	}
 	return c, root, nil
 }
 

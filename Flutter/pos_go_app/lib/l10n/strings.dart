@@ -442,6 +442,13 @@ class AppStrings {
   String get offlineNeedsAttention => isArabic
       ? 'تعذرت مزامنة بعض العمليات؛ راجع سجل المبيعات'
       : 'Some offline operations were not synced — check sales history';
+  String get sessionOpenedOffline => isArabic
+      ? 'فُتحت جلسة البيع دون اتصال على هذا الجهاز؛ ستُزامن لاحقًا'
+      : 'POS session opened offline on this device — it will sync later';
+  String get sessionClosedOffline => isArabic
+      ? 'أُغلقت جلسة البيع دون اتصال على هذا الجهاز؛ ستُزامن لاحقًا'
+      : 'POS session closed offline on this device — it will sync later';
+  String get sessionOfflineBadge => isArabic ? 'دون اتصال' : 'Offline';
   String get payment => isArabic ? 'طريقة الدفع' : 'Payment method';
   String get paymentRequired => isArabic
       ? 'الدفع لا يغطي قيمة المبلغ'

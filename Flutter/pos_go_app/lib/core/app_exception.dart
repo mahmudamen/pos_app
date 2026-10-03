@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+
 class AppException implements Exception {
   const AppException(this.message, {this.code, this.original});
   final String message;
@@ -11,6 +16,24 @@ class AppException implements Exception {
 class NetworkException extends AppException {
   const NetworkException(super.message, {super.original});
 }
+
+/// Whether a failure means "the request never reached the server".
+///
+/// This is the switch between the two modes the POS runs in. Online it is
+/// ordinary error handling; when the network cuts, the sale has to be taken
+/// locally and pushed later, and the only safe trigger for that is a transport
+/// failure. Treating "any error that is not an ApiException" as offline is
+/// what this predicate exists to stop: a StateError from a malformed payload is
+/// a bug, and queueing it would replay a sale the server never accepted.
+///
+/// Covers [NetworkException] (thrown by ApiClient for a dead link) plus the
+/// raw socket/client/timeout errors a caller can still see from an
+/// unauthenticated call such as login.
+bool isTransportFailure(Object error) =>
+    error is NetworkException ||
+    error is SocketException ||
+    error is http.ClientException ||
+    error is TimeoutException;
 
 class AuthException extends AppException {
   const AuthException(super.message, {super.code, super.original});

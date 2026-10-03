@@ -2,6 +2,7 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 import '../api_client.dart';
+import '../registers.dart';
 
 class PendingCommand {
   const PendingCommand({
@@ -32,7 +33,7 @@ class LocalDatabase {
     _database = await _factory.openDatabase(
       databasesPath,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onCreate: (db, _) async {
           await db.execute('''
             CREATE TABLE cached_products (
@@ -58,16 +59,37 @@ class LocalDatabase {
               created_at INTEGER NOT NULL
             )
           ''');
+          await _createLocalSessions(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
             await db.execute(
                 'ALTER TABLE cached_products ADD COLUMN image_url TEXT NOT NULL DEFAULT \'\'');
           }
+          if (oldVersion < 3) {
+            await _createLocalSessions(db);
+          }
         },
       ),
     );
     return _database!;
+  }
+
+  /// Shifts taken while the register session could not be opened on the server.
+  /// Created by [_createLocalSessions] for both fresh installs and upgrades so
+  /// the two paths cannot diverge.
+  static Future<void> _createLocalSessions(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS local_sessions (
+        id TEXT PRIMARY KEY,
+        opening_cash_minor INTEGER NOT NULL,
+        opened_at INTEGER NOT NULL,
+        closing_cash_minor INTEGER,
+        closed_at INTEGER,
+        created_at INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'open'
+      )
+    ''');
   }
 
   Future<void> cacheProducts(List<Product> products) async {
@@ -148,6 +170,41 @@ class LocalDatabase {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  /// Records a shift taken offline. Re-saving the same [session] id updates it,
+  /// so closing a shift is just a second write.
+  Future<void> saveLocalSession(LocalRegisterSession session) async {
+    await (await database).insert(
+      'local_sessions',
+      session.toRow(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// The shift currently open on this device, or null when there is none.
+  ///
+  /// A terminal has at most one open shift, so the newest open row wins; this
+  /// is also what makes the value safe to call on every screen entry.
+  Future<LocalRegisterSession?> openLocalSession() async {
+    final rows = await (await database).query(
+      'local_sessions',
+      where: 'status = ?',
+      whereArgs: ['open'],
+      orderBy: 'created_at DESC',
+      limit: 1,
+    );
+    return rows.isEmpty ? null : LocalRegisterSession.fromRow(rows.first);
+  }
+
+  /// Every locally recorded shift, oldest first, for reconciliation on
+  /// reconnect.
+  Future<List<LocalRegisterSession>> localSessions() async {
+    final rows = await (await database).query(
+      'local_sessions',
+      orderBy: 'created_at ASC',
+    );
+    return rows.map(LocalRegisterSession.fromRow).toList();
   }
 
   Future<void> close() async {

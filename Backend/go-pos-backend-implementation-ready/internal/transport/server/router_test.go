@@ -35,6 +35,7 @@ func TestRegisterBuildsRouteTableWithoutDatabase(t *testing.T) {
 		"POST /v1/auth/logout",
 		"POST /v1/auth/set-pin",
 		"POST /v1/auth/verify-pin",
+		"POST /v1/auth/unlock-pin",
 		"GET /v1/categories",
 		"GET /v1/products",
 		"GET /v1/products/barcode/:barcode",

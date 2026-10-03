@@ -67,6 +67,14 @@ type refreshRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
+// Register mounts the auth routes on a group.
+//
+// It is NOT what serves the API: server.Register wires the same routes inline so
+// it can wrap /auth/login in the rate limiter, which this signature cannot
+// express. Anything added here and not there is dead in production and missing
+// from the generated OpenAPI spec, while tests that build their own engine from
+// this method still pass. Add new auth routes to server.Register, and keep the
+// route-table assertion in server/router_test.go honest.
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.POST("/auth/register", h.Signup)
 	router.POST("/auth/login", h.Login())

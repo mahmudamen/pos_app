@@ -121,6 +121,7 @@ func Register(engine *gin.Engine, d Deps) {
 	authGroup.POST("/logout", authHandler.Logout())
 	authGroup.POST("/set-pin", authHandler.SetPin())
 	authGroup.POST("/verify-pin", authHandler.VerifyPin())
+	authGroup.POST("/unlock-pin", authHandler.UnlockPin)
 	notifHandler := notificationstransport.NewHandler(d.Pool, authHandler.Tokens(), notificationstransport.WebPushConfig{
 		PublicKey:  d.Config.VAPIDPublicKey,
 		PrivateKey: d.Config.VAPIDPrivateKey,

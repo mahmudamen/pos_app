@@ -4,6 +4,8 @@ Build under test: `dist/pos_go_0.1.0+1_release.apk` (com.xamltech.pos_go, signed
 
 Backend: must be reachable at `http://127.0.0.1:8080` (dev box) or the production URL. Login requires a running API. Demo tenant: `demo-restaurant` — `admin@demo-restaurant.com` / `admin` (manager) and `guest@demo-restaurant.com` / `admin` (guest).
 
+ guest@demo-restaurant.com /  admin (guest)
+
 Environment notes:
 - All app strings are Arabic-first; you can switch to English from the login screen and inside the POS settings sheet.
 - Money is EGP (`E£`).

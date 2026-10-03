@@ -5,6 +5,7 @@ import 'dart:ui' show Locale;
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
+import 'app_exception.dart';
 import 'customers.dart';
 import 'billing.dart';
 import 'community.dart';
@@ -2479,12 +2480,34 @@ class ApiClient {
     Session session,
     Future<http.Response> Function(String accessToken) request,
   ) async {
-    final response = await request(session.accessToken);
+    final response = await _guardTransport(() => request(session.accessToken));
     if (response.statusCode != 401) return response;
 
     final refreshed = await _refresh(session);
-    final retry = await request(refreshed.accessToken);
+    final retry = await _guardTransport(() => request(refreshed.accessToken));
     return retry;
+  }
+
+  /// Turns a dead link into a [NetworkException] so callers can tell "the
+  /// network cut" from "the server said no".
+  ///
+  /// Without this the raw [SocketException] escapes and every caller has to
+  /// re-derive the distinction. It matters most at checkout, where only a
+  /// transport failure may hand the sale to the offline queue: a server
+  /// rejection has to surface, and a bug must never be queued.
+  Future<http.Response> _guardTransport(
+    Future<http.Response> Function() send,
+  ) async {
+    try {
+      return await send();
+    } on NetworkException {
+      rethrow;
+    } catch (error) {
+      if (isTransportFailure(error)) {
+        throw NetworkException('network unreachable', original: error);
+      }
+      rethrow;
+    }
   }
 
   Future<Session> _refresh(Session session) async {

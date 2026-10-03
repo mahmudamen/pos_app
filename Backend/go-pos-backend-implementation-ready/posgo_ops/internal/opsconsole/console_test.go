@@ -18,6 +18,8 @@ import (
 
 	"posgo-ops/internal/posgo"
 
+	"m31labs.dev/fluffyui/runtime"
+
 	fluffytest "m31labs.dev/fluffyui/testing"
 )
 
@@ -325,6 +327,14 @@ func waitForAnalytics(t *testing.T, console *Console, pump *pumpScheduler) {
 	t.Helper()
 	waitFor(t, pump, func() bool {
 		return console.analytics.Get().Data.TenantID != ""
+	})
+}
+
+// waitForSummary blocks until the platform summary has settled.
+func waitForSummary(t *testing.T, console *Console, pump *pumpScheduler) {
+	t.Helper()
+	waitFor(t, pump, func() bool {
+		return len(console.summary.Get().Data.ByBusiness) > 0
 	})
 }
 
@@ -874,6 +884,14 @@ func TestSignOutClearsEverythingAndReturnsToLogin(t *testing.T) {
 	console.table.SetSelected(0)
 	console.openSelected()
 
+	// Arm a destructive confirmation first: signing out has to stand it down,
+	// or the next sign-in would inherit a "yes, stop this tenant" prompt pinned
+	// to a tenant id that is no longer in the session.
+	console.run(console.stopAction())
+	if !console.confirming.Get() {
+		t.Fatalf("precondition: the stop confirmation should be armed")
+	}
+
 	console.signOut()
 
 	if console.signedIn.Get() {
@@ -881,6 +899,10 @@ func TestSignOutClearsEverythingAndReturnsToLogin(t *testing.T) {
 	}
 	if len(console.tabs.Tabs) != 3 {
 		t.Errorf("the strip keeps its three panes across a sign-out, got %d", len(console.tabs.Tabs))
+	}
+	if console.confirming.Get() || console.confirmID.Get() != "" {
+		t.Errorf("sign out must cancel a pending confirmation, got confirming=%v id=%q",
+			console.confirming.Get(), console.confirmID.Get())
 	}
 	if console.session.Get().AccessToken != "" || console.selected.Get() != "" {
 		t.Errorf("sign out must clear the session and the selection")
@@ -970,8 +992,16 @@ func waitFor(t *testing.T, pump *pumpScheduler, cond func() bool) {
 // screen collapsed to zero height and painted nothing at all, while every state
 // assertion in this file stayed green. These tests assert the painted screen so
 // a layout regression fails here instead of in front of an operator.
+//
+// The tree is mounted around the render on purpose. widgets.SignalLabel reads
+// its source when it mounts and then follows it by subscription, and the app
+// only mounts the panes of the visible tab. Rendering without mounting left
+// every reactive label frozen at the text it was constructed with, which made a
+// correct drill-down pane look stale here while it was fine in the app.
 func paint(t *testing.T, console *Console) string {
 	t.Helper()
+	runtime.MountTree(console.root)
+	defer runtime.UnmountTree(console.root)
 	return fluffytest.RenderToString(console.root, 120, 40)
 }
 
@@ -1059,6 +1089,65 @@ func TestSignedOutScreenSurvivesATinyTerminal(t *testing.T) {
 		screen := fluffytest.RenderToString(console.root, size[0], size[1])
 		if !strings.Contains(screen, "Sign in") {
 			t.Errorf("at %dx%d the login screen lost its form:\n%s", size[0], size[1], screen)
+		}
+	}
+}
+
+// TestSplitLinesDropsTrailingBlanks covers the text block's line splitting.
+func TestSplitLinesDropsTrailingBlanks(t *testing.T) {
+	for _, tc := range []struct {
+		in   string
+		want []string
+	}{
+		{"", nil},
+		{"one", []string{"one"}},
+		{"a\nb\nc", []string{"a", "b", "c"}},
+		{"a\nb\n", []string{"a", "b"}},
+		{"a\n\n", []string{"a"}},
+	} {
+		got := splitLines(tc.in)
+		if len(got) != len(tc.want) {
+			t.Errorf("splitLines(%q) = %q, want %q", tc.in, got, tc.want)
+			continue
+		}
+		for i := range got {
+			if got[i] != tc.want[i] {
+				t.Errorf("splitLines(%q) = %q, want %q", tc.in, got, tc.want)
+				break
+			}
+		}
+	}
+}
+
+// TestMultilineLabelMeasuresEveryLine is the regression test for the clipping
+// bug: a text block must report one row per line, or the card around it sizes
+// itself to a single row and drops the rest.
+func TestMultilineLabelMeasuresEveryLine(t *testing.T) {
+	for _, lines := range []int{1, 3, 6, 12} {
+		text := strings.Repeat("row\n", lines)
+		text = strings.TrimSuffix(text, "\n")
+		label := multilineText(func() string { return text })
+		got := fluffytest.MeasureWidget(label, 80, 40)
+		if got.Height != lines {
+			t.Errorf("%d lines measured %d rows tall, want %d", lines, got.Height, lines)
+		}
+	}
+}
+
+// TestMultilineBlockPaintsInsideItsCard proves the whole block is on screen, not
+// just the first line: the card is sized from the block's measurement.
+func TestMultilineBlockPaintsInsideItsCard(t *testing.T) {
+	stub := newStubAPI(t)
+	console, pump := signedInConsole(t, stub, nil)
+	waitForTenants(t, console, pump)
+	waitForSummary(t, console, pump)
+
+	// Every business type the stub reports has to be on the overview, which is
+	// what the single-row measurement used to swallow.
+	screen := paint(t, console)
+	for _, business := range []string{"restaurant", "grocery"} {
+		if !strings.Contains(screen, business) {
+			t.Errorf("business type %q is missing from the overview:\n%s", business, screen)
 		}
 	}
 }

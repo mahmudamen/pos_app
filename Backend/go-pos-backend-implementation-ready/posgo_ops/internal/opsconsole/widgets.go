@@ -16,6 +16,7 @@ import (
 	"m31labs.dev/fluffyui/accessibility"
 	"m31labs.dev/fluffyui/backend"
 	"m31labs.dev/fluffyui/runtime"
+	"m31labs.dev/fluffyui/state"
 	"m31labs.dev/fluffyui/widgets"
 )
 
@@ -279,3 +280,122 @@ func hGap(n int) runtime.Widget {
 	}
 	return w
 }
+
+// multilineLabel renders a block of text one row per line, and measures as tall
+// as the text actually is.
+//
+// It exists because widgets.SignalLabel measures every string as a single row,
+// even one containing newlines. The overview breakdown and the tenant drill-down
+// are both multi-line blocks inside a titled card, so the card sized itself to
+// one row of text and clipped everything below it: the breakdown lost every
+// business type past the first, and the drill-down lost the counts, the revenue
+// trend and the top products. The label then painted the overflow past the card
+// border, or off the bottom of the pane.
+//
+// The widget follows the framework's SignalLabel contract - it reads its source
+// when it mounts and then follows it by subscription - so it has to be mounted
+// with the rest of the pane to come alive.
+type multilineLabel struct {
+	widgets.Base
+
+	source  state.Readable[string]
+	lines   []string
+	style   backend.Style
+	mounted bool
+	subs    state.Subscriptions
+}
+
+// multilineText builds a reactive multi-line block. It is the counterpart to
+// fluffy.ReactiveText, which cannot be used for anything taller than one row.
+func multilineText(render func() string, deps ...state.Subscribable) runtime.Widget {
+	label := &multilineLabel{style: baseStyle()}
+	label.Base.Role = accessibility.RoleText
+	label.source = state.NewComputed(render, deps...)
+	label.lines = splitLines(label.source.Get())
+	label.Base.Label = strings.Join(label.lines, " ")
+	return label
+}
+
+// splitLines splits on newlines and drops a trailing blank line, so a value that
+// ends in "\n" does not render as an extra empty row.
+func splitLines(text string) []string {
+	if text == "" {
+		return nil
+	}
+	lines := strings.Split(text, "\n")
+	for len(lines) > 0 && lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	return lines
+}
+
+// Measure reports the widest line by n rows.
+func (m *multilineLabel) Measure(constraints runtime.Constraints) runtime.Size {
+	width := 0
+	for _, line := range m.lines {
+		if w := textWidth(line); w > width {
+			width = w
+		}
+	}
+	rows := len(m.lines)
+	if rows == 0 {
+		rows = 1
+	}
+	return constraints.Constrain(runtime.Size{Width: width, Height: rows})
+}
+
+// Render draws one line per row inside the label's own bounds.
+func (m *multilineLabel) Render(ctx runtime.RenderContext) {
+	bounds := m.ContentBounds()
+	if bounds.Width <= 0 || bounds.Height <= 0 {
+		return
+	}
+	for i, line := range m.lines {
+		if i >= bounds.Height {
+			return
+		}
+		ctx.Buffer.SetString(bounds.X, bounds.Y+i, truncate(line, bounds.Width), m.style)
+	}
+}
+
+// HandleMessage ignores input; a text block is display-only.
+func (m *multilineLabel) HandleMessage(msg runtime.Message) runtime.HandleResult {
+	return runtime.Unhandled()
+}
+
+// Mount starts following the source.
+func (m *multilineLabel) Mount() {
+	if m == nil {
+		return
+	}
+	m.mounted = true
+	m.refresh()
+	m.subs.Observe(m.source, m.onChange)
+}
+
+// Unmount stops following, so a fetch landing during teardown cannot touch a
+// dead widget.
+func (m *multilineLabel) Unmount() {
+	if m == nil {
+		return
+	}
+	m.mounted = false
+	m.subs.Clear()
+}
+
+// onChange re-reads the source when one of its dependencies moves.
+func (m *multilineLabel) onChange() {
+	if m == nil || !m.mounted {
+		return
+	}
+	m.refresh()
+	m.Invalidate()
+}
+
+// refresh pulls the current text and keeps the accessible label in step with it.
+func (m *multilineLabel) refresh() {
+	m.lines = splitLines(m.source.Get())
+	m.Base.Label = strings.Join(m.lines, " ")
+}
+
+var _ runtime.Widget = (*multilineLabel)(nil)

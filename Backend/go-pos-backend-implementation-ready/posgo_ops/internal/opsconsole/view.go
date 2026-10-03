@@ -34,11 +34,6 @@ const (
 	tabDetail
 )
 
-// loginTabIndex is gone with the login tab: the signed-out form is no longer an
-// entry in the tab strip. It shares the authenticated bodies' slot through a
-// Switcher instead, so the strip only ever holds the three real panes and the
-// "overview is index 0" numbering has exactly one meaning.
-
 // buildView assembles the whole console. Panels are built once and then
 // repainted in place: the reactive leaves redraw from their signals, the login
 // and authenticated bodies are chosen by a Switcher, and the table is rewritten
@@ -239,7 +234,7 @@ func (c *Console) overviewPanel() runtime.Widget {
 		children = append(children, fluffy.Fixed(tile))
 	}
 
-	breakdown := fluffy.ReactiveText(func() string {
+	breakdown := multilineText(func() string {
 		res := c.summary.Get()
 		if res.Error != nil {
 			return fmt.Sprintf("business breakdown unavailable: %v", res.Error)
@@ -324,7 +319,7 @@ func (c *Console) detailPanel() runtime.Widget {
 				return c.selected.Get()
 			}, c.analytics),
 		),
-		panel("Tenant detail", fluffy.ReactiveText(func() string {
+		panel("Tenant detail", multilineText(func() string {
 			res := c.analytics.Get()
 			if res.Error != nil {
 				return fmt.Sprintf("tenant detail unavailable: %v", res.Error)

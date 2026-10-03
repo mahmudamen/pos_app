@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:pos_go_app/core/api_client.dart';
+import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/storage/local_database.dart';
 
 void main() {
@@ -183,5 +184,131 @@ void main() {
 
     await db.markComplete('cmd-1');
     expect(await db.pendingCommands(), isEmpty);
+  });
+
+  // Local register sessions: the offline half of a shift, recorded on the
+  // device when POST /v1/registers/open cannot reach the server.
+  group('local session storage', () {
+    test('an offline shift is readable as the open session', () async {
+      final db = LocalDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: inMemoryDatabasePath,
+      );
+      addTearDown(db.close);
+
+      expect(await db.openLocalSession(), isNull);
+
+      await db.saveLocalSession(LocalRegisterSession.open(
+        id: 'local-1',
+        openingCashMinor: 5000,
+        openedAt: DateTime.utc(2026, 3, 1, 9),
+      ));
+
+      final open = await db.openLocalSession();
+      expect(open, isNotNull);
+      expect(open!.id, 'local-1');
+      expect(open.openingCashMinor, 5000);
+    });
+
+    test('closing the shift clears the open session but keeps the record',
+        () async {
+      final db = LocalDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: inMemoryDatabasePath,
+      );
+      addTearDown(db.close);
+
+      final opened = LocalRegisterSession.open(
+        id: 'local-1',
+        openingCashMinor: 5000,
+        openedAt: DateTime.utc(2026, 3, 1, 9),
+      );
+      await db.saveLocalSession(opened);
+      await db.saveLocalSession(
+        opened.closed(countedCashMinor: 4200, at: DateTime.utc(2026, 3, 1, 17)),
+      );
+
+      expect(await db.openLocalSession(), isNull);
+      final all = await db.localSessions();
+      expect(all, hasLength(1));
+      expect(all.single.isOpen, isFalse);
+      expect(all.single.closingCashMinor, 4200);
+    });
+
+    test('a terminal keeps at most one open shift, the newest winning',
+        () async {
+      final db = LocalDatabase(
+        factory: databaseFactoryFfi,
+        databasePath: inMemoryDatabasePath,
+      );
+      addTearDown(db.close);
+
+      await db.saveLocalSession(LocalRegisterSession.open(
+        id: 'local-1',
+        openingCashMinor: 100,
+        openedAt: DateTime.utc(2026, 3, 1, 9),
+      ));
+      await db.saveLocalSession(LocalRegisterSession.open(
+        id: 'local-2',
+        openingCashMinor: 200,
+        openedAt: DateTime.utc(2026, 3, 1, 17),
+      ));
+
+      expect((await db.openLocalSession())!.id, 'local-2');
+      expect(await db.localSessions(), hasLength(2),
+          reason: 'both shifts stay on record for reconciliation');
+    });
+  });
+
+  group('LocalRegisterSession', () {
+    test('an open session has no closing facts', () {
+      final session = LocalRegisterSession.open(
+        id: 'local-1',
+        openingCashMinor: 5000,
+        openedAt: DateTime.utc(2026, 3, 1, 9),
+      );
+
+      expect(session.isOpen, isTrue);
+      expect(session.closingCashMinor, isNull);
+      expect(session.closedAt, isNull);
+    });
+
+    test('closing records the counted cash and stamps the time', () {
+      final opened = LocalRegisterSession.open(
+        id: 'local-1',
+        openingCashMinor: 5000,
+        openedAt: DateTime.utc(2026, 3, 1, 9),
+      );
+
+      final closed = opened.closed(
+        countedCashMinor: 4200,
+        at: DateTime.utc(2026, 3, 1, 17),
+      );
+
+      expect(closed.isOpen, isFalse);
+      expect(closed.closingCashMinor, 4200);
+      expect(closed.openingCashMinor, 5000, reason: 'float must survive');
+      expect(closed.id, 'local-1');
+      expect(opened.isOpen, isTrue, reason: 'closing returns a new instance');
+    });
+
+    test('survives a database round trip', () {
+      final session = LocalRegisterSession.open(
+        id: 'local-1',
+        openingCashMinor: 1234,
+        openedAt: DateTime.utc(2026, 3, 1, 9),
+      ).closed(countedCashMinor: 900, at: DateTime.utc(2026, 3, 1, 17));
+
+      final restored = LocalRegisterSession.fromRow(session.toRow());
+
+      expect(restored.id, session.id);
+      expect(restored.openingCashMinor, 1234);
+      expect(restored.closingCashMinor, 900);
+      expect(restored.isOpen, isFalse);
+      expect(
+        DateTime.parse(restored.closedAt!),
+        DateTime.utc(2026, 3, 1, 17),
+      );
+    });
   });
 }
