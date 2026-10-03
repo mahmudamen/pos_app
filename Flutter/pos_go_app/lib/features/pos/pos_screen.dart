@@ -1092,37 +1092,54 @@ class _PosScreenState extends State<PosScreen> {
     }
   }
 
-  /// Opens the server session for a shift taken offline, so the sales about to
-  /// be replayed land inside it and show up in the Z-report.
+  /// Resolves the server session a device-local shift belongs to, opening one
+  /// when this is the first time we are back online.
   ///
-  /// Returns the server session id the queued sales should be attributed to, or
-  /// null when there is nothing to reconcile or the open call failed. A failure
-  /// here is not fatal: the sales still replay, they just carry no session until
-  /// the next attempt, which is better than stranding them in the queue.
-  Future<String?> _reconcileLocalSession(LocalDatabase db) async {
-    LocalRegisterSession? local;
-    try {
-      local = await db.openLocalSession();
-    } catch (_) {
-      // Reading the local shift is best effort. A storage hiccup must not stop
-      // the queued sales from reaching the server.
-      return null;
-    }
-    if (local == null) return null;
-    if (_registerSession != null) return _registerSession!.id;
+  /// The pairing is persisted, so a crash mid-replay resumes against the same
+  /// session instead of opening a second one for the same float.
+  Future<String?> _resolveServerSession(
+      LocalDatabase db, LocalRegisterSession local) async {
+    final existing = local.serverSessionId;
+    if (existing != null) return existing;
     try {
       final opened = await widget.apiClient.openSession(
         widget.session,
         openingCashMinor: local.openingCashMinor,
       );
-      if (!mounted) return opened.id;
-      setState(() {
-        _registerSession = opened;
-        _localSession = null;
-      });
+      await db.saveLocalSession(local.pairedWith(opened.id));
+      if (local.isOpen && mounted) {
+        // The shift is still running, so it becomes the session the bar shows.
+        setState(() {
+          _registerSession = opened;
+          _localSession = null;
+        });
+      }
       return opened.id;
     } catch (_) {
+      // Best effort: the sales still replay, they just carry no session until
+      // the next attempt, which beats stranding them in the queue.
       return null;
+    }
+  }
+
+  /// Closes the server session for a shift the cashier finished while offline,
+  /// using the cash they counted on the device.
+  ///
+  /// Returns false when the close did not go through — most often the manager
+  /// close policy rejecting an unattended call. The shift then stays
+  /// unreconciled so it is retried, and the user is told to finish it by hand.
+  Future<bool> _closeReconciledSession(
+      LocalDatabase db, LocalRegisterSession local, String serverSessionId) async {
+    try {
+      await widget.apiClient.closeSession(
+        widget.session,
+        serverSessionId,
+        closingCashMinor: local.closingCashMinor,
+      );
+      await db.saveLocalSession(local.reconciled());
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -1131,51 +1148,97 @@ class _PosScreenState extends State<PosScreen> {
     if (db == null) return;
     final pending = await db.pendingCommands();
     final queued = pending.where((c) => c.operation == 'create_sale').toList();
-    if (queued.isEmpty) return;
+    List<LocalRegisterSession> localSessions = const [];
+    try {
+      localSessions = await db.localSessions();
+    } catch (_) {
+      // A storage hiccup must not stop the sales from reaching the server.
+    }
+    // A shift finished offline still owes the server a session and a Z-report
+    // even when it took no sales at all, so an empty queue is not the end.
+    final owesZReport = localSessions.any((s) => !s.isOpen && !s.isReconciled);
+    if (queued.isEmpty && !owesZReport) return;
 
-    // Pair the queue with a real session first, when there is a device-local
-    // shift waiting for one. A sale that belongs to no shift still replays: it
-    // is better recorded unattributed than left rotting in the queue.
-    final serverSessionId = await _reconcileLocalSession(db);
+    // Group the queue by the shift each sale was taken on. Two offline shifts
+    // have to land in two server sessions, replayed in the order they ran.
+    final groups = <String?,
+        List<({PendingCommand command, Map<String, dynamic> payload})>>{};
+    for (final command in queued) {
+      final payload = jsonDecode(command.payload) as Map<String, dynamic>;
+      final localId = payload.remove('local_session_id') as String?;
+      (groups[localId] ??= []).add((command: command, payload: payload));
+    }
+
+    final byId = {for (final s in localSessions) s.id: s};
+
+    // Shifts first (chronological), then sales that belong to no shift at all.
+    // A shift closed offline is included even with no queued sales, so its
+    // Z-report still gets created and closed with the counted cash.
+    final shiftIds = localSessions
+        .where((s) => !s.isReconciled &&
+            (s.serverSessionId == null || groups.containsKey(s.id)))
+        .toList()
+      ..sort((a, b) => a.openedAt.compareTo(b.openedAt));
+    final order = <String?>[
+      ...shiftIds.map((s) => s.id),
+      if (groups.containsKey(null)) null,
+    ];
+
     var synced = 0;
     var attention = 0;
-    for (final command in queued) {
+    for (final localId in order) {
       if (synced >= _pendingBatchLimit) break;
-      try {
-        final payload = jsonDecode(command.payload) as Map<String, dynamic>;
-        final localSessionId = payload.remove('local_session_id') as String?;
-        final effectiveSessionId = serverSessionId ?? _registerSession?.id;
-        final commands = <SyncPushCommand>[
-          SyncPushCommand(
-            commandId: command.id,
-            operation: 'sale.create',
-            payload: {
-              ...payload,
-              if (localSessionId != null && effectiveSessionId != null)
-                'session_id': effectiveSessionId,
-              'idempotency_key': command.idempotencyKey,
-            },
-          ),
-        ];
-        final page = await widget.apiClient.syncPush(widget.session, commands);
-        final result = page.results.isEmpty ? null : page.results.first;
-        if (result != null && result.applied) {
-          await db.markComplete(command.id);
-          synced++;
-        } else if (result != null && result.rejected) {
-          await db.markComplete(command.id);
-          attention++;
-        } else if (result != null && result.conflicted) {
-          await db.markComplete(command.id);
-          attention++;
-        } else {
+
+      final group = groups[localId];
+      final local = localId == null ? null : byId[localId];
+      if ((groups[localId] == null || groups[localId]!.isEmpty) && local == null) continue;
+
+      String? serverSessionId;
+      if (local != null) {
+        serverSessionId = await _resolveServerSession(db, local);
+        if (serverSessionId == null) continue;
+      }
+
+      var applied = 0;
+      for (final entry in group ?? const []) {
+        if (synced + applied >= _pendingBatchLimit) break;
+        try {
+          final page = await widget.apiClient.syncPush(widget.session, [
+            SyncPushCommand(
+              commandId: entry.command.id,
+              operation: 'sale.create',
+              payload: {
+                ...entry.payload,
+                if (serverSessionId != null) 'session_id': serverSessionId,
+                'idempotency_key': entry.command.idempotencyKey,
+              },
+            ),
+          ]);
+          final result = page.results.isEmpty ? null : page.results.first;
+          if (result != null && result.applied) {
+            await db.markComplete(entry.command.id);
+            applied++;
+          } else if (result != null && (result.rejected || result.conflicted)) {
+            await db.markComplete(entry.command.id);
+            attention++;
+          } else {
+            break;
+          }
+        } catch (_) {
           break;
         }
-      } catch (_) {
-        break;
+      }
+      synced += applied;
+      final drained = applied == (group?.length ?? 0);
+      if (local != null && drained && !local.isOpen && !local.isReconciled) {
+        // Only close once every sale of the shift is on the server, otherwise
+        // the Z-report would be short.
+        if (!await _closeReconciledSession(db, local, serverSessionId!)) {
+          attention++;
+        }
       }
     }
-    if (mounted) {
+    if (mounted && (synced > 0 || attention > 0)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(attention > 0

@@ -304,6 +304,57 @@ class ApiClient {
         .toList();
   }
 
+
+  Future<Product> productByBarcode(Session session, String barcode) async {
+    final uri = Uri.parse('$baseUrl/v1/products/barcode/${Uri.encodeComponent(barcode)}');
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return Product.fromJson(body['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<ProductLot>> productLots(Session session, String productId,
+      {bool includeEmpty = false}) async {
+    final uri = Uri.parse('$baseUrl/v1/products/${Uri.encodeComponent(productId)}/lots')
+        .replace(queryParameters: {'include_empty': includeEmpty ? 'true' : 'false'});
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data.map((e) => ProductLot.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<ProductVariant>> productVariants(Session session, String productId) async {
+    final uri =
+        Uri.parse('$baseUrl/v1/products/${Uri.encodeComponent(productId)}/variants');
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final data = jsonDecode(response.body)['data'] as List<dynamic>;
+    return data.map((e) => ProductVariant.fromJson(e as Map<String, dynamic>)).toList();
+  }
   Future<Product> createProduct(
     Session session, {
     required String name,
@@ -3124,3 +3175,63 @@ int _toIntValue(dynamic v) {
   if (v is String) return int.tryParse(v) ?? 0;
   return 0;
 }
+class ProductLot {
+  const ProductLot({
+    required this.id,
+    required this.productId,
+    required this.lotNumber,
+    this.expiryDate,
+    this.serialNumber,
+    required this.quantityRemaining,
+  });
+
+  factory ProductLot.fromJson(Map<String, dynamic> json) => ProductLot(
+        id: json['id'] as String,
+        productId: json['product_id'] as String,
+        lotNumber: json['lot_number'] as String,
+        expiryDate: json['expiry_date'] as String?,
+        serialNumber: json['serial_number'] as String?,
+        quantityRemaining: (json['quantity_remaining'] as num).toInt(),
+      );
+
+  final String id;
+  final String productId;
+  final String lotNumber;
+  final String? expiryDate;
+  final String? serialNumber;
+  final int quantityRemaining;
+}
+
+class ProductVariant {
+  const ProductVariant({
+    required this.id,
+    required this.productId,
+    required this.name,
+    required this.sku,
+    required this.barcode,
+    required this.priceMinor,
+    required this.stockQuantity,
+    required this.isActive,
+  });
+
+  factory ProductVariant.fromJson(Map<String, dynamic> json) => ProductVariant(
+        id: json['id'] as String,
+        productId: json['product_id'] as String,
+        name: json['name'] as String,
+        sku: json['sku'] as String,
+        barcode: json['barcode'] as String? ?? '',
+        priceMinor: (json['price_minor'] as num).toInt(),
+        stockQuantity: (json['stock_quantity'] as num).toInt(),
+        isActive: json['is_active'] as bool? ?? true,
+      );
+
+  final String id;
+  final String productId;
+  final String name;
+  final String sku;
+  final String barcode;
+  final int priceMinor;
+  final int stockQuantity;
+  final bool isActive;
+}
+

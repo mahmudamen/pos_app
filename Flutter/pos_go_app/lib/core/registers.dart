@@ -160,6 +160,8 @@ class LocalRegisterSession {
     required this.openedAt,
     this.closingCashMinor,
     this.closedAt,
+    this.serverSessionId,
+    this.reconciledAt,
   });
 
   factory LocalRegisterSession.open({
@@ -182,6 +184,10 @@ class LocalRegisterSession {
         closedAt: (row['closed_at'] as num?) == null
             ? null
             : _utcStamp((row['closed_at']! as num).toInt()),
+        serverSessionId: row['server_session_id'] as String?,
+        reconciledAt: (row['reconciled_at'] as num?) == null
+            ? null
+            : _utcStamp((row['reconciled_at']! as num).toInt()),
       );
 
   /// Reads a stored epoch back as a UTC ISO-8601 string.
@@ -200,7 +206,20 @@ class LocalRegisterSession {
   final int? closingCashMinor;
   final String? closedAt;
 
+  /// The server session this shift was paired with during reconciliation.
+  ///
+  /// Persisting the pairing is what makes the replay crash-safe: if the app is
+  /// killed mid-reconcile, the queued sales still resolve to the same server
+  /// session instead of a second one being opened for the same float.
+  final String? serverSessionId;
+
+  /// When the server-side close was confirmed, for a shift closed offline.
+  final String? reconciledAt;
+
   bool get isOpen => closedAt == null;
+
+  /// True once the server-side close has been confirmed for a closed shift.
+  bool get isReconciled => reconciledAt != null;
 
   /// Closes the shift with the counted cash, returning a new instance.
   LocalRegisterSession closed({int? countedCashMinor, DateTime? at}) =>
@@ -210,6 +229,30 @@ class LocalRegisterSession {
         openedAt: openedAt,
         closingCashMinor: countedCashMinor,
         closedAt: (at ?? DateTime.now()).toIso8601String(),
+        serverSessionId: serverSessionId,
+      );
+
+  /// Records the server session this shift was paired with.
+  LocalRegisterSession pairedWith(String serverId) => LocalRegisterSession(
+        id: id,
+        openingCashMinor: openingCashMinor,
+        openedAt: openedAt,
+        closingCashMinor: closingCashMinor,
+        closedAt: closedAt,
+        serverSessionId: serverId,
+        reconciledAt: reconciledAt,
+      );
+
+  /// Marks the server-side close as confirmed, so reconciliation stops
+  /// retrying it.
+  LocalRegisterSession reconciled({DateTime? at}) => LocalRegisterSession(
+        id: id,
+        openingCashMinor: openingCashMinor,
+        openedAt: openedAt,
+        closingCashMinor: closingCashMinor,
+        closedAt: closedAt,
+        serverSessionId: serverSessionId,
+        reconciledAt: (at ?? DateTime.now()).toIso8601String(),
       );
 
   Map<String, Object?> toRow() => {
@@ -223,5 +266,9 @@ class LocalRegisterSession {
             : DateTime.parse(closedAt!).millisecondsSinceEpoch,
         'created_at': DateTime.parse(openedAt).millisecondsSinceEpoch,
         'status': isOpen ? 'open' : 'closed',
+        'server_session_id': serverSessionId,
+        'reconciled_at': reconciledAt == null
+            ? null
+            : DateTime.parse(reconciledAt!).millisecondsSinceEpoch,
       };
 }

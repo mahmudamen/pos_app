@@ -33,7 +33,7 @@ class LocalDatabase {
     _database = await _factory.openDatabase(
       databasesPath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onCreate: (db, _) async {
           await db.execute('''
             CREATE TABLE cached_products (
@@ -69,6 +69,14 @@ class LocalDatabase {
           if (oldVersion < 3) {
             await _createLocalSessions(db);
           }
+          if (oldVersion < 4) {
+            // Pairing columns: added after the first offline-shift release so
+            // an interrupted replay can resume against the same session.
+            await db.execute(
+                'ALTER TABLE local_sessions ADD COLUMN server_session_id TEXT');
+            await db.execute(
+                'ALTER TABLE local_sessions ADD COLUMN reconciled_at INTEGER');
+          }
         },
       ),
     );
@@ -87,7 +95,9 @@ class LocalDatabase {
         closing_cash_minor INTEGER,
         closed_at INTEGER,
         created_at INTEGER NOT NULL,
-        status TEXT NOT NULL DEFAULT 'open'
+        status TEXT NOT NULL DEFAULT 'open',
+        server_session_id TEXT,
+        reconciled_at INTEGER
       )
     ''');
   }
