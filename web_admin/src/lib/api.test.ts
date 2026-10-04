@@ -25,6 +25,23 @@ const OK = (body: unknown, status = 200) =>
     }),
   )
 
+/**
+ * The real paginated envelope: rows in `data`, the page counter in a *sibling*
+ * `meta`. `OK()` cannot express it because it always nests its argument under
+ * `data` — which is how every list page ended up reading `undefined` against
+ * the live API while the suite stayed green.
+ */
+const PAGE = (rows: unknown[], meta: Record<string, unknown> = {}) =>
+  Promise.resolve(
+    new Response(
+      JSON.stringify({
+        data: rows,
+        meta: { page: 1, limit: 50, total: rows.length, request_id: 'r', ...meta },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    ),
+  )
+
 const ERR = (code: string, message: string, status: number) =>
   Promise.resolve(
     new Response(
@@ -104,7 +121,7 @@ describe('ApiClient', () => {
   })
 
   it('builds subscription query params from page/limit/status', async () => {
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 100, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 100, total: 0  }))
     await client.listSubscriptions(2, 50, 'active')
     const url = fetchMock.mock.calls[0][0] as string
     expect(url).toContain('page=2')
@@ -132,17 +149,46 @@ describe('ApiClient', () => {
   })
 
   it('lists products with pagination and search query', async () => {
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 50, total: 0  }))
     await client.listProducts(2, 25, 'cola')
     const url = fetchMock.mock.calls[0][0] as string
     expect(url).toBe('http://api.test/v1/products?page=2&limit=25&q=cola')
   })
 
   it('lists products without a q param when empty', async () => {
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 50, total: 0  }))
     await client.listProducts()
     const url = fetchMock.mock.calls[0][0] as string
     expect(url).toBe('http://api.test/v1/products?page=1&limit=50')
+  })
+
+  it('keeps rows and the page counter side by side for paginated reads', async () => {
+    fetchMock.mockResolvedValueOnce(
+      PAGE([{ id: 'p1', name: 'Cola' }], { page: 2, limit: 25, total: 51 }),
+    )
+    const page = await client.listProducts(2, 25, 'cola')
+
+    // Regression: unwrapping `data` alone returned the row array here, so the
+    // pages' `page.data` / `page.meta.total` reads were undefined in production.
+    expect(page.data).toHaveLength(1)
+    expect(page.data[0].name).toBe('Cola')
+    expect(page.meta.total).toBe(51)
+    expect(page.meta.page).toBe(2)
+    expect(page.meta.limit).toBe(25)
+  })
+
+  it('falls back to an empty page when a paginated read omits meta', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Promise.resolve(
+        new Response(JSON.stringify({ data: [{ id: 't1' }] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    )
+    const page = await client.listTenants()
+    expect(page.data).toHaveLength(1)
+    expect(page.meta.total).toBe(0)
   })
 
   it('creates an inventory adjustment on /v1/inventory/adjustments', async () => {
@@ -187,7 +233,7 @@ describe('ApiClient', () => {
   })
 
   it('lists community profiles with search + chief filter params', async () => {
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 50, total: 0  }))
     await client.listProfiles(1, 50, 'omar', true)
     const url = fetchMock.mock.calls[0][0] as string
     expect(url).toContain('/community/profiles?')
@@ -216,7 +262,7 @@ describe('ApiClient', () => {
   })
 
   it('lists companies with search params and unwraps company detail + members', async () => {
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 50, total: 0  }))
     await client.listCompanies(2, 25, 'xam')
     expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/v1/community/companies?page=2&limit=25&q=xam')
 
@@ -255,7 +301,7 @@ describe('ApiClient', () => {
   })
 
   it('lists jobs with type + mine filters and applies to a job', async () => {
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 50, total: 0  }))
     await client.listJobs(1, 50, '', 'full_time', true)
     const url = fetchMock.mock.calls[0][0] as string
     expect(url).toContain('/community/jobs?')
@@ -285,7 +331,7 @@ describe('ApiClient', () => {
     expect(url).toBe('http://api.test/v1/community/join')
     expect(JSON.parse(String(init.body))).toEqual({ code: 'EG-ABCDEFGHJKLM' })
 
-    fetchMock.mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 20, total: 0 } }))
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 1, limit: 20, total: 0  }))
     await client.listNationalMembers(1, 20, 'ali', 'silver', 'moderator')
     const murl = fetchMock.mock.calls[1][0] as string
     expect(murl).toContain('/community/members?')

@@ -21,6 +21,21 @@ const ERR = (code: string, message: string, status: number) =>
     }),
   )
 
+/**
+ * The real paginated envelope: rows in `data`, the page counter in a *sibling*
+ * `meta`. `OK()` cannot express it — it always nests its argument under `data`.
+ */
+const PAGE = (rows: unknown[], meta: Record<string, unknown> = {}) =>
+  Promise.resolve(
+    new Response(
+      JSON.stringify({
+        data: rows,
+        meta: { page: 1, limit: 50, total: rows.length, request_id: 'r', ...meta },
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    ),
+  )
+
 describe('community pages', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
@@ -38,7 +53,7 @@ describe('community pages', () => {
   it('hub shows community status and links to the district sections', async () => {
     fetchMock
       .mockResolvedValueOnce(ERR('not_found', 'no membership', 404))
-      .mockResolvedValueOnce(OK({ data: [], meta: { page: 1, limit: 50, total: 0 } }))
+      .mockResolvedValueOnce(PAGE([], { page: 1, limit: 50, total: 0 }))
       .mockResolvedValueOnce(ERR('profile_not_found', 'no profile', 404))
     render(
       <MemoryRouter initialEntries={['/community']}>
@@ -74,20 +89,17 @@ describe('community pages', () => {
         }),
       )
       .mockResolvedValueOnce(
-        OK({
-          data: [
-            {
-              user_id: 'u2',
-              display_name: 'Omar',
-              role: 'moderator',
-              status: 'active',
-              level: 'silver',
-              expertise_score: 40,
-              joined_at: '2026-01-02T00:00:00Z',
-            },
-          ],
-          meta: { page: 1, limit: 20, total: 1 },
-        }),
+        PAGE([
+          {
+            user_id: 'u2',
+            display_name: 'Omar',
+            role: 'moderator',
+            status: 'active',
+            level: 'silver',
+            expertise_score: 40,
+            joined_at: '2026-01-02T00:00:00Z',
+          },
+        ], { page: 1, limit: 20, total: 1 }),
       )
 
     render(
@@ -117,22 +129,19 @@ describe('community pages', () => {
   it('profiles page lists the directory and searches', async () => {
     fetchMock
       .mockResolvedValueOnce(
-        OK({
-          data: [
-            {
-              user_id: 'u1',
-              display_name: 'Ali',
-              email: 'ali@demo.test',
-              headline: 'Shop owner',
-              location: 'Cairo',
-              years_experience: 8,
-              is_chief: true,
-              skills: ['retail', 'inventory'],
-              has_profile: true,
-            },
-          ],
-          meta: { page: 1, limit: 50, total: 1 },
-        }),
+        PAGE([
+          {
+            user_id: 'u1',
+            display_name: 'Ali',
+            email: 'ali@demo.test',
+            headline: 'Shop owner',
+            location: 'Cairo',
+            years_experience: 8,
+            is_chief: true,
+            skills: ['retail', 'inventory'],
+            has_profile: true,
+          },
+        ], { page: 1, limit: 50, total: 1 }),
       )
       .mockResolvedValueOnce(ERR('profile_not_found', 'no profile', 404))
 

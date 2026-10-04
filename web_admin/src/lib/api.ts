@@ -17,6 +17,7 @@ import type {
   LoginResponse,
   NationalMember,
   Page,
+  PageMeta,
   Plan,
   Product,
   ProductInput,
@@ -201,6 +202,31 @@ export class ApiClient {
     return json as T
   }
 
+  /**
+   * Paginated reads keep the whole envelope. The backend puts the rows in
+   * `data` and the page counter in a *sibling* `meta`, so unwrapping `data`
+   * alone would hand callers an array where `Page<T>` promises
+   * `{data, meta}` — and `res.meta.total` would throw.
+   */
+  private async requestPage<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<Page<T>> {
+    const json = await this.requestEnvelope<{
+      data?: T[]
+      meta?: Partial<PageMeta>
+    }>(method, path, body)
+    return {
+      data: json.data ?? [],
+      meta: {
+        page: Number(json.meta?.page ?? 1),
+        limit: Number(json.meta?.limit ?? 0),
+        total: Number(json.meta?.total ?? 0),
+      },
+    }
+  }
+
   // ---- auth -------------------------------------------------------------
   async login(
     tenantId: string,
@@ -221,7 +247,7 @@ export class ApiClient {
 
   // ---- saas platform ----------------------------------------------------
   listTenants(page = 1, limit = 50): Promise<Page<Tenant>> {
-    return this.request<Page<Tenant>>(
+    return this.requestPage<Tenant>(
       'GET',
       `/saas/tenants?page=${page}&limit=${limit}`,
     )
@@ -261,7 +287,7 @@ export class ApiClient {
     if (status) {
       qs.set('status', status)
     }
-    return this.request<Page<Subscription>>(
+    return this.requestPage<Subscription>(
       'GET',
       `/saas/subscriptions?${qs.toString()}`,
     )
@@ -314,7 +340,7 @@ export class ApiClient {
     if (status) {
       qs.set('status', status)
     }
-    return this.request<Page<Invoice>>('GET', `/saas/invoices?${qs.toString()}`)
+    return this.requestPage<Invoice>('GET', `/saas/invoices?${qs.toString()}`)
   }
 
   createInvoice(
@@ -369,7 +395,7 @@ export class ApiClient {
     if (q) {
       qs.set('q', q)
     }
-    return this.request<Page<Product>>('GET', `/products?${qs.toString()}`)
+    return this.requestPage<Product>('GET', `/products?${qs.toString()}`)
   }
 
   createProduct(input: ProductInput): Promise<{ id: string }> {
@@ -400,7 +426,7 @@ export class ApiClient {
   }
 
   listUsers(page = 1, limit = 50): Promise<Page<StoreUser>> {
-    return this.request<Page<StoreUser>>(
+    return this.requestPage<StoreUser>(
       'GET',
       `/users?page=${page}&limit=${limit}`,
     )
@@ -411,7 +437,7 @@ export class ApiClient {
   }
 
   listSales(page = 1, limit = 50): Promise<Page<SaleSummary>> {
-    return this.request<Page<SaleSummary>>(
+    return this.requestPage<SaleSummary>(
       'GET',
       `/sales?page=${page}&limit=${limit}`,
     )
@@ -429,7 +455,7 @@ export class ApiClient {
     page = 1,
     limit = 50,
   ): Promise<Page<InventoryAdjustment>> {
-    return this.request<Page<InventoryAdjustment>>(
+    return this.requestPage<InventoryAdjustment>(
       'GET',
       `/inventory/adjustments?page=${page}&limit=${limit}`,
     )
@@ -475,7 +501,7 @@ export class ApiClient {
     if (chief) {
       qs.set('role', 'chief')
     }
-    return this.request<Page<StaffProfile>>(
+    return this.requestPage<StaffProfile>(
       'GET',
       `/community/profiles?${qs.toString()}`,
     )
@@ -501,7 +527,7 @@ export class ApiClient {
     if (q) {
       qs.set('q', q)
     }
-    return this.request<Page<Company>>(
+    return this.requestPage<Company>(
       'GET',
       `/community/companies?${qs.toString()}`,
     )
@@ -557,7 +583,7 @@ export class ApiClient {
     if (mine) {
       qs.set('mine', 'true')
     }
-    return this.request<Page<JobOffer>>(
+    return this.requestPage<JobOffer>(
       'GET',
       `/community/jobs?${qs.toString()}`,
     )
@@ -605,7 +631,7 @@ export class ApiClient {
     if (role) {
       qs.set('role', role)
     }
-    return this.request<Page<NationalMember>>(
+    return this.requestPage<NationalMember>(
       'GET',
       `/community/members?${qs.toString()}`,
     )
