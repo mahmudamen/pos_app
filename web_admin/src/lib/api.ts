@@ -246,11 +246,27 @@ export class ApiClient {
   }
 
   // ---- saas platform ----------------------------------------------------
-  listTenants(page = 1, limit = 50): Promise<Page<Tenant>> {
-    return this.requestPage<Tenant>(
-      'GET',
-      `/saas/tenants?page=${page}&limit=${limit}`,
-    )
+  listTenants(
+    page = 1,
+    limit = 50,
+    filters: { q?: string; business_type?: string; status?: string; plan?: string } = {},
+  ): Promise<Page<Tenant>> {
+    // Filtering is server-side on purpose: with 46 tenants the operator would
+    // otherwise be searching one page at a time and finding nothing on page 2.
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (filters.q) {
+      params.set('q', filters.q)
+    }
+    if (filters.business_type) {
+      params.set('business_type', filters.business_type)
+    }
+    if (filters.status) {
+      params.set('status', filters.status)
+    }
+    if (filters.plan) {
+      params.set('plan', filters.plan)
+    }
+    return this.requestPage<Tenant>('GET', `/saas/tenants?${params.toString()}`)
   }
 
   tenantAnalytics(id: string): Promise<TenantAnalytics> {

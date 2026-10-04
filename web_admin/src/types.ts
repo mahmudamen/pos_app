@@ -84,6 +84,14 @@ export interface BillingSummary {
   recent_invoices: RecentInvoice[]
 }
 
+/**
+ * Tenant lifecycle. Distinct from `SubscriptionStatus`: a tenant can carry a
+ * paid subscription and still be stopped by the platform, and the console has
+ * to show both axes or an operator cannot tell a churned tenant from a stopped
+ * one.
+ */
+export type TenantStatus = 'active' | 'trial' | 'suspended' | 'closed' | 'disabled'
+
 export interface Tenant {
   id: string
   name: string
@@ -97,6 +105,15 @@ export interface Tenant {
   max_products: number
   users: number
   products: number
+  // Present on GET /v1/saas/tenants; absent from older/hand-built payloads.
+  status?: TenantStatus
+  subscription_status?: SubscriptionStatus
+  subdomain?: string
+  plan_features?: string[]
+  revenue_minor?: number
+  total_sales?: number
+  trial_ends_at?: string
+  created_at?: string
 }
 
 export interface RevenuePoint {

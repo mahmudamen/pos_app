@@ -8,7 +8,7 @@ import {
   PERIOD_LABELS,
   SUBSCRIPTION_STATUS_LABELS,
 } from '../lib/billing'
-import { ErrorBanner, Spinner, SubscriptionBadge } from '../components/ui'
+import { EmptyState, ErrorBanner, PageHead, TableSkeleton, SubscriptionBadge } from '../components/ui'
 
 export function SubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>([])
@@ -17,6 +17,8 @@ export function SubscriptionsPage() {
   const [status, setStatus] = useState<SubscriptionStatus | ''>('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [total, setTotal] = useState(0)
 
   async function load() {
     setError(null)
@@ -24,6 +26,7 @@ export function SubscriptionsPage() {
       const subRes = await api.listSubscriptions(page, 100, status)
       const planRes = await api.listPlans()
       setSubs(subRes.data)
+      setTotal(subRes.meta.total)
       setPlans(planRes.filter((p) => p.is_active))
     } catch (err) {
       if (err instanceof ApiError) {
@@ -31,6 +34,8 @@ export function SubscriptionsPage() {
       } else {
         setError('Failed to load subscriptions')
       }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -55,38 +60,38 @@ export function SubscriptionsPage() {
 
   return (
     <div className="page">
-      <header className="page-head">
-        <h2>Subscriptions</h2>
+      <PageHead title="Subscriptions" sub={`${total} subscriptions across all merchants`}>
         <select
           className="status-filter"
           value={status}
           onChange={(e) => { setPage(1); setStatus(e.target.value as SubscriptionStatus | '') }}
           aria-label="Filter by status"
         >
-          <option value="">All</option>
+          <option value="">All statuses</option>
           {SUBSCRIPTION_STATUSES.map((s) => (
             <option key={s} value={s}>
               {SUBSCRIPTION_STATUS_LABELS[s]}
             </option>
           ))}
         </select>
-      </header>
+      </PageHead>
       <ErrorBanner error={error} />
-      {!subs.length && !error ? (
-        <Spinner />
-      ) : (
-        <table className="table card">
+      <div className="table-wrap">
+        <table className="table">
           <thead>
             <tr>
               <th>Tenant</th>
               <th>Plan</th>
               <th>Status</th>
-              <th>Price / period</th>
+              <th className="num">Price / period</th>
               <th>Provider</th>
               <th>Period start</th>
               <th>Actions</th>
             </tr>
           </thead>
+          {loading ? (
+            <TableSkeleton rows={5} cols={7} />
+          ) : (
           <tbody>
             {subs.map((s) => {
               const allowed = allowedTransitions(s.status)
@@ -99,7 +104,7 @@ export function SubscriptionsPage() {
                   </td>
                   <td>{s.plan_code}</td>
                   <td><SubscriptionBadge status={s.status} /></td>
-                  <td>
+                  <td className="num">
                     {formatMoney(s.price_minor, s.currency)} / {PERIOD_LABELS[s.billing_period]}
                   </td>
                   <td>{s.provider}</td>
@@ -123,8 +128,41 @@ export function SubscriptionsPage() {
               )
             })}
           </tbody>
+          )}
         </table>
-      )}
+        {!loading && subs.length === 0 && !error ? (
+          <EmptyState
+            title={status ? `No ${SUBSCRIPTION_STATUS_LABELS[status].toLowerCase()} subscriptions` : 'No subscriptions yet'}
+            hint={
+              status
+                ? 'This filter is applied by the API across every merchant. Clear it to see all states.'
+                : 'Subscriptions appear here once a merchant subscribes to a plan or starts a trial.'
+            }
+          />
+        ) : null}
+      </div>
+      {total > subs.length ? (
+        <div className="pager">
+          <span>
+            Showing {subs.length} of {total}
+          </span>
+          <div className="pager-controls">
+            <button className="btn" disabled={page <= 1 || loading} onClick={() => setPage(page - 1)}>
+              Prev
+            </button>
+            <span className="num">
+              {page} / {Math.max(1, Math.ceil(total / 100))}
+            </span>
+            <button
+              className="btn"
+              disabled={loading}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

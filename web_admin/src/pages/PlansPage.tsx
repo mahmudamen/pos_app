@@ -7,7 +7,7 @@ import {
   monthlyEquivalentMinor,
   PERIOD_LABELS,
 } from '../lib/billing'
-import { ErrorBanner, Spinner } from '../components/ui'
+import { EmptyState, ErrorBanner, PageHead, TableSkeleton } from '../components/ui'
 
 type PlanForm = {
   code: string
@@ -37,8 +37,12 @@ export function PlansPage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [edit, setEdit] = useState<Plan | null>(null)
   const [form, setForm] = useState<PlanForm>(EMPTY)
+  // Deactivating a plan hides it from new checkouts, so it asks first rather
+  // than firing on the first click.
+  const [confirming, setConfirming] = useState<string | null>(null)
 
   async function load() {
     setError(null)
@@ -50,6 +54,8 @@ export function PlansPage() {
       } else {
         setError('Failed to load plans')
       }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -100,6 +106,7 @@ export function PlansPage() {
       max_products: parseInt(form.max_products, 10) || 0,
     }
     setBusy(true)
+    setConfirming(null)
     try {
       if (edit) {
         await api.updatePlan(edit.id, { ...payload, code: undefined })
@@ -123,6 +130,7 @@ export function PlansPage() {
   async function deactivate(p: Plan) {
     setBusy(true)
     setError(null)
+    setConfirming(null)
     try {
       await api.updatePlan(p.id, { is_active: false })
       await load()
@@ -136,15 +144,18 @@ export function PlansPage() {
   }
 
   const formEditing = edit !== null || form !== EMPTY || form.code !== ''
+  const sellable = plans.filter((p) => p.is_active).length
 
   return (
     <div className="page">
-      <header className="page-head">
-        <h2>Plans</h2>
+      <PageHead
+        title="Plans"
+        sub={`${sellable} sellable of ${plans.length} — what merchants can subscribe to`}
+      >
         <button className="btn primary" onClick={startCreate}>
           New plan
         </button>
-      </header>
+      </PageHead>
       <ErrorBanner error={error} />
 
       {formEditing ? (
@@ -250,20 +261,21 @@ export function PlansPage() {
         </section>
       ) : null}
 
-      {!plans.length && !error ? (
-        <Spinner />
-      ) : (
-        <table className="table card">
+      <div className="table-wrap">
+        <table className="table">
           <thead>
             <tr>
               <th>Plan</th>
-              <th>Price</th>
-              <th>Monthly equiv.</th>
+              <th className="num">Price</th>
+              <th className="num">Monthly equiv.</th>
               <th>Period</th>
               <th>Limits</th>
               <th>Actions</th>
             </tr>
           </thead>
+          {loading ? (
+            <TableSkeleton rows={4} cols={6} />
+          ) : (
           <tbody>
             {plans.map((p) => (
               <tr key={p.id} className={p.is_active ? '' : 'muted'}>
@@ -272,27 +284,56 @@ export function PlansPage() {
                   <div className="muted small">{p.name}</div>
                   {!p.is_active ? <span className="badge muted">inactive</span> : null}
                 </td>
-                <td>{formatMoney(p.price_minor, p.currency)}</td>
-                <td>
+                <td className="num">{formatMoney(p.price_minor, p.currency)}</td>
+                <td className="num">
                   {formatMoney(monthlyEquivalentMinor(p.price_minor, p.billing_period), p.currency)}
                 </td>
                 <td>{PERIOD_LABELS[p.billing_period]}</td>
                 <td className="muted">{limits(p)}</td>
-                <td>
+                <td className="actions">
                   <button className="btn small" disabled={busy} onClick={() => startEdit(p)}>
                     Edit
-                  </button>{' '}
+                  </button>
                   {p.is_active ? (
-                    <button className="btn small danger" disabled={busy} onClick={() => void deactivate(p)}>
-                      Deactivate
-                    </button>
+                    confirming === p.id ? (
+                      <>
+                        <button
+                          className="btn small danger"
+                          disabled={busy}
+                          onClick={() => void deactivate(p)}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          className="btn small"
+                          onClick={() => setConfirming(null)}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="btn small danger"
+                        disabled={busy}
+                        onClick={() => setConfirming(p.id)}
+                      >
+                        Deactivate
+                      </button>
+                    )
                   ) : null}
                 </td>
               </tr>
             ))}
           </tbody>
+          )}
         </table>
-      )}
+        {!loading && plans.length === 0 && !error ? (
+          <EmptyState
+            title="No plans yet"
+            hint="A plan defines price, limits and features. Create one so merchants can subscribe."
+          />
+        ) : null}
+      </div>
     </div>
   )
 }

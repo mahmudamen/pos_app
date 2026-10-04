@@ -8,7 +8,11 @@ import {
   InvoiceBadge,
   Money,
   Spinner,
+  Stat,
   SubscriptionBadge,
+  EmptyState,
+  Meter,
+  PageHead,
 } from '../components/ui'
 
 const TRIAL_DAYS = 15
@@ -110,30 +114,18 @@ export function TenantDetailPage() {
 
   return (
     <div className="page">
-      <header className="page-head">
-        <div>
-          <h2>{analytics.name}</h2>
-          <div className="muted">
-            {businessTypeLabel(analytics.business_type)} · {analytics.slug}
-          </div>
-        </div>
-        <div className="head-actions">
-          {subscription ? (
-            <SubscriptionBadge status={subscription.status} />
-          ) : (
-            <button className="btn primary" onClick={() => setAssignOpen(true)} disabled={busy}>
-              Assign subscription
-            </button>
-          )}
-          <button
-            className="btn"
-            onClick={() => setInvoiceOpen(true)}
-            disabled={busy}
-          >
-            New invoice
+      <PageHead title={analytics.name} sub={`${businessTypeLabel(analytics.business_type)} · ${analytics.slug}`}>
+        {subscription ? (
+          <SubscriptionBadge status={subscription.status} />
+        ) : (
+          <button className="btn primary" onClick={() => setAssignOpen(true)} disabled={busy}>
+            Assign subscription
           </button>
-        </div>
-      </header>
+        )}
+        <button className="btn" onClick={() => setInvoiceOpen(true)} disabled={busy}>
+          New invoice
+        </button>
+      </PageHead>
 
       <ErrorBanner error={error} />
 
@@ -200,9 +192,52 @@ export function TenantDetailPage() {
       ) : null}
 
       <div className="stat-grid">
-        <Stat label="Users" value={`${analytics.users}`} />
-        <Stat label="Products" value={`${analytics.products}`} />
-        <Stat label="Plan" value={analytics.plan || '—'} />
+        <Stat
+          label="Users"
+          value={String(analytics.users)}
+          sub={analytics.max_users === 0 ? 'unlimited plan cap' : `of ${analytics.max_users} seats`}
+        />
+        <Stat
+          label="Products"
+          value={String(analytics.products)}
+          sub={analytics.max_products === 0 ? 'unlimited plan cap' : `of ${analytics.max_products} slots`}
+        />
+        <Stat label="Sales today" value={String(analytics.today_sales)} tone="accent" />
+        <Stat label="Revenue today" value={formatMoney(analytics.today_revenue_minor, 'EGP')} />
+      </div>
+
+      <div className="grid-3" style={{ marginBottom: 'var(--s5)' }}>
+        <section className="card">
+          <h3>Seat usage</h3>
+          <Meter
+            label="Users"
+            value={analytics.users}
+            max={analytics.max_users}
+            tone="accent"
+            hint={analytics.max_users === 0 ? 'Plan has no seat limit' : undefined}
+          />
+        </section>
+        <section className="card">
+          <h3>Catalog usage</h3>
+          <Meter
+            label="Products"
+            value={analytics.products}
+            max={analytics.max_products}
+            tone="info"
+            hint={analytics.max_products === 0 ? 'Plan has no product limit' : undefined}
+          />
+        </section>
+        <section className="card">
+          <h3>Plan</h3>
+          <p>
+            <span className="badge accent">{analytics.plan || '—'}</span>
+          </p>
+          <p className="small muted" style={{ margin: 0 }}>
+            {subscription
+              ? `${subscription.plan_name} · ${PERIOD_LABELS[subscription.billing_period]}`
+              : 'No subscription assigned'}
+          </p>
+        </section>
       </div>
 
       <div className="grid-2">
@@ -224,7 +259,15 @@ export function TenantDetailPage() {
               </table>
             </>
           ) : (
-            <p className="muted">No active subscription.</p>
+            <EmptyState
+              title="No subscription"
+              hint="Assign a plan so this merchant can transact."
+              action={
+                <button className="btn" onClick={() => setAssignOpen(true)} disabled={busy}>
+                  Assign subscription
+                </button>
+              }
+            />
           )}
         </section>
 
@@ -256,7 +299,15 @@ export function TenantDetailPage() {
       <section className="card">
         <h3>Invoices</h3>
         {invoices.length === 0 ? (
-          <p className="muted">No invoices.</p>
+          <EmptyState
+            title="No invoices"
+            hint="Raise one to bill this merchant."
+            action={
+              <button className="btn" onClick={() => setInvoiceOpen(true)} disabled={busy}>
+                New invoice
+              </button>
+            }
+          />
         ) : (
           <table className="table">
             <thead>
@@ -296,7 +347,7 @@ export function TenantDetailPage() {
                 ))}
               </ol>
             ) : (
-              <p className="muted">None.</p>
+              <EmptyState title="No products sold yet" hint="This merchant has not recorded a sale." />
             )}
           </div>
           <div>
@@ -311,7 +362,7 @@ export function TenantDetailPage() {
                 ))}
               </ol>
             ) : (
-              <p className="muted">None.</p>
+              <EmptyState title="No recent sales" hint="Completed sales show up here." />
             )}
           </div>
         </div>
@@ -325,11 +376,3 @@ function barHeight(value: number, all: { revenue_minor: number }[]): number {
   return Math.max(4, Math.round((value / max) * 100))
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="stat card">
-      <div className="stat-label">{label}</div>
-      <div className="stat-value">{value}</div>
-    </div>
-  )
-}
