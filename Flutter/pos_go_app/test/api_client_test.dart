@@ -2346,6 +2346,129 @@ expect(() => client.dashboardSummary(session),
       }
     });
 
+    test('productByBarcode returns a product when found', () async {
+      final client = ApiClient(client: _BarcodeClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final product = await client.productByBarcode(session, '6281000000001');
+      expect(product.id, 'prod-1');
+      expect(product.sku, 'SKU-1');
+      expect(product.priceMinor, 1000);
+    });
+
+    test('productLots returns lots for a product', () async {
+      final client = ApiClient(client: _LotsClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final lots = await client.productLots(session, 'prod-1');
+      expect(lots, hasLength(1));
+      expect(lots.first.lotNumber, 'L001');
+      expect(lots.first.quantityRemaining, 10);
+    });
+
+    test('productVariants returns variants for a product', () async {
+      final client = ApiClient(client: _VariantsClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Cashier',
+        tenantId: 'tenant-1',
+      );
+      final variants = await client.productVariants(session, 'prod-1');
+      expect(variants, hasLength(1));
+      expect(variants.first.name, 'Red');
+      expect(variants.first.priceMinor, 1500);
+    });
+
+    test('createProductLot creates a lot', () async {
+      final client = ApiClient(client: _CreateLotClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      final lot = await client.createProductLot(
+        session,
+        'prod-1',
+        lotNumber: 'L002',
+        expiryDate: '2026-12-31',
+        quantity: 20,
+      );
+      expect(lot.id, 'lot-2');
+      expect(lot.lotNumber, 'L002');
+    });
+
+    test('updateProductLot patches a lot', () async {
+      final client = ApiClient(client: _UpdateLotClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      final res = await client.updateProductLot(session, 'lot-1', quantity: 5);
+      expect(res['quantity'], 5);
+    });
+
+    test('createProductVariant creates a variant', () async {
+      final client = ApiClient(client: _CreateVariantClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      final v = await client.createProductVariant(
+        session,
+        'prod-1',
+        name: 'Blue',
+        sku: 'SKU-BLUE',
+        priceMinor: 1200,
+      );
+      expect(v.id, 'var-1');
+      expect(v.name, 'Blue');
+    });
+
+    test('updateProductVariant patches a variant', () async {
+      final client = ApiClient(client: _UpdateVariantClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      final v = await client.updateProductVariant(session, 'var-1', priceMinor: 1300);
+      expect(v.priceMinor, 1300);
+    });
+
+    test('deleteProductVariant deletes a variant', () async {
+      final client = ApiClient(client: _DeleteVariantClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      await client.deleteProductVariant(session, 'var-1');
+    });
+
     test('floors fetches the restaurant floors list', () async {
       final client = ApiClient(client: _FloorsClient());
       const session = Session(
@@ -2359,6 +2482,39 @@ expect(() => client.dashboardSummary(session),
       expect(floors, hasLength(2));
       expect(floors.first.name, 'Ground');
       expect(floors.last.sortOrder, 1);
+    });
+
+    test('createFloor creates a floor', () async {
+      final client = ApiClient(client: _CreateFloorClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      final f = await client.createFloor(session, name: 'Upstairs');
+      expect(f.id, 'floor-3');
+      expect(f.name, 'Upstairs');
+    });
+
+    test('createTable creates a table', () async {
+      final client = ApiClient(client: _CreateTableClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Manager',
+        tenantId: 'tenant-1',
+      );
+      final t = await client.createTable(
+        session,
+        floorId: 'floor-1',
+        name: 'T10',
+        seats: 4,
+      );
+      expect(t.id, 'table-10');
+      expect(t.name, 'T10');
     });
 
     test('tables fetches tables with status and floor name', () async {
@@ -3226,6 +3382,21 @@ return http.StreamedResponse(
    }
  }
 
+class _BarcodeClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/products/barcode/6281000000001');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const body = '{"data":{"id":"prod-1","name":"Item","sku":"SKU-1","barcode":"6281000000001","price_minor":1000,"currency":"EGP","stock_quantity":5,"is_active":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
 class _FloorsClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -3259,6 +3430,134 @@ class _TablesClient extends http.BaseClient {
     return http.StreamedResponse(
       Stream.value(body.codeUnits),
       200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _LotsClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/products/prod-1/lots');
+    const body =
+        '{"data":[{"id":"lot-1","product_id":"prod-1","lot_number":"L001","quantity_remaining":10}],"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _VariantsClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/products/prod-1/variants');
+    const body =
+        '{"data":[{"id":"var-1","product_id":"prod-1","name":"Red","sku":"SKU-R","barcode":"123","price_minor":1500,"stock_quantity":5,"is_active":true}],"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CreateLotClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/products/prod-1/lots');
+    const body =
+        '{"data":{"id":"lot-2","product_id":"prod-1","lot_number":"L002","expiry_date":"2026-12-31","quantity":20},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _UpdateLotClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'PATCH');
+    expect(request.url.path, '/v1/lots/lot-1');
+    const body = '{"data":{"quantity":5},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CreateVariantClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/products/prod-1/variants');
+    const body =
+        '{"data":{"id":"var-1","product_id":"prod-1","name":"Blue","sku":"SKU-BLUE","barcode":"","price_minor":1200,"stock_quantity":0,"is_active":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _UpdateVariantClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'PATCH');
+    expect(request.url.path, '/v1/variants/var-1');
+    const body =
+        '{"data":{"id":"var-1","product_id":"prod-1","name":"Blue","sku":"SKU-BLUE","barcode":"","price_minor":1300,"stock_quantity":0,"is_active":true},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _DeleteVariantClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'DELETE');
+    expect(request.url.path, '/v1/variants/var-1');
+    return http.StreamedResponse(const Stream.empty(), 200);
+  }
+}
+
+class _CreateFloorClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/floors');
+    const body =
+        '{"data":{"id":"floor-3","name":"Upstairs","sort_order":0},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CreateTableClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/tables');
+    const body =
+        '{"data":{"id":"table-10","floor_id":"floor-1","name":"T10","seats":4,"status":"free","floor_name":""},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      201,
       headers: {'content-type': 'application/json'},
     );
   }

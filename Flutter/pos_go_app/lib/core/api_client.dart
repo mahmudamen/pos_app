@@ -355,6 +355,167 @@ class ApiClient {
     final data = jsonDecode(response.body)['data'] as List<dynamic>;
     return data.map((e) => ProductVariant.fromJson(e as Map<String, dynamic>)).toList();
   }
+  Future<ProductLot> createProductLot(
+    Session session,
+    String productId, {
+    required String lotNumber,
+    String expiryDate = '',
+    required int quantity,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/products/${Uri.encodeComponent(productId)}/lots'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'lot_number': lotNumber,
+          if (expiryDate.isNotEmpty) 'expiry_date': expiryDate,
+          'quantity': quantity,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'] as Map<String, dynamic>;
+    return ProductLot(
+      id: data['id'] as String,
+      productId: data['product_id'] as String,
+      lotNumber: data['lot_number'] as String,
+      expiryDate: data['expiry_date'] as String?,
+      serialNumber: null,
+      quantityRemaining: (data['quantity'] as num).toInt(),
+    );
+  }
+
+  Future<Map<String, dynamic>> updateProductLot(
+    Session session,
+    String lotId, {
+    int? quantity,
+    String? expiryDate,
+  }) async {
+    final bodyMap = <String, dynamic>{};
+    if (quantity != null) bodyMap['quantity'] = quantity;
+    if (expiryDate != null) bodyMap['expiry_date'] = expiryDate;
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse('$baseUrl/v1/lots/${Uri.encodeComponent(lotId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(bodyMap),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['data'] as Map<String, dynamic>;
+  }
+
+  Future<ProductVariant> createProductVariant(
+    Session session,
+    String productId, {
+    required String name,
+    required String sku,
+    required int priceMinor,
+    int stockQuantity = 0,
+    String size = '',
+    String color = '',
+    String barcode = '',
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/products/${Uri.encodeComponent(productId)}/variants'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'name': name,
+          'sku': sku,
+          'price_minor': priceMinor,
+          if (stockQuantity != 0) 'stock_quantity': stockQuantity,
+          if (size.isNotEmpty) 'size': size,
+          if (color.isNotEmpty) 'color': color,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'] as Map<String, dynamic>;
+    return ProductVariant.fromJson(data);
+  }
+
+  Future<ProductVariant> updateProductVariant(
+    Session session,
+    String variantId, {
+    String? name,
+    String? sku,
+    int? priceMinor,
+    int? stockQuantity,
+    String? size,
+    String? color,
+    bool? isActive,
+  }) async {
+    final bodyMap = <String, dynamic>{};
+    if (name != null) bodyMap['name'] = name;
+    if (sku != null) bodyMap['sku'] = sku;
+    if (priceMinor != null) bodyMap['price_minor'] = priceMinor;
+    if (stockQuantity != null) bodyMap['stock_quantity'] = stockQuantity;
+    if (size != null) bodyMap['size'] = size;
+    if (color != null) bodyMap['color'] = color;
+    if (isActive != null) bodyMap['is_active'] = isActive;
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse('$baseUrl/v1/variants/${Uri.encodeComponent(variantId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(bodyMap),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'] as Map<String, dynamic>;
+    return ProductVariant.fromJson(data);
+  }
+
+  Future<void> deleteProductVariant(
+    Session session,
+    String variantId,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.delete(
+        Uri.parse('$baseUrl/v1/variants/${Uri.encodeComponent(variantId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+  }
   Future<Product> createProduct(
     Session session, {
     required String name,
@@ -1233,6 +1394,105 @@ class ApiClient {
       throw ApiException(_message(response));
     }
     return response.body;
+  }
+  // IDENTITY
+  Future<Map<String, dynamic>> identitySummary(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/identity'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> identityEmailVerify(Session session,
+      {required String code}) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/identity/email/verify'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'code': code}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> identityEmailResend(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/identity/email/resend'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: '',
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+  }
+  // NOTIFICATIONS
+  Future<List<Map<String, dynamic>>> listNotifications(Session session,
+      {int limit = 50}) async {
+    final uri =
+        Uri.parse('$baseUrl/v1/notifications').replace(queryParameters: {
+      'limit': limit.toString(),
+    });
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'] as List<dynamic>;
+    return data.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<int> notificationsCount(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/notifications/count'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = body['data'] as Map<String, dynamic>;
+    return (data['count'] as num).toInt();
   }
 
   Future<CustomersPage> listCustomers(
@@ -2494,6 +2754,63 @@ class ApiClient {
     return data
         .map((item) => RestaurantTable.fromJson(item as Map<String, dynamic>))
         .toList();
+  }
+  Future<Floor> createFloor(
+    Session session, {
+    required String name,
+    int sortOrder = 0,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/floors'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'name': name,
+          if (sortOrder != 0) 'sort_order': sortOrder,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return Floor.fromJson(body['data'] as Map<String, dynamic>);
+  }
+
+  Future<RestaurantTable> createTable(
+    Session session, {
+    required String floorId,
+    required String name,
+    int seats = 0,
+    String status = 'free',
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/tables'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'floor_id': floorId,
+          'name': name,
+          if (seats != 0) 'seats': seats,
+          if (status != 'free') 'status': status,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return RestaurantTable.fromJson(body['data'] as Map<String, dynamic>);
   }
 
   Future<SplitBillResult> splitSale(
