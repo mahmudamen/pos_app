@@ -114,8 +114,78 @@ func (f *fakeCounter) Expire(_ context.Context, key string, expiration time.Dura
 	return nil
 }
 
+func (f *fakeCounter) Del(_ context.Context, keys ...string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for _, key := range keys {
+		delete(f.counts, key)
+	}
+	return nil
+}
+
 func (f *fakeCounter) tenured(key string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.expired[key] != 0
+}
+
+func TestMemoryResetRefundsTheToken(t *testing.T) {
+	rl := NewMemory(2, time.Minute)
+
+	if !rl.Allow("ip") || !rl.Allow("ip") {
+		t.Fatal("expected the first two attempts to be allowed")
+	}
+	if rl.Allow("ip") {
+		t.Fatal("expected the third attempt to be blocked")
+	}
+
+	rl.Reset("ip")
+
+	if !rl.Allow("ip") {
+		t.Fatal("expected Reset to refund the token")
+	}
+	if !rl.Allow("ip") {
+		t.Fatal("expected the refunded limiter to allow up to its limit again")
+	}
+	if rl.Allow("ip") {
+		t.Fatal("expected the limiter to block again once the limit is reached")
+	}
+}
+
+func TestMemoryResetOnlyTouchesOneKey(t *testing.T) {
+	rl := NewMemory(1, time.Minute)
+
+	if !rl.Allow("a") {
+		t.Fatal("expected first attempt for a to be allowed")
+	}
+	if !rl.Allow("b") {
+		t.Fatal("expected first attempt for b to be allowed")
+	}
+
+	rl.Reset("a")
+
+	if !rl.Allow("a") {
+		t.Fatal("expected a to be refunded and allowed again")
+	}
+	if rl.Allow("b") {
+		t.Fatal("expected b to keep its own recorded attempt and stay blocked")
+	}
+}
+
+func TestRedisResetDeletesTheCounter(t *testing.T) {
+	client := &fakeCounter{}
+	rl := NewRedisTest(client, 2, time.Minute)
+
+	if !rl.Allow("ip") || !rl.Allow("ip") {
+		t.Fatal("expected the first two attempts to be allowed")
+	}
+	if rl.Allow("ip") {
+		t.Fatal("expected the third attempt to be blocked")
+	}
+
+	rl.Reset("ip")
+
+	if !rl.Allow("ip") {
+		t.Fatal("expected Reset to delete the redis counter and refund the token")
+	}
 }

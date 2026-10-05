@@ -10,6 +10,10 @@ import (
 
 type Limiter interface {
 	Allow(key string) bool
+	// Reset drops the recorded attempts for key. Used to refund a token when the
+	// request that consumed it was not actually a failed attempt, so only real
+	// credential guesses accumulate.
+	Reset(key string)
 }
 
 type MemoryLimiter struct {
@@ -56,11 +60,19 @@ func (rl *MemoryLimiter) Allow(key string) bool {
 	return true
 }
 
+func (rl *MemoryLimiter) Reset(key string) {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	delete(rl.attempts, key)
+}
+
 // counterClient is the minimal redis surface the RedisLimiter needs,
 // kept primitive-returning so tests can fake it without go-redis.
 type counterClient interface {
 	Incr(ctx context.Context, key string) (int64, error)
 	Expire(ctx context.Context, key string, expiration time.Duration) error
+	Del(ctx context.Context, keys ...string) error
 }
 
 // goRedisClient adapts *redis.Client to counterClient.
@@ -74,6 +86,10 @@ func (g goRedisClient) Incr(ctx context.Context, key string) (int64, error) {
 
 func (g goRedisClient) Expire(ctx context.Context, key string, expiration time.Duration) error {
 	return g.client.Expire(ctx, key, expiration).Err()
+}
+
+func (g goRedisClient) Del(ctx context.Context, keys ...string) error {
+	return g.client.Del(ctx, keys...).Err()
 }
 
 type RedisLimiter struct {
@@ -108,4 +124,11 @@ func (rl *RedisLimiter) Allow(key string) bool {
 		_ = rl.client.Expire(ctx, rl.prefix+key, rl.window)
 	}
 	return counter <= rl.limit
+}
+
+// Reset drops the counter. A redis error is swallowed on purpose: a limiter that
+// cannot refund a token should fail towards allowing the request, exactly like
+// the Incr error path above.
+func (rl *RedisLimiter) Reset(key string) {
+	_ = rl.client.Del(context.Background(), rl.prefix+key)
 }

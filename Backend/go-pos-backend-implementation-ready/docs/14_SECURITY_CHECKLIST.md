@@ -59,7 +59,16 @@ target host before go-live.
       `stringList`), the middleware echoes only listed origins and omits the
       header otherwise, the dev `.env.example` and `docker-compose.prod.yml`
       (required via `:?`) already set it; `06_SECURITY.md` mandates an
-      explicit allow-list.
+      explicit allow-list. Production runs the three real client origins
+      (`https://xamltech.com,https://api.xamltech.com,https://posgo.xamltech.com`,
+      matching `.env.prod.example`); anything else gets no ACAO header.
+- [x] Login rate limiting counts **failed** logins only. `LoginRateLimitWith`
+      consumes a token before the handler runs, then refunds it unless the
+      response was `401` (`limiter.Reset`). Counting successes locked a whole
+      shop out of signing in after `RATE_LIMIT_MAX` logins on one shared
+      NAT/carrier IP; `5xx` is refunded too, since a server fault is not a
+      credential guess. Brute-force protection is unchanged: only wrong
+      passwords accumulate toward the limit.
 - [x] Request hardening middleware enabled: max body size, request ID,
       security headers, recovery (don't use Gin's default logger in prod).
       Evidence: `router.go` wires `SecurityHeaders`, `RequestID`, `Recovery`,

@@ -141,13 +141,13 @@ func TestLoginRateLimitWithCustomLimiter(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(LoginRateLimitWith(ratelimit.NewMemory(1, time.Minute)))
-	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusOK) })
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusUnauthorized) })
 	first := httptest.NewRecorder()
 	router.ServeHTTP(first, httptest.NewRequest(http.MethodPost, "/login", nil))
 	second := httptest.NewRecorder()
 	router.ServeHTTP(second, httptest.NewRequest(http.MethodPost, "/login", nil))
-	if first.Code != http.StatusOK {
-		t.Fatalf("expected 200 for first request, got %d", first.Code)
+	if first.Code == http.StatusTooManyRequests {
+		t.Fatalf("expected the first request to reach the handler, got %d", first.Code)
 	}
 	if second.Code != http.StatusTooManyRequests {
 		t.Fatalf("expected 429 for blocked request, got %d", second.Code)
@@ -192,7 +192,7 @@ func TestLoginRateLimitBlocksAfterLimit(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(LoginRateLimit(2, time.Minute))
-	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusOK) })
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusUnauthorized) })
 	for i := 0; i < 2; i++ {
 		recorder := httptest.NewRecorder()
 		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
@@ -208,7 +208,7 @@ func TestLoginRateLimitResetsAfterWindow(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(LoginRateLimit(2, 50*time.Millisecond))
-	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusOK) })
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusUnauthorized) })
 	for i := 0; i < 2; i++ {
 		recorder := httptest.NewRecorder()
 		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
@@ -216,8 +216,8 @@ func TestLoginRateLimitResetsAfterWindow(t *testing.T) {
 	time.Sleep(60 * time.Millisecond)
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
-	if recorder.Code != http.StatusOK {
-		t.Fatalf("expected 200 after window reset, got %d", recorder.Code)
+	if recorder.Code == http.StatusTooManyRequests {
+		t.Fatal("expected the request through once the window elapsed")
 	}
 }
 
@@ -323,7 +323,7 @@ func TestLoginRateLimitReturnsRateLimitedErrorJSON(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(LoginRateLimit(1, time.Minute))
-	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusOK) })
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusUnauthorized) })
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
 	recorder = httptest.NewRecorder()
@@ -388,6 +388,113 @@ func TestRequestLoggerIncludesClaimsWhenPresent(t *testing.T) {
 	for _, want := range []string{"tenant_id=tenant-1", "user_id=user-1", "device_id=dev-1", "role=manager"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("expected %q in log output: %s", want, out)
+		}
+	}
+}
+
+// A successful sign-in must not consume the budget. Before the failure-only
+// rule every login counted, so RATE_LIMIT_MAX=3 per minute locked out an entire
+// shop sharing one NAT IP after three staff had signed in.
+func TestLoginRateLimitDoesNotCountSuccessfulLogins(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(LoginRateLimit(2, time.Minute))
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	for i := 0; i < 10; i++ {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("successful login %d was rate limited with %d", i+1, recorder.Code)
+		}
+	}
+}
+
+// A correct password after a wrong one clears the slate, so one user's typo
+// cannot lock out the colleagues behind the same address.
+func TestLoginRateLimitSuccessRefundsEarlierFailures(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	wrong := true
+	router.Use(LoginRateLimit(2, time.Minute))
+	router.POST("/login", func(c *gin.Context) {
+		if wrong {
+			c.Status(http.StatusUnauthorized)
+			return
+		}
+		c.Status(http.StatusOK)
+	})
+
+	post := func() int {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
+		return recorder.Code
+	}
+
+	// Blocked clients stay blocked for the rest of the window, so exercise the
+	// refund on a login that still passes the limiter.
+	if code := post(); code != http.StatusUnauthorized {
+		t.Fatalf("expected the first wrong password to be answered 401, got %d", code)
+	}
+	if code := post(); code != http.StatusUnauthorized {
+		t.Fatalf("expected the second wrong password to be answered 401, got %d", code)
+	}
+	if code := post(); code != http.StatusTooManyRequests {
+		t.Fatalf("expected 429 while over the limit, got %d", code)
+	}
+
+	wrong = false
+	if code := post(); code != http.StatusTooManyRequests {
+		t.Fatalf("a blocked client should stay blocked until the window elapses, got %d", code)
+	}
+}
+
+func TestLoginRateLimitSuccessClearsEarlierFailures(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	wrong := true
+	router.Use(LoginRateLimit(2, time.Minute))
+	router.POST("/login", func(c *gin.Context) {
+		if wrong {
+			c.Status(http.StatusUnauthorized)
+			return
+		}
+		c.Status(http.StatusOK)
+	})
+
+	post := func() int {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
+		return recorder.Code
+	}
+
+	post() // fail 1 of 2
+	wrong = false
+	if code := post(); code != http.StatusOK {
+		t.Fatalf("expected the correct password to succeed, got %d", code)
+	}
+
+	// The earlier failure was refunded, so the full budget is available again.
+	wrong = true
+	post() // fail 1
+	post() // fail 2
+	if code := post(); code != http.StatusTooManyRequests {
+		t.Fatalf("expected the limit to be enforced again, got %d", code)
+	}
+}
+
+// A 5xx is the server's fault, not a credential guess, so it must be refunded.
+func TestLoginRateLimitDoesNotCountServerErrors(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(LoginRateLimit(2, time.Minute))
+	router.POST("/login", func(c *gin.Context) { c.Status(http.StatusInternalServerError) })
+
+	for i := 0; i < 6; i++ {
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/login", nil))
+		if recorder.Code == http.StatusTooManyRequests {
+			t.Fatalf("server error %d was counted as a login attempt", i+1)
 		}
 	}
 }

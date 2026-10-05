@@ -130,6 +130,15 @@ func LoginRateLimitWith(l ratelimit.Limiter) gin.HandlerFunc {
 			return
 		}
 		c.Next()
+		// Only wrong credentials count against the limit. The token was consumed
+		// before the handler ran, so refund it unless the login was rejected with
+		// 401. Without this every *successful* sign-in burned a token, and one
+		// shared NAT IP (an office, a carrier-grade NAT, a store behind one
+		// router) locked the whole shop out after RATE_LIMIT_MAX logins a
+		// minute. A 5xx is refunded too: a server fault is not a guess.
+		if c.Writer.Status() != http.StatusUnauthorized {
+			l.Reset(key)
+		}
 	}
 }
 
