@@ -84,6 +84,8 @@ services:
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-false}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-300}
       RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-1m}
+      LOGIN_RATE_MAX: ${LOGIN_RATE_MAX:-10}
+      LOGIN_RATE_WINDOW: ${LOGIN_RATE_WINDOW:-1m}
       # Invoice capture (Tesseract). The Purchases screen ships in the Android
       # app for managers, so this has to be on or that button is dead in a
       # merchant's hands. The metering limits are deliberately NOT 0 (=unlimited)
