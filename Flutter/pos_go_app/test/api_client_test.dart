@@ -2104,6 +2104,27 @@ expect(() => client.dashboardSummary(session),
       expect(session.role, 'owner');
     });
 
+    test('sends the chosen language under the field the API reads', () async {
+      // The signup endpoint reads `language`; sending only `default_language`
+      // silently drops the merchant's choice and the tenant falls back to ar,
+      // which then becomes the app locale right after onboarding.
+      final recorder = _RegisterBodyRecorder();
+      final client = ApiClient(client: recorder);
+      await client.register(
+        storeName: 'My Coffee',
+        businessType: 'coffee_shop',
+        email: 'owner@mycoffee.com',
+        password: 'secret-pass-1',
+        displayName: 'Owner',
+        deviceId: 'dev-1',
+        deviceName: 'Counter 1',
+        language: 'en',
+      );
+      final body = jsonDecode(recorder.body!) as Map<String, dynamic>;
+      expect(body['language'], 'en');
+      expect(body['default_language'], 'en');
+    });
+
     test('maps a 403 trial_expired response onto the ApiException code',
         () async {
       final client = ApiClient(client: _TrialExpiredClient());
@@ -2673,7 +2694,7 @@ expect(() => client.dashboardSummary(session),
       try {
         await client.login(
           tenantId: 'tenant-1',
-          email: 'admin@posgo.saas',
+          email: 'mahmudamen@xamltech.com',
           password: 'admin',
           deviceId: 'device-1',
           deviceName: 'Counter 1',
@@ -2904,6 +2925,23 @@ class _RegisterClient extends http.BaseClient {
         '{"data":{"access_token":"access-token","refresh_token":"refresh-token","expires_in":3600,"device_id":"dev-1","user":{"id":"u-1","display_name":"Owner","role":"owner","account_type":"standard"},"tenant":{"id":"tenant-new","business_type":"coffee_shop","country_code":"EG","currency_code":"EGP","default_language":"ar","plan":"trial","trial_ends_at":"2026-09-29T00:00:00Z"}}}';
     return http.StreamedResponse(
       Stream.value(body.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+/// Captures the signup request body so a test can assert what was sent.
+class _RegisterBodyRecorder extends http.BaseClient {
+  String? body;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    body = await request.finalize().bytesToString();
+    const response =
+        '{"data":{"access_token":"access-token","refresh_token":"refresh-token","expires_in":3600,"device_id":"dev-1","user":{"id":"u-1","display_name":"Owner","role":"owner","account_type":"standard"},"tenant":{"id":"tenant-new","business_type":"coffee_shop","country_code":"EG","currency_code":"EGP","default_language":"en","plan":"trial","trial_ends_at":"2026-09-29T00:00:00Z"}}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
       201,
       headers: {'content-type': 'application/json'},
     );

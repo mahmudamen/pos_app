@@ -111,6 +111,7 @@ class ApiClient {
         'display_name': displayName,
         'country_code': countryCode,
         'currency_code': currencyCode,
+        'language': language,
         'default_language': language,
         'device_id': deviceId,
         'device_name': deviceName,

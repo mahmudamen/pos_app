@@ -11,6 +11,10 @@ class AppStrings {
 
   static const List<Locale> supportedLocales = [Locale('ar'), Locale('en')];
 
+  /// Arabic is the product's primary locale: every screen ships Arabic first,
+  /// so this is what the app boots with when no preference has been stored.
+  static const Locale defaultLocale = Locale('ar');
+
   static AppStrings of(BuildContext context) =>
       Localizations.of<AppStrings>(context, AppStrings)!;
 

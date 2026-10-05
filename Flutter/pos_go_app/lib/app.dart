@@ -31,7 +31,7 @@ class _PosAppState extends State<PosApp> {
   bool _restoring = true;
   bool _splashDone = false;
   bool _showLogin = false;
-  Locale _locale = const Locale('ar');
+  Locale _locale = AppStrings.defaultLocale;
   bool _languageCustomized = false;
   FontSetting _fontSetting = const FontSetting();
   ThemeSetting _themeSetting = const ThemeSetting();
