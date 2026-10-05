@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
+
+import 'socket_error.dart';
 
 class AppException implements Exception {
   const AppException(this.message, {this.code, this.original});
@@ -28,10 +29,12 @@ class NetworkException extends AppException {
 ///
 /// Covers [NetworkException] (thrown by ApiClient for a dead link) plus the
 /// raw socket/client/timeout errors a caller can still see from an
-/// unauthenticated call such as login.
+/// unauthenticated call such as login. `SocketException` is matched through
+/// [isSocketError] because it only exists where `dart:io` does; on the web the
+/// same condition arrives as an `http.ClientException`.
 bool isTransportFailure(Object error) =>
     error is NetworkException ||
-    error is SocketException ||
+    isSocketError(error) ||
     error is http.ClientException ||
     error is TimeoutException;
 

@@ -17,6 +17,10 @@ dependencies:
   intl: ^0.20.2
   path: ^1.9.0
   sqflite: ^2.3.3+1
+  # Web counterpart of sqflite: sqlite3 compiled to WebAssembly, persisted in
+  # IndexedDB. `dart run sqflite_common_ffi_web:setup` installs the sqlite3.wasm
+  # + sqflite_sw.js binaries into web/.
+  sqflite_common_ffi_web: ^1.2.0
   url_launcher: ^6.3.1
   image_picker: ^1.2.3
   image: ^4.10.1

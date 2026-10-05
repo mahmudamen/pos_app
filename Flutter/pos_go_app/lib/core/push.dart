@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -52,10 +51,14 @@ class PushService {
   /// expected at least once in a normal development cycle: no config file, no
   /// Play Services on the device, no permission granted yet, no network.
   Future<PushStatus> initialize() async {
+    // FCM needs an Android/iOS app registration; the web build has neither.
+    // Checked with the platform enum rather than `dart:io`'s `Platform` so
+    // nothing here reaches for an API the browser does not have.
     if (kIsWeb) {
       return const PushStatus.unavailable('web is not supported');
     }
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS) {
       return const PushStatus.unavailable('platform is not Android or iOS');
     }
 

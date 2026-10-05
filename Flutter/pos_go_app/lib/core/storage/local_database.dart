@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../api_client.dart';
 import '../registers.dart';
+import 'database_target_resolver.dart';
 
 class PendingCommand {
   const PendingCommand({
@@ -20,18 +21,20 @@ class PendingCommand {
 
 class LocalDatabase {
   LocalDatabase({DatabaseFactory? factory, this.databasePath})
-      : _factory = factory ?? databaseFactory;
+      : _factory = factory;
 
-  final DatabaseFactory _factory;
+  // Left null unless injected. Reading sqflite's global `databaseFactory`
+  // throws where no plugin registered it (the browser), so it must not be
+  // touched before [resolveDatabaseTarget] has picked the platform factory.
+  final DatabaseFactory? _factory;
   final String? databasePath;
   Database? _database;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    final databasesPath = databasePath ??
-        path.join(await _factory.getDatabasesPath(), 'pos_go.db');
-    _database = await _factory.openDatabase(
-      databasesPath,
+    final target = await _target();
+    _database = await target.factory.openDatabase(
+      target.path,
       options: OpenDatabaseOptions(
         version: 4,
         onCreate: (db, _) async {
@@ -81,6 +84,26 @@ class LocalDatabase {
       ),
     );
     return _database!;
+  }
+
+  /// Where the database lives. An injected factory (tests, or a caller that
+  /// wants its own database) and an explicit [databasePath] win over the
+  /// platform default, so existing callers keep their behaviour on every
+  /// platform.
+  Future<DatabaseTarget> _target() async {
+    final injected = _factory;
+    if (injected != null) {
+      return DatabaseTarget(
+        factory: injected,
+        path: databasePath ??
+            path.join(await injected.getDatabasesPath(), 'pos_go.db'),
+      );
+    }
+    final resolved = await resolveDatabaseTarget();
+    return DatabaseTarget(
+      factory: resolved.factory,
+      path: databasePath ?? resolved.path,
+    );
   }
 
   /// Shifts taken while the register session could not be opened on the server.
