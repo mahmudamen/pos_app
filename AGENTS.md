@@ -82,6 +82,35 @@ The POS v1.0 release is **live on production** as Docker `pos-prod-*` services:
   on a private docker network with no published port, so the dump has to run
   inside the `pos-prod-postgres` container. Check it with
   `tail -3 /var/log/pos-backup.log` and `ls -la /opt/pos/backups/`.
+- **Offsite (R2) mirror is installed but INCOMPLETE — blocked on credentials.**
+  `/etc/cron.d/pos-backup-offsite` (03:47, 30 min after the local dump) calls
+  `/opt/pos/backup_offsite.sh`, which copies `/opt/pos/backups/pos-*.sql.gz`
+  to the `pos-backups` R2 bucket via rclone, refuses to mirror a dump older than
+  26h, verifies the uploaded object's size, then applies 30-day retention.
+  **All four values in `/opt/pos/offsite-backup.env` are still empty**
+  (`R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`), so
+  the script exits 1 with `ERROR R2_ACCOUNT_ID not set` and
+  `/var/log/pos-backup-offsite.log` is empty. It has never completed a run.
+  Until someone creates the bucket + an "Object Read & Write" token in the
+  Cloudflare dashboard and fills that file in (chmod 600), the only backup is
+  the **on-box** one — a VPS disk failure loses everything.
+- **Demo/testing accounts** (5 verticals x 5 roles + 2 SaaS operators) are
+  seeded into **both** the local Postgres and production; reference doc is
+  `Backend/go-pos-backend-implementation-ready/docs/26_DEMO_TESTING.md`, and the
+  plaintext passwords are in the gitignored
+  `.secrets/testing/DEMO_CREDENTIALS.txt`. Emails are
+  `demo-<tenant>-<role>@xamltech.com` (`demo-restaurant-manager@xamltech.com`),
+  and the guest account deliberately pairs `role=cashier` with
+  `account_type=guest`. The old `admin@demo-restaurant.com` / `admin` account
+  was destroyed by the 2026-10-05 reseed and now returns **401**.
+  Reseed order matters: `scripts/demo_testing_reset.sql` →
+  `scripts/seed_demo.sql` → `demo_users_seed.sql` → `demo_products_seed.sql`.
+  The reset clears `floors`, `product_lots`, `product_variants` and
+  `restaurant_tables` by hand because those four FKs to `tenants` are
+  `NO ACTION`; every other child table cascades.
+  **Verifying a seed needs tenant context** — `SELECT count(*) FROM users`
+  returns 0 even for the owner until `set_config('app.current_tenant', <uuid>,
+  false)` runs in the same session (FORCE RLS).
 - **The `pos-api` image must carry both tesseract language packs.** The
   Dockerfile installs `tesseract-ocr-data-ara` *and* `tesseract-ocr-data-eng` and
   asserts both `.traineddata` files at build time — `tesseract-ocr` does not
@@ -147,6 +176,8 @@ flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8080   # local backend (
 `API_BASE_URL` now **defaults to `https://api.xamltech.com`** (production) via `String.fromEnvironment` (`lib/core/api_client.dart`) — so shipped builds (community screens, POS client, SaaS control panel) hit production out of the box; override with `--dart-define` for a local backend. Login goes to `POST /v1/auth/login` with a `tenant_id`/`device_id`/`device_name` payload and expects the `{"data": ...}` envelope.
 
 Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'s compact reporter (see `flutter_01.log`) — an upstream terminal-width bug, not a test failure; work around it with a wider terminal or `--reporter expanded`.
+
+Gotcha: **`/tmp` is per-user quota-capped** on this box (`df` shows free space, writes still fail). `flutter test` then dies with `FileSystemException: Cannot copy file to '/tmp/flutter_tools.*/…/output.dill' … (OS Error: Disk quota exceeded, errno = 122)`, and any shell redirect into `/tmp` silently produces a **0-byte** log — so an empty log or `exit=255` with no output means quota, not a code failure. Always run with `TMPDIR=/home/thanos/.cache/octmp` (NVMe, unquota'd) and put scratch logs there too, never in `/tmp`. Headless-Chrome harnesses under `/tmp/opencode` are fine (the quota fills slowly) but their logs should be copied out.
 
 ### The POS also runs in a browser (`flutter build web`)
 
@@ -328,6 +359,8 @@ The tours sign in against **production** (`https://posgo.xamltech.com`, seeded d
 | `community_screen_test.dart` | 6 | hub shows profiles/companies entries; profiles list renders + chief chip filters; profile detail shows skills/memberships; my-profile edit loads + saves; companies list → detail manages members (remove); add-company form posts |
 | `national_screen_test.dart` | 5 | hub links to the national entry; member hub shows membership + national tiles; non-member join flow submits the code and lands on the member view; invitations list creates a code (reveal dialog) and revokes; member directory lists and moderates (promote → updateNationalMember) |
 | `login_privacy_test.dart` | 2 | login footer shows the localized Privacy Policy `TextButton` (en + ar) |
+| `arabic_rtl_test.dart` | 6 | Arabic is the app's default locale (`AppStrings.defaultLocale`, used by `app.dart`) and resolves to `TextDirection.rtl`; `en` resolves LTR; the Arabic font family is bound per script so Latin never falls back to an Arabic face |
+| `pos_layout_test.dart` | 10 | POS at 1400x800 / 820x1180 / 390x844: RTL in Arabic and LTR in English, exactly one search `TextField`, at least one filter chip, and a `SliverGridDelegateWithMaxCrossAxisExtent` grid (a fixed column count would break tablet/desktop); `pumpAndSettle` completing is the no-overflow assertion |
 
 ## Next phase
 

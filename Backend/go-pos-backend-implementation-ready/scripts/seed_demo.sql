@@ -3,7 +3,9 @@
 -- Run as the database owner:  psql $DATABASE_URL -f scripts/seed_demo.sql
 --
 -- Business types: restaurant, book_store, mobile_shop, computer_shop, grocery
--- Each tenant gets: owner@<domain> / admin, admin@<domain> / admin, cashier@<domain> / admin
+-- Each tenant gets demo-<tenant>-<role>@xamltech.com (owner/manager/cashier/guest).
+-- Passwords here are the legacy 'admin'; tool/gen_demo_testing_users.py replaces them
+-- with unique complex ones (.secrets/testing/demo_users_seed.sql).
 
 DO $$
 DECLARE
@@ -18,10 +20,10 @@ BEGIN
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
-      (tid, 'owner@demo-restaurant.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Restaurant Owner', 'owner', 'demo'),
-      (tid, 'admin@demo-restaurant.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Restaurant Admin', 'manager', 'demo'),
-      (tid, 'cashier@demo-restaurant.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Restaurant Cashier', 'cashier', 'demo'),
-      (tid, 'guest@demo-restaurant.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
+      (tid, 'demo-restaurant-owner@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Restaurant Owner', 'owner', 'demo'),
+      (tid, 'demo-restaurant-manager@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Restaurant Admin', 'manager', 'demo'),
+      (tid, 'demo-restaurant-cashier@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Restaurant Cashier', 'cashier', 'demo'),
+      (tid, 'demo-restaurant-guest@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
 
     INSERT INTO categories (tenant_id, name, slug) VALUES
       (tid, 'Drinks', 'drinks'), (tid, 'Food', 'food'), (tid, 'Pastries', 'pastries'), (tid, 'Desserts', 'desserts');
@@ -51,10 +53,10 @@ BEGIN
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
-      (tid, 'owner@demo-book-store.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Book Store Owner', 'owner', 'demo'),
-      (tid, 'admin@demo-book-store.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Book Store Admin', 'manager', 'demo'),
-      (tid, 'cashier@demo-book-store.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Book Store Cashier', 'cashier', 'demo'),
-      (tid, 'guest@demo-book-store.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
+      (tid, 'demo-book-store-owner@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Book Store Owner', 'owner', 'demo'),
+      (tid, 'demo-book-store-manager@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Book Store Admin', 'manager', 'demo'),
+      (tid, 'demo-book-store-cashier@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Book Store Cashier', 'cashier', 'demo'),
+      (tid, 'demo-book-store-guest@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
 
     INSERT INTO categories (tenant_id, name, slug) VALUES
       (tid, 'Fiction', 'fiction'), (tid, 'Non-Fiction', 'non-fiction'), (tid, 'Stationery', 'stationery'), (tid, 'Textbooks', 'textbooks');
@@ -81,10 +83,10 @@ BEGIN
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
-      (tid, 'owner@demo-mobile-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Mobile Shop Owner', 'owner', 'demo'),
-      (tid, 'admin@demo-mobile-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Mobile Shop Admin', 'manager', 'demo'),
-      (tid, 'cashier@demo-mobile-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Mobile Shop Cashier', 'cashier', 'demo'),
-      (tid, 'guest@demo-mobile-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
+      (tid, 'demo-mobile-shop-owner@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Mobile Shop Owner', 'owner', 'demo'),
+      (tid, 'demo-mobile-shop-manager@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Mobile Shop Admin', 'manager', 'demo'),
+      (tid, 'demo-mobile-shop-cashier@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Mobile Shop Cashier', 'cashier', 'demo'),
+      (tid, 'demo-mobile-shop-guest@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
 
     INSERT INTO categories (tenant_id, name, slug) VALUES
       (tid, 'Smartphones', 'smartphones'), (tid, 'Accessories', 'accessories'), (tid, 'Cases', 'cases'), (tid, 'Chargers', 'chargers');
@@ -111,10 +113,10 @@ BEGIN
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
-      (tid, 'owner@demo-computer-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Computer Shop Owner', 'owner', 'demo'),
-      (tid, 'admin@demo-computer-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Computer Shop Admin', 'manager', 'demo'),
-      (tid, 'cashier@demo-computer-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Computer Shop Cashier', 'cashier', 'demo'),
-      (tid, 'guest@demo-computer-shop.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
+      (tid, 'demo-computer-shop-owner@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Computer Shop Owner', 'owner', 'demo'),
+      (tid, 'demo-computer-shop-manager@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Computer Shop Admin', 'manager', 'demo'),
+      (tid, 'demo-computer-shop-cashier@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Computer Shop Cashier', 'cashier', 'demo'),
+      (tid, 'demo-computer-shop-guest@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
 
     INSERT INTO categories (tenant_id, name, slug) VALUES
       (tid, 'Laptops', 'laptops'), (tid, 'Components', 'components'), (tid, 'Peripherals', 'peripherals'), (tid, 'Software', 'software');
@@ -141,10 +143,10 @@ BEGIN
     PERFORM set_config('app.current_tenant', tid::text, true);
 
     INSERT INTO users (tenant_id, email, password_hash, display_name, role, account_type) VALUES
-      (tid, 'owner@demo-grocery.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Grocery Owner', 'owner', 'demo'),
-      (tid, 'admin@demo-grocery.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Grocery Admin', 'manager', 'demo'),
-      (tid, 'cashier@demo-grocery.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Grocery Cashier', 'cashier', 'demo'),
-      (tid, 'guest@demo-grocery.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
+      (tid, 'demo-grocery-owner@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Grocery Owner', 'owner', 'demo'),
+      (tid, 'demo-grocery-manager@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Grocery Admin', 'manager', 'demo'),
+      (tid, 'demo-grocery-cashier@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Grocery Cashier', 'cashier', 'demo'),
+      (tid, 'demo-grocery-guest@xamltech.com', '$2a$10$YDywTS/ci9Tzqz12X9KhOuM8OjdfwlXn3eVHus1ykgXXvgRg/8nw2', 'Guest', 'cashier', 'guest');
 
     INSERT INTO categories (tenant_id, name, slug) VALUES
       (tid, 'Produce', 'produce'), (tid, 'Dairy', 'dairy'), (tid, 'Bakery', 'bakery'), (tid, 'Beverages', 'beverages'), (tid, 'Snacks', 'snacks');

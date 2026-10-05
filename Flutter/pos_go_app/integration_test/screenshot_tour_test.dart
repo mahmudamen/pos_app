@@ -30,8 +30,10 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   const tenant = 'demo-restaurant';
-  const email = 'admin@demo-restaurant.com';
-  const password = 'admin';
+  // Passwords come from .secrets/testing/DEMO_CREDENTIALS.txt:
+  //   --dart-define=DEMO_PASSWORD='<password>'
+  const email = 'demo-restaurant-manager@xamltech.com';
+  const password = String.fromEnvironment('DEMO_PASSWORD');
 
   Future<void> pumpUntil(
     WidgetTester tester,

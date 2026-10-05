@@ -12,6 +12,11 @@ import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/restaurants.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
+// Credentials from .secrets/testing/DEMO_CREDENTIALS.txt:
+//   --dart-define=DEMO_PASSWORD='<password>'
+const demoEmail = 'demo-restaurant-manager@xamltech.com';
+const demoPassword = String.fromEnvironment('DEMO_PASSWORD');
+
 /// The `integration_test/network_e2e_test.dart` flows, runnable in a real
 /// browser with `flutter test --platform chrome`.
 ///
@@ -80,8 +85,8 @@ void main() {
     final api = ApiClient();
     final session = await api.login(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
-      password: 'admin',
+      email: demoEmail,
+      password: demoPassword,
       deviceId: 'web-e2e-device',
       deviceName: 'Web E2E',
     );
@@ -129,8 +134,8 @@ void main() {
     final store = SessionStore();
     final session = await api.login(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
-      password: 'admin',
+      email: demoEmail,
+      password: demoPassword,
       deviceId: 'web-e2e-device',
       deviceName: 'Web E2E',
     );
@@ -150,8 +155,8 @@ void main() {
     final api = ApiClient();
     final session = await api.login(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
-      password: 'admin',
+      email: demoEmail,
+      password: demoPassword,
       deviceId: 'web-e2e-device',
       deviceName: 'Web E2E',
     );

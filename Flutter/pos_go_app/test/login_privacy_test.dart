@@ -121,7 +121,7 @@ void main() {
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Store ID'), 'acme');
     await tester.enterText(
-        find.widgetWithText(TextFormField, 'Email'), 'admin@posgo.saas');
+        find.widgetWithText(TextFormField, 'Email'), 'mahmudamen@xamltech.com');
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Password'), 'admin');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
@@ -145,7 +145,7 @@ void main() {
         find.widgetWithText(TextFormField, 'معرف المتجر'), 'acme');
     await tester.enterText(
         find.widgetWithText(TextFormField, 'البريد الإلكتروني'),
-        'admin@posgo.saas');
+        'mahmudamen@xamltech.com');
     await tester.enterText(
         find.widgetWithText(TextFormField, 'كلمة المرور'), 'admin');
     await tester.tap(find.widgetWithText(FilledButton, 'تسجيل الدخول'));

@@ -10,6 +10,9 @@ import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/restaurants.dart';
 import 'package:pos_go_app/core/session_store.dart';
 
+const demoPassword = String.fromEnvironment('DEMO_PASSWORD');
+
+
 /// Real-backend E2E on the device (E4). Logs in against the live backend and
 /// drives the checkout loop over the network:
 ///
@@ -21,7 +24,8 @@ import 'package:pos_go_app/core/session_store.dart';
 ///   flutter test integration_test/network_e2e_test.dart -d <device> \
 ///     --dart-define=API_BASE_URL=http://<host>:<port>
 ///
-/// Uses the demo restaurant tenant (admin@demo-restaurant.com / admin). Fails
+/// Uses the demo restaurant tenant (demo-restaurant-manager@xamltech.com, with
+/// --dart-define=DEMO_PASSWORD). Fails
 /// fast with a thrown ApiException if the backend is unreachable or the demo
 /// tenant is not seeded on the target instance.
 void main() {
@@ -53,8 +57,8 @@ void main() {
     final api = ApiClient();
     final session = await api.login(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
-      password: 'admin',
+      email: 'demo-restaurant-manager@xamltech.com',
+      password: demoPassword,
       deviceId: 'integration-test-device',
       deviceName: 'Network E2E',
     );
@@ -164,8 +168,8 @@ void main() {
     final api = ApiClient();
     final session = await api.login(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
-      password: 'admin',
+      email: 'demo-restaurant-manager@xamltech.com',
+      password: demoPassword,
       deviceId: 'integration-test-device',
       deviceName: 'Network E2E',
     );

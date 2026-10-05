@@ -23,7 +23,18 @@ ok_url() {
 
 post_login() {
   local h="$1"
-  local body='{"tenant_id":"demo-book-store","email":"admin@demo-book-store.com","password":"admin","device_id":"verify-health","device_name":"verify-health"}'
+  # Demo credentials live in the gitignored .secrets/testing/DEMO_CREDENTIALS.txt;
+  # pass them in rather than baking a password into a tracked file. The API
+  # accepts a tenant slug or a uuid for tenant_id.
+  if [[ -z "${DEMO_PASSWORD:-}" ]]; then
+    say "SKIP ${h}.xamltech.com/v1/auth/login (set DEMO_PASSWORD to check)"
+    return 0
+  fi
+  local body
+  body=$(printf '{"tenant_id":"%s","email":"%s","password":"%s","device_id":"verify-health","device_name":"verify-health"}' \
+    "${DEMO_TENANT:-demo-restaurant}" \
+    "${DEMO_EMAIL:-demo-restaurant-manager@xamltech.com}" \
+    "$DEMO_PASSWORD")
   local code
   code=$(curl -sS -o /dev/null -m 20 -X POST "https://${h}.xamltech.com/v1/auth/login" \
     -H 'content-type: application/json' -d "$body" -w '%{http_code}' || echo 000)

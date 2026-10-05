@@ -236,13 +236,13 @@ void main() {
   test('remembered login holds the prefilled form fields', () {
     const remembered = RememberedLogin(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
+      email: 'demo-restaurant-manager@xamltech.com',
       password: 'admin',
       deviceName: 'Counter 1',
     );
 
     expect(remembered.tenantId, 'demo-restaurant');
-    expect(remembered.email, 'admin@demo-restaurant.com');
+    expect(remembered.email, 'demo-restaurant-manager@xamltech.com');
     expect(remembered.password, 'admin');
     expect(remembered.deviceName, 'Counter 1');
   });
@@ -398,7 +398,7 @@ void main() {
 
     await store.saveRememberedLogin(const RememberedLogin(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
+      email: 'demo-restaurant-manager@xamltech.com',
       password: 'admin',
       deviceName: 'Counter 1',
     ));
@@ -406,7 +406,7 @@ void main() {
     final remembered = await store.readRememberedLogin();
     expect(remembered, isNotNull);
     expect(remembered!.tenantId, 'demo-restaurant');
-    expect(remembered.email, 'admin@demo-restaurant.com');
+    expect(remembered.email, 'demo-restaurant-manager@xamltech.com');
     expect(remembered.password, 'admin');
     expect(remembered.deviceName, 'Counter 1');
 

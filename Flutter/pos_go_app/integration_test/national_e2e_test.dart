@@ -9,6 +9,10 @@ import 'package:pos_go_app/core/session_store.dart';
 import 'package:pos_go_app/features/community/community_hub_screen.dart';
 import 'package:pos_go_app/l10n/strings.dart';
 
+const demoPassword = String.fromEnvironment('DEMO_PASSWORD');
+const saasPassword = String.fromEnvironment('SAAS_PASSWORD');
+
+
 /// Real-backend national-community E2E on the device.
 ///
 /// Logs in as the demo restaurant manager, opens the community hub on the
@@ -21,7 +25,9 @@ import 'package:pos_go_app/l10n/strings.dart';
 ///
 /// Idempotent: if the demo manager is already a national member it skips the
 /// join step and just asserts the member UI. Needs the seeded demo tenants
-/// (admin@demo-restaurant.com / admin and admin@posgo.saas / admin).
+/// (demo-restaurant-manager@xamltech.com + a saas_admin operator from
+/// .secrets/testing/DEMO_CREDENTIALS.txt, via --dart-define=DEMO_PASSWORD /
+/// --dart-define=SAAS_PASSWORD).
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -48,8 +54,8 @@ void main() {
 
     final session = await api.login(
       tenantId: 'demo-restaurant',
-      email: 'admin@demo-restaurant.com',
-      password: 'admin',
+      email: 'demo-restaurant-manager@xamltech.com',
+      password: demoPassword,
       deviceId: 'national-e2e',
       deviceName: 'National E2E',
     );
@@ -69,23 +75,23 @@ void main() {
       try {
         saas = await api.login(
           tenantId: 'saas',
-          email: 'admin@posgo.saas',
-          password: 'admin',
+          email: 'mahmudamen@xamltech.com',
+          password: saasPassword,
           deviceId: 'national-e2e-inviter',
           deviceName: 'National E2E',
         );
       } on ApiException {
         saas = await api.login(
           tenantId: saasTenantId,
-          email: 'admin@posgo.saas',
-          password: 'admin',
+          email: 'mahmudamen@xamltech.com',
+          password: saasPassword,
           deviceId: 'national-e2e-inviter',
           deviceName: 'National E2E',
         );
       }
       final invite = await api.createNationalInvitation(
         saas,
-        email: 'admin@demo-restaurant.com',
+        email: 'demo-restaurant-manager@xamltech.com',
         note: 'posTest on-device deploy verification',
       );
       expect(invite.code.length, greaterThan(6));
