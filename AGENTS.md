@@ -131,6 +131,23 @@ flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8080   # local backend (
 
 Gotcha: `flutter test` can crash with a `RangeError ... 0..97` from `test_core`'s compact reporter (see `flutter_01.log`) — an upstream terminal-width bug, not a test failure; work around it with a wider terminal or `--reporter expanded`.
 
+### The POS also runs in a browser (`flutter build web`)
+
+The same `lib/` builds for web. The Play APK remains the primary target; web is a second target from one source tree.
+
+```bash
+cd Flutter/pos_go_app
+flutter build web --release --no-web-resources-cdn   # output: build/web/
+```
+
+- **`--no-web-resources-cdn` is required for any host that cannot reach `gstatic.com`** — by default `flutter_bootstrap.js` pulls CanvasKit from `https://www.gstatic.com/flutter-canvaskit` (`--dart-define=FLUTTER_WEB_CANVASKIT_URL` does *not* override it in 3.47) and such a host gets a blank page.
+- **Serve it over HTTPS or `localhost`.** `flutter_secure_storage` uses WebCrypto, and `window.crypto.subtle` is `undefined` on a plain-HTTP non-localhost origin — the app throws `Cannot read properties of undefined (reading 'generateKey')` at startup. `http://localhost` qualifies as a secure context (on an emulator, reach the host with `adb reverse tcp:8099 tcp:8099` and browse to `http://localhost:8099`).
+- **Offline storage** = `sqflite_common_ffi_web` (sqlite3 compiled to WebAssembly, persisted in IndexedDB). `web/sqlite3.wasm` + `web/sqflite_sw.js` are committed and copied into `build/web/`; regenerate with `dart run sqflite_common_ffi_web:setup` after bumping the package. `LocalDatabase` resolves its factory through `database_target_resolver.dart` and must never read sqflite's global `databaseFactory` (that getter *throws* where no plugin registered it). The IndexedDB store is keyed by **origin, port included** — a different port is a different, empty database.
+- **`dart:io` is kept out of the web graph** by conditional imports: `printer_network_io.dart` (TCP ESC/POS + the /24 printer sweep) vs `printer_network_web.dart` (`UnavailablePrinterTransport`, so printing reports the capability as missing rather than failing to compile), and `socket_error_io.dart` vs `socket_error_web.dart` for `SocketException` in `isTransportFailure`. Anything new that needs raw sockets must follow that pattern or it will throw at runtime on web while still compiling.
+- Receipt printing is **Android-only in practice**; push reports `unavailable` on web by design (FCM needs an Android/iOS app registration).
+- `test/web_offline_storage_test.dart` (`@TestOn('browser')`) exercises the real web database. It **skips** under `flutter test --platform chrome`, which serves only the generated test bundle and 404s `web/` assets — verify the web path in a real browser instead.
+- `web/index.html` carries a branded Arabic RTL boot splash that removes itself on Flutter's `flutter-first-frame` and rewrites its hint after 20s (a stalled engine is otherwise a silent white page).
+
 ## Google Play store assets (`Flutter/pos_go_app/play_store/`)
 
 Everything Play needs is committed here (listing text, `graphics/icon-512.png`, `graphics/feature-graphic-1024x500.png`, both screenshot sets) **except the raw captures**; `play_store/README.md` is the authority for the release and carries the full pre-upload checklist.
