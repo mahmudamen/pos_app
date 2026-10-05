@@ -56,6 +56,23 @@ The POS v1.0 release is **live on production** as Docker `pos-prod-*` services:
   (`pos-api:latest`, bound **127.0.0.1:8080** — no external exposure).
 - `.env.prod`: `HOST_IP=127.0.0.1`, `APP_DB_USER=pos_app_rls` (least privilege),
   `OCR_ENABLED=true`, `OCR_DAY_LIMIT=100` / `WEEK=500` / `MONTH=2000`.
+- **CORS allowlist (prod)**: `CORS_ALLOWED_ORIGINS=https://xamltech.com,https://api.xamltech.com,https://posgo.xamltech.com`
+  — the three real client origins, matching `.env.prod.example`. It had drifted to
+  `https://localhost`, which blocked the browser POS from every origin; the
+  middleware (`internal/transport/http/middleware.go`) matches `Origin` **exactly**,
+  so a new client host must be added here *and* the api container restarted.
+  Anything unlisted gets no ACAO header at all (verified for
+  `evil.example.com`, `http://localhost:8090`).
+- **Login throttle (prod)**: `LOGIN_RATE_MAX=10`, `LOGIN_RATE_WINDOW=1m`, both
+  forwarded by `docker-compose.prod.yml` (they were previously unreachable, so prod
+  ran the config defaults of 5 per 5 minutes). Only **401** responses count —
+  `LoginRateLimitWith` refunds the token on success or 5xx, so staff sharing one
+  NAT/carrier IP can't lock each other out. `RATE_LIMIT_ENABLED/MAX/WINDOW` are the
+  *API-wide* limiter and are **parsed but never wired** into `server.Deps`, so they
+  have no effect; the `RATE_LIMIT_MAX=3` in `.env.prod` is inert. Verify changes by
+  pinning the key with `X-Forwarded-For` — this dev box's IPv4 egress goes through
+  Cloudflare WARP and rotates between edge IPs, which splits one test run across
+  several buckets.
 - DB: postgres DB `pos` at goose version **50** (as of 2026-09-28; 46 tenants,
   4 sellable plans + 6 internal/inactive). The app role `pos_app_rls` is a
   limited-grant role — new tables must get grants via `scripts/grants_prod.sql`
