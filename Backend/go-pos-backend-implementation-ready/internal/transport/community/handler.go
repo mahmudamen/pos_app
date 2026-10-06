@@ -59,6 +59,27 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	group.GET("/jobs/:id/applications", h.listApplications)
 	group.PATCH("/applications/:id", h.updateApplicationStatus)
 
+	group.GET("/badges", h.listBadges)
+	group.POST("/badges", h.createBadge)
+	group.PATCH("/badges/:id", h.updateBadge)
+	group.GET("/profiles/:id/badges", h.listUserBadges)
+	group.POST("/profiles/:id/badges", h.awardBadge)
+	group.DELETE("/profiles/:id/badges/:badgeId", h.revokeBadge)
+	group.GET("/profiles/:id/endorsements", h.listEndorsements)
+	group.POST("/endorsements", h.createEndorsement)
+	group.DELETE("/endorsements/:id", h.deleteEndorsement)
+
+	group.GET("/forum/categories", h.listForumCategories)
+	group.POST("/forum/categories", h.createForumCategory)
+	group.PATCH("/forum/categories/:id", h.updateForumCategory)
+	group.GET("/forum/posts", h.listForumPosts)
+	group.POST("/forum/posts", h.createForumPost)
+	group.GET("/forum/posts/:id", h.getForumPost)
+	group.PATCH("/forum/posts/:id", h.updateForumPost)
+	group.DELETE("/forum/posts/:id", h.deleteForumPost)
+	group.POST("/forum/posts/:id/comments", h.createForumComment)
+	group.POST("/forum/posts/:id/like", h.toggleForumLike)
+
 	// Profiles are a tenant-scoped hub; jobs the tenant board. All national
 	// routes are member-gated with requireInviter/requireMember inside the
 	// handlers themselves (national tables are cross-tenant, NOT tenant-RLS'd).

@@ -198,6 +198,35 @@ BEGIN
 END
 $$;
 
+-- Community badges + endorsements (migration 052): tenant-RLS'd catalog and
+-- award tables. The catalog is read+written by managers (community.write),
+-- awards are insert/delete by managers and read by everyone, endorsements
+-- are insert/delete (giver self-withdraw) + read by all staff roles.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE badge_definitions TO pos_app_rls;
+        GRANT SELECT, INSERT, DELETE ON TABLE user_badges TO pos_app_rls;
+        GRANT SELECT, INSERT, DELETE ON TABLE skill_endorsements TO pos_app_rls;
+    END IF;
+END
+$$;
+
+-- Community forum (migration 053): tenant-RLS'd boards, threads, replies and
+-- like rows. Categories are manager-written (community.write) and read by
+-- staff; posts are hard-deleted (author or moderator), so DELETE too; comments
+-- are insert-only from the app (no delete endpoint); likes flip insert/delete.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE forum_categories TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE forum_posts TO pos_app_rls;
+        GRANT SELECT, INSERT ON TABLE forum_comments TO pos_app_rls;
+        GRANT SELECT, INSERT, DELETE ON TABLE forum_post_likes TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

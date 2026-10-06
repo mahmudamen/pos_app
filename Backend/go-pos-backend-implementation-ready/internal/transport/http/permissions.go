@@ -40,6 +40,10 @@ func init() {
 	grant([]string{"owner", "manager", "cashier", "saas_admin"}, "jobs", "read")
 	grant([]string{"owner", "manager", "saas_admin"}, "jobs", "write")
 	grant([]string{"owner", "manager", "saas_admin"}, "jobs", "manage")
+	// Forum (slice 4): every role may post/comment/like — the whole team talks
+	// in the shared forum. Moderation (edit/delete others, pin/close) rides on
+	// community.write, checked in the forum handlers.
+	grant([]string{"owner", "manager", "cashier", "guest", "saas_admin"}, "forum", "write")
 	// National community (docs/24): any authenticated role may attempt to join /
 	// invite; real gating is the community_members row checked in the handler
 	// (e.g. guests can be invited but may not join unless offered a code).
