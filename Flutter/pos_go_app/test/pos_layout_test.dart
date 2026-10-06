@@ -134,4 +134,17 @@ void main() {
       TextDirection.ltr,
     );
   });
+
+  testWidgets('POS lays out in English at 390x844', (tester) async {
+    // English is the worse case for the session bar: its message shares the row
+    // with two buttons, so an uncapped text squeezes and wraps over a dozen
+    // lines, pushing the pinned cart (and the checkout button) off-screen.
+    // Completing this pump without a RenderFlex overflow is the assertion.
+    await _pumpPos(tester, const Size(390, 844), const Locale('en'));
+
+    const screenHeight = 844.0;
+    final button = find.widgetWithText(FilledButton, 'Complete sale');
+    expect(button, findsOneWidget);
+    expect(tester.getRect(button).bottom, lessThanOrEqualTo(screenHeight));
+  });
 }

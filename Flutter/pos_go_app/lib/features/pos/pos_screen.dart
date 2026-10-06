@@ -1488,12 +1488,16 @@ class _CartPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final active = orders[selectedOrder];
+    // Android 15 forces edge-to-edge at targetSdk 36 and the opt-out is ignored
+    // at that target, so the bottom-pinned checkout button needs the inset
+    // itself. `paddingOf` drops to zero with the keyboard up.
+    final systemBottom = MediaQuery.paddingOf(context).bottom;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(left: BorderSide(color: Theme.of(context).dividerColor)),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + systemBottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1974,8 +1978,13 @@ class _SessionBar extends StatelessWidget {
                               color: theme.colorScheme.primary),
                           const SizedBox(width: 12),
                           Expanded(
-                              child: Text(strings.noOpenSession,
-                                  style: theme.textTheme.bodyMedium)),
+                            child: Text(
+                              strings.noOpenSession,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
                           const SizedBox(width: 4),
                           IconButton(
                             onPressed: onHistory,

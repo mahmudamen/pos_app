@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/api_client.dart';
+import 'core/app_links.dart';
 import 'core/feedback.dart';
 import 'core/focus_mode.dart';
 import 'core/fonts.dart';
@@ -17,7 +19,17 @@ import 'features/splash/splash_screen.dart';
 import 'l10n/strings.dart';
 
 class PosApp extends StatefulWidget {
-  const PosApp({super.key});
+  const PosApp({
+    super.key,
+    this.appLinkSource,
+    this.navigatorKey,
+  });
+
+  /// Overridden by tests so no platform channel is involved.
+  final AppLinkSource? appLinkSource;
+
+  /// Overridden by tests; a link has to be able to reach the navigator.
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   State<PosApp> createState() => _PosAppState();
@@ -27,6 +39,8 @@ class _PosAppState extends State<PosApp> {
   final _sessionStore = SessionStore();
   final _localDatabase = LocalDatabase();
   late final ApiClient _apiClient;
+  late final AppLinkService _appLinks;
+  late final GlobalKey<NavigatorState> _navigatorKey;
   Session? _session;
   bool _restoring = true;
   bool _splashDone = false;
@@ -45,10 +59,75 @@ class _PosAppState extends State<PosApp> {
         if (mounted) setState(() => _session = session);
       },
     );
+    _navigatorKey = widget.navigatorKey ?? GlobalKey<NavigatorState>();
+    _appLinks = widget.appLinkSource == null
+        ? AppLinkService()
+        : AppLinkService(source: widget.appLinkSource);
     Telemetry.instance.configure(_apiClient);
     Telemetry.instance.install();
     _initPush();
+    _initSystemUi();
+    _initAppLinks();
     _restoreSession();
+  }
+
+  @override
+  void dispose() {
+    _appLinks.dispose();
+    super.dispose();
+  }
+
+  /// Wires up Android App Links for `https://api.xamltech.com/pos…`.
+  ///
+  /// A verified link always lands on the POS screen: the POS is the app's home
+  /// surface, so the work here is popping whatever sub-screen the user had
+  /// pushed (dashboard, customers, community…) back off, which is otherwise
+  /// impossible from outside that widget's navigator. Sub-paths are reported to
+  /// telemetry with their destination but are not routed to a specific screen
+  /// yet — inventing navigation targets that do not exist would be worse than
+  /// landing on the POS, and the telemetry is what tells us which targets to
+  /// build.
+  Future<void> _initAppLinks() async {
+    final available = await _appLinks.start();
+    if (!available) {
+      Telemetry.instance.reportEvent('app_links_unavailable');
+      return;
+    }
+    _appLinks.links.listen(_onAppLink);
+  }
+
+  void _onAppLink(PosAppLink link) {
+    Telemetry.instance.reportEvent(
+      'app_link_open',
+      payload: {
+        'destination': link.destination.wireName,
+        'path': link.uri.path,
+        'signed_in': _session != null,
+      },
+    );
+    // Not signed in yet: the link is honoured by showing the POS after login,
+    // which is what the app already does, so there is nothing to pop.
+    if (_session == null) return;
+    revealPosScreen(_navigatorKey);
+  }
+
+  /// Draws behind the status and navigation bars, explicitly and from launch.
+  ///
+  /// Android 15 turns this on by itself at targetSdk 35+ and ignores
+  /// `windowOptOutEdgeToEdgeEnforcement` at 36, so opting out is not an option.
+  /// Flutter's `PlatformPlugin` makes this exact call
+  /// (`WindowCompat.setDecorFitsSystemWindows(window, false)`) — the same one
+  /// Android's `enableEdgeToEdge()` makes, which is unavailable here because
+  /// `FlutterActivity` extends `Activity`, not `ComponentActivity`.
+  ///
+  /// Screens must therefore honour the insets: `AppBar` handles the top one,
+  /// and bottom-anchored controls need their own padding.
+  Future<void> _initSystemUi() async {
+    try {
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    } catch (_) {
+      // Web, desktop and widget tests have no platform channel here.
+    }
   }
 
   /// Wires up FCM, tolerating a build with no Firebase config.
@@ -169,6 +248,7 @@ class _PosAppState extends State<PosApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'POS Go',
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       locale: _locale,
       supportedLocales: AppStrings.supportedLocales,

@@ -31,6 +31,19 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- App Links. autoVerify asks the system to confirm we own the
+                 domain via https://api.xamltech.com/.well-known/assetlinks.json
+                 (served by the Go app, both Play and upload fingerprints), so a
+                 verified tap opens POS Go with no disambiguation dialog.
+                 Scoped to /pos — the served browser POS — on purpose: claiming
+                 the whole host would put this app in front of /v1 API calls
+                 and the /admin console, which the app cannot serve. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="api.xamltech.com" android:pathPrefix="/pos"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
