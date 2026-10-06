@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pos_go_app/core/api_client.dart';
 import 'package:pos_go_app/core/payments.dart';
+import 'package:pos_go_app/core/receipts.dart';
 import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
@@ -103,6 +104,19 @@ class _PosSecurityApi extends ApiClient {
       paymentMethod: PaymentMethod.cash,
     );
   }
+
+  @override
+  Future<SaleReceipt> fetchReceipt(Session session, String saleId) async =>
+      SaleReceipt(
+        tenantName: 'Demo Store',
+        saleId: saleId,
+        status: 'completed',
+        createdAt: '2026-10-06 12:00:00',
+        cashier: 'Cashier',
+        currency: 'EGP',
+        subtotalMinor: 350,
+        totalMinor: 350,
+      );
 
   @override
   Future<RegisterSession> closeSession(

@@ -25,14 +25,25 @@ import '../purchases/purchases_screen.dart';
 import '../printers/printers_screen.dart';
 import '../restaurants/split_bill_screen.dart';
 import '../restaurants/table_picker_sheet.dart';
+import '../sales/receipt_screen.dart';
 import '../sales/sale_history_screen.dart';
 import '../selforder/product_requests_screen.dart';
 import '../selforder/qr_sheet.dart';
 import '../selforder/self_orders_screen.dart';
 import '../settings/settings_screen.dart';
+import 'pending_sync_screen.dart';
 import 'session_screen.dart';
 
 class PosScreen extends StatefulWidget {
+  /// Bounds on the two register calls that gate checkout. A stalled link must
+  /// not leave the sale button spinning forever; a timed-out sale is safe to
+  /// queue because the idempotency key lets the server deduplicate the replay.
+  @visibleForTesting
+  static Duration saleTimeout = const Duration(seconds: 20);
+
+  @visibleForTesting
+  static Duration sessionTimeout = const Duration(seconds: 20);
+
   const PosScreen(
       {super.key,
       required this.session,
@@ -111,6 +122,8 @@ class _PosScreenState extends State<PosScreen> {
       widget.printerService ?? PrinterService();
   bool _sessionLoading = true;
   bool _focusMode = false;
+  bool _sessionMinimized = false;
+  bool _sessionResumedAtStart = false;
 
   _OpenOrder get _activeOrder => _orders[_selectedOrder];
 
@@ -120,6 +133,7 @@ class _PosScreenState extends State<PosScreen> {
     _orders.add(_OpenOrder(++_orderCounter));
     _bootstrap();
     _restoreFocusMode();
+    _restoreSessionMinimized();
     _loadPrinterStatus();
   }
 
@@ -140,6 +154,19 @@ class _PosScreenState extends State<PosScreen> {
     if (!mounted || !enabled) return;
     await FocusMode.apply(enabled);
     if (mounted) setState(() => _focusMode = enabled);
+  }
+
+  Future<void> _restoreSessionMinimized() async {
+    final minimized =
+        await widget.sessionStore?.readSessionMinimized() ?? false;
+    if (!mounted) return;
+    setState(() => _sessionMinimized = minimized);
+  }
+
+  Future<void> _toggleSessionMinimized() async {
+    final minimized = !_sessionMinimized;
+    setState(() => _sessionMinimized = minimized);
+    await widget.sessionStore?.saveSessionMinimized(minimized);
   }
 
   Future<void> _toggleFocusMode(BuildContext context) async {
@@ -173,30 +200,125 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   Future<void> _bootstrap() async {
+    await _restoreOrders();
     await _loadData();
     await _loadSettings();
-    await _loadRegisterSession();
+    await _loadRegisterSession(resumedAtStart: true);
   }
 
-  Future<void> _loadRegisterSession() async {
+  /// Rehydrates the in-progress order(s) so an app restart (or a crash)
+  /// cannot drop what the cashier was ringing up. Malformed or empty state is
+  /// ignored rather than allowed to block startup.
+  Future<void> _restoreOrders() async {
+    final store = widget.sessionStore;
+    if (store == null) return;
+    String? raw;
     try {
-      final current = await widget.apiClient.currentSession(widget.session);
+      raw = await store.readActiveOrders(widget.session.tenantId);
+    } catch (_) {
+      return;
+    }
+    if (raw == null || raw.isEmpty || !mounted) return;
+    try {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      final rawOrders = data['orders'];
+      if (rawOrders is! List || rawOrders.isEmpty) return;
+      final restored = <_OpenOrder>[];
+      for (final rawOrder in rawOrders) {
+        if (rawOrder is! Map<String, dynamic>) continue;
+        final order = _OpenOrder((rawOrder['number'] as num?)?.toInt() ?? 0);
+        final items = rawOrder['items'];
+        if (items is List) {
+          for (final item in items) {
+            if (item is! Map<String, dynamic>) continue;
+            final line = _CartLine(
+              item['product_id'] as String? ?? '',
+              item['name'] as String? ?? '',
+              (item['price'] as num?)?.toInt() ?? 0,
+            );
+            line.quantity = (item['quantity'] as num?)?.toInt() ?? 1;
+            if (line.productId.isNotEmpty && line.quantity > 0) {
+              order.items.add(line);
+            }
+          }
+        }
+        order.tableId = rawOrder['table_id'] as String?;
+        order.tableName = rawOrder['table_name'] as String?;
+        restored.add(order);
+      }
+      if (restored.isEmpty) return;
+      setState(() {
+        _orders
+          ..clear()
+          ..addAll(restored);
+        for (final order in _orders) {
+          if (order.number > _orderCounter) _orderCounter = order.number;
+        }
+        var selected = (data['selected'] as num?)?.toInt() ?? 0;
+        if (selected < 0 || selected >= _orders.length) selected = 0;
+        _selectedOrder = selected;
+      });
+    } catch (_) {
+      // A corrupt snapshot must never stop the app from starting.
+    }
+  }
+
+  Future<void> _persistOrders() async {
+    final store = widget.sessionStore;
+    if (store == null) return;
+    try {
+      await store.saveActiveOrders(
+        widget.session.tenantId,
+        jsonEncode({
+          'counter': _orderCounter,
+          'selected': _selectedOrder,
+          'orders': _orders
+              .map((order) => {
+                    'number': order.number,
+                    'table_id': order.tableId,
+                    'table_name': order.tableName,
+                    'items': order.items
+                        .map((line) => {
+                              'product_id': line.productId,
+                              'name': line.name,
+                              'price': line.price,
+                              'quantity': line.quantity,
+                            })
+                        .toList(),
+                  })
+              .toList(),
+        }),
+      );
+    } catch (_) {
+      // A cart that cannot be persisted still sells; it just will not
+      // survive a restart.
+    }
+  }
+
+  Future<void> _loadRegisterSession({bool resumedAtStart = false}) async {
+    try {
+      final current = await widget.apiClient
+          .currentSession(widget.session)
+          .timeout(PosScreen.sessionTimeout);
       if (!mounted) return;
       setState(() {
         _registerSession = current;
         // A server session wins: it is the one the Z-report will read.
         if (current != null) _localSession = null;
+        if (resumedAtStart && current != null) _sessionResumedAtStart = true;
         _sessionLoading = false;
       });
     } catch (error) {
       if (!mounted) return;
-      // The network cut: carry on with the shift this device recorded, so the
-      // cashier can keep trading instead of being locked out of their till.
-      if (isTransportFailure(error)) {
+      // The network cut or a stalled link: carry on with the shift this
+      // device recorded, so the cashier can keep trading instead of being
+      // locked out of their till.
+      if (isTransportFailure(error) || error is TimeoutException) {
         final local = await widget.localDatabase?.openLocalSession();
         if (!mounted) return;
         setState(() {
           if (local != null) _localSession = local;
+          if (resumedAtStart && local != null) _sessionResumedAtStart = true;
           _sessionLoading = false;
         });
         return;
@@ -285,6 +407,7 @@ class _PosScreenState extends State<PosScreen> {
         _bumpQuantity(existing, product, s);
       }
     });
+    unawaited(_persistOrders());
   }
 
   void _bumpQuantity(_CartLine line, Product product, AppStrings s) {
@@ -311,6 +434,7 @@ class _PosScreenState extends State<PosScreen> {
     } else {
       setState(() => line.quantity++);
     }
+    unawaited(_persistOrders());
   }
 
   void _decrease(_CartLine line) {
@@ -321,6 +445,7 @@ class _PosScreenState extends State<PosScreen> {
         _activeOrder.items.remove(line);
       }
     });
+    unawaited(_persistOrders());
   }
 
   void _newOrder() {
@@ -328,9 +453,13 @@ class _PosScreenState extends State<PosScreen> {
       _orders.add(_OpenOrder(++_orderCounter));
       _selectedOrder = _orders.length - 1;
     });
+    unawaited(_persistOrders());
   }
 
-  void _selectOrder(int index) => setState(() => _selectedOrder = index);
+  void _selectOrder(int index) {
+    setState(() => _selectedOrder = index);
+    unawaited(_persistOrders());
+  }
 
   void _closeOrder(int index) {
     setState(() {
@@ -349,6 +478,12 @@ class _PosScreenState extends State<PosScreen> {
         _selectedOrder--;
       }
     });
+    unawaited(_persistOrders());
+  }
+
+  void _removeLine(_CartLine line) {
+    setState(() => _activeOrder.items.remove(line));
+    unawaited(_persistOrders());
   }
 
   Future<void> _pickTable(BuildContext context) async {
@@ -369,6 +504,7 @@ class _PosScreenState extends State<PosScreen> {
         active.tableName = result.table!.name;
       }
     });
+    unawaited(_persistOrders());
   }
 
   void _openSplitBill(BuildContext context, String saleId) {
@@ -446,6 +582,31 @@ class _PosScreenState extends State<PosScreen> {
       );
     } catch (_) {
       // Transport failure is expected when offline; keep the sale moving.
+    }
+  }
+
+  /// Best-effort on-screen receipt after a sale. A failure here never surfaces:
+  /// the sale already exists and the thermal print already ran, so the caller
+  /// just falls back to the completion SnackBar.
+  Future<void> _openSaleReceipt(String saleId) async {
+    try {
+      // Bounded: the checkout stays in its busy state until this returns, so a
+      // stalled link must not leave the sale button disabled forever.
+      final receipt = await widget.apiClient
+          .fetchReceipt(widget.session, saleId)
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      await Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => ReceiptScreen(
+          receipt: receipt,
+          apiClient: widget.apiClient,
+          session: widget.session,
+          sessionStore: widget.sessionStore,
+          printerService: _printerService,
+        ),
+      ));
+    } catch (_) {
+      // The receipt is a bonus; never let it fail a completed sale.
     }
   }
 
@@ -637,9 +798,12 @@ class _PosScreenState extends State<PosScreen> {
             loading: _sessionLoading,
             strings: s,
             currency: widget.session.currencyCode,
+            minimized: _sessionMinimized,
+            resumed: _sessionResumedAtStart,
             onOpen: () => _openSessionFlow(context),
             onFinish: () => _finishSessionFlow(context),
             onHistory: () => _openSessionHistory(context),
+            onToggleMinimize: _toggleSessionMinimized,
           ),
           Expanded(
             child: LayoutBuilder(builder: (context, constraints) {
@@ -675,8 +839,7 @@ class _PosScreenState extends State<PosScreen> {
                   onNewOrder: _newOrder,
                   onIncrease: _increase,
                   onDecrease: _decrease,
-                  onRemove: (line) =>
-                      setState(() => _activeOrder.items.remove(line)),
+                  onRemove: _removeLine,
                   onCheckout: _activeOrder.isEmpty || _checkingOut
                       ? null
                       : () => _checkout(context));
@@ -764,7 +927,10 @@ class _PosScreenState extends State<PosScreen> {
         openingCashMinor: openingMinor,
       );
       if (!mounted) return;
-      setState(() => _registerSession = opened);
+      setState(() {
+        _registerSession = opened;
+        _sessionResumedAtStart = false;
+      });
       messenger.showSnackBar(
           SnackBar(content: Text('${s.posSession} ${s.statusOpen}')));
     } catch (error) {
@@ -782,7 +948,10 @@ class _PosScreenState extends State<PosScreen> {
       );
       await db.saveLocalSession(local);
       if (!mounted) return;
-      setState(() => _localSession = local);
+      setState(() {
+        _localSession = local;
+        _sessionResumedAtStart = false;
+      });
       messenger.showSnackBar(SnackBar(content: Text(s.sessionOpenedOffline)));
     }
   }
@@ -846,7 +1015,10 @@ class _PosScreenState extends State<PosScreen> {
       if (db != null) {
         await db.saveLocalSession(local.closed(countedCashMinor: countedMinor));
         if (!mounted) return;
-        setState(() => _localSession = null);
+        setState(() {
+          _localSession = null;
+          _sessionResumedAtStart = false;
+        });
         messenger.showSnackBar(
             SnackBar(content: Text('${s.zReport} ${s.sessionClosedOffline}')));
         return;
@@ -861,7 +1033,10 @@ class _PosScreenState extends State<PosScreen> {
         managerPin: managerPin,
       );
       if (!context.mounted) return;
-      setState(() => _registerSession = null);
+      setState(() {
+        _registerSession = null;
+        _sessionResumedAtStart = false;
+      });
       messenger.showSnackBar(
           SnackBar(content: Text('${s.zReport} ${s.statusClosed}')));
       await Navigator.of(context).push(
@@ -869,6 +1044,7 @@ class _PosScreenState extends State<PosScreen> {
           builder: (_) => SessionReportScreen(
             sessionData: closed,
             apiClient: widget.apiClient,
+            currency: widget.session.currencyCode,
           ),
         ),
       );
@@ -953,23 +1129,27 @@ class _PosScreenState extends State<PosScreen> {
     final paidOrderIndex = _selectedOrder;
     setState(() => _checkingOut = true);
     try {
-      final result = await widget.apiClient.createSale(
-        widget.session,
-        items,
-        idempotencyKey: idempotencyKey,
-        payments: payments,
-        sessionId: _registerSession?.id,
-        tableId: tableId,
-        discountMinor: discountMinor,
-        managerPin: managerPin,
-        roundingMinor: roundingMinor,
-      );
+      final result = await widget.apiClient
+          .createSale(
+            widget.session,
+            items,
+            idempotencyKey: idempotencyKey,
+            payments: payments,
+            sessionId: _registerSession?.id,
+            tableId: tableId,
+            discountMinor: discountMinor,
+            managerPin: managerPin,
+            roundingMinor: roundingMinor,
+          )
+          .timeout(PosScreen.saleTimeout);
       if (!mounted) return;
       _closeOrder(paidOrderIndex);
       if (_registerSession != null) {
         await _loadRegisterSession();
       }
       unawaited(_printAfterSale(result.id));
+      await _openSaleReceipt(result.id);
+      if (!mounted) return;
       final notice = decision?.kind == DiscountDecisionKind.capped
           ? s.discountCapped
           : decision?.kind == DiscountDecisionKind.warned
@@ -988,9 +1168,9 @@ class _PosScreenState extends State<PosScreen> {
       if (error is ApiException) {
         if (!mounted) return;
         messenger.showSnackBar(SnackBar(content: Text(error.toString())));
-      } else if (isTransportFailure(error)) {
-        // The network cut mid-checkout. Take the sale locally and let the sync
-        // push carry it when the link returns.
+      } else if (isTransportFailure(error) || error is TimeoutException) {
+        // The network cut — or the link stalled past the bound. Take the sale
+        // locally and let the sync push carry it when the link returns.
         final db = widget.localDatabase;
         if (db != null) {
           await db.enqueue(PendingCommand(
@@ -1154,10 +1334,19 @@ class _PosScreenState extends State<PosScreen> {
     } catch (_) {
       // A storage hiccup must not stop the sales from reaching the server.
     }
+    List<PendingCommand> failed = const [];
+    try {
+      failed = await db.failedCommands();
+    } catch (_) {
+      // Surfacing failures is a nicety; replay must proceed without it.
+    }
     // A shift finished offline still owes the server a session and a Z-report
     // even when it took no sales at all, so an empty queue is not the end.
     final owesZReport = localSessions.any((s) => !s.isOpen && !s.isReconciled);
-    if (queued.isEmpty && !owesZReport) return;
+    if (queued.isEmpty && !owesZReport) {
+      _showReplayNotice(synced: 0, attention: 0, failed: failed);
+      return;
+    }
 
     // Group the queue by the shift each sale was taken on. Two offline shifts
     // have to land in two server sessions, replayed in the order they ran.
@@ -1219,7 +1408,9 @@ class _PosScreenState extends State<PosScreen> {
             await db.markComplete(entry.command.id);
             applied++;
           } else if (result != null && (result.rejected || result.conflicted)) {
-            await db.markComplete(entry.command.id);
+            // Permanent for now: park it with its reason instead of dropping
+            // it, so the failed-sync screen can show and replay it.
+            await db.failCommand(entry.command.id, errorCode: result.errorCode);
             attention++;
           } else {
             break;
@@ -1238,15 +1429,49 @@ class _PosScreenState extends State<PosScreen> {
         }
       }
     }
-    if (mounted && (synced > 0 || attention > 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(attention > 0
-              ? AppStrings.of(context).offlineNeedsAttention
-              : AppStrings.of(context).offlineSynced),
-        ),
-      );
+    // Re-read after the loop: commands may have just moved into `failed`.
+    try {
+      failed = await db.failedCommands();
+    } catch (_) {
+      // Surfacing failures is a nicety; the notice must still be shown.
     }
+    _showReplayNotice(synced: synced, attention: attention, failed: failed);
+  }
+
+  void _showReplayNotice({
+    required int synced,
+    required int attention,
+    required List<PendingCommand> failed,
+  }) {
+    if (!mounted) return;
+    if (synced == 0 && attention == 0 && failed.isEmpty) return;
+    final s = AppStrings.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(attention > 0 || failed.isNotEmpty
+            ? s.offlineNeedsAttention
+            : s.offlineSynced),
+        action: failed.isEmpty
+            ? null
+            : SnackBarAction(
+                label: s.viewFailed,
+                onPressed: _openFailedSync,
+              ),
+      ),
+    );
+  }
+
+  Future<void> _openFailedSync() async {
+    final db = widget.localDatabase;
+    if (db == null || !mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => PendingSyncScreen(
+        apiClient: widget.apiClient,
+        session: widget.session,
+        localDatabase: db,
+        onReplay: _replayPending,
+      ),
+    ));
   }
 }
 
@@ -1941,9 +2166,12 @@ class _SessionBar extends StatelessWidget {
     required this.loading,
     required this.strings,
     required this.currency,
+    required this.minimized,
+    required this.resumed,
     required this.onOpen,
     required this.onFinish,
     required this.onHistory,
+    required this.onToggleMinimize,
   });
 
   final RegisterSession? session;
@@ -1953,15 +2181,19 @@ class _SessionBar extends StatelessWidget {
   final bool loading;
   final AppStrings strings;
   final String currency;
+  final bool minimized;
+  final bool resumed;
   final VoidCallback onOpen;
   final VoidCallback onFinish;
   final VoidCallback onHistory;
+  final VoidCallback onToggleMinimize;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final current = session;
     final local = localSession;
+    final titleStart = resumed ? strings.resumeSession : strings.posSession;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: loading
@@ -1998,7 +2230,47 @@ class _SessionBar extends StatelessWidget {
                           ),
                         ],
                       )
-                    : Row(
+                    : minimized
+                        ? Row(
+                            children: [
+                              Icon(
+                                current != null ? Icons.bolt : Icons.cloud_off,
+                                color: current != null
+                                    ? Colors.green.shade700
+                                    : theme.colorScheme.tertiary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  current != null
+                                      ? '$titleStart ${_shortId(current.id)}'
+                                      : '$titleStart ${_shortId(local!.id)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                current != null
+                                    ? strings.formatMoney(
+                                        current.summary.expectedCashMinor,
+                                        currency)
+                                    : strings.formatMoney(
+                                        local!.openingCashMinor, currency),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                onPressed: onToggleMinimize,
+                                tooltip: strings.expandSession,
+                                icon: const Icon(Icons.unfold_more),
+                              ),
+                            ],
+                          )
+                        : Row(
                         children: [
                           Icon(
                             current != null ? Icons.bolt : Icons.cloud_off,
@@ -2013,14 +2285,18 @@ class _SessionBar extends StatelessWidget {
                               children: [
                                 Text(
                                   current != null
-                                      ? '${strings.posSession} ${_shortId(current.id)}'
-                                      : '${strings.posSession} ${_shortId(local!.id)} · ${strings.sessionOfflineBadge}',
+                                      ? '$titleStart ${_shortId(current.id)}'
+                                      : '$titleStart ${_shortId(local!.id)} · ${strings.sessionOfflineBadge}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.titleSmall,
                                 ),
                                 Text(
                                   current != null
                                       ? '${current.openedBy} · ${strings.formatMoney(current.summary.expectedCashMinor, currency)} ${strings.expectedCash}'
                                       : '${strings.startingCash} ${strings.formatMoney(local!.openingCashMinor, currency)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall,
                                 ),
                               ],
@@ -2031,6 +2307,11 @@ class _SessionBar extends StatelessWidget {
                             onPressed: onHistory,
                             tooltip: strings.sessionsHistory,
                             icon: const Icon(Icons.history),
+                          ),
+                          IconButton(
+                            onPressed: onToggleMinimize,
+                            tooltip: strings.minimizeSession,
+                            icon: const Icon(Icons.unfold_less),
                           ),
                           OutlinedButton.icon(
                             onPressed: onFinish,

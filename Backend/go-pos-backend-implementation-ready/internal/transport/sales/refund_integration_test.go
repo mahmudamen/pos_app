@@ -131,3 +131,80 @@ func TestRefundsIntegration_RefundRejectsSecondRefund(t *testing.T) {
 		t.Fatalf("second refund: expected 409 sale_not_refundable, got %d id=%q", code, refundID)
 	}
 }
+
+func insertSaleTable(t *testing.T, seed testutil.Seed, pool *pgxpool.Pool) string {
+	t.Helper()
+	ctx := context.Background()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, seed.TenantID); err != nil {
+		t.Fatal(err)
+	}
+	var floorID string
+	if err := tx.QueryRow(ctx,
+		`INSERT INTO floors (id, tenant_id, name, sort_order) VALUES (gen_random_uuid(), $1::uuid, 'Main', 1) RETURNING id::text`,
+		seed.TenantID).Scan(&floorID); err != nil {
+		t.Fatal(err)
+	}
+	var tableID string
+	if err := tx.QueryRow(ctx,
+		`INSERT INTO restaurant_tables (id, tenant_id, floor_id, name, seats, status)
+		 VALUES (gen_random_uuid(), $1::uuid, $2::uuid, 'T1', 4, 'free') RETURNING id::text`,
+		seed.TenantID, floorID).Scan(&tableID); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	return tableID
+}
+
+func checkTableStatus(t *testing.T, seed testutil.Seed, pool *pgxpool.Pool, tableID, want string) {
+	t.Helper()
+	ctx := context.Background()
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, `SELECT set_config('app.current_tenant', $1, true)`, seed.TenantID); err != nil {
+		t.Fatal(err)
+	}
+	var status string
+	if err := tx.QueryRow(ctx, `SELECT status FROM restaurant_tables WHERE id = $1::uuid`, tableID).Scan(&status); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if status != want {
+		t.Fatalf("table status = %q, want %q", status, want)
+	}
+}
+
+// A refunded table sale must release its table. The release used a status the
+// restaurant_tables CHECK constraint rejects ('available' vs 'free'), so the
+// whole refund failed with 500 "unable to release table" and the table stayed
+// occupied forever.
+func TestRefundsIntegration_RefundFreesTable(t *testing.T) {
+	router, seed, pool := setupSalesIntegration(t)
+	token := salesToken(t, seed)
+	prodID := insertSaleProduct(t, seed, pool)
+	tableID := insertSaleTable(t, seed, pool)
+
+	body := fmt.Sprintf(`{"items":[{"product_id":%q,"quantity":1}],"table_id":%q}`, prodID, tableID)
+	saleCode, saleID := postSale(t, router, token, "sale-key-refund-table", body)
+	if saleCode != http.StatusCreated || saleID == "" {
+		t.Fatalf("expected 201 table sale, got %d id=%q", saleCode, saleID)
+	}
+	checkTableStatus(t, seed, pool, tableID, "occupied")
+
+	refundStatus, refundID := postRefund(t, router, token, saleID, "refund-key-table", `{}`)
+	if refundStatus != http.StatusCreated || refundID == "" {
+		t.Fatalf("expected 201 refund releasing the table, got %d id=%q", refundStatus, refundID)
+	}
+	checkTableStatus(t, seed, pool, tableID, "free")
+}

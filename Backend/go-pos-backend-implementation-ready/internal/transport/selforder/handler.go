@@ -544,8 +544,17 @@ func (h *Handler) listSelfOrders(c *gin.Context) {
 	}
 	arg = append(arg, limit, (page-1)*limit)
 
+	// The count takes the status filter only. arg has already grown to hold the
+	// limit and offset, and arg[:1] panics when there is no status filter
+	// (len 0), which the recovery middleware turned into a 500 on every
+	// unfiltered request.
+	countArg := []any{}
+	if status != "" {
+		countArg = arg[:1]
+	}
+
 	var total int64
-	if err := tx.QueryRow(c.Request.Context(), `SELECT COUNT(*) FROM self_orders `+where, arg[:1]...).Scan(&total); err != nil {
+	if err := tx.QueryRow(c.Request.Context(), `SELECT COUNT(*) FROM self_orders `+where, countArg...).Scan(&total); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load self-orders")
 		return
 	}

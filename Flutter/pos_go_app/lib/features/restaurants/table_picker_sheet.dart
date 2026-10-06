@@ -82,6 +82,24 @@ class _TablePickerSheetState extends State<TablePickerSheet> {
     }
   }
 
+  bool get _canManage =>
+      widget.session.isManager || widget.session.isPlatformAdmin;
+
+  Future<void> _freeTable(RestaurantTable table) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await widget.apiClient
+          .updateTable(widget.session, table.id, status: 'free');
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(s.tableFreed)));
+      await _load();
+    } catch (error) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(error.toString())));
+    }
+  }
+
   IconData _statusIcon(String status) {
     switch (status) {
       case 'occupied':
@@ -149,16 +167,30 @@ class _TablePickerSheetState extends State<TablePickerSheet> {
                                   leading: Icon(_statusIcon(table.status)),
                                   title: Text(table.name),
                                   subtitle: Text(table.floorName),
-                                  trailing: Text(
-                                    _statusLabel(s, table.status),
-                                    style: TextStyle(
-                                      color: selectable
-                                          ? Theme.of(context).colorScheme.primary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _statusLabel(s, table.status),
+                                        style: TextStyle(
+                                          color: selectable
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (_canManage &&
+                                          table.status == 'occupied')
+                                        IconButton(
+                                          tooltip: s.freeTable,
+                                          icon: const Icon(Icons.lock_open),
+                                          onPressed: () => _freeTable(table),
+                                        ),
+                                    ],
                                   ),
                                   selected: isCurrent,
                                   enabled: selectable,

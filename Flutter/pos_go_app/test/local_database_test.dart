@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:pos_go_app/core/api_client.dart';
@@ -186,6 +189,64 @@ void main() {
     expect(await db.pendingCommands(), isEmpty);
   });
 
+  test('failCommand parks a rejected command with its reason and attempts',
+      () async {
+    await db.enqueue(const PendingCommand(
+      id: 'cmd-1',
+      idempotencyKey: 'key-1',
+      operation: 'create_sale',
+      payload: '{}',
+    ));
+
+    await db.failCommand('cmd-1', errorCode: 'insufficient_stock');
+
+    expect(await db.pendingCommands(), isEmpty,
+        reason: 'a failed command must not block the replay queue');
+    final failed = await db.failedCommands();
+    expect(failed, hasLength(1));
+    expect(failed.single.id, 'cmd-1');
+    expect(failed.single.lastError, 'insufficient_stock');
+    expect(failed.single.attempts, 1);
+
+    await db.failCommand('cmd-1', errorCode: 'insufficient_stock');
+    expect((await db.failedCommands()).single.attempts, 2,
+        reason: 'each refusal counts');
+  });
+
+  test('retryCommand moves a failed command back into the queue', () async {
+    await db.enqueue(const PendingCommand(
+      id: 'cmd-1',
+      idempotencyKey: 'key-1',
+      operation: 'create_sale',
+      payload: '{}',
+    ));
+    await db.failCommand('cmd-1', errorCode: 'insufficient_stock');
+
+    await db.retryCommand('cmd-1');
+
+    expect(await db.failedCommands(), isEmpty);
+    final pending = await db.pendingCommands();
+    expect(pending.single.id, 'cmd-1');
+    expect(pending.single.lastError, isNull,
+        reason: 'the stale reason must not resurface');
+    expect(pending.single.attempts, 1, reason: 'history is kept');
+  });
+
+  test('dropCommand discards a failed command for good', () async {
+    await db.enqueue(const PendingCommand(
+      id: 'cmd-1',
+      idempotencyKey: 'key-1',
+      operation: 'create_sale',
+      payload: '{}',
+    ));
+    await db.failCommand('cmd-1', errorCode: 'command_conflict');
+
+    await db.dropCommand('cmd-1');
+
+    expect(await db.failedCommands(), isEmpty);
+    expect(await db.pendingCommands(), isEmpty);
+  });
+
   // Local register sessions: the offline half of a shift, recorded on the
   // device when POST /v1/registers/open cannot reach the server.
   group('local session storage', () {
@@ -310,5 +371,69 @@ void main() {
         DateTime.utc(2026, 3, 1, 17),
       );
     });
+  });
+
+  test('opens when the v4 columns exist but user_version is still 3',
+      () async {
+    // An open interrupted before sqflite persisted user_version leaves the
+    // pairing columns in place. Replaying the upgrade must not raise
+    // `duplicate column name`, which used to brick every later launch.
+    final dir = await Directory.systemTemp.createTemp('pos_go_upgrade');
+    final path = p.join(dir.path, 'bricked.db');
+
+    final seeded = await databaseFactoryFfi.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: 3,
+        onCreate: (db, _) async {
+          await db.execute('''
+            CREATE TABLE local_sessions (
+              id TEXT PRIMARY KEY,
+              opening_cash_minor INTEGER NOT NULL,
+              opened_at INTEGER NOT NULL,
+              closing_cash_minor INTEGER,
+              closed_at INTEGER,
+              created_at INTEGER NOT NULL,
+              status TEXT NOT NULL DEFAULT 'open',
+              server_session_id TEXT,
+              reconciled_at INTEGER
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE pending_commands (
+              id TEXT PRIMARY KEY,
+              idempotency_key TEXT NOT NULL UNIQUE,
+              operation TEXT NOT NULL,
+              payload TEXT NOT NULL,
+              status TEXT NOT NULL DEFAULT 'pending',
+              attempts INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL
+            )
+          ''');
+        },
+      ),
+    );
+    await seeded.execute('PRAGMA user_version = 3');
+    await seeded.close();
+
+    final upgraded = LocalDatabase(
+      factory: databaseFactoryFfi,
+      databasePath: path,
+    );
+    addTearDown(() async {
+      await upgraded.close();
+      await dir.delete(recursive: true);
+    });
+
+    final columns = await (await upgraded.database)
+        .rawQuery('PRAGMA table_info(local_sessions)');
+    final names = columns.map((row) => row['name'] as String).toSet();
+    expect(names, containsAll(<String>['server_session_id', 'reconciled_at']));
+
+    final commandColumns = await (await upgraded.database)
+        .rawQuery('PRAGMA table_info(pending_commands)');
+    final commandNames =
+        commandColumns.map((row) => row['name'] as String).toSet();
+    expect(commandNames, containsAll(<String>['attempts', 'last_error']));
   });
 }

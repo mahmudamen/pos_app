@@ -8,6 +8,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:pos_go_app/core/api_client.dart';
 import 'package:pos_go_app/core/app_exception.dart';
 import 'package:pos_go_app/core/payments.dart';
+import 'package:pos_go_app/core/receipts.dart';
 import 'package:pos_go_app/core/registers.dart';
 import 'package:pos_go_app/core/session_store.dart';
 import 'package:pos_go_app/core/storage/local_database.dart';
@@ -126,6 +127,21 @@ class _FlakyApiClient extends ApiClient {
   }
 
   @override
+  Future<SaleReceipt> fetchReceipt(Session session, String saleId) async {
+    _guard();
+    return SaleReceipt(
+      tenantName: 'Demo Store',
+      saleId: saleId,
+      status: 'completed',
+      createdAt: '2026-10-06 12:00:00',
+      cashier: 'Cashier',
+      currency: 'EGP',
+      subtotalMinor: 350,
+      totalMinor: 350,
+    );
+  }
+
+  @override
   Future<SyncPushPage> syncPush(
     Session session,
     List<SyncPushCommand> commands,
@@ -163,6 +179,10 @@ class _FakeLocalDatabase extends LocalDatabase {
   @override
   Future<List<PendingCommand>> pendingCommands() async =>
       commands.where((c) => c.operation == 'create_sale').toList();
+
+
+  @override
+  Future<List<PendingCommand>> failedCommands() async => const [];
 
   @override
   Future<void> markComplete(String id) async {

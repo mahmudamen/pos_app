@@ -11,12 +11,16 @@ class PendingCommand {
     required this.idempotencyKey,
     required this.operation,
     required this.payload,
+    this.attempts = 0,
+    this.lastError,
   });
 
   final String id;
   final String idempotencyKey;
   final String operation;
   final String payload;
+  final int attempts;
+  final String? lastError;
 }
 
 class LocalDatabase {
@@ -36,7 +40,7 @@ class LocalDatabase {
     _database = await target.factory.openDatabase(
       target.path,
       options: OpenDatabaseOptions(
-        version: 4,
+        version: 5,
         onCreate: (db, _) async {
           await db.execute('''
             CREATE TABLE cached_products (
@@ -59,6 +63,7 @@ class LocalDatabase {
               payload TEXT NOT NULL,
               status TEXT NOT NULL DEFAULT 'pending',
               attempts INTEGER NOT NULL DEFAULT 0,
+              last_error TEXT,
               created_at INTEGER NOT NULL
             )
           ''');
@@ -75,10 +80,16 @@ class LocalDatabase {
           if (oldVersion < 4) {
             // Pairing columns: added after the first offline-shift release so
             // an interrupted replay can resume against the same session.
-            await db.execute(
-                'ALTER TABLE local_sessions ADD COLUMN server_session_id TEXT');
-            await db.execute(
-                'ALTER TABLE local_sessions ADD COLUMN reconciled_at INTEGER');
+            await _addColumnIfMissing(
+                db, 'local_sessions', 'server_session_id', 'TEXT');
+            await _addColumnIfMissing(
+                db, 'local_sessions', 'reconciled_at', 'INTEGER');
+          }
+          if (oldVersion < 5) {
+            // Why a queued command was rejected, surfaced by the failed-sync
+            // screen so a sale stuck in the queue is visible instead of silent.
+            await _addColumnIfMissing(
+                db, 'pending_commands', 'last_error', 'TEXT');
           }
         },
       ),
@@ -123,6 +134,25 @@ class LocalDatabase {
         reconciled_at INTEGER
       )
     ''');
+  }
+
+  /// Adds [column] to [table] only when it is not already present.
+  ///
+  /// `ALTER TABLE ... ADD COLUMN` is not idempotent, and `onUpgrade` re-runs
+  /// whenever an earlier open was interrupted before sqflite persisted the new
+  /// `user_version`. Replaying it raises `duplicate column name`, the upgrade
+  /// transaction rolls back, and every later launch fails the same way — the
+  /// database never opens, so the app cannot reach its UI.
+  static Future<void> _addColumnIfMissing(
+    DatabaseExecutor db,
+    String table,
+    String column,
+    String type,
+  ) async {
+    final info = await db.rawQuery('PRAGMA table_info($table)');
+    final existing = info.map((row) => row['name'] as String).toSet();
+    if (existing.contains(column)) return;
+    await db.execute('ALTER TABLE $table ADD COLUMN $column $type');
   }
 
   Future<void> cacheProducts(List<Product> products) async {
@@ -177,6 +207,16 @@ class LocalDatabase {
     );
   }
 
+  static PendingCommand _commandFromRow(Map<String, Object?> row) =>
+      PendingCommand(
+        id: row['id']! as String,
+        idempotencyKey: row['idempotency_key']! as String,
+        operation: row['operation']! as String,
+        payload: row['payload']! as String,
+        attempts: (row['attempts'] as num?)?.toInt() ?? 0,
+        lastError: row['last_error'] as String?,
+      );
+
   Future<List<PendingCommand>> pendingCommands() async {
     final rows = await (await database).query(
       'pending_commands',
@@ -184,22 +224,53 @@ class LocalDatabase {
       whereArgs: ['pending'],
       orderBy: 'created_at ASC',
     );
-    return rows
-        .map(
-          (row) => PendingCommand(
-            id: row['id']! as String,
-            idempotencyKey: row['idempotency_key']! as String,
-            operation: row['operation']! as String,
-            payload: row['payload']! as String,
-          ),
-        )
-        .toList();
+    return rows.map(_commandFromRow).toList();
+  }
+
+  /// Commands the server refused that never entered the feed: kept in their
+  /// own status so they neither block the queue nor vanish silently.
+  Future<List<PendingCommand>> failedCommands() async {
+    final rows = await (await database).query(
+      'pending_commands',
+      where: 'status = ?',
+      whereArgs: ['failed'],
+      orderBy: 'created_at ASC',
+    );
+    return rows.map(_commandFromRow).toList();
   }
 
   Future<void> markComplete(String id) async {
     await (await database).update(
       'pending_commands',
       {'status': 'complete'},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Parks a command the server rejected, recording why and how often.
+  Future<void> failCommand(String id, {String? errorCode}) async {
+    await (await database).rawUpdate(
+      'UPDATE pending_commands SET status = ?, attempts = attempts + 1, '
+      'last_error = ? WHERE id = ?',
+      ['failed', errorCode, id],
+    );
+  }
+
+  /// Moves a failed command back into the replay queue.
+  Future<void> retryCommand(String id) async {
+    await (await database).update(
+      'pending_commands',
+      {'status': 'pending', 'last_error': null},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Discards a failed command for good.
+  Future<void> dropCommand(String id) async {
+    await (await database).delete(
+      'pending_commands',
       where: 'id = ?',
       whereArgs: [id],
     );

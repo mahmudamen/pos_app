@@ -151,7 +151,7 @@ func RefundSale(
 	}
 
 	if tableID != "" {
-		if _, err = tx.Exec(ctx, `UPDATE restaurant_tables SET status = 'available' WHERE id = $1::uuid`, tableID); err != nil {
+		if _, err = tx.Exec(ctx, `UPDATE restaurant_tables SET status = 'free' WHERE id = $1::uuid`, tableID); err != nil {
 			return Refund{}, newSaleError(500, "internal_error", "unable to release table")
 		}
 	}

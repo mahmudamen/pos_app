@@ -100,6 +100,10 @@ class _FakeLocalDatabase extends LocalDatabase {
   Future<List<PendingCommand>> pendingCommands() async =>
       commands.where((c) => c.operation == 'create_sale').toList();
 
+
+  @override
+  Future<List<PendingCommand>> failedCommands() async => const [];
+
   @override
   Future<void> markComplete(String id) async {
     commands.removeWhere((c) => c.id == id);

@@ -290,3 +290,21 @@ func TestListSelfOrdersGatedByRBAC(t *testing.T) {
 		t.Fatalf("cashier list self-orders = %d: %s", rec.Code, rec.Body.String())
 	}
 }
+
+func TestListSelfOrdersWithoutStatusFilter(t *testing.T) {
+	router, seed, _ := setupSelfOrderIntegration(t)
+
+	// The count query reused arg[:1], which panicked when no status filter
+	// extended arg. The recovery middleware turned that into a 500, so the
+	// unfiltered queue could not be opened at all.
+	token := testutil.MintAccess(t, seed.TenantID, seed.CashierID, seed.DeviceID, "sess-unfiltered", "cashier")
+	for _, path := range []string{"/v1/self-orders", "/v1/self-orders?page=1&limit=50"} {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("GET %s = %d: %s", path, rec.Code, rec.Body.String())
+		}
+	}
+}
