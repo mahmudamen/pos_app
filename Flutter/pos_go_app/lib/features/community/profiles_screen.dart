@@ -5,6 +5,9 @@ import '../../core/community.dart';
 import '../../core/layout.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
+import 'badges_screen.dart';
+
+const _manageRoles = ['owner', 'manager', 'saas_admin'];
 
 class ProfilesScreen extends StatefulWidget {
   const ProfilesScreen({
@@ -229,6 +232,10 @@ class ProfileDetailScreen extends StatefulWidget {
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   StaffProfile? _profile;
   bool _loading = true;
+  List<UserBadge> _badges = const [];
+  List<EndorsementGroup> _endorsements = const [];
+
+  bool get _canManage => _manageRoles.contains(widget.session.role);
 
   @override
   void initState() {
@@ -251,6 +258,153 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         _profile = widget.profile;
         _loading = false;
       });
+    }
+    // Badge/endorsement enrichment is best-effort: a failure here must not
+    // hide the profile itself.
+    try {
+      final badges = await widget.apiClient
+          .listProfileBadges(widget.session, widget.profile.userId);
+      if (!mounted) return;
+      setState(() => _badges = badges);
+    } catch (_) {}
+    try {
+      final groups = await widget.apiClient
+          .listProfileEndorsements(widget.session, widget.profile.userId);
+      if (!mounted) return;
+      setState(() => _endorsements = groups);
+    } catch (_) {}
+  }
+
+  Future<void> _revokeBadge(UserBadge badge) async {
+    final s = AppStrings.of(context);
+    try {
+      await widget.apiClient.revokeProfileBadge(
+          widget.session, widget.profile.userId, badge.badgeId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.badgeRevoked)));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<void> _awardBadge(String badgeId, String note) async {
+    final s = AppStrings.of(context);
+    try {
+      await widget.apiClient.awardProfileBadge(
+        widget.session,
+        widget.profile.userId,
+        badgeId: badgeId,
+        note: note,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.badgeAwarded)));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      final message = e is ApiException && e.code == 'already_awarded'
+          ? s.badgeAlreadyAwarded
+          : e.toString();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _showAwardDialog() async {
+    final s = AppStrings.of(context);
+    List<BadgeDefinition> badges;
+    try {
+      badges = await widget.apiClient.listBadges(widget.session);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+      return;
+    }
+    if (!mounted) return;
+    if (badges.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.noBadges)));
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _AwardDialog(
+        badges: badges,
+        onAward: (badgeId, note) {
+          Navigator.of(dialogContext).pop();
+          _awardBadge(badgeId, note);
+        },
+      ),
+    );
+  }
+
+  Future<void> _endorse(String skill, String note) async {
+    final s = AppStrings.of(context);
+    try {
+      await widget.apiClient.endorsePeer(
+        widget.session,
+        receiverId: widget.profile.userId,
+        skill: skill,
+        note: note,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.endorsementSaved)));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      final message = switch (e) {
+        ApiException(code: 'already_endorsed') => s.alreadyEndorsed,
+        ApiException(code: 'cannot_endorse_self') => s.cannotEndorseSelf,
+        _ => e.toString(),
+      };
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _showEndorseDialog() async {
+    final s = AppStrings.of(context);
+    final skills = (_profile ?? widget.profile)
+        .skills
+        .where((skill) =>
+            !_endorsements.any((g) => g.skill == skill && g.endorsedByMe))
+        .toList();
+    if (skills.isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.endorseSkill)));
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _EndorseDialog(
+        skills: skills,
+        onEndorse: (skill, note) {
+          Navigator.of(dialogContext).pop();
+          _endorse(skill, note);
+        },
+      ),
+    );
+  }
+
+  Future<void> _withdraw(EndorsementGroup group) async {
+    final s = AppStrings.of(context);
+    try {
+      await widget.apiClient
+          .withdrawEndorsement(widget.session, group.myEndorsementId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.endorsementWithdrawn)));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -356,6 +510,91 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       ),
                     ),
                   ],
+                  if (_badges.isNotEmpty || _canManage) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(s.communityBadges,
+                              style: Theme.of(context).textTheme.titleMedium),
+                        ),
+                        if (_canManage)
+                          IconButton(
+                            tooltip: s.awardBadge,
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed: _showAwardDialog,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (_badges.isEmpty)
+                      Text(s.noBadges,
+                          style: Theme.of(context).textTheme.bodySmall)
+                    else
+                      ..._badges.map(
+                        (badge) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(badgeIconData(badge.icon)),
+                          title: Text(badge.name),
+                          subtitle: Text([
+                            if (badge.note.isNotEmpty) badge.note,
+                            if (badge.awardedByName.isNotEmpty)
+                              badge.awardedByName,
+                          ].join(' · ')),
+                          trailing: _canManage
+                              ? IconButton(
+                                  tooltip: s.badgeRevoked,
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () => _revokeBadge(badge),
+                                )
+                              : null,
+                        ),
+                      ),
+                  ],
+                  if (_endorsements.isNotEmpty ||
+                      (profile.skills.isNotEmpty &&
+                          profile.userId != widget.session.userId)) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(s.endorsements,
+                              style: Theme.of(context).textTheme.titleMedium),
+                        ),
+                        if (profile.userId != widget.session.userId)
+                          OutlinedButton.icon(
+                            onPressed: _showEndorseDialog,
+                            icon: const Icon(Icons.thumb_up_alt_outlined),
+                            label: Text(s.endorseSkill),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (_endorsements.isEmpty)
+                      Text(s.noEndorsements,
+                          style: Theme.of(context).textTheme.bodySmall)
+                    else
+                      ..._endorsements.map(
+                        (group) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading:
+                              const Icon(Icons.thumb_up_alt_outlined),
+                          title: Text(group.skill),
+                          subtitle: group.givers.isEmpty
+                              ? null
+                              : Text(group.givers
+                                  .map((g) => g.giverName)
+                                  .join(', ')),
+                          trailing: group.endorsedByMe
+                              ? TextButton.icon(
+                                  onPressed: () => _withdraw(group),
+                                  icon: const Icon(Icons.undo, size: 16),
+                                  label: Text(s.withdrawEndorsement),
+                                )
+                              : Chip(label: Text('${group.count}')),
+                        ),
+                      ),
+                  ],
                 ],
               ),
       ),
@@ -384,4 +623,140 @@ extension CompanyMemberRoleLabel on CompanyMember {
         'manager' => s.roleManager,
         _ => s.roleStaff,
       };
+}
+
+/// Manager dialog: pick one of the tenant's active badges to award.
+class _AwardDialog extends StatefulWidget {
+  const _AwardDialog({required this.badges, required this.onAward});
+
+  final List<BadgeDefinition> badges;
+  final void Function(String badgeId, String note) onAward;
+
+  @override
+  State<_AwardDialog> createState() => _AwardDialogState();
+}
+
+class _AwardDialogState extends State<_AwardDialog> {
+  late String _badgeId = widget.badges.first.id;
+  final _note = TextEditingController();
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    return AlertDialog(
+      title: Text(s.awardBadge),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _badgeId,
+            decoration: InputDecoration(
+              labelText: s.communityBadges,
+              border: const OutlineInputBorder(),
+            ),
+            items: widget.badges
+                .map((b) => DropdownMenuItem(
+                      value: b.id,
+                      child: Text('${b.name} (${b.code})'),
+                    ))
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _badgeId = value ?? widget.badges.first.id),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _note,
+            maxLength: 500,
+            decoration: InputDecoration(
+              labelText: s.badgeNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(s.cancel),
+        ),
+        FilledButton(
+          onPressed: () => widget.onAward(_badgeId, _note.text.trim()),
+          child: Text(s.awardBadge),
+        ),
+      ],
+    );
+  }
+}
+
+/// Peer dialog: endorse one of this profile's skills.
+class _EndorseDialog extends StatefulWidget {
+  const _EndorseDialog({required this.skills, required this.onEndorse});
+
+  final List<String> skills;
+  final void Function(String skill, String note) onEndorse;
+
+  @override
+  State<_EndorseDialog> createState() => _EndorseDialogState();
+}
+
+class _EndorseDialogState extends State<_EndorseDialog> {
+  late String _skill = widget.skills.first;
+  final _note = TextEditingController();
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppStrings.of(context);
+    return AlertDialog(
+      title: Text(s.endorseSkill),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DropdownButtonFormField<String>(
+            initialValue: _skill,
+            decoration: InputDecoration(
+              labelText: s.endorseSkillHint,
+              border: const OutlineInputBorder(),
+            ),
+            items: widget.skills
+                .map((skill) =>
+                    DropdownMenuItem(value: skill, child: Text(skill)))
+                .toList(),
+            onChanged: (value) =>
+                setState(() => _skill = value ?? widget.skills.first),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _note,
+            maxLength: 500,
+            decoration: InputDecoration(
+              labelText: s.badgeNote,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(s.cancel),
+        ),
+        FilledButton(
+          onPressed: () => widget.onEndorse(_skill, _note.text.trim()),
+          child: Text(s.endorseAdd),
+        ),
+      ],
+    );
+  }
 }

@@ -4,7 +4,10 @@ import '../../core/api_client.dart';
 import '../../core/layout.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
+import 'badges_screen.dart';
 import 'companies_screen.dart';
+import 'forum_screen.dart';
+import 'jobs_screen.dart';
 import 'national_hub_screen.dart';
 import 'profile_edit_screen.dart';
 import 'profiles_screen.dart';
@@ -40,19 +43,61 @@ class CommunityHubScreen extends StatelessWidget {
           ),
         ],
       ),
+      // A ListView, not a Column: with five-plus entries the tiles exceed a
+      // small phone (or the default test viewport) and overflowed by ~96px.
       body: MaxWidthBox(
-        child: Padding(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _HubTile(
+          children: [
+            _HubTile(
                 icon: Icons.public,
                 title: s.nationalCommunity,
                 subtitle: s.nationalMembership,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => NationalHubScreen(
+                      session: session,
+                      apiClient: apiClient,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _HubTile(
+                icon: Icons.work_outline,
+                title: s.communityJobs,
+                subtitle: s.jobsSubtitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => JobsScreen(
+                      session: session,
+                      apiClient: apiClient,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _HubTile(
+                icon: Icons.forum_outlined,
+                title: s.communityForum,
+                subtitle: s.forumSubtitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ForumScreen(
+                      session: session,
+                      apiClient: apiClient,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _HubTile(
+                icon: Icons.military_tech,
+                title: s.communityBadges,
+                subtitle: s.badgesSubtitle,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BadgesScreen(
                       session: session,
                       apiClient: apiClient,
                     ),
@@ -87,8 +132,7 @@ class CommunityHubScreen extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

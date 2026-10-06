@@ -197,6 +197,9 @@ void main() {
 
     expect(find.text('Community'), findsOneWidget);
     expect(find.text('Profiles'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Companies'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     expect(find.text('Companies'), findsOneWidget);
   });
 
@@ -207,6 +210,9 @@ void main() {
         _wrap(CommunityHubScreen(session: _manager, apiClient: api)));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Profiles'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Profiles'));
     await tester.pumpAndSettle();
 
@@ -227,6 +233,9 @@ void main() {
         _wrap(CommunityHubScreen(session: _manager, apiClient: _FakeCommunityApi())));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Profiles'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Profiles'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sara Chef'));
@@ -264,6 +273,9 @@ void main() {
         _wrap(CommunityHubScreen(session: _manager, apiClient: api)));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Companies'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Companies'));
     await tester.pumpAndSettle();
 
@@ -288,6 +300,9 @@ void main() {
         _wrap(CommunityHubScreen(session: _manager, apiClient: api)));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Companies'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Companies'));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.add_business_outlined));
