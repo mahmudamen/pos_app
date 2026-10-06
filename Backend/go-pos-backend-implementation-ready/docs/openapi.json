@@ -68,6 +68,26 @@
         }
       }
     },
+    "/.well-known/assetlinks.json": {
+      "get": {
+        "tags": [
+          "assetlinks.json"
+        ],
+        "operationId": "Get.well-knownAssetlinks.json",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/delete-account": {
       "get": {
         "tags": [

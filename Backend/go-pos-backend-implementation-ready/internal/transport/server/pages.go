@@ -245,6 +245,17 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 		c.Header("X-Robots-Tag", "noindex")
 		_, _ = c.Writer.Write(googleSiteVerification)
 	})
+	// Android Digital Asset Links. Public, unauthenticated, no DB, and served as
+	// application/json because the package manager rejects anything else. Not
+	// cacheable: a rotated signing key has to reach the fetcher immediately, and
+	// verification failures are otherwise silent — the domain just stops
+	// verifying for everyone holding the app.
+	engine.GET(assetLinksPath, func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Content-Type", "application/json")
+		c.Header("X-Robots-Tag", "noindex")
+		_, _ = c.Writer.Write(assetLinks)
+	})
 	// The landing gallery screenshots, served as static PNGs with long-lived
 	// cache headers so the HTML stays light and repeat visits are instant.
 	engine.GET("/screenshots/:name", func(c *gin.Context) {

@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.xamltech.pos_go",
+      "sha256_cert_fingerprints": [
+        "56:91:A7:06:46:7C:3C:A7:2E:8C:29:88:1A:A0:53:75:F5:36:53:AB:0A:35:D0:60:1A:52:31:85:D8:4D:61:83",
+        "6B:3C:FE:55:CD:FB:1B:18:13:07:CE:4A:8E:02:40:03:78:FE:75:CE:95:9E:41:D8:CC:45:62:36:0A:1D:A5:EB"
+      ]
+    }
+  }
+]

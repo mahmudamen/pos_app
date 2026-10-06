@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -733,5 +734,73 @@ func TestGoogleSiteVerificationServedVerbatim(t *testing.T) {
 	}
 	if tag := rec.Header().Get("X-Robots-Tag"); tag != "noindex" {
 		t.Errorf("X-Robots-Tag = %q, want noindex", tag)
+	}
+}
+
+func TestAssetLinksServedAsJSONForAndroidAppLinks(t *testing.T) {
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/.well-known/assetlinks.json", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("assetlinks.json = %d, want 200", rec.Code)
+	}
+	// The package manager rejects anything that is not application/json, so a
+	// text/plain fallback here silently disables App Links on every device.
+	if ct := rec.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/json") {
+		t.Errorf("Content-Type = %q, want application/json", ct)
+	}
+	// A rotated key must reach the fetcher at once; a stale cached copy fails
+	// verification silently.
+	if cc := rec.Header().Get("Cache-Control"); strings.Contains(cc, "max-age") {
+		t.Errorf("Cache-Control = %q, want no caching so a key rotation propagates", cc)
+	}
+
+	var statements []struct {
+		Relation []string `json:"relation"`
+		Target   struct {
+			Namespace   string   `json:"namespace"`
+			PackageName string   `json:"package_name"`
+			SHA256      []string `json:"sha256_cert_fingerprints"`
+		} `json:"target"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &statements); err != nil {
+		t.Fatalf("assetlinks.json is not valid JSON: %v", err)
+	}
+	if len(statements) != 1 {
+		t.Fatalf("statements = %d, want 1", len(statements))
+	}
+	s := statements[0]
+	if s.Target.Namespace != "android_app" || s.Target.PackageName != "com.xamltech.pos_go" {
+		t.Errorf("target = %s/%s, want android_app/com.xamltech.pos_go", s.Target.Namespace, s.Target.PackageName)
+	}
+	want := "delegate_permission/common.handle_all_urls"
+	if len(s.Relation) != 1 || s.Relation[0] != want {
+		t.Errorf("relation = %v, want [%s]", s.Relation, want)
+	}
+
+	// Both certificates must be listed. Play re-signs every bundle with a key
+	// the developer never holds, so a Play install presents the Play app-signing
+	// certificate; a sideloaded release APK presents the repository upload key.
+	// Listing only one leaves the other group of installs unverified, and the
+	// failure is invisible — the links simply stop opening the app.
+	for _, fingerprint := range []string{
+		"56:91:A7:06:46:7C:3C:A7:2E:8C:29:88:1A:A0:53:75:F5:36:53:AB:0A:35:D0:60:1A:52:31:85:D8:4D:61:83",
+		"6B:3C:FE:55:CD:FB:1B:18:13:07:CE:4A:8E:02:40:03:78:FE:75:CE:95:9E:41:D8:CC:45:62:36:0A:1D:A5:EB",
+	} {
+		if !slices.Contains(s.Target.SHA256, fingerprint) {
+			t.Errorf("fingerprints %v missing %s", s.Target.SHA256, fingerprint)
+		}
+	}
+	// Fingerprints are compared as uppercase hex octets; a lowercase or
+	// colon-stripped entry matches nothing and is easy to reintroduce.
+	for _, fingerprint := range s.Target.SHA256 {
+		if len(fingerprint) != 32*3-1 {
+			t.Errorf("fingerprint %q is not 95 characters", fingerprint)
+		}
+		if fingerprint != strings.ToUpper(fingerprint) {
+			t.Errorf("fingerprint %q is not uppercase", fingerprint)
+		}
 	}
 }

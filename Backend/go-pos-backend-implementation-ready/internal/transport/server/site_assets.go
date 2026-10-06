@@ -71,3 +71,34 @@ var (
 
 // googleSiteVerificationPath is the exact path Search Console requests.
 const googleSiteVerificationPath = "/google79d5199d984f63af.html"
+
+// Android Digital Asset Links. Android fetches
+// /.well-known/assetlinks.json on the domain root over HTTPS, parses it as JSON
+// and compares the listed SHA-256 certificate fingerprints against the signing
+// certificate of the installed package, so the body is embedded and served
+// verbatim — a template or a re-serialised struct would still parse, but the
+// file exists precisely so that a byte-for-byte edit is reviewable in a diff.
+//
+// Two fingerprints are listed, and both are needed:
+//
+//   - 56:91:A7:… is the Play app-signing certificate. Once Play App Signing is
+//     enrolled, Google re-signs the uploaded bundle with a key the developer
+//     never holds, and that is the certificate every Play-installed copy
+//     presents.
+//   - 6B:3C:FE:…:EB is the upload key in this repository
+//     (Flutter/pos_go_app signing config, .secrets/play/pos-go-release.jks,
+//     alias pos-go-upload). A copy installed by sideloading a release APK
+//     presents this one instead, and an assetlinks.json listing only Google's
+//     certificate leaves those installs unverified.
+//
+// It answers on every public surface, matching the Search Console token above:
+// Digital Asset Links is fetched per domain root, so whichever host the app
+// claims in its intent filter needs the file to resolve, and all of them are
+// served by this binary behind the same nginx.
+var (
+	//go:embed assets/assetlinks.json
+	assetLinks []byte
+)
+
+// assetLinksPath is the exact path the Android package manager requests.
+const assetLinksPath = "/.well-known/assetlinks.json"

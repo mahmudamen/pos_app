@@ -32,7 +32,7 @@ Gotchas:
 - No Docker? Run `scripts/bootstrap_local.sql` once as a Postgres administrator, then `make migrate`/`make run` as usual. Redis is optional for basic login; if absent, `/health/ready` reports not ready but `/health/live` stays OK.
 - Health probes: `curl 127.0.0.1:8080/health/live` and `/health/ready`.
 - `make test` (`go test ./...`) needs **no database** — handler tests assert "unavailable" with a nil pool. CI runs gofmt-check → `go vet` → `go test` → `go test -race`; `make check` = fmt + vet + test, `make lint` = golangci-lint, `make security` = gosec.
-- Migrations are goose files in `internal/infrastructure/database/migrations/` (single-file `.sql`, numbered `001_extensions` … `045_jobs` — catalog: `017_floors_tables`, `018_lot_tracking`, `019_variants`, `023_product_images`, `024_allow_negative_stock`, `025_merchant_signup`, `026_store_emails`, `028_billing`, `032_client_events`, `034_trial_platform`, `034_tenant_plans`, `041_plan_subdomain`, `042_tenant_stopped`, `044_profiles_companies`, `045_jobs`, `048_national_members`); apply with `make migrate`, roll back `make migrate-down`.
+- Migrations are goose files in `internal/infrastructure/database/migrations/` (single-file `.sql`, numbered `001_extensions` … `051_users_password_hash_format` — catalog: `017_floors_tables`, `018_lot_tracking`, `019_variants`, `023_product_images`, `024_allow_negative_stock`, `025_merchant_signup`, `026_store_emails`, `028_billing`, `032_client_events`, `034_trial_platform`, `034_tenant_plans`, `041_plan_subdomain`, `042_tenant_stopped`, `044_profiles_companies`, `045_jobs`, `048_national_members`, `051_users_password_hash_format`); apply with `make migrate`, roll back `make migrate-down`.
 - **Migrations may NOT use `DO $$…$$` blocks** — goose (`pressly/goose`) cannot parse multi-line PL/pgSQL (SQLSTATE 42601). Role/ACL provisioning belongs in `scripts/grants_prod.sql` (run via psql), which may use `DO $$` fine.
 - New tables that the API writes to **must get grants for the app roles** (dev: owner `pos_app`; prod: least-privilege `pos_app_rls` via `scripts/grants_prod.sql`), otherwise prod-only failures appear (e.g. signup's `permission denied for table store_emails`).
 - API: everything under `/v1`; auth (`/auth/login|refresh|logout`, `POST /users/:id/pin` set/verify/remove), catalog (`/categories`, `/categories/:id`, `/products`, `/products/:id`, `/products/barcode/:barcode`, PATCH `/products/:id`), sales (`GET /v1/sales` list, `GET /v1/sales/:id` detail with items + payments, `POST /v1/sales` with idempotency, stock locking, RLS, split tender, tips, `table_id`, split bills, `GET /v1/sales/:id/receipt` + `/receipt/print`, `POST /v1/sales/:id/refund` — idempotent, restocks/lots/variants, releases split-bill members + occupied tables, loyalty clawback), users (`GET /users`, `POST /users`), sync (`GET /v1/sync/pull` change feed, `POST /v1/sync/push` replay-safe commands), verticals (`/restaurants/floors`, `/restaurants/tables`, `/products/:id/lots`, `/products/:id/variants`, `/variants/:id`), meta (`/meta/countries`, `/meta/currencies` — public), platform (`/saas/summary`, `/saas/tenants`, `/saas/tenants/:id/analytics` — require `saas_admin` role exactly; `POST /v1/platform/tenants/:id/activate` reactivates a suspended tenant, `POST /v1/platform/tenants/:id/stop` sets `tenants.status='disabled'` + cancels subscriptions + audits `organization.stopped` (disabled tenaants get login 403 `organization_stopped`), `POST /v1/platform/tenants/:id/backup` streams an RLS-scoped JSON export — all 28 tenant tables confirmed `FORCE RLS`; `client_events` deliberately excluded). Tenant/plan payloads expose `subdomain` (derived `{slug}.xamltech.com` when the plan features `pos.subdomain` — added to all plans by migration `041`), `plan_features`, and the tenant's latest `subscription_status`. Money is integer minor units (`price_minor`, `subtotal_minor`, `amount_minor`).
@@ -73,27 +73,70 @@ The POS v1.0 release is **live on production** as Docker `pos-prod-*` services:
   pinning the key with `X-Forwarded-For` — this dev box's IPv4 egress goes through
   Cloudflare WARP and rotates between edge IPs, which splits one test run across
   several buckets.
-- DB: postgres DB `pos` at goose version **50** (as of 2026-09-28; 46 tenants,
+- DB: postgres DB `pos` at goose version **51** (as of 2026-10-06; 52 tenants,
   4 sellable plans + 6 internal/inactive). The app role `pos_app_rls` is a
   limited-grant role — new tables must get grants via `scripts/grants_prod.sql`
   (see Backend gotchas) or prod-only `permission denied` errors appear.
+  Note `pos_app` (the **owner**, and what the backup runs as) is
+  `rolsuper`/`rolbypassrls`, so it sees every row of the FORCE-RLS tables even
+  without `app.current_tenant`; `pos_app_rls` sees none.
 - **Backups on the VPS run through `/opt/pos/backup_daily.sh`**
   (`/etc/cron.d/pos-backup`, 03:17), *not* `scripts/backup.sh`: the database is
   on a private docker network with no published port, so the dump has to run
   inside the `pos-prod-postgres` container. Check it with
   `tail -3 /var/log/pos-backup.log` and `ls -la /opt/pos/backups/`.
-- **Offsite (R2) mirror is installed but INCOMPLETE — blocked on credentials.**
-  `/etc/cron.d/pos-backup-offsite` (03:47, 30 min after the local dump) calls
-  `/opt/pos/backup_offsite.sh`, which copies `/opt/pos/backups/pos-*.sql.gz`
-  to the `pos-backups` R2 bucket via rclone, refuses to mirror a dump older than
-  26h, verifies the uploaded object's size, then applies 30-day retention.
-  **All four values in `/opt/pos/offsite-backup.env` are still empty**
-  (`R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`), so
-  the script exits 1 with `ERROR R2_ACCOUNT_ID not set` and
-  `/var/log/pos-backup-offsite.log` is empty. It has never completed a run.
-  Until someone creates the bucket + an "Object Read & Write" token in the
-  Cloudflare dashboard and fills that file in (chmod 600), the only backup is
-  the **on-box** one — a VPS disk failure loses everything.
+  Both that script and the repo's `scripts/backup.sh` now end with a **bcrypt
+  integrity alarm**: after the dump is written and `gzip -t`-verified, they
+  list any `users.password_hash` that does not match
+  `^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$` (the same shape migration `051`
+  constrains) and `exit 1`, because a corrupt hash is indistinguishable from a
+  wrong password at the login screen. They also **fail if the check saw zero
+  user rows** — on a FORCE-RLS table a non-superuser role sees nothing, and a
+  check that inspected nothing must not report the backup clean. The dump is
+  written *before* the alarm on purpose: it is still valid and still wanted.
+  `/opt/pos/backup_daily.sh` is not in the repo (the repo script is the
+  `DATABASE_URL` variant); the pre-integrity copy is kept at
+  `/root/backup_daily.sh.pre-integrity`.
+- **Offsite (R2) mirror is installed but DISABLED — blocked on credentials.**
+  `/opt/pos/backup_offsite.sh` and `/opt/pos/offsite-backup.env` still exist and
+  are unchanged, but `/etc/cron.d/pos-backup-offsite` now has its one schedule
+  line commented out (validated with `crontab -n`: 0 jobs). The original is kept
+  at `/root/pos-backup-offsite.cron.disabled`, and the disabled file documents
+  the four re-enable steps. Reason: all four values in
+  `/opt/pos/offsite-backup.env` are still empty
+  (`R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`),
+  so every run exited 1 with `ERROR R2_ACCOUNT_ID not set` and left
+  `/var/log/pos-backup-offsite.log` empty — it has never completed a run, and a
+  nightly job that always fails reads as a broken backup rather than as a
+  capability that was never there. Until someone creates the bucket + an
+  "Object Read & Write" token in the Cloudflare dashboard and fills that file in
+  (chmod 600), the only backup is the **on-box** one (14-day window under
+  `/opt/pos/backups`) — a VPS disk failure loses everything. That risk is
+  accepted, not mitigated.
+- **Password-hash incident (2026-10-05)**: `admin@posgo.saas` was found holding a
+  19-char tail (`a0/Ntt.YOoBC6TIr1Uu`) instead of a 60-char bcrypt hash, so it
+  401'd on correct credentials while `support@posgo.saas` on the same password
+  returned 200 — the fault looked like a bad credential, not a broken row.
+  Comparing every retained dump pinned the window (`pos-20261004T001701Z.sql.gz`
+  intact → `pos-20261005T001701Z.sql.gz` truncated, row `updated_at`
+  2026-10-04 14:22). `audit_log` has no entry and `log_statement = none`, so the
+  write is unrecoverable; no application code path updates `password_hash`. The
+  row was repaired by hand and migration `051_users_password_hash_format` now
+  constrains the column. **Dumps taken inside the corruption window still carry
+  the bad hash** — re-check any restore from `pos-20261005T*.sql.gz`.
+- **Digital Asset Links**: `GET /.well-known/assetlinks.json` is served by the Go
+  app from an embedded `internal/transport/server/assets/assetlinks.json`
+  (`application/json`, `Cache-Control: no-cache`, public in OpenAPI — the
+  generator's public-path switch needed the new path). It lists
+  `com.xamltech.pos_go` with **two** fingerprints: the Play app-signing cert
+  (`56:91:A7:…:61:83`) and the repo upload key (`6B:3C:FE:…:A5:EB`, alias
+  `pos-go-upload`); Play re-signs every bundle, so sideloaded release APKs
+  present the second. It answers on `api.xamltech.com` and `posgo.xamltech.com`
+  (both proxy to the app; `xamltech.com` itself is served elsewhere and 404s —
+  don't claim that host). **The Android app has no App Links intent filter yet**
+  (`android:autoVerify` is absent from `AndroidManifest.xml`, and there is no
+  `app_links` dependency or Dart link handling), so this only satisfies
+  domain verification — a link will not yet open the app.
 - **Demo/testing accounts** (5 verticals x 5 roles + 2 SaaS operators) are
   seeded into **both** the local Postgres and production; reference doc is
   `Backend/go-pos-backend-implementation-ready/docs/26_DEMO_TESTING.md`, and the

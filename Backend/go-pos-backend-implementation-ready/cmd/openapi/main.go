@@ -208,12 +208,14 @@ func requiredSecurity(path string) []map[string][]string {
 		path == "/v1/auth/login" ||
 		path == "/selforder" ||
 		path == "/sw.js"
-	// The site pages rendered by the Go app (registerSitePages) plus the
-	// Search Console verification file are all served without auth, and the
-	// surface gate in internal/transport/http publishes them on every public
-	// host. Anything else needs a Bearer token.
+	// The site pages rendered by the Go app (registerSitePages), the Search
+	// Console verification file and the Android Digital Asset Links statement are
+	// all served without auth, and the surface gate in
+	// internal/transport/http publishes them on every public host. Anything else
+	// needs a Bearer token.
 	switch path {
-	case "/", "/pricing", "/private", "/delete-account", "/google79d5199d984f63af.html":
+	case "/", "/pricing", "/private", "/delete-account",
+		"/google79d5199d984f63af.html", "/.well-known/assetlinks.json":
 		return nil
 	}
 	if public {
