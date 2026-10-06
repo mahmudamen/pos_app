@@ -360,6 +360,46 @@ class AppStrings {
   String get userCreated => isArabic ? 'تم إنشاء المستخدم' : 'User created';
   String get noUsers => isArabic ? 'لا يوجد مستخدمون' : 'No users';
   String get userIdle => isArabic ? 'خامل' : 'Idle';
+  String get emailTaken => isArabic
+      ? 'البريد الإلكتروني مستخدم بالفعل'
+      : 'Email already in use';
+  String get planLimitReached => isArabic
+      ? 'تم الوصول إلى حد المستخدمين في خطتك'
+      : 'User limit of your plan reached';
+  String get inactiveLabel => isArabic ? 'غير نشط' : 'Inactive';
+  String get securityProfile => isArabic ? 'الملف الأمني' : 'Security profile';
+  String get accessLevel => isArabic ? 'مستوى الوصول' : 'Access level';
+  String get accessLevelNone => isArabic ? 'بدون' : 'None';
+  String get accessLevelCashier => isArabic ? 'أمين صندوق' : 'Cashier';
+  String get accessLevelAdvanced => isArabic ? 'متقدم' : 'Advanced';
+  String get accessLevelManagerLevel => isArabic ? 'مدير' : 'Manager';
+  String get accessLevelAdmin => isArabic ? 'مسؤول النظام' : 'Admin';
+  String get maxDiscountPctLabel => isArabic ? 'أقصى خصم %' : 'Max discount %';
+  String get maxDiscountLevelDefault =>
+      isArabic ? 'فارغ = افتراضي المستوى' : 'Empty = level default';
+  String get maxDiscountRangeError =>
+      isArabic ? 'أدخل رقمًا من ٠ إلى ١٠٠' : 'Enter a number from 0 to 100';
+  String get customPermissions =>
+      isArabic ? 'أذونات مخصصة' : 'Custom permissions';
+  String get customPermissionsHint => isArabic
+      ? 'مطفأ: تنطبق افتراضيات المستوى'
+      : 'Off: level defaults apply';
+  String get permDeleteOrder => isArabic ? 'حذف الفاتورة' : 'Delete order';
+  String get permDeleteLine => isArabic ? 'حذف صنف' : 'Delete line';
+  String get permChangeQty => isArabic ? 'تغيير الكمية' : 'Change quantity';
+  String get permNegativeQty => isArabic ? 'كمية سالبة' : 'Negative quantity';
+  String get permPriceChange => isArabic ? 'تغيير السعر' : 'Change price';
+  String get permDiscount => isArabic ? 'تطبيق خصم' : 'Apply discount';
+  String get permOpenSession => isArabic ? 'فتح جلسة' : 'Open session';
+  String get permCloseSession => isArabic ? 'إغلاق جلسة' : 'Close session';
+  String get permPaymentModification =>
+      isArabic ? 'تعديل الدفع' : 'Modify payment';
+  String get permRefund => isArabic ? 'الاسترجاع' : 'Refunds';
+  String get permNegativeStock => isArabic ? 'مخزون سالب' : 'Negative stock';
+  String get securitySaved =>
+      isArabic ? 'تم حفظ الملف الأمني' : 'Security profile saved';
+  String get passwordHint =>
+      isArabic ? '٨ أحرف على الأقل' : 'At least 8 characters';
   String get planDowngradeBlocked => isArabic
       ? 'تتجاوز الاستخدام حدود الخطة الجديدة'
       : 'Current usage exceeds the new plan limits';
@@ -446,6 +486,15 @@ class AppStrings {
   String get offlineNeedsAttention => isArabic
       ? 'تعذرت مزامنة بعض العمليات؛ راجع سجل المبيعات'
       : 'Some offline operations were not synced — check sales history';
+  String get viewFailed => isArabic ? 'عرض' : 'View';
+  String get failedSyncTitle => isArabic ? 'فشلت المزامنة' : 'Failed sync';
+  String get queuedSale => isArabic ? 'بيع في الانتظار' : 'Queued sale';
+  String get discardQueued => isArabic ? 'تجاهل' : 'Discard';
+  String get discardQueuedBody => isArabic
+      ? 'تجاهل هذا البيع المحفوظ؟ لن يتم إرساله أبدًا.'
+      : 'Discard this queued sale? It will never be sent.';
+  String syncAttempts(int n) =>
+      isArabic ? '$n محاولات' : '$n attempts';
   String get sessionOpenedOffline => isArabic
       ? 'فُتحت جلسة البيع دون اتصال على هذا الجهاز؛ ستُزامن لاحقًا'
       : 'POS session opened offline on this device — it will sync later';
@@ -587,6 +636,8 @@ class AppStrings {
       ? 'لا توجد جلسة مفتوحة على هذه الطرفية'
       : 'No open session on this terminal';
   String get resumeSession => isArabic ? 'استئناف الجلسة' : 'Resume session';
+  String get minimizeSession => isArabic ? 'تصغير الجلسة' : 'Minimize session';
+  String get expandSession => isArabic ? 'توسيع الجلسة' : 'Expand session';
   String get finishSession => isArabic ? 'إنهاء الجلسة' : 'Finish session';
   String get finishSessionConfirm => isArabic
       ? 'سيُغلق درجك وتُطبع خلاصة جلسة هذا الوقت.'
@@ -601,6 +652,12 @@ class AppStrings {
   String get zReport => isArabic ? 'تقرير الجلسة' : 'Session report';
   String get sessionsHistory => isArabic ? 'سجل الجلسات' : 'Session reports';
   String get noSessions => isArabic ? 'لا توجد جلسات بعد' : 'No sessions yet';
+  String get sessionsSummary => isArabic ? 'ملخص الجلسات' : 'Sessions summary';
+  String get today => isArabic ? 'اليوم' : 'Today';
+  String get last7Days => isArabic ? 'آخر 7 أيام' : 'Last 7 days';
+  String get last30Days => isArabic ? 'آخر 30 يوم' : 'Last 30 days';
+  String get sessionsOpened => isArabic ? 'الجلسات المفتوحة' : 'Shifts opened';
+  String get sessionsClosed => isArabic ? 'الجلسات المغلقة' : 'Shifts closed';
   String get salesCount => isArabic ? 'عدد المبيعات' : 'Sales count';
   String get expectedCash => isArabic ? 'النقد المتوقع' : 'Expected cash';
   String get cashOver => isArabic ? 'زيادة' : 'Over';
@@ -685,6 +742,127 @@ class AppStrings {
   String get community => isArabic ? 'المجتمع' : 'Community';
   String get communityProfiles => isArabic ? 'الملفات الشخصية' : 'Profiles';
   String get communityCompanies => isArabic ? 'الشركات' : 'Companies';
+  String get communityJobs => isArabic ? 'الوظائف' : 'Jobs';
+  String get jobsSubtitle =>
+      isArabic ? 'إعلانات التوظيف والطلبات' : 'Open roles and applications';
+  String get searchJobs => isArabic ? 'ابحث عن وظيفة...' : 'Search jobs...';
+  String get noJobs => isArabic ? 'لا توجد وظائف متاحة' : 'No jobs posted';
+  String get addJob => isArabic ? 'إضافة وظيفة' : 'Post a job';
+  String get jobTitle => isArabic ? 'المسمى الوظيفي' : 'Job title';
+  String get jobDescription => isArabic ? 'الوصف' : 'Description';
+  String get jobType => isArabic ? 'نوع التوظيف' : 'Employment type';
+  String get typeFullTime => isArabic ? 'دوام كامل' : 'Full-time';
+  String get typePartTime => isArabic ? 'دوام جزئي' : 'Part-time';
+  String get typeContract => isArabic ? 'عقد' : 'Contract';
+  String get typeFreelance => isArabic ? 'عمل حر' : 'Freelance';
+  String get jobLocation => isArabic ? 'الموقع' : 'Location';
+  String get jobSalary => isArabic ? 'الراتب' : 'Salary';
+  String get jobSkillsHint =>
+      isArabic ? 'المهارات (مفصولة بفواصل)' : 'Skills (comma-separated)';
+  String get jobSaved => isArabic ? 'تم حفظ الوظيفة' : 'Job saved';
+  String get applyForJob => isArabic ? 'تقديم طلب' : 'Apply';
+  String get appliedAlready =>
+      isArabic ? 'لقد تقدمت بالفعل' : 'Already applied';
+  String get coverNote => isArabic ? 'رسالة التقديم' : 'Cover note';
+  String get coverNoteHint =>
+      isArabic ? 'عرّف بنفسك باختصار...' : 'Briefly introduce yourself...';
+  String get submitApplication =>
+      isArabic ? 'إرسال الطلب' : 'Submit application';
+  String get applicationSent =>
+      isArabic ? 'تم إرسال طلب التقديم' : 'Application sent';
+  String get myApplications => isArabic ? 'طلباتي' : 'My applications';
+  String get applicants => isArabic ? 'المتقدمون' : 'Applicants';
+  String get noApplicants =>
+      isArabic ? 'لا يوجد متقدمون بعد' : 'No applicants yet';
+  String get viewApplicants =>
+      isArabic ? 'عرض المتقدمين' : 'View applicants';
+  String get statusApplied => isArabic ? 'تم التقديم' : 'Applied';
+  String get statusUnderReview => isArabic ? 'قيد المراجعة' : 'Under review';
+  String get statusAccepted => isArabic ? 'مقبول' : 'Accepted';
+  String get statusRejected => isArabic ? 'مرفوض' : 'Rejected';
+  String get closesAtLabel =>
+      isArabic ? 'آخر موعد للتقديم' : 'Closes at';
+  String get communityBadges => isArabic ? 'الأوسمة' : 'Badges';
+  String get badgesSubtitle =>
+      isArabic ? 'تقديرات وإنجازات الفريق' : 'Team recognitions and achievements';
+  String get noBadges => isArabic ? 'لا توجد أوسمة بعد' : 'No badges yet';
+  String get addBadge => isArabic ? 'إضافة وسام' : 'Add badge';
+  String get badgeCode => isArabic ? 'رمز الوسام' : 'Badge code';
+  String get badgeCodeHint => isArabic
+      ? 'رمز قصير (مثال: top-seller)'
+      : 'Short code (e.g. top-seller)';
+  String get badgeName => isArabic ? 'اسم الوسام' : 'Badge name';
+  String get badgeSaved => isArabic ? 'تم حفظ الوسام' : 'Badge saved';
+  String get badgeInactive => isArabic ? 'موقوف' : 'Inactive';
+  String get badgeActive => isArabic ? 'نشط' : 'Active';
+  String get earnedLabel => isArabic ? 'مُنح' : 'earned';
+  String get awardBadge => isArabic ? 'منح وسام' : 'Award badge';
+  String get badgeAwarded => isArabic ? 'تم منح الوسام' : 'Badge awarded';
+  String get badgeRevoked => isArabic ? 'تمت إزالة الوسام' : 'Badge removed';
+  String get badgeAlreadyAwarded => isArabic
+      ? 'هذا الوسام مُنح لهذا المستخدم بالفعل'
+      : 'Badge already awarded to this user';
+  String get codeTaken => isArabic
+      ? 'رمز الوسام مستخدم بالفعل'
+      : 'Badge code already exists';
+  String get badgeNote =>
+      isArabic ? 'ملاحظة (اختياري)' : 'Note (optional)';
+  String get endorsements => isArabic ? 'التوصيات' : 'Endorsements';
+  String get noEndorsements =>
+      isArabic ? 'لا توجد توصيات بعد' : 'No endorsements yet';
+  String get endorseSkill =>
+      isArabic ? 'التوصية بمهارة' : 'Endorse a skill';
+  String get endorseSkillHint =>
+      isArabic ? 'اختر مهارة' : 'Pick a skill';
+  String get endorseAdd => isArabic ? 'إضافة توصية' : 'Add endorsement';
+  String get endorsementSaved =>
+      isArabic ? 'تمت إضافة التوصية' : 'Endorsement added';
+  String get endorsementWithdrawn =>
+      isArabic ? 'تم سحب التوصية' : 'Endorsement withdrawn';
+  String get withdrawEndorsement =>
+      isArabic ? 'سحب التوصية' : 'Withdraw';
+  String get cannotEndorseSelf =>
+      isArabic ? 'لا يمكنك التوصية بنفسك' : 'You cannot endorse yourself';
+  String get alreadyEndorsed => isArabic
+      ? 'لقد أطرت هذه المهارة بالفعل'
+      : 'You already endorsed this skill';
+  String get communityForum => isArabic ? 'المنتدى' : 'Forum';
+  String get forumSubtitle =>
+      isArabic ? 'مناقشات وإعلانات الفريق' : 'Team discussions and announcements';
+  String get searchForum =>
+      isArabic ? 'ابحث في المنتدى...' : 'Search the forum...';
+  String get noThreads => isArabic ? 'لا توجد موضوعات بعد' : 'No threads yet';
+  String get newThread => isArabic ? 'موضوع جديد' : 'New thread';
+  String get threadTitle => isArabic ? 'عنوان الموضوع' : 'Thread title';
+  String get threadBody => isArabic ? 'نص الموضوع' : 'Message';
+  String get postThread => isArabic ? 'نشر' : 'Post';
+  String get threadPosted => isArabic ? 'تم نشر الموضوع' : 'Thread posted';
+  String get commentsLabel => isArabic ? 'التعليقات' : 'Comments';
+  String get noComments => isArabic ? 'لا توجد تعليقات بعد' : 'No comments yet';
+  String get addComment => isArabic ? 'أضف تعليقاً...' : 'Add a comment...';
+  String get commentPosted =>
+      isArabic ? 'تمت إضافة التعليق' : 'Comment added';
+  String get sortLatest => isArabic ? 'الأحدث' : 'Latest';
+  String get sortTop => isArabic ? 'الأكثر إعجاباً' : 'Top';
+  String get sortPinned => isArabic ? 'المثبتة' : 'Pinned';
+  String get pinnedLabel => isArabic ? 'مثبت' : 'Pinned';
+  String get pinThread => isArabic ? 'تثبيت' : 'Pin';
+  String get unpinThread => isArabic ? 'إلغاء التثبيت' : 'Unpin';
+  String get closeThread => isArabic ? 'إغلاق' : 'Close';
+  String get openThread => isArabic ? 'إعادة الفتح' : 'Reopen';
+  String get deleteThread => isArabic ? 'حذف الموضوع' : 'Delete thread';
+  String get deleteThreadConfirm => isArabic
+      ? 'سيتم حذف الموضوع وتعليقاته. هل أنت متأكد؟'
+      : 'This deletes the thread and its comments. Continue?';
+  String get threadDeleted => isArabic ? 'تم حذف الموضوع' : 'Thread deleted';
+  String get likeAction => isArabic ? 'إعجاب' : 'Like';
+  String get likedAction => isArabic ? 'أعجبني' : 'Liked';
+  String get forumBoards => isArabic ? 'الأقسام' : 'Boards';
+  String get addBoard => isArabic ? 'إضافة قسم' : 'Add board';
+  String get boardName => isArabic ? 'اسم القسم' : 'Board name';
+  String get boardSaved => isArabic ? 'تم حفظ القسم' : 'Board saved';
+  String get allBoards => isArabic ? 'الكل' : 'All';
+  String get boardInactive => isArabic ? 'موقوف' : 'Inactive';
   String get nationalCommunity =>
       isArabic ? 'المجتمع المصري الوطني' : 'Egypt national community';
   String get nationalMembership =>
@@ -884,6 +1062,8 @@ class AppStrings {
   String get pickTable => isArabic ? 'اختر طاولة' : 'Pick a table';
   String get noTable => isArabic ? 'بدون طاولة' : 'No table';
   String get clearTable => isArabic ? 'إلغاء الطاولة' : 'Clear table';
+  String get freeTable => isArabic ? 'إفراغ الطاولة' : 'Free table';
+  String get tableFreed => isArabic ? 'تم إفراغ الطاولة' : 'Table freed';
   String get tablesLoadFailed =>
       isArabic ? 'تعذر تحميل الطاولات' : 'Could not load tables';
   String get tableFreeStatus => isArabic ? 'فارغة' : 'Free';

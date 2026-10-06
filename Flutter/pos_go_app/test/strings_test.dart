@@ -179,6 +179,9 @@ void main() {
     expect(en.posSession, 'POS session');
     expect(en.openSession, 'Open session');
     expect(en.startingCash, 'Starting cash');
+    expect(en.resumeSession, 'Resume session');
+    expect(en.minimizeSession, 'Minimize session');
+    expect(en.expandSession, 'Expand session');
     expect(en.finishSession, 'Finish session');
     expect(en.countedCash, isNotEmpty);
     expect(en.zReport, 'Session report');

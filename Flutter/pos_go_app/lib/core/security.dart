@@ -40,6 +40,10 @@ String _levelName(PosAccessLevel level) {
   }
 }
 
+/// Wire name for [level] (`''` for [PosAccessLevel.unknown]) — the inverse of
+/// [posAccessLevelFromWire], used when writing a security profile back.
+String posAccessLevelToWire(PosAccessLevel level) => _levelName(level);
+
 /// The resolved operation flags for a user, as returned by the backend after
 /// applying level defaults + custom overrides. `maxDiscountPct` mirrors the
 /// backend's `EffectiveDiscountPct` baseline (per-user cap) and is combined

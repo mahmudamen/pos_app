@@ -16,6 +16,7 @@ import 'package:pos_go_app/core/restaurants.dart';
 import 'package:pos_go_app/core/saas.dart';
 import 'package:pos_go_app/core/security.dart';
 import 'package:pos_go_app/core/session_store.dart';
+import 'package:pos_go_app/core/users.dart';
 
 void main() {
   test('Country parses the Go meta item', () {
@@ -1803,6 +1804,110 @@ expect(() => client.dashboardSummary(session),
     expect(page.limit, 5);
   });
 
+  test('sessions sends only the filters that are set and parses devices',
+      () async {
+    final transport = _SessionsQueryClient();
+    final client = ApiClient(client: transport);
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    final page = await client.sessions(session,
+        status: 'open', deviceId: 'device-1', from: '2026-10-01', to: '2026-10-06');
+    expect(page.sessions.single.deviceId, 'device-1');
+    expect(page.sessions.single.deviceName, 'Front register');
+
+    transport.expectFiltered = false;
+    await client.sessions(session);
+  });
+
+  test('updateTable PATCHes only the fields that are set', () async {
+    final transport = _TableUpdateClient();
+    final client = ApiClient(client: transport);
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+    );
+
+    await client.updateTable(session, 'table-1', status: 'free');
+    expect(transport.lastMethod, 'PATCH');
+    expect(transport.lastPath, '/v1/tables/table-1');
+    expect(transport.lastBody, {'status': 'free'});
+
+    await client.updateTable(session, 'table-2', seats: 6, name: 'T2');
+    expect(transport.lastPath, '/v1/tables/table-2');
+    expect(transport.lastBody, {'seats': 6, 'name': 'T2'});
+  });
+
+  test('updateTable surfaces a refused change as ApiException', () async {
+    final transport = _TableUpdateClient()..status = 404;
+    final client = ApiClient(client: transport);
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Manager',
+      tenantId: 'tenant-1',
+    );
+
+    expect(
+      () => client.updateTable(session, 'table-1', status: 'free'),
+      throwsA(isA<ApiException>()),
+    );
+  });
+
+  test('sessionSummary sends the window and parses the aggregates', () async {
+    final transport = _SummaryTransport();
+    final client = ApiClient(client: transport);
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    final summary = await client.sessionSummary(session,
+        from: '2026-10-01', to: '2026-10-06');
+    expect(transport.lastPath, '/v1/registers/summary');
+    expect(transport.lastQuery, {'from': '2026-10-01', 'to': '2026-10-06'});
+    expect(summary.sessionsOpened, 2);
+    expect(summary.sessionsClosed, 1);
+    expect(summary.salesCount, 3);
+    expect(summary.subtotalMinor, 3000);
+    expect(summary.discountMinor, 100);
+    expect(summary.taxMinor, 0);
+    expect(summary.totalMinor, 2900);
+    expect(summary.cashMinor, 1900);
+    expect(summary.cardMinor, 700);
+    expect(summary.mobileMinor, 300);
+    expect(summary.cashDifferenceMinor, -50);
+    expect(summary.averageSaleMinor, 966);
+  });
+
+  test('sessionSummary omits bounds that were not set', () async {
+    final transport = _SummaryTransport();
+    final client = ApiClient(client: transport);
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Cashier',
+      tenantId: 'tenant-1',
+    );
+
+    await client.sessionSummary(session);
+    expect(transport.lastPath, '/v1/registers/summary');
+    expect(transport.lastQuery, isEmpty);
+  });
+
   test('SaleResult defaults the payment method to cash', () {
     const raw = {'id': 'sale-1', 'subtotal_minor': 560, 'total_minor': 560, 'currency': 'EGP'};
     final sale = SaleResult.fromJson(raw);
@@ -2705,6 +2810,695 @@ expect(() => client.dashboardSummary(session),
         expect(error.isTrialExpired, isFalse);
       }
     });
+
+    test('listUsers fetches /v1/users with pagination meta', () async {
+      final client = ApiClient(client: _UsersListClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Store Manager',
+        tenantId: 'tenant-1',
+      );
+      final page = await client.listUsers(session);
+      expect(page.users, hasLength(1));
+      expect(page.total, 7);
+      expect(page.page, 1);
+      expect(page.users.first.email, 'cashier@demo.com');
+      expect(page.users.first.role, 'cashier');
+      expect(page.users.first.isActive, isTrue);
+      expect(page.users.first.permissions?.accessLevel, PosAccessLevel.cashier);
+    });
+
+    test('createUser posts to /v1/users and returns the row', () async {
+      final client = ApiClient(client: _CreateUserClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Store Manager',
+        tenantId: 'tenant-1',
+      );
+      final user = await client.createUser(
+        session,
+        email: 'new@demo.com',
+        displayName: 'New Cashier',
+        password: 'secret123',
+        role: 'cashier',
+      );
+      expect(user.id, 'user-9');
+      expect(user.role, 'cashier');
+      expect(user.accountType, 'standard');
+    });
+
+    test('createUser keeps the server error code (409 user_conflict)',
+        () async {
+      final client = ApiClient(client: _ConflictUserClient());
+      const session = Session(
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        userId: 'user-1',
+        displayName: 'Store Manager',
+        tenantId: 'tenant-1',
+      );
+      try {
+        await client.createUser(
+          session,
+          email: 'taken@demo.com',
+          displayName: 'Dup',
+          password: 'secret123',
+          role: 'cashier',
+        );
+        fail('duplicate email should be rejected');
+      } on ApiException catch (error) {
+        expect(error.code, 'user_conflict');
+        expect(error.message, 'email is already in use');
+      }
+    });
+  });
+
+  group('community jobs', () {
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Store Manager',
+      tenantId: 'tenant-1',
+      role: 'manager',
+    );
+
+    test('listJobs fetches /v1/community/jobs with filters and meta',
+        () async {
+      final transport = _JobsTransport(status: 200, body: _jobsListJson);
+      final client = ApiClient(client: transport);
+      final page = await client.listJobs(
+        session,
+        query: 'chef',
+        type: 'full_time',
+        mine: true,
+        page: 2,
+      );
+      final url = transport.lastRequest!.url;
+      expect(url.path, '/v1/community/jobs');
+      expect(url.queryParameters['page'], '2');
+      expect(url.queryParameters['limit'], '50');
+      expect(url.queryParameters['q'], 'chef');
+      expect(url.queryParameters['type'], 'full_time');
+      expect(url.queryParameters['mine'], '1');
+      expect(transport.lastRequest!.headers['Authorization'],
+          'Bearer access-token');
+      expect(page.jobs, hasLength(1));
+      expect(page.jobs.first.id, 'job-1');
+      expect(page.jobs.first.title, 'Head Chef');
+      expect(page.jobs.first.companyName, 'Bakery X');
+      expect(page.jobs.first.salaryMinor, 6500000);
+      expect(page.jobs.first.skillTags, ['grill']);
+      expect(page.jobs.first.applied, isFalse);
+      expect(page.jobs.first.applications, 3);
+      expect(page.total, 7);
+      expect(page.page, 1);
+      expect(page.limit, 50);
+    });
+
+    test('createJob posts the job payload and parses 201', () async {
+      final transport = _JobsTransport(status: 201, body: _jobDetailJson);
+      final client = ApiClient(client: transport);
+      final job = await client.createJob(
+        session,
+        title: 'Head Chef',
+        location: 'Cairo',
+        salaryMinor: 6500000,
+        skillTags: ['grill'],
+      );
+      expect(transport.lastRequest!.method, 'POST');
+      expect(transport.lastRequest!.url.path, '/v1/community/jobs');
+      expect(jsonDecode(transport.lastRequestBody!), {
+        'title': 'Head Chef',
+        'location': 'Cairo',
+        'employment_type': 'full_time',
+        'salary_minor': 6500000,
+        'salary_currency': 'EGP',
+        'skill_tags': ['grill'],
+      });
+      expect(job.id, 'job-1');
+      expect(job.title, 'Head Chef');
+      expect(job.employmentType, 'full_time');
+    });
+
+    test('getJob fetches /v1/community/jobs/:id', () async {
+      final transport = _JobsTransport(status: 200, body: _jobDetailJson);
+      final client = ApiClient(client: transport);
+      final job = await client.getJob(session, 'job-1');
+      expect(transport.lastRequest!.method, 'GET');
+      expect(transport.lastRequest!.url.path, '/v1/community/jobs/job-1');
+      expect(job.id, 'job-1');
+      expect(job.location, 'Cairo');
+    });
+
+    test('applyToJob posts the cover note and returns the application',
+        () async {
+      final transport =
+          _JobsTransport(status: 201, body: _jobApplicationJson);
+      final client = ApiClient(client: transport);
+      final app =
+          await client.applyToJob(session, 'job-1', coverNote: 'Hello');
+      expect(transport.lastRequest!.method, 'POST');
+      expect(
+          transport.lastRequest!.url.path, '/v1/community/jobs/job-1/apply');
+      expect(jsonDecode(transport.lastRequestBody!), {'cover_note': 'Hello'});
+      expect(app.id, 'app-1');
+      expect(app.jobOfferId, 'job-1');
+      expect(app.displayName, 'Sara Chef');
+      expect(app.status, 'applied');
+    });
+
+    test('applyToJob surfaces already_applied (409)', () async {
+      final client = ApiClient(
+          client:
+              _JobsTransport(status: 409, body: _alreadyAppliedErrorJson));
+      try {
+        await client.applyToJob(session, 'job-1');
+        fail('duplicate application should be rejected');
+      } on ApiException catch (error) {
+        expect(error.code, 'already_applied');
+      }
+    });
+
+    test('updateApplicationStatus PATCHes the new status', () async {
+      final transport = _JobsTransport(status: 200, body: _metaOnlyJson);
+      final client = ApiClient(client: transport);
+      await client.updateApplicationStatus(session, 'app-1', 'accepted');
+      expect(transport.lastRequest!.method, 'PATCH');
+      expect(
+          transport.lastRequest!.url.path, '/v1/community/applications/app-1');
+      expect(jsonDecode(transport.lastRequestBody!), {'status': 'accepted'});
+    });
+
+    test('listJobApplications parses items and applied_total', () async {
+      final transport =
+          _JobsTransport(status: 200, body: _jobApplicationsJson);
+      final client = ApiClient(client: transport);
+      final page = await client.listJobApplications(session, 'job-1');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/jobs/job-1/applications');
+      expect(page.applications, hasLength(1));
+      expect(page.applications.first.displayName, 'Sara Chef');
+      expect(page.applications.first.status, 'under_review');
+      expect(page.applications.first.coverNote, 'Hello');
+      expect(page.appliedTotal, 4);
+    });
+
+    test('deleteJob expects 200', () async {
+      final transport = _JobsTransport(status: 200, body: _metaOnlyJson);
+      final client = ApiClient(client: transport);
+      await client.deleteJob(session, 'job-1');
+      expect(transport.lastRequest!.method, 'DELETE');
+      expect(transport.lastRequest!.url.path, '/v1/community/jobs/job-1');
+    });
+
+    test('updateJob PATCHes only the changed fields', () async {
+      final transport = _JobsTransport(status: 200, body: _jobDetailJson);
+      final client = ApiClient(client: transport);
+      await client.updateJob(session, 'job-1', title: 'Sous Chef',
+          isActive: false);
+      expect(transport.lastRequest!.method, 'PATCH');
+      expect(transport.lastRequest!.url.path, '/v1/community/jobs/job-1');
+      expect(jsonDecode(transport.lastRequestBody!),
+          {'title': 'Sous Chef', 'is_active': false});
+    });
+  });
+
+  group('community badges', () {
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Store Manager',
+      tenantId: 'tenant-1',
+      role: 'manager',
+    );
+
+    test('listBadges fetches /v1/community/badges with filters', () async {
+      final transport = _JobsTransport(status: 200, body: _badgesListJson);
+      final client = ApiClient(client: transport);
+      final badges = await client.listBadges(
+        session,
+        query: 'top',
+        includeInactive: true,
+        page: 3,
+      );
+      final url = transport.lastRequest!.url;
+      expect(url.path, '/v1/community/badges');
+      expect(url.queryParameters['q'], 'top');
+      expect(url.queryParameters['all'], '1');
+      expect(url.queryParameters['page'], '3');
+      expect(url.queryParameters['limit'], '100');
+      expect(transport.lastRequest!.headers['Authorization'],
+          'Bearer access-token');
+      expect(badges, hasLength(2));
+      expect(badges.first.code, 'top-seller');
+      expect(badges.first.name, 'Top Seller');
+      expect(badges.first.earnedCount, 4);
+      expect(badges.first.isActive, isTrue);
+      expect(badges.last.code, 'old-badge');
+      expect(badges.last.isActive, isFalse);
+    });
+
+    test('createBadge POSTs the badge and parses 201', () async {
+      final transport = _JobsTransport(status: 201, body: _badgeJson);
+      final client = ApiClient(client: transport);
+      final badge = await client.createBadge(
+        session,
+        code: 'top-seller',
+        name: 'Top Seller',
+        description: 'Ten sales in a day',
+        icon: 'star',
+      );
+      expect(transport.lastRequest!.method, 'POST');
+      expect(transport.lastRequest!.url.path, '/v1/community/badges');
+      expect(jsonDecode(transport.lastRequestBody!), {
+        'code': 'top-seller',
+        'name': 'Top Seller',
+        'description': 'Ten sales in a day',
+        'icon': 'star',
+      });
+      expect(badge.id, 'badge-1');
+      expect(badge.code, 'top-seller');
+    });
+
+    test('updateBadge PATCHes only the changed fields', () async {
+      final transport = _JobsTransport(status: 200, body: _badgeJson);
+      final client = ApiClient(client: transport);
+      await client.updateBadge(session, 'badge-1',
+          name: 'Elite Seller', isActive: false);
+      expect(transport.lastRequest!.method, 'PATCH');
+      expect(transport.lastRequest!.url.path, '/v1/community/badges/badge-1');
+      expect(jsonDecode(transport.lastRequestBody!),
+          {'name': 'Elite Seller', 'is_active': false});
+    });
+
+    test('listProfileBadges fetches the awarded list', () async {
+      final transport = _JobsTransport(status: 200, body: _profileBadgesJson);
+      final client = ApiClient(client: transport);
+      final badges = await client.listProfileBadges(session, 'user-9');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/profiles/user-9/badges');
+      expect(transport.lastRequest!.headers['Authorization'],
+          'Bearer access-token');
+      expect(badges, hasLength(1));
+      expect(badges.first.badgeId, 'badge-1');
+      expect(badges.first.name, 'Top Seller');
+      expect(badges.first.note, 'Beat target');
+      expect(badges.first.awardedByName, 'Store Manager');
+    });
+
+    test('awardProfileBadge POSTs badge_id + note', () async {
+      final transport = _JobsTransport(status: 201, body: _profileBadgeJson);
+      final client = ApiClient(client: transport);
+      final awarded = await client.awardProfileBadge(
+        session,
+        'user-9',
+        badgeId: 'badge-1',
+        note: 'Beat target',
+      );
+      expect(transport.lastRequest!.method, 'POST');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/profiles/user-9/badges');
+      expect(jsonDecode(transport.lastRequestBody!),
+          {'badge_id': 'badge-1', 'note': 'Beat target'});
+      expect(awarded.badgeId, 'badge-1');
+      expect(awarded.awardedByName, 'Store Manager');
+    });
+
+    test('awardProfileBadge surfaces already_awarded as the code',
+        () async {
+      final transport = _JobsTransport(
+        status: 409,
+        body:
+            '{"error":{"code":"already_awarded","message":"badge already held"}}',
+      );
+      final client = ApiClient(client: transport);
+      await expectLater(
+        client.awardProfileBadge(session, 'user-9', badgeId: 'badge-1'),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.code, 'code', 'already_awarded')
+              .having((e) => e.message, 'message', 'badge already held'),
+        ),
+      );
+    });
+
+    test('revokeProfileBadge expects 200', () async {
+      final transport = _JobsTransport(status: 200, body: _metaOnlyJson);
+      final client = ApiClient(client: transport);
+      await client.revokeProfileBadge(session, 'user-9', 'badge-1');
+      expect(transport.lastRequest!.method, 'DELETE');
+      expect(
+          transport.lastRequest!.url.path,
+          '/v1/community/profiles/user-9/badges/badge-1');
+    });
+
+    test('listProfileEndorsements parses grouped tallies', () async {
+      final transport =
+          _JobsTransport(status: 200, body: _endorsementsJson);
+      final client = ApiClient(client: transport);
+      final groups = await client.listProfileEndorsements(session, 'user-9');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/profiles/user-9/endorsements');
+      expect(groups, hasLength(2));
+      expect(groups.first.skill, 'grill');
+      expect(groups.first.count, 3);
+      expect(groups.first.givers.map((g) => g.giverName),
+          ['Sara Chef', 'Omar Grill']);
+      expect(groups.first.myEndorsementId, '');
+      expect(groups.first.endorsedByMe, isFalse);
+      expect(groups.last.skill, 'stock');
+      expect(groups.last.myEndorsementId, 'end-9');
+      expect(groups.last.endorsedByMe, isTrue);
+    });
+
+    test('endorsePeer POSTs receiver_id + skill and parses 201', () async {
+      final transport = _JobsTransport(status: 201, body: _endorsementJson);
+      final client = ApiClient(client: transport);
+      final endorsement = await client.endorsePeer(
+        session,
+        receiverId: 'user-9',
+        skill: 'grill',
+        note: 'solid',
+      );
+      expect(transport.lastRequest!.method, 'POST');
+      expect(transport.lastRequest!.url.path, '/v1/community/endorsements');
+      expect(jsonDecode(transport.lastRequestBody!), {
+        'receiver_id': 'user-9',
+        'skill': 'grill',
+        'note': 'solid',
+      });
+      expect(endorsement.id, 'end-1');
+      expect(endorsement.skill, 'grill');
+      expect(endorsement.giverName, 'Store Manager');
+    });
+
+    test('endorsePeer surfaces already_endorsed as the code', () async {
+      final transport = _JobsTransport(
+        status: 409,
+        body: '{"error":{"code":"already_endorsed","message":"duplicate"}}',
+      );
+      final client = ApiClient(client: transport);
+      await expectLater(
+        client.endorsePeer(session, receiverId: 'user-9', skill: 'grill'),
+        throwsA(isA<ApiException>().having((e) => e.code, 'code',
+            'already_endorsed')),
+      );
+    });
+
+    test('withdrawEndorsement expects 200', () async {
+      final transport = _JobsTransport(status: 200, body: _metaOnlyJson);
+      final client = ApiClient(client: transport);
+      await client.withdrawEndorsement(session, 'end-9');
+      expect(transport.lastRequest!.method, 'DELETE');
+      expect(transport.lastRequest!.url.path, '/v1/community/endorsements/end-9');
+    });
+  });
+
+  group('community forum', () {
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Store Manager',
+      tenantId: 'tenant-1',
+      role: 'manager',
+    );
+
+    test('listForumCategories fetches boards with the all flag', () async {
+      final transport = _JobsTransport(status: 200, body: _forumCategoriesJson);
+      final client = ApiClient(client: transport);
+      final page = await client.listForumCategories(session,
+          includeInactive: true);
+      expect(transport.lastRequest!.url.path, '/v1/community/forum/categories');
+      expect(transport.lastRequest!.url.queryParameters['all'], '1');
+      expect(page.total, 2);
+      expect(page.categories.first.name, 'Kitchen Talk');
+      expect(page.categories.first.postCount, 3);
+      expect(page.categories.first.isActive, isTrue);
+      expect(page.categories.last.isActive, isFalse);
+    });
+
+    test('createForumCategory POSTs the board and parses 201', () async {
+      final transport = _JobsTransport(status: 201, body: _forumCategoryJson);
+      final client = ApiClient(client: transport);
+      final category = await client.createForumCategory(session,
+          name: 'Kitchen Talk', description: 'Boards for the floor team');
+      expect(transport.lastRequest!.method, 'POST');
+      expect(
+          jsonDecode(transport.lastRequestBody!), {
+            'name': 'Kitchen Talk',
+            'description': 'Boards for the floor team',
+          });
+      expect(category.id, 'cat-1');
+      expect(category.slug, 'kitchen-talk');
+      expect(category.isActive, isTrue);
+    });
+
+    test('updateForumCategory PATCHes only the provided fields', () async {
+      final transport = _JobsTransport(status: 200, body: _forumCategoryJson);
+      final client = ApiClient(client: transport);
+      await client.updateForumCategory(session, 'cat-1', isActive: false);
+      expect(transport.lastRequest!.method, 'PATCH');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/forum/categories/cat-1');
+      expect(jsonDecode(transport.lastRequestBody!), {'is_active': false});
+    });
+
+    test('listForumPosts carries filters and meta bounds', () async {
+      final transport = _JobsTransport(status: 200, body: _forumPostsJson);
+      final client = ApiClient(client: transport);
+      final page = await client.listForumPosts(
+        session,
+        query: 'grill',
+        categoryId: 'cat-1',
+        sort: 'top',
+        page: 2,
+      );
+      final url = transport.lastRequest!.url;
+      expect(url.path, '/v1/community/forum/posts');
+      expect(url.queryParameters['q'], 'grill');
+      expect(url.queryParameters['category_id'], 'cat-1');
+      expect(url.queryParameters['sort'], 'top');
+      expect(url.queryParameters['page'], '2');
+      expect(page.total, 7);
+      expect(page.page, 2);
+      expect(page.posts, hasLength(2));
+      expect(page.posts.first.categoryName, 'Kitchen Talk');
+      expect(page.posts.first.commentCount, 2);
+      expect(page.posts.first.likeCount, 3);
+      expect(page.posts.first.likedByMe, isTrue);
+      expect(page.posts.last.isPinned, isTrue);
+      expect(page.posts.last.isClosed, isTrue);
+      expect(page.posts.last.isAuthor, isTrue);
+    });
+
+    test('listForumPosts surfaces validation_error on a bad sort', () async {
+      final transport = _JobsTransport(
+        status: 400,
+        body: '{"error":{"code":"validation_error","message":"bad sort"}}',
+      );
+      final client = ApiClient(client: transport);
+      await expectLater(
+        client.listForumPosts(session, sort: 'newest'),
+        throwsA(isA<ApiException>().having((e) => e.code, 'code',
+            'validation_error')),
+      );
+    });
+
+    test('createForumPost POSTs the thread and parses 201', () async {
+      final transport = _JobsTransport(status: 201, body: _forumPostJson);
+      final client = ApiClient(client: transport);
+      final post = await client.createForumPost(
+        session,
+        categoryId: 'cat-1',
+        title: 'Grill station tips',
+        body: 'Preheat before service.',
+      );
+      expect(transport.lastRequest!.method, 'POST');
+      expect(
+          jsonDecode(transport.lastRequestBody!), {
+            'category_id': 'cat-1',
+            'title': 'Grill station tips',
+            'body': 'Preheat before service.',
+          });
+      expect(post.id, 'post-1');
+      expect(post.title, 'Grill station tips');
+      expect(post.isAuthor, isTrue);
+      expect(post.createdAt, '2026-10-02T10:00:00Z');
+    });
+
+    test('getForumPost parses the detail with its comments', () async {
+      final transport = _JobsTransport(status: 200, body: _forumDetailJson);
+      final client = ApiClient(client: transport);
+      final detail = await client.getForumPost(session, 'post-1');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/forum/posts/post-1');
+      expect(detail.post.body, 'Preheat before service.');
+      expect(detail.comments, hasLength(1));
+      expect(detail.comments.first.authorName, 'Store Manager');
+      expect(detail.comments.first.body, 'Agreed.');
+    });
+
+    test('updateForumPost PATCHes flags and parses 200', () async {
+      final transport = _JobsTransport(status: 200, body: _forumPostJson);
+      final client = ApiClient(client: transport);
+      final post =
+          await client.updateForumPost(session, 'post-1', isPinned: true);
+      expect(transport.lastRequest!.method, 'PATCH');
+      expect(jsonDecode(transport.lastRequestBody!), {'is_pinned': true});
+      expect(post.isPinned, isTrue);
+    });
+
+    test('deleteForumPost expects 200 and maps failures', () async {
+      final transport = _JobsTransport(status: 200, body: _metaOnlyJson);
+      final client = ApiClient(client: transport);
+      await client.deleteForumPost(session, 'post-1');
+      expect(transport.lastRequest!.method, 'DELETE');
+      expect(
+          transport.lastRequest!.url.path, '/v1/community/forum/posts/post-1');
+
+      final forbidden = _JobsTransport(
+        status: 403,
+        body: '{"error":{"code":"permission_denied","message":"no"}}',
+      );
+      await expectLater(
+        ApiClient(client: forbidden).deleteForumPost(session, 'post-1'),
+        throwsA(isA<ApiException>().having((e) => e.code, 'code',
+            'permission_denied')),
+      );
+    });
+
+    test('createForumComment POSTs and parses 201', () async {
+      final transport = _JobsTransport(status: 201, body: _forumCommentJson);
+      final client = ApiClient(client: transport);
+      final comment = await client.createForumComment(session, 'post-1',
+          body: 'Noted.');
+      expect(transport.lastRequest!.url.path,
+          '/v1/community/forum/posts/post-1/comments');
+      expect(jsonDecode(transport.lastRequestBody!), {'body': 'Noted.'});
+      expect(comment.postId, 'post-1');
+      expect(comment.body, 'Noted.');
+    });
+
+    test('toggleForumLike parses the flip result', () async {
+      final transport = _JobsTransport(status: 200, body: _forumLikeJson);
+      final client = ApiClient(client: transport);
+      final result = await client.toggleForumLike(session, 'post-1');
+      expect(transport.lastRequest!.method, 'POST');
+      expect(
+          transport.lastRequest!.url.path, '/v1/community/forum/posts/post-1/like');
+      expect(result.liked, isTrue);
+      expect(result.likeCount, 4);
+    });
+  });
+
+  group('user security', () {
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Store Manager',
+      tenantId: 'tenant-1',
+      role: 'manager',
+    );
+
+    const okBody =
+        '{"data":{"user_id":"user-2","permissions":{'
+        '"access_level":"advanced","max_discount_pct":10,'
+        '"can_delete_order":false,"can_delete_line":true,'
+        '"can_change_qty":true,"can_negative_qty":false,'
+        '"can_price_change":false,"can_discount":true,'
+        '"can_open_session":true,"can_close_session":true,'
+        '"can_payment_modification":true,"can_refund":true,'
+        '"can_negative_stock":false}},'
+        '"meta":{"request_id":"t"}}';
+
+    test('updateUserSecurity PUTs the profile and parses resolved permissions',
+        () async {
+      final transport = _JobsTransport(status: 200, body: okBody);
+      final client = ApiClient(client: transport);
+      final permissions = await client.updateUserSecurity(
+        session,
+        userId: 'user-2',
+        security: const UserSecurityProfile(
+          accessLevel: PosAccessLevel.advanced,
+          maxDiscountPct: 10,
+          useCustomPermissions: true,
+          canRefund: true,
+        ),
+      );
+      expect(transport.lastRequest!.method, 'PUT');
+      expect(transport.lastRequest!.url.path, '/v1/users/user-2/security');
+      expect(transport.lastRequest!.headers['Authorization'],
+          'Bearer access-token');
+      expect(jsonDecode(transport.lastRequestBody!), {
+        'access_level': 'advanced',
+        'max_discount_pct': 10,
+        'use_custom_permissions': true,
+        'can_delete_order': false,
+        'can_delete_line': false,
+        'can_change_qty': false,
+        'can_negative_qty': false,
+        'can_price_change': false,
+        'can_discount': false,
+        'can_open_session': false,
+        'can_close_session': false,
+        'can_payment_modification': false,
+        'can_refund': true,
+        'can_negative_stock': false,
+      });
+      expect(permissions.accessLevel, PosAccessLevel.advanced);
+      expect(permissions.maxDiscountPct, 10);
+      expect(permissions.canRefund, isTrue);
+      expect(permissions.canDeleteLine, isTrue,
+          reason: 'the resolved flags come back from the server, not the row');
+    });
+
+    test('a cleared cap omits max_discount_pct from the body', () async {
+      final transport = _JobsTransport(status: 200, body: okBody);
+      final client = ApiClient(client: transport);
+      await client.updateUserSecurity(
+        session,
+        userId: 'user-2',
+        security:
+            const UserSecurityProfile(accessLevel: PosAccessLevel.cashier),
+      );
+      final body =
+          jsonDecode(transport.lastRequestBody!) as Map<String, dynamic>;
+      expect(body.containsKey('max_discount_pct'), isFalse,
+          reason: 'null cap = fall back to the level default server-side');
+      expect(body['access_level'], 'cashier');
+      expect(body['use_custom_permissions'], isFalse);
+      expect(body['can_refund'], isFalse);
+    });
+
+    test('updateUserSecurity maps 403 to permission_denied', () async {
+      final transport = _JobsTransport(
+        status: 403,
+        body: '{"error":{"code":"permission_denied",'
+            '"message":"managers may only configure cashiers"},'
+            '"meta":{"request_id":"t"}}',
+      );
+      final client = ApiClient(client: transport);
+      await expectLater(
+        client.updateUserSecurity(
+          session,
+          userId: 'user-1',
+          security: const UserSecurityProfile(
+              accessLevel: PosAccessLevel.admin),
+        ),
+        throwsA(isA<ApiException>()
+            .having((e) => e.code, 'code', 'permission_denied')
+            .having((e) => e.message, 'message',
+                'managers may only configure cashiers')),
+      );
+    });
   });
 }
 
@@ -3159,6 +3953,77 @@ class _SessionsListClient extends http.BaseClient {
     expect(request.headers['Authorization'], 'Bearer access-token');
     const response =
         '{"data":[{"id":"session-1","status":"closed","opening_cash_minor":5000,"closing_cash_minor":5300,"expected_cash_minor":5200,"cash_difference_minor":100,"opened_at":"2026-09-11 00:46:27","closed_at":"2026-09-11 00:47:21","opened_by":"Restaurant Admin","sales_count":1,"total_minor":600}],"meta":{"request_id":"t","page":1,"limit":5,"total":1}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SummaryTransport extends http.BaseClient {
+  String? lastPath;
+  Map<String, String> lastQuery = const {};
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    lastPath = request.url.path;
+    lastQuery = request.url.queryParameters;
+    const response =
+        '{"data":{"from":"2026-10-01","to":"2026-10-06","sessions_opened":2,"sessions_closed":1,"sales_count":3,"subtotal_minor":3000,"discount_minor":100,"tax_minor":0,"total_minor":2900,"cash_minor":1900,"card_minor":700,"mobile_minor":300,"cash_difference_minor":-50,"average_sale_minor":966},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _TableUpdateClient extends http.BaseClient {
+  int status = 200;
+  String? lastMethod;
+  String? lastPath;
+  Map<String, dynamic>? lastBody;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    lastMethod = request.method;
+    lastPath = request.url.path;
+    if (request is http.Request) {
+      lastBody = jsonDecode(request.body) as Map<String, dynamic>;
+    }
+    final body = status == 200
+        ? '{"data":{"id":"table-1"}}'
+        : '{"error":{"code":"table_not_found","message":"gone"}}';
+    return http.StreamedResponse(
+      Stream.value(utf8.encode(body)),
+      status,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _SessionsQueryClient extends http.BaseClient {
+  bool expectFiltered = true;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.url.path, '/v1/registers');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final query = request.url.queryParameters;
+    if (expectFiltered) {
+      expect(query['status'], 'open');
+      expect(query['device_id'], 'device-1');
+      expect(query['from'], '2026-10-01');
+      expect(query['to'], '2026-10-06');
+    } else {
+      expect(query.containsKey('status'), isFalse);
+      expect(query.containsKey('device_id'), isFalse);
+      expect(query.containsKey('from'), isFalse);
+      expect(query.containsKey('to'), isFalse);
+    }
+    const response =
+        '{"data":[{"id":"session-1","status":"open","opening_cash_minor":100,"opened_at":"2026-10-06 09:00:00","opened_by":"Cashier One","device_id":"device-1","device_name":"Front register","sales_count":2,"total_minor":600}],"meta":{"request_id":"t","page":1,"limit":50,"total":1}}';
     return http.StreamedResponse(
       Stream.value(response.codeUnits),
       200,
@@ -4446,3 +5311,230 @@ class _WrongSurfaceClient extends http.BaseClient {
     );
   }
 }
+
+class _UsersListClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'GET');
+    expect(request.url.path, '/v1/users');
+    expect(request.url.queryParameters['page'], '1');
+    expect(request.url.queryParameters['limit'], '50');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    const response =
+        '{"data":[{"id":"user-1","email":"cashier@demo.com","display_name":'
+        '"Cashier One","role":"cashier","account_type":"standard",'
+        '"is_active":true,"permissions":{"access_level":"cashier",'
+        '"max_discount_pct":5}}],"meta":{"request_id":"t","page":1,'
+        '"limit":50,"total":7}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      200,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _CreateUserClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    expect(request.method, 'POST');
+    expect(request.url.path, '/v1/users');
+    expect(request.headers['Authorization'], 'Bearer access-token');
+    final body = await request.finalize().bytesToString();
+    expect(jsonDecode(body), {
+      'email': 'new@demo.com',
+      'display_name': 'New Cashier',
+      'password': 'secret123',
+      'role': 'cashier',
+      'account_type': 'standard',
+    });
+    const response =
+        '{"data":{"id":"user-9","email":"new@demo.com","display_name":'
+        '"New Cashier","role":"cashier","account_type":"standard",'
+        '"is_active":true,"permissions":{"access_level":"cashier"}},'
+        '"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      201,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _ConflictUserClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    const response =
+        '{"error":{"code":"user_conflict","message":"email is already in '
+        'use"},"meta":{"request_id":"t"}}';
+    return http.StreamedResponse(
+      Stream.value(response.codeUnits),
+      409,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+class _JobsTransport extends http.BaseClient {
+  _JobsTransport({required this.status, required this.body});
+
+  final int status;
+  final String body;
+  http.BaseRequest? lastRequest;
+  String? lastRequestBody;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    lastRequest = request;
+    if (request is http.Request) {
+      lastRequestBody = request.body;
+    }
+    return http.StreamedResponse(
+      Stream.value(body.codeUnits),
+      status,
+      headers: {'content-type': 'application/json'},
+    );
+  }
+}
+
+const _jobsListJson =
+    '{"data":[{"id":"job-1","company_id":"c-1","company_name":"Bakery X",'
+    '"title":"Head Chef","description":"Grill master needed",'
+    '"employment_type":"full_time","location":"Cairo","salary_minor":6500000,'
+    '"salary_currency":"EGP","skill_tags":["grill"],"is_active":true,'
+    '"closes_at":"","created_by":"u-1","created_at":"2026-10-01T10:00:00Z",'
+    '"updated_at":"2026-10-01T10:00:00Z","applied":false,"applications":3}],'
+    '"meta":{"request_id":"t","page":1,"limit":50,"total":7}}';
+
+const _jobDetailJson =
+    '{"data":{"id":"job-1","company_id":"","company_name":"",'
+    '"title":"Head Chef","description":"Grill master needed",'
+    '"employment_type":"full_time","location":"Cairo","salary_minor":6500000,'
+    '"salary_currency":"EGP","skill_tags":["grill"],"is_active":true,'
+    '"closes_at":"","created_by":"u-1","created_at":"2026-10-01T10:00:00Z",'
+    '"updated_at":"2026-10-01T10:00:00Z","applied":false,"applications":0},'
+    '"meta":{"request_id":"t"}}';
+
+const _jobApplicationJson =
+    '{"data":{"id":"app-1","job_offer_id":"job-1","job_title":"Head Chef",'
+    '"applicant_id":"user-1","display_name":"Sara Chef",'
+    '"headline":"Head Chef","cover_note":"Hello","resume":{},'
+    '"status":"applied","created_at":"2026-10-02T10:00:00Z"},'
+    '"meta":{"request_id":"t"}}';
+
+const _jobApplicationsJson =
+    '{"data":[{"id":"app-1","job_offer_id":"job-1","job_title":"Head Chef",'
+    '"applicant_id":"user-1","display_name":"Sara Chef",'
+    '"headline":"Head Chef","cover_note":"Hello","resume":{},'
+    '"status":"under_review","created_at":"2026-10-02T10:00:00Z"}],'
+    '"meta":{"request_id":"t","applied_total":4}}';
+
+const _alreadyAppliedErrorJson =
+    '{"error":{"code":"already_applied","message":"already applied to this '
+    'job"},"meta":{"request_id":"t"}}';
+
+const _metaOnlyJson = '{"meta":{"request_id":"t"}}';
+
+const _badgesListJson =
+    '{"data":[{"id":"badge-1","code":"top-seller","name":"Top Seller",'
+    '"description":"Ten sales in a day","icon":"star","criteria":{},'
+    '"is_active":true,"created_at":"2026-10-01T10:00:00Z","earned_count":4},'
+    '{"id":"badge-2","code":"old-badge","name":"Old Badge",'
+    '"description":"","icon":"military_tech","criteria":{},'
+    '"is_active":false,"created_at":"2026-09-01T10:00:00Z","earned_count":0}],'
+    '"meta":{"request_id":"t","page":3,"limit":100,"total":2}}';
+
+const _badgeJson =
+    '{"data":{"id":"badge-1","code":"top-seller","name":"Top Seller",'
+    '"description":"Ten sales in a day","icon":"star","criteria":{},'
+    '"is_active":true,"created_at":"2026-10-01T10:00:00Z","earned_count":0},'
+    '"meta":{"request_id":"t"}}';
+
+const _profileBadgesJson =
+    '{"data":[{"badge_id":"badge-1","code":"top-seller",'
+    '"name":"Top Seller","description":"","icon":"star","note":"Beat target",'
+    '"awarded_at":"2026-10-02T10:00:00Z","awarded_by_name":"Store Manager"}],'
+    '"meta":{"request_id":"t","total":1}}';
+
+const _profileBadgeJson =
+    '{"data":{"badge_id":"badge-1","code":"top-seller",'
+    '"name":"Top Seller","description":"","icon":"star","note":"Beat target",'
+    '"awarded_at":"2026-10-02T10:00:00Z","awarded_by_name":"Store Manager"},'
+    '"meta":{"request_id":"t"}}';
+
+const _endorsementsJson =
+    '{"data":[{"skill":"grill","count":3,'
+    '"givers":[{"id":"end-1","giver_id":"user-2","giver_name":"Sara Chef",'
+    '"note":"solid","created_at":"2026-10-02T10:00:00Z"},'
+    '{"id":"end-2","giver_id":"user-3","giver_name":"Omar Grill",'
+    '"note":"","created_at":"2026-10-03T10:00:00Z"}],'
+    '"my_endorsement_id":""},'
+    '{"skill":"stock","count":1,'
+    '"givers":[{"id":"end-9","giver_id":"user-1","giver_name":"Store Manager",'
+    '"note":"","created_at":"2026-10-04T10:00:00Z"}],'
+    '"my_endorsement_id":"end-9"}],'
+    '"meta":{"request_id":"t","total":2}}';
+
+const _endorsementJson =
+    '{"data":{"id":"end-1","skill":"grill","note":"solid",'
+    '"giver_id":"user-1","giver_name":"Store Manager",'
+    '"receiver_id":"user-9","created_at":"2026-10-04T10:00:00Z"},'
+    '"meta":{"request_id":"t"}}';
+
+const _forumCategoriesJson =
+    '{"data":[{"id":"cat-1","name":"Kitchen Talk","slug":"kitchen-talk",'
+    '"description":"Boards for the floor team","sort_order":0,'
+    '"is_active":true,"post_count":3,"created_at":"2026-10-01T10:00:00Z"},'
+    '{"id":"cat-2","name":"Old Board","slug":"old-board","description":"",'
+    '"sort_order":1,"is_active":false,"post_count":0,'
+    '"created_at":"2026-10-01T11:00:00Z"}],'
+    '"meta":{"request_id":"t","total":2}}';
+
+const _forumCategoryJson =
+    '{"data":{"id":"cat-1","name":"Kitchen Talk","slug":"kitchen-talk",'
+    '"description":"Boards for the floor team","sort_order":0,'
+    '"is_active":true,"post_count":0,"created_at":"2026-10-01T10:00:00Z"},'
+    '"meta":{"request_id":"t"}}';
+
+const _forumPostsJson =
+    '{"data":[{"id":"post-1","category_id":"cat-1",'
+    '"category_name":"Kitchen Talk","author_id":"user-2",'
+    '"author_name":"Cashier One","title":"Grill station tips",'
+    '"body":"Preheat before service.","is_pinned":false,"is_closed":false,'
+    '"created_at":"2026-10-02T10:00:00Z","updated_at":"2026-10-02T10:00:00Z",'
+    '"comment_count":2,"like_count":3,"liked_by_me":true,"is_author":false},'
+    '{"id":"post-2","category_id":"cat-1","category_name":"Kitchen Talk",'
+    '"author_id":"user-1","author_name":"Store Manager",'
+    '"title":"Shift handover","body":"","is_pinned":true,"is_closed":true,'
+    '"created_at":"2026-10-01T10:00:00Z","updated_at":"2026-10-01T10:00:00Z",'
+    '"comment_count":0,"like_count":0,"liked_by_me":false,"is_author":true}],'
+    '"meta":{"request_id":"t","page":2,"limit":50,"total":7}}';
+
+const _forumPostJson =
+    '{"data":{"id":"post-1","category_id":"cat-1",'
+    '"category_name":"Kitchen Talk","author_id":"user-1",'
+    '"author_name":"Store Manager","title":"Grill station tips",'
+    '"body":"Preheat before service.","is_pinned":true,"is_closed":false,'
+    '"created_at":"2026-10-02T10:00:00Z","updated_at":"2026-10-02T10:00:00Z",'
+    '"comment_count":0,"like_count":0,"liked_by_me":false,"is_author":true},'
+    '"meta":{"request_id":"t"}}';
+
+const _forumDetailJson =
+    '{"data":{"id":"post-1","category_id":"cat-1",'
+    '"category_name":"Kitchen Talk","author_id":"user-2",'
+    '"author_name":"Cashier One","title":"Grill station tips",'
+    '"body":"Preheat before service.","is_pinned":false,"is_closed":false,'
+    '"created_at":"2026-10-02T10:00:00Z","updated_at":"2026-10-02T10:00:00Z",'
+    '"comment_count":1,"like_count":0,"liked_by_me":false,"is_author":false},'
+    '"comments":[{"id":"c-1","post_id":"post-1","author_id":"user-1",'
+    '"author_name":"Store Manager","body":"Agreed.",'
+    '"created_at":"2026-10-02T11:00:00Z"}],'
+    '"meta":{"request_id":"t"}}';
+
+const _forumCommentJson =
+    '{"data":{"id":"c-2","post_id":"post-1","author_id":"user-1",'
+    '"author_name":"Store Manager","body":"Noted.",'
+    '"created_at":"2026-10-02T12:00:00Z"},"meta":{"request_id":"t"}}';
+
+const _forumLikeJson =
+    '{"data":{"liked":true,"like_count":4},"meta":{"request_id":"t"}}';

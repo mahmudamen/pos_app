@@ -20,6 +20,7 @@ import 'saas.dart';
 import 'security.dart';
 import 'selforder.dart';
 import 'session_store.dart';
+import 'users.dart';
 
 /// SaaS control-plane models live in saas.dart (exported for convenience).
 export 'saas.dart' show SaasSummary, SaasTenant, SaasTenantsPage;
@@ -283,6 +284,33 @@ class ApiClient {
       page: (meta['page'] as num).toInt(),
       limit: (meta['limit'] as num).toInt(),
     );
+  }
+
+  /// Aggregated register activity for `[from, to)` — same bound syntax as
+  /// [sessions]; an absent bound leaves that side of the window open.
+  Future<RangeSummary> sessionSummary(
+    Session session, {
+    String? from,
+    String? to,
+  }) async {
+    final uri = Uri.parse('$baseUrl/v1/registers/summary').replace(
+      queryParameters: {
+        if (from != null && from.isNotEmpty) 'from': from,
+        if (to != null && to.isNotEmpty) 'to': to,
+      },
+    );
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(uri, headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return RangeSummary.fromJson(body['data'] as Map<String, dynamic>);
   }
 
   Future<List<Product>> products(Session session, {String search = ''}) async {
@@ -1559,6 +1587,98 @@ class ApiClient {
         jsonDecode(respond.body)['data'] as Map<String, dynamic>);
   }
 
+  Future<TenantUsersPage> listUsers(
+    Session session, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/users?page=$page&limit=$limit'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return TenantUsersPage(
+      users: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => TenantUser.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: _toIntValue(meta['total']),
+      page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+    );
+  }
+
+  Future<TenantUser> createUser(
+    Session session, {
+    required String email,
+    required String displayName,
+    required String password,
+    required String role,
+    String accountType = 'standard',
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/users'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'email': email,
+          'display_name': displayName,
+          'password': password,
+          'role': role,
+          'account_type': accountType,
+        }),
+      ),
+    );
+    if (response.statusCode != 201) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TenantUser.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Saves a user's raw POS security profile (`PUT /users/:id/security`).
+  /// Returns the RESOLVED permissions the backend computed from the saved row.
+  Future<UserPermissions> updateUserSecurity(
+    Session session, {
+    required String userId,
+    required UserSecurityProfile security,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.put(
+        Uri.parse('$baseUrl/v1/users/$userId/security'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(security.toJson()),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final payload = data['data'] as Map<String, dynamic>? ?? const {};
+    return UserPermissions.fromJson(
+        payload['permissions'] as Map<String, dynamic>? ?? const {});
+  }
+
   Future<ProfilesPage> listProfiles(
     Session session, {
     String query = '',
@@ -2071,6 +2191,763 @@ class ApiClient {
     }
     return NationalMember.fromJson(
         jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<JobsPage> listJobs(
+    Session session, {
+    String query = '',
+    String companyId = '',
+    String type = '',
+    bool mine = false,
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final buffer = StringBuffer('/v1/community/jobs?page=$page&limit=$limit');
+    if (query.isNotEmpty) {
+      buffer.write('&q=${Uri.encodeQueryComponent(query)}');
+    }
+    if (companyId.isNotEmpty) {
+      buffer.write('&company_id=${Uri.encodeComponent(companyId)}');
+    }
+    if (type.isNotEmpty) {
+      buffer.write('&type=${Uri.encodeComponent(type)}');
+    }
+    if (mine) {
+      buffer.write('&mine=1');
+    }
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl$buffer'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body);
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return JobsPage(
+      jobs: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => JobOffer.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: _toIntValue(meta['total']),
+      page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+    );
+  }
+
+  Future<JobOffer> getJob(Session session, String jobId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/community/jobs/${Uri.encodeComponent(jobId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return JobOffer.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<JobOffer> createJob(
+    Session session, {
+    required String title,
+    String description = '',
+    String employmentType = 'full_time',
+    String location = '',
+    int salaryMinor = 0,
+    String salaryCurrency = 'EGP',
+    List<String> skillTags = const [],
+    String companyId = '',
+    String closesAt = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/jobs'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'title': title,
+          if (description.isNotEmpty) 'description': description,
+          'employment_type': employmentType,
+          if (location.isNotEmpty) 'location': location,
+          if (salaryMinor > 0) 'salary_minor': salaryMinor,
+          'salary_currency': salaryCurrency,
+          if (skillTags.isNotEmpty) 'skill_tags': skillTags,
+          if (companyId.isNotEmpty) 'company_id': companyId,
+          if (closesAt.isNotEmpty) 'closes_at': closesAt,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return JobOffer.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<JobOffer> updateJob(
+    Session session,
+    String jobId, {
+    String? title,
+    String? description,
+    String? employmentType,
+    String? location,
+    int? salaryMinor,
+    String? salaryCurrency,
+    List<String>? skillTags,
+    String? companyId,
+    String? closesAt,
+    bool? isActive,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse('$baseUrl/v1/community/jobs/${Uri.encodeComponent(jobId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (title != null && title.isNotEmpty) 'title': title,
+          if (description != null) 'description': description,
+          if (employmentType != null && employmentType.isNotEmpty)
+            'employment_type': employmentType,
+          if (location != null) 'location': location,
+          if (salaryMinor != null) 'salary_minor': salaryMinor,
+          if (salaryCurrency != null && salaryCurrency.isNotEmpty)
+            'salary_currency': salaryCurrency,
+          if (skillTags != null) 'skill_tags': skillTags,
+          if (companyId != null) 'company_id': companyId,
+          if (closesAt != null) 'closes_at': closesAt,
+          if (isActive != null) 'is_active': isActive,
+        }),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return JobOffer.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> deleteJob(Session session, String jobId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.delete(
+        Uri.parse('$baseUrl/v1/community/jobs/${Uri.encodeComponent(jobId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+  }
+
+  Future<JobApplication> applyToJob(
+    Session session,
+    String jobId, {
+    String coverNote = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse(
+            '$baseUrl/v1/community/jobs/${Uri.encodeComponent(jobId)}/apply'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'cover_note': coverNote}),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return JobApplication.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<JobApplicationsPage> listJobApplications(
+      Session session, String jobId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/community/jobs/${Uri.encodeComponent(jobId)}/applications'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body);
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return JobApplicationsPage(
+      applications: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => JobApplication.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      appliedTotal: _toIntValue(meta['applied_total']),
+    );
+  }
+
+  Future<void> updateApplicationStatus(
+      Session session, String applicationId, String status) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse(
+            '$baseUrl/v1/community/applications/${Uri.encodeComponent(applicationId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'status': status}),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+  }
+
+  Future<List<BadgeDefinition>> listBadges(
+    Session session, {
+    String query = '',
+    bool includeInactive = false,
+    int page = 1,
+    int limit = 100,
+  }) async {
+    final parameters = <String, String>{
+      'page': '$page',
+      'limit': '$limit',
+      if (query.isNotEmpty) 'q': query,
+      if (includeInactive) 'all': '1',
+    };
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/community/badges')
+            .replace(queryParameters: parameters),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return (jsonDecode(respond.body)['data'] as List<dynamic>? ?? [])
+        .map((e) => BadgeDefinition.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<BadgeDefinition> createBadge(
+    Session session, {
+    required String code,
+    required String name,
+    String description = '',
+    String icon = 'military_tech',
+    Map<String, dynamic> criteria = const {},
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/badges'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'code': code,
+          'name': name,
+          if (description.isNotEmpty) 'description': description,
+          'icon': icon,
+          if (criteria.isNotEmpty) 'criteria': criteria,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return BadgeDefinition.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<BadgeDefinition> updateBadge(
+    Session session,
+    String badgeId, {
+    String? name,
+    String? description,
+    String? icon,
+    bool? isActive,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse('$baseUrl/v1/community/badges/${Uri.encodeComponent(badgeId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (name != null) 'name': name,
+          if (description != null) 'description': description,
+          if (icon != null) 'icon': icon,
+          if (isActive != null) 'is_active': isActive,
+        }),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return BadgeDefinition.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<UserBadge>> listProfileBadges(
+      Session session, String userId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/community/profiles/${Uri.encodeComponent(userId)}/badges'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return (jsonDecode(respond.body)['data'] as List<dynamic>? ?? [])
+        .map((e) => UserBadge.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<UserBadge> awardProfileBadge(
+    Session session,
+    String userId, {
+    required String badgeId,
+    String note = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse(
+            '$baseUrl/v1/community/profiles/${Uri.encodeComponent(userId)}/badges'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'badge_id': badgeId,
+          if (note.isNotEmpty) 'note': note,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return UserBadge.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> revokeProfileBadge(
+      Session session, String userId, String badgeId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.delete(
+        Uri.parse(
+            '$baseUrl/v1/community/profiles/${Uri.encodeComponent(userId)}/badges/${Uri.encodeComponent(badgeId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+  }
+
+  Future<List<EndorsementGroup>> listProfileEndorsements(
+      Session session, String userId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/community/profiles/${Uri.encodeComponent(userId)}/endorsements'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return (jsonDecode(respond.body)['data'] as List<dynamic>? ?? [])
+        .map((e) => EndorsementGroup.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<Endorsement> endorsePeer(
+    Session session, {
+    required String receiverId,
+    required String skill,
+    String note = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/endorsements'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'receiver_id': receiverId,
+          'skill': skill,
+          if (note.isNotEmpty) 'note': note,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return Endorsement.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> withdrawEndorsement(Session session, String endorsementId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.delete(
+        Uri.parse(
+            '$baseUrl/v1/community/endorsements/${Uri.encodeComponent(endorsementId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+  }
+
+  Future<ForumCategoriesPage> listForumCategories(
+    Session session, {
+    bool includeInactive = false,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/categories${includeInactive ? '?all=1' : ''}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body);
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return ForumCategoriesPage(
+      categories: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => ForumCategory.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: _toIntValue(meta['total']),
+    );
+  }
+
+  Future<ForumCategory> createForumCategory(
+    Session session, {
+    required String name,
+    String slug = '',
+    String description = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/forum/categories'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'name': name,
+          if (slug.isNotEmpty) 'slug': slug,
+          if (description.isNotEmpty) 'description': description,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return ForumCategory.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<ForumCategory> updateForumCategory(
+    Session session,
+    String categoryId, {
+    String? name,
+    String? slug,
+    String? description,
+    bool? isActive,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/categories/${Uri.encodeComponent(categoryId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (name != null) 'name': name,
+          if (slug != null) 'slug': slug,
+          if (description != null) 'description': description,
+          if (isActive != null) 'is_active': isActive,
+        }),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return ForumCategory.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<ForumPostsPage> listForumPosts(
+    Session session, {
+    String query = '',
+    String categoryId = '',
+    String sort = 'latest',
+    int page = 1,
+    int limit = 50,
+  }) async {
+    final buffer = StringBuffer('/v1/community/forum/posts?page=$page&limit=$limit');
+    if (query.isNotEmpty) {
+      buffer.write('&q=${Uri.encodeQueryComponent(query)}');
+    }
+    if (categoryId.isNotEmpty) {
+      buffer.write('&category_id=${Uri.encodeComponent(categoryId)}');
+    }
+    if (sort.isNotEmpty) {
+      buffer.write('&sort=$sort');
+    }
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl$buffer'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body);
+    final meta = (data['meta'] as Map<String, dynamic>?) ?? const {};
+    return ForumPostsPage(
+      posts: (data['data'] as List<dynamic>? ?? [])
+          .map((e) => ForumPost.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      total: _toIntValue(meta['total']),
+      page: _toIntValue(meta['page']) == 0 ? page : _toIntValue(meta['page']),
+      limit:
+          _toIntValue(meta['limit']) == 0 ? limit : _toIntValue(meta['limit']),
+    );
+  }
+
+  Future<ForumPost> createForumPost(
+    Session session, {
+    required String categoryId,
+    required String title,
+    String body = '',
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/community/forum/posts'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'category_id': categoryId,
+          'title': title,
+          if (body.isNotEmpty) 'body': body,
+        }),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return ForumPost.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<ForumPostDetail> getForumPost(Session session, String postId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/posts/${Uri.encodeComponent(postId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data = jsonDecode(respond.body) as Map<String, dynamic>;
+    return ForumPostDetail(
+      post: ForumPost.fromJson(data['data'] as Map<String, dynamic>),
+      comments: (data['comments'] as List<dynamic>? ?? [])
+          .map((e) => ForumComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  Future<ForumPost> updateForumPost(
+    Session session,
+    String postId, {
+    String? title,
+    String? body,
+    bool? isPinned,
+    bool? isClosed,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/posts/${Uri.encodeComponent(postId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (title != null) 'title': title,
+          if (body != null) 'body': body,
+          if (isPinned != null) 'is_pinned': isPinned,
+          if (isClosed != null) 'is_closed': isClosed,
+        }),
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return ForumPost.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> deleteForumPost(Session session, String postId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.delete(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/posts/${Uri.encodeComponent(postId)}'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+  }
+
+  Future<ForumComment> createForumComment(
+    Session session,
+    String postId, {
+    required String body,
+  }) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/posts/${Uri.encodeComponent(postId)}/comments'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'body': body}),
+      ),
+    );
+    if (respond.statusCode != 201) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    return ForumComment.fromJson(
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<ForumLikeResult> toggleForumLike(Session session, String postId) async {
+    final respond = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse(
+            '$baseUrl/v1/community/forum/posts/${Uri.encodeComponent(postId)}/like'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (respond.statusCode != 200) {
+      throw ApiException(_message(respond), code: _errorCode(respond));
+    }
+    final data =
+        jsonDecode(respond.body)['data'] as Map<String, dynamic>? ?? const {};
+    return ForumLikeResult(
+      liked: data['liked'] as bool? ?? false,
+      likeCount: _toIntValue(data['like_count']),
+    );
   }
 
   Future<AdjustmentResult> createInventoryAdjustment(
@@ -2672,9 +3549,20 @@ class ApiClient {
     Session session, {
     int page = 1,
     int limit = 50,
+    String? status,
+    String? deviceId,
+    String? from,
+    String? to,
   }) async {
     final uri = Uri.parse('$baseUrl/v1/registers').replace(
-      queryParameters: {'page': '$page', 'limit': '$limit'},
+      queryParameters: {
+        'page': '$page',
+        'limit': '$limit',
+        if (status != null && status.isNotEmpty) 'status': status,
+        if (deviceId != null && deviceId.isNotEmpty) 'device_id': deviceId,
+        if (from != null && from.isNotEmpty) 'from': from,
+        if (to != null && to.isNotEmpty) 'to': to,
+      },
     );
     final response = await _authenticatedRequest(
       session,
@@ -2756,6 +3644,35 @@ class ApiClient {
         .map((item) => RestaurantTable.fromJson(item as Map<String, dynamic>))
         .toList();
   }
+
+  Future<void> updateTable(
+    Session session,
+    String tableId, {
+    String? status,
+    int? seats,
+    String? name,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse('$baseUrl/v1/tables/$tableId'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (status != null) 'status': status,
+          if (seats != null) 'seats': seats,
+          if (name != null) 'name': name,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+  }
+
   Future<Floor> createFloor(
     Session session, {
     required String name,

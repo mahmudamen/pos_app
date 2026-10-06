@@ -94,6 +94,8 @@ class SessionListItem {
     required this.openedAt,
     this.closedAt,
     required this.openedBy,
+    this.deviceId = '',
+    this.deviceName = '',
     required this.salesCount,
     required this.totalMinor,
   });
@@ -109,6 +111,8 @@ class SessionListItem {
         openedAt: json['opened_at'] as String? ?? '',
         closedAt: json['closed_at'] as String?,
         openedBy: json['opened_by'] as String? ?? '',
+        deviceId: json['device_id'] as String? ?? '',
+        deviceName: json['device_name'] as String? ?? '',
         salesCount: (json['sales_count'] as num?)?.toInt() ?? 0,
         totalMinor: (json['total_minor'] as num?)?.toInt() ?? 0,
       );
@@ -122,6 +126,8 @@ class SessionListItem {
   final String openedAt;
   final String? closedAt;
   final String openedBy;
+  final String deviceId;
+  final String deviceName;
   final int salesCount;
   final int totalMinor;
 
@@ -140,6 +146,55 @@ class SessionsPage {
   final int total;
   final int page;
   final int limit;
+}
+
+/// Aggregated register activity for a date window
+/// (`GET /v1/registers/summary`): shifts opened/closed, the Z-report sales
+/// figures with their tender mix, and the net drawer difference of the shifts
+/// that closed inside the window.
+class RangeSummary {
+  const RangeSummary({
+    required this.sessionsOpened,
+    required this.sessionsClosed,
+    required this.salesCount,
+    required this.subtotalMinor,
+    required this.discountMinor,
+    required this.taxMinor,
+    required this.totalMinor,
+    required this.cashMinor,
+    required this.cardMinor,
+    required this.mobileMinor,
+    required this.cashDifferenceMinor,
+    required this.averageSaleMinor,
+  });
+
+  factory RangeSummary.fromJson(Map<String, dynamic> json) => RangeSummary(
+        sessionsOpened: (json['sessions_opened'] as num?)?.toInt() ?? 0,
+        sessionsClosed: (json['sessions_closed'] as num?)?.toInt() ?? 0,
+        salesCount: (json['sales_count'] as num?)?.toInt() ?? 0,
+        subtotalMinor: (json['subtotal_minor'] as num?)?.toInt() ?? 0,
+        discountMinor: (json['discount_minor'] as num?)?.toInt() ?? 0,
+        taxMinor: (json['tax_minor'] as num?)?.toInt() ?? 0,
+        totalMinor: (json['total_minor'] as num?)?.toInt() ?? 0,
+        cashMinor: (json['cash_minor'] as num?)?.toInt() ?? 0,
+        cardMinor: (json['card_minor'] as num?)?.toInt() ?? 0,
+        mobileMinor: (json['mobile_minor'] as num?)?.toInt() ?? 0,
+        cashDifferenceMinor: (json['cash_difference_minor'] as num?)?.toInt() ?? 0,
+        averageSaleMinor: (json['average_sale_minor'] as num?)?.toInt() ?? 0,
+      );
+
+  final int sessionsOpened;
+  final int sessionsClosed;
+  final int salesCount;
+  final int subtotalMinor;
+  final int discountMinor;
+  final int taxMinor;
+  final int totalMinor;
+  final int cashMinor;
+  final int cardMinor;
+  final int mobileMinor;
+  final int cashDifferenceMinor;
+  final int averageSaleMinor;
 }
 /// A shift that exists only on this device.
 ///

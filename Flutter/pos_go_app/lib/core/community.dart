@@ -406,6 +406,568 @@ class CompaniesPage {
   final int limit;
 }
 
+/// A job posting (community slice 2), mirroring the Go `JobOffer` wire shape.
+@immutable
+class JobOffer {
+  const JobOffer({
+    required this.id,
+    required this.title,
+    this.companyId = '',
+    this.companyName = '',
+    this.description = '',
+    this.employmentType = 'full_time',
+    this.location = '',
+    this.salaryMinor = 0,
+    this.salaryCurrency = 'EGP',
+    this.skillTags = const [],
+    this.isActive = true,
+    this.closesAt = '',
+    this.createdBy = '',
+    this.createdAt = '',
+    this.updatedAt = '',
+    this.applied = false,
+    this.applications = 0,
+  });
+
+  factory JobOffer.fromJson(Map<String, dynamic> json) => JobOffer(
+        id: json['id'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        companyId: json['company_id'] as String? ?? '',
+        companyName: json['company_name'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        employmentType: json['employment_type'] as String? ?? 'full_time',
+        location: json['location'] as String? ?? '',
+        salaryMinor: _toInt(json['salary_minor']),
+        salaryCurrency: json['salary_currency'] as String? ?? 'EGP',
+        skillTags: (json['skill_tags'] as List<dynamic>? ?? [])
+            .map((e) => e.toString())
+            .toList(),
+        isActive: json['is_active'] as bool? ?? true,
+        closesAt: json['closes_at'] as String? ?? '',
+        createdBy: json['created_by'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+        updatedAt: json['updated_at'] as String? ?? '',
+        applied: json['applied'] as bool? ?? false,
+        applications: _toInt(json['applications']),
+      );
+
+  final String id;
+  final String title;
+  final String companyId;
+  final String companyName;
+  final String description;
+  final String employmentType;
+  final String location;
+  final int salaryMinor;
+  final String salaryCurrency;
+  final List<String> skillTags;
+  final bool isActive;
+  final String closesAt;
+  final String createdBy;
+  final String createdAt;
+  final String updatedAt;
+  final bool applied;
+  final int applications;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is JobOffer &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          companyId == other.companyId &&
+          companyName == other.companyName &&
+          description == other.description &&
+          employmentType == other.employmentType &&
+          location == other.location &&
+          salaryMinor == other.salaryMinor &&
+          salaryCurrency == other.salaryCurrency &&
+          listEquals(skillTags, other.skillTags) &&
+          isActive == other.isActive &&
+          closesAt == other.closesAt &&
+          createdBy == other.createdBy &&
+          createdAt == other.createdAt &&
+          updatedAt == other.updatedAt &&
+          applied == other.applied &&
+          applications == other.applications;
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      title,
+      companyId,
+      companyName,
+      description,
+      employmentType,
+      location,
+      salaryMinor,
+      salaryCurrency,
+      isActive,
+      closesAt,
+      createdBy,
+      createdAt,
+      updatedAt,
+      applied,
+      applications,
+      Object.hashAll(skillTags));
+}
+
+/// One application to a job (community slice 2), mirroring the Go
+/// `JobApplication` wire struct.
+@immutable
+class JobApplication {
+  const JobApplication({
+    required this.id,
+    required this.jobOfferId,
+    required this.applicantId,
+    this.jobTitle = '',
+    this.displayName = '',
+    this.headline = '',
+    this.coverNote = '',
+    this.resume = const {},
+    this.status = 'applied',
+    this.createdAt = '',
+  });
+
+  factory JobApplication.fromJson(Map<String, dynamic> json) => JobApplication(
+        id: json['id'] as String? ?? '',
+        jobOfferId: json['job_offer_id'] as String? ?? '',
+        jobTitle: json['job_title'] as String? ?? '',
+        applicantId: json['applicant_id'] as String? ?? '',
+        displayName: json['display_name'] as String? ?? '',
+        headline: json['headline'] as String? ?? '',
+        coverNote: json['cover_note'] as String? ?? '',
+        resume: (json['resume'] as Map<String, dynamic>?) ?? const {},
+        status: json['status'] as String? ?? 'applied',
+        createdAt: json['created_at'] as String? ?? '',
+      );
+
+  final String id;
+  final String jobOfferId;
+  final String jobTitle;
+  final String applicantId;
+  final String displayName;
+  final String headline;
+  final String coverNote;
+  final Map<String, dynamic> resume;
+  final String status;
+  final String createdAt;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is JobApplication &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          jobOfferId == other.jobOfferId &&
+          jobTitle == other.jobTitle &&
+          applicantId == other.applicantId &&
+          displayName == other.displayName &&
+          headline == other.headline &&
+          coverNote == other.coverNote &&
+          status == other.status &&
+          createdAt == other.createdAt;
+
+  @override
+  int get hashCode => Object.hash(id, jobOfferId, jobTitle, applicantId,
+      displayName, headline, coverNote, status, createdAt);
+}
+
+class JobsPage {
+  const JobsPage({
+    required this.jobs,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  final List<JobOffer> jobs;
+  final int total;
+  final int page;
+  final int limit;
+}
+
+class JobApplicationsPage {
+  const JobApplicationsPage({
+    required this.applications,
+    required this.appliedTotal,
+  });
+
+  final List<JobApplication> applications;
+  final int appliedTotal;
+}
+
+/// A tenant badge in the catalog (community slice 3), mirroring the Go
+/// `BadgeDefinition` wire struct.
+@immutable
+class BadgeDefinition {
+  const BadgeDefinition({
+    required this.id,
+    required this.code,
+    required this.name,
+    this.description = '',
+    this.icon = 'military_tech',
+    this.criteria = const {},
+    this.isActive = true,
+    this.createdAt = '',
+    this.earnedCount = 0,
+  });
+
+  factory BadgeDefinition.fromJson(Map<String, dynamic> json) =>
+      BadgeDefinition(
+        id: json['id'] as String? ?? '',
+        code: json['code'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        icon: json['icon'] as String? ?? 'military_tech',
+        criteria: (json['criteria'] as Map<String, dynamic>?) ?? const {},
+        isActive: json['is_active'] as bool? ?? true,
+        createdAt: json['created_at'] as String? ?? '',
+        earnedCount: _toInt(json['earned_count']),
+      );
+
+  final String id;
+  final String code;
+  final String name;
+  final String description;
+  final String icon;
+  final Map<String, dynamic> criteria;
+  final bool isActive;
+  final String createdAt;
+  final int earnedCount;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BadgeDefinition &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          code == other.code &&
+          name == other.name &&
+          description == other.description &&
+          icon == other.icon &&
+          isActive == other.isActive &&
+          createdAt == other.createdAt &&
+          earnedCount == other.earnedCount;
+
+  @override
+  int get hashCode => Object.hash(
+      id, code, name, description, icon, isActive, createdAt, earnedCount);
+}
+
+/// One badge awarded to one user (community slice 3), mirroring the Go
+/// `UserBadge` wire struct.
+@immutable
+class UserBadge {
+  const UserBadge({
+    required this.badgeId,
+    required this.code,
+    required this.name,
+    this.description = '',
+    this.icon = 'military_tech',
+    this.note = '',
+    this.awardedAt = '',
+    this.awardedByName = '',
+  });
+
+  factory UserBadge.fromJson(Map<String, dynamic> json) => UserBadge(
+        badgeId: json['badge_id'] as String? ?? '',
+        code: json['code'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        icon: json['icon'] as String? ?? 'military_tech',
+        note: json['note'] as String? ?? '',
+        awardedAt: json['awarded_at'] as String? ?? '',
+        awardedByName: json['awarded_by_name'] as String? ?? '',
+      );
+
+  final String badgeId;
+  final String code;
+  final String name;
+  final String description;
+  final String icon;
+  final String note;
+  final String awardedAt;
+  final String awardedByName;
+}
+
+/// One peer inside an endorsement group (community slice 3).
+@immutable
+class EndorsementGiver {
+  const EndorsementGiver({
+    required this.id,
+    required this.giverId,
+    required this.giverName,
+    this.note = '',
+    this.createdAt = '',
+  });
+
+  factory EndorsementGiver.fromJson(Map<String, dynamic> json) =>
+      EndorsementGiver(
+        id: json['id'] as String? ?? '',
+        giverId: json['giver_id'] as String? ?? '',
+        giverName: json['giver_name'] as String? ?? '',
+        note: json['note'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+      );
+
+  final String id;
+  final String giverId;
+  final String giverName;
+  final String note;
+  final String createdAt;
+}
+
+/// One skill's endorsement tally for a receiver (community slice 3),
+/// mirroring the Go `EndorsementGroup` wire struct.
+@immutable
+class EndorsementGroup {
+  const EndorsementGroup({
+    required this.skill,
+    required this.count,
+    this.givers = const [],
+    this.myEndorsementId = '',
+  });
+
+  factory EndorsementGroup.fromJson(Map<String, dynamic> json) =>
+      EndorsementGroup(
+        skill: json['skill'] as String? ?? '',
+        count: _toInt(json['count']),
+        givers: (json['givers'] as List<dynamic>? ?? [])
+            .map((e) => EndorsementGiver.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        myEndorsementId: json['my_endorsement_id'] as String? ?? '',
+      );
+
+  final String skill;
+  final int count;
+  final List<EndorsementGiver> givers;
+
+  /// Non-empty when the viewer already endorsed this skill (their own
+  /// endorsement's id — used to offer a withdraw action).
+  final String myEndorsementId;
+
+  bool get endorsedByMe => myEndorsementId.isNotEmpty;
+}
+
+/// A single endorsement as returned from create (community slice 3).
+@immutable
+class Endorsement {
+  const Endorsement({
+    required this.id,
+    required this.skill,
+    required this.receiverId,
+    this.note = '',
+    this.giverId = '',
+    this.giverName = '',
+    this.createdAt = '',
+  });
+
+  factory Endorsement.fromJson(Map<String, dynamic> json) => Endorsement(
+        id: json['id'] as String? ?? '',
+        skill: json['skill'] as String? ?? '',
+        note: json['note'] as String? ?? '',
+        giverId: json['giver_id'] as String? ?? '',
+        giverName: json['giver_name'] as String? ?? '',
+        receiverId: json['receiver_id'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+      );
+
+  final String id;
+  final String skill;
+  final String note;
+  final String giverId;
+  final String giverName;
+  final String receiverId;
+  final String createdAt;
+}
+
+/// One board (category) in the staff forum.
+class ForumCategory {
+  const ForumCategory({
+    required this.id,
+    required this.name,
+    this.slug = '',
+    this.description = '',
+    this.sortOrder = 0,
+    this.isActive = true,
+    this.postCount = 0,
+    this.createdAt = '',
+  });
+
+  final String id;
+  final String name;
+  final String slug;
+  final String description;
+  final int sortOrder;
+  final bool isActive;
+  final int postCount;
+  final String createdAt;
+
+  factory ForumCategory.fromJson(Map<String, dynamic> json) => ForumCategory(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        slug: json['slug'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        sortOrder: _toInt(json['sort_order']),
+        isActive: json['is_active'] as bool? ?? true,
+        postCount: _toInt(json['post_count']),
+        createdAt: json['created_at'] as String? ?? '',
+      );
+}
+
+/// One thread in the staff forum, with the list-view aggregates the client
+/// renders inline (counts, viewer state, moderation flags).
+class ForumPost {
+  const ForumPost({
+    required this.id,
+    required this.categoryId,
+    this.categoryName = '',
+    this.authorId = '',
+    this.authorName = '',
+    required this.title,
+    this.body = '',
+    this.isPinned = false,
+    this.isClosed = false,
+    this.commentCount = 0,
+    this.likeCount = 0,
+    this.likedByMe = false,
+    this.isAuthor = false,
+    this.createdAt = '',
+    this.updatedAt = '',
+  });
+
+  final String id;
+  final String categoryId;
+  final String categoryName;
+  final String authorId;
+  final String authorName;
+  final String title;
+  final String body;
+  final bool isPinned;
+  final bool isClosed;
+  final int commentCount;
+  final int likeCount;
+  final bool likedByMe;
+  final bool isAuthor;
+  final String createdAt;
+  final String updatedAt;
+
+  ForumPost copyWith({
+    bool? isPinned,
+    bool? isClosed,
+    bool? likedByMe,
+    int? likeCount,
+    int? commentCount,
+    String? title,
+    String? body,
+  }) =>
+      ForumPost(
+        id: id,
+        categoryId: categoryId,
+        categoryName: categoryName,
+        authorId: authorId,
+        authorName: authorName,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        isPinned: isPinned ?? this.isPinned,
+        isClosed: isClosed ?? this.isClosed,
+        commentCount: commentCount ?? this.commentCount,
+        likeCount: likeCount ?? this.likeCount,
+        likedByMe: likedByMe ?? this.likedByMe,
+        isAuthor: isAuthor,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+
+  factory ForumPost.fromJson(Map<String, dynamic> json) => ForumPost(
+        id: json['id'] as String? ?? '',
+        categoryId: json['category_id'] as String? ?? '',
+        categoryName: json['category_name'] as String? ?? '',
+        authorId: json['author_id'] as String? ?? '',
+        authorName: json['author_name'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        body: json['body'] as String? ?? '',
+        isPinned: json['is_pinned'] as bool? ?? false,
+        isClosed: json['is_closed'] as bool? ?? false,
+        commentCount: _toInt(json['comment_count']),
+        likeCount: _toInt(json['like_count']),
+        likedByMe: json['liked_by_me'] as bool? ?? false,
+        isAuthor: json['is_author'] as bool? ?? false,
+        createdAt: json['created_at'] as String? ?? '',
+        updatedAt: json['updated_at'] as String? ?? '',
+      );
+}
+
+/// One reply under a thread.
+class ForumComment {
+  const ForumComment({
+    required this.id,
+    required this.postId,
+    this.authorId = '',
+    this.authorName = '',
+    required this.body,
+    this.createdAt = '',
+  });
+
+  final String id;
+  final String postId;
+  final String authorId;
+  final String authorName;
+  final String body;
+  final String createdAt;
+
+  factory ForumComment.fromJson(Map<String, dynamic> json) => ForumComment(
+        id: json['id'] as String? ?? '',
+        postId: json['post_id'] as String? ?? '',
+        authorId: json['author_id'] as String? ?? '',
+        authorName: json['author_name'] as String? ?? '',
+        body: json['body'] as String? ?? '',
+        createdAt: json['created_at'] as String? ?? '',
+      );
+}
+
+/// Thread detail: the post plus its comment thread (the backend returns
+/// `comments` alongside `data`, not nested inside it).
+class ForumPostDetail {
+  const ForumPostDetail({required this.post, required this.comments});
+
+  final ForumPost post;
+  final List<ForumComment> comments;
+}
+
+/// Paged board listing.
+class ForumCategoriesPage {
+  const ForumCategoriesPage({required this.categories, required this.total});
+
+  final List<ForumCategory> categories;
+  final int total;
+}
+
+/// Paged thread listing with the usual meta bounds.
+class ForumPostsPage {
+  const ForumPostsPage({
+    required this.posts,
+    required this.total,
+    required this.page,
+    required this.limit,
+  });
+
+  final List<ForumPost> posts;
+  final int total;
+  final int page;
+  final int limit;
+}
+
+/// Result of the idempotent like toggle.
+class ForumLikeResult {
+  const ForumLikeResult({required this.liked, required this.likeCount});
+
+  final bool liked;
+  final int likeCount;
+}
+
 int _toInt(dynamic v) {
   if (v is int) return v;
   if (v is String) return int.tryParse(v) ?? 0;
