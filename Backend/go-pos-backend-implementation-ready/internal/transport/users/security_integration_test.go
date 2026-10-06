@@ -140,7 +140,15 @@ func TestUsersIntegration_UpdateSecurityUpsertsAndResolves(t *testing.T) {
 			Permissions struct {
 				AccessLevel string `json:"access_level"`
 				DeleteLine  bool   `json:"can_delete_line"`
+				ChangeQty   bool   `json:"can_change_qty"`
 			} `json:"permissions"`
+			Security *struct {
+				AccessLevel    string `json:"access_level"`
+				MaxDiscountPct *int   `json:"max_discount_pct"`
+				UseCustom      bool   `json:"use_custom_permissions"`
+				DeleteLine     bool   `json:"can_delete_line"`
+				ChangeQty      bool   `json:"can_change_qty"`
+			} `json:"security"`
 		} `json:"data"`
 	}
 	if err := json.Unmarshal(listRec2.Body.Bytes(), &list2); err != nil {
@@ -151,10 +159,99 @@ func TestUsersIntegration_UpdateSecurityUpsertsAndResolves(t *testing.T) {
 			if u.Permissions.AccessLevel != "advanced" || !u.Permissions.DeleteLine {
 				t.Fatalf("persisted profile wrong: level=%s delete_line=%v", u.Permissions.AccessLevel, u.Permissions.DeleteLine)
 			}
-			return // success
+			// The raw block must echo the STORED row, not the resolved one:
+			// can_change_qty was never set (raw false) but the advanced level
+			// default resolves it to true — the editor needs both views.
+			if u.Security == nil {
+				t.Fatal("raw security block missing for owner viewer")
+			}
+			s := u.Security
+			if s.AccessLevel != "advanced" || s.MaxDiscountPct == nil || *s.MaxDiscountPct != 10 ||
+				!s.UseCustom || !s.DeleteLine || s.ChangeQty {
+				t.Fatalf("raw security wrong: level=%s max=%v custom=%v delete_line=%v change_qty=%v",
+					s.AccessLevel, s.MaxDiscountPct, s.UseCustom, s.DeleteLine, s.ChangeQty)
+			}
+			// With custom mode ON, Resolve mirrors the raw row — so the
+			// resolved change_qty must agree with the stored false here.
+			if u.Permissions.ChangeQty {
+				t.Fatal("custom mode should resolve change_qty from the raw row (false)")
+			}
+			// Turn custom mode OFF: the stored can_* row is kept but Resolve
+			// switches back to level defaults — this is exactly the delta the
+			// raw security block exists to expose.
+			rec3 := httptest.NewRecorder()
+			req3 := httptest.NewRequest(http.MethodPut, "/v1/users/"+cashierID+"/security",
+				bytes.NewBufferString(`{"access_level":"advanced","max_discount_pct":10,"use_custom_permissions":false}`))
+			req3.Header.Set("Authorization", "Bearer "+ownerToken)
+			req3.Header.Set("Content-Type", "application/json")
+			router.ServeHTTP(rec3, req3)
+			if rec3.Code != http.StatusOK {
+				t.Fatalf("update security (custom off): expected 200, got %d: %s", rec3.Code, rec3.Body.String())
+			}
+			listRec3 := httptest.NewRecorder()
+			req4 := httptest.NewRequest(http.MethodGet, "/v1/users?page=1&limit=50", nil)
+			req4.Header.Set("Authorization", "Bearer "+ownerToken)
+			router.ServeHTTP(listRec3, req4)
+			var list3 struct {
+				Data []struct {
+					ID          string `json:"id"`
+					Permissions struct {
+						ChangeQty bool `json:"can_change_qty"`
+					} `json:"permissions"`
+					Security *struct {
+						UseCustom bool `json:"use_custom_permissions"`
+						ChangeQty bool `json:"can_change_qty"`
+					} `json:"security"`
+				} `json:"data"`
+			}
+			if err := json.Unmarshal(listRec3.Body.Bytes(), &list3); err != nil {
+				t.Fatal(err)
+			}
+			for _, v := range list3.Data {
+				if v.ID != cashierID {
+					continue
+				}
+				if v.Security == nil || v.Security.UseCustom || v.Security.ChangeQty {
+					t.Fatalf("raw block after custom-off: %+v, want custom=false change_qty=false", v.Security)
+				}
+				if !v.Permissions.ChangeQty {
+					t.Fatal("resolved permissions should keep the advanced change_qty default once custom is off")
+				}
+				return // success
+			}
+			t.Fatal("updated cashier missing from list")
 		}
 	}
 	t.Fatal("updated cashier missing from list")
+}
+
+func TestUsersIntegration_RawSecurityHiddenFromCashiers(t *testing.T) {
+	router, seed, _ := setupUsersIntegration(t)
+	cashierToken := usersToken(t, seed, seed.CashierID, "cashier")
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/v1/users?page=1&limit=50", nil)
+	req.Header.Set("Authorization", "Bearer "+cashierToken)
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("list as cashier: expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+	var list struct {
+		Data []struct {
+			Security json.RawMessage `json:"security"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &list); err != nil {
+		t.Fatal(err)
+	}
+	if len(list.Data) == 0 {
+		t.Fatal("list as cashier: expected rows")
+	}
+	for _, u := range list.Data {
+		if len(u.Security) != 0 {
+			t.Fatalf("cashier must not see raw security blocks, got %s", u.Security)
+		}
+	}
 }
 
 func TestUsersIntegration_ManagerCanEditCashierButNotManager(t *testing.T) {

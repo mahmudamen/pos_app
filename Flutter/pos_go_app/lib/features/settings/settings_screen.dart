@@ -8,6 +8,7 @@ import '../../core/session_store.dart';
 import '../../core/theme.dart';
 import '../../l10n/strings.dart';
 import '../saas/control_panel_screen.dart';
+import '../users/users_screen.dart';
 import 'font_picker_sheet.dart';
 import 'theme_picker_sheet.dart';
 
@@ -319,6 +320,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             title: Text(widget.session.displayName),
                             subtitle: Text(_roleLabel(s)),
                           ),
+                          if (widget.session.isManager ||
+                              widget.session.isPlatformAdmin) ...[
+                            const Divider(height: 1),
+                            ListTile(
+                              leading:
+                                  const Icon(Icons.manage_accounts_outlined),
+                              title: Text(s.users),
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => UsersScreen(
+                                    session: widget.session,
+                                    apiClient: widget.apiClient,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                           const Divider(height: 1),
                           ListTile(
                             leading: const Icon(Icons.language),

@@ -40,6 +40,31 @@ type User struct {
 	AccountType string             `json:"account_type"`
 	IsActive    bool               `json:"is_active"`
 	Permissions access.Permissions `json:"permissions"`
+	// Security is the RAW stored profile row (not resolved against the level
+	// defaults) so the client editor round-trips what is actually saved —
+	// `permissions` alone cannot express `use_custom_permissions` or the
+	// stored can_* flags of a non-custom profile. Only present for the roles
+	// that may edit security profiles (owner/saas_admin everywhere, manager
+	// on cashiers — mirroring updateSecurity's rule).
+	Security *userSecurity `json:"security,omitempty"`
+}
+
+// userSecurity mirrors the users_pos_security columns verbatim.
+type userSecurity struct {
+	AccessLevel            string `json:"access_level"`
+	MaxDiscountPct         *int   `json:"max_discount_pct"`
+	UseCustomPermissions   bool   `json:"use_custom_permissions"`
+	CanDeleteOrder         bool   `json:"can_delete_order"`
+	CanDeleteLine          bool   `json:"can_delete_line"`
+	CanChangeQty           bool   `json:"can_change_qty"`
+	CanNegativeQty         bool   `json:"can_negative_qty"`
+	CanPriceChange         bool   `json:"can_price_change"`
+	CanDiscount            bool   `json:"can_discount"`
+	CanOpenSession         bool   `json:"can_open_session"`
+	CanCloseSession        bool   `json:"can_close_session"`
+	CanPaymentModification bool   `json:"can_payment_modification"`
+	CanRefund              bool   `json:"can_refund"`
+	CanNegativeStock       bool   `json:"can_negative_stock"`
 }
 
 type createUserRequest struct {
@@ -48,6 +73,20 @@ type createUserRequest struct {
 	Password    string `json:"password" binding:"required,min=8"`
 	Role        string `json:"role" binding:"required,oneof=owner manager cashier"`
 	AccountType string `json:"account_type" binding:"omitempty,oneof=standard demo guest"`
+}
+
+// mayViewRawSecurity mirrors updateSecurity's edit rule for what the list
+// endpoint may expose: owners/saas_admins see every profile, a manager only
+// the ones they are allowed to configure (cashiers).
+func (h *Handler) mayViewRawSecurity(actorRole, targetRole string) bool {
+	switch actorRole {
+	case "owner", "saas_admin":
+		return true
+	case "manager":
+		return targetRole == "cashier"
+	default:
+		return false
+	}
 }
 
 func (h *Handler) listUsers(c *gin.Context) {
@@ -129,6 +168,24 @@ func (h *Handler) listUsers(c *gin.Context) {
 			row = access.ScanRow(*level, maxDiscount, custom, do, dl, cq, nq, pc, d, os, cs, pm, r, ns)
 		}
 		u.Permissions = access.Resolve(u.Role, row)
+		if row != nil && h.mayViewRawSecurity(claims.Role, u.Role) {
+			u.Security = &userSecurity{
+				AccessLevel:            row.AccessLevel,
+				MaxDiscountPct:         row.MaxDiscountPct,
+				UseCustomPermissions:   row.UseCustom,
+				CanDeleteOrder:         row.DeleteOrder,
+				CanDeleteLine:          row.DeleteLine,
+				CanChangeQty:           row.ChangeQty,
+				CanNegativeQty:         row.NegativeQty,
+				CanPriceChange:         row.PriceChange,
+				CanDiscount:            row.Discount,
+				CanOpenSession:         row.OpenSession,
+				CanCloseSession:        row.CloseSession,
+				CanPaymentModification: row.PaymentModific,
+				CanRefund:              row.Refund,
+				CanNegativeStock:       row.NegativeStock,
+			}
+		}
 		users = append(users, u)
 	}
 	if err := rows.Err(); err != nil {
