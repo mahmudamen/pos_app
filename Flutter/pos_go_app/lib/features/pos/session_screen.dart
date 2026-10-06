@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api_client.dart';
+import 'sessions_summary_screen.dart';
+import '../../core/payments.dart';
 import '../../core/registers.dart';
+import '../../core/security.dart';
 import '../../core/session_store.dart';
 import '../../l10n/strings.dart';
 
@@ -11,21 +14,24 @@ class SessionReportScreen extends StatelessWidget {
     super.key,
     required this.sessionData,
     required this.apiClient,
+    this.currency = 'EGP',
   });
 
   final RegisterSession sessionData;
   final ApiClient apiClient;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
-    return _ReportScaffold(sessionData: sessionData);
+    return _ReportScaffold(sessionData: sessionData, currency: currency);
   }
 }
 
 class _ReportScaffold extends StatelessWidget {
-  const _ReportScaffold({required this.sessionData});
+  const _ReportScaffold({required this.sessionData, this.currency = 'EGP'});
 
   final RegisterSession sessionData;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +116,7 @@ class _ReportScaffold extends StatelessWidget {
               _line(s, s.sessionClosedAt, s
                   .formatDate(DateTime.parse(sessionData.closedAt!).toLocal())),
             _line(s, s.startingCash,
-                s.formatMoney(sessionData.openingCashMinor, 'EGP')),
+                s.formatMoney(sessionData.openingCashMinor, currency)),
           ],
         ),
       ),
@@ -146,7 +152,7 @@ class _ReportScaffold extends StatelessWidget {
                 : base,
           ),
           Text(
-            isCount ? '$minor' : s.formatMoney(minor, 'EGP'),
+            isCount ? '$minor' : s.formatMoney(minor, currency),
             style: valueStyle,
           ),
         ],
@@ -175,14 +181,14 @@ class _ReportScaffold extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _line(s, s.countedCash, s.formatMoney(counted, 'EGP')),
+            _line(s, s.countedCash, s.formatMoney(counted, currency)),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('${s.sessionDifference} ($label)'),
                 Text(
-                  '${difference > 0 ? '+' : ''}${s.formatMoney(difference.abs(), 'EGP')}',
+                  '${difference > 0 ? '+' : ''}${s.formatMoney(difference.abs(), currency)}',
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -221,11 +227,30 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
   bool _loading = true;
   String? _error;
   int _currentPage = 1;
+  String _statusFilter = '';
+  TenantSettings? _settings;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      final settings = await widget.apiClient.settings(widget.session);
+      if (mounted) setState(() => _settings = settings);
+    } catch (_) {
+      // Unreachable: the close flow then skips the PIN gate, matching a
+      // server whose pos.manager.close key is unset (default false).
+    }
+  }
+
+  Future<void> _setFilter(String filter) {
+    if (_statusFilter == filter) return Future.value();
+    setState(() => _statusFilter = filter);
+    return _load(page: 1);
   }
 
   Future<void> _load({int page = 1}) async {
@@ -234,7 +259,11 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
       _error = null;
     });
     try {
-      final result = await widget.apiClient.sessions(widget.session, page: page);
+      final result = await widget.apiClient.sessions(
+        widget.session,
+        page: page,
+        status: _statusFilter.isEmpty ? null : _statusFilter,
+      );
       if (!mounted) return;
       setState(() {
         _page = result;
@@ -260,6 +289,7 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
           builder: (_) => SessionReportScreen(
             sessionData: detail,
             apiClient: widget.apiClient,
+            currency: widget.session.currencyCode,
           ),
         ),
       );
@@ -271,11 +301,143 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
     }
   }
 
+  bool _canClose(SessionListItem item) =>
+      item.isOpen &&
+      (item.deviceId == widget.session.deviceId ||
+          widget.session.isManager ||
+          widget.session.isPlatformAdmin);
+
+  bool get _needsManagerPin =>
+      (_settings?.managerClosePin ?? false) &&
+      widget.session.role != 'owner' &&
+      !widget.session.isPlatformAdmin;
+
+  Future<void> _closeSession(SessionListItem item) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final controller = TextEditingController();
+    final raw = await showDialog<String>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(s.finishSession),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(s.finishSessionConfirm),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: s.countedCash,
+                hintText: s.countedCashHint,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(s.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text(s.finishSession),
+          ),
+        ],
+      ),
+    );
+    if (raw == null || !mounted) return;
+    final countedMinor = minorFromInput(raw.trim());
+    String managerPin = '';
+    if (_needsManagerPin) {
+      final pin = await _promptManagerPin(s.closeNeedsManagerPin);
+      if (pin == null || !mounted) return;
+      managerPin = pin;
+    }
+    try {
+      final closed = await widget.apiClient.closeSession(
+        widget.session,
+        item.id,
+        closingCashMinor: countedMinor,
+        managerPin: managerPin,
+      );
+      if (!mounted) return;
+      messenger
+          .showSnackBar(SnackBar(content: Text('${s.zReport} ${s.statusClosed}')));
+      await _load(page: _currentPage);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => SessionReportScreen(
+            sessionData: closed,
+            apiClient: widget.apiClient,
+            currency: widget.session.currencyCode,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<String?> _promptManagerPin(String message) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    String? error;
+    while (true) {
+      if (!mounted) return null;
+      final pin = await showDialog<String>(
+        context: context,
+        builder: (_) => _PinPrompt(message: message, strings: s, error: error),
+      );
+      if (pin == null || pin.isEmpty || !mounted) return null;
+      final PinVerifyResult result;
+      try {
+        result = await widget.apiClient.verifyPin(widget.session, pin: pin);
+      } catch (e) {
+        if (!mounted) return null;
+        messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+        return null;
+      }
+      if (result.locked) {
+        if (!mounted) return null;
+        messenger.showSnackBar(SnackBar(content: Text(s.pinLocked)));
+        return null;
+      }
+      if (result.valid) return pin;
+      error = result.attemptsLeft > 0
+          ? s.attemptsLeft(result.attemptsLeft)
+          : s.pinWrong;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(s.sessionsHistory)),
+      appBar: AppBar(
+        title: Text(s.sessionsHistory),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.insights_outlined),
+            tooltip: s.sessionsSummary,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => SessionsSummaryScreen(
+                  session: widget.session,
+                  apiClient: widget.apiClient,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -307,6 +469,30 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Row(
+            children: [
+              FilterChip(
+                label: Text(s.all),
+                selected: _statusFilter.isEmpty,
+                onSelected: (_) => _setFilter(''),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: Text(s.statusOpen),
+                selected: _statusFilter == 'open',
+                onSelected: (_) => _setFilter('open'),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: Text(s.statusClosed),
+                selected: _statusFilter == 'closed',
+                onSelected: (_) => _setFilter('closed'),
+              ),
+            ],
+          ),
+        ),
         Expanded(
           child: sessions.isEmpty
               ? Center(child: Text(s.noSessions))
@@ -319,6 +505,9 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
                         ? s.formatDate(
                             DateTime.parse(item.openedAt).toLocal())
                         : '';
+                    final trail = item.deviceName.isEmpty
+                        ? '$date · ${item.openedBy}'
+                        : '$date · ${item.openedBy} · ${item.deviceName}';
                     return ListTile(
                       leading: CircleAvatar(
                         child: Icon(
@@ -327,12 +516,18 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
                       title: Text(
                         '${s.posSession} · ${item.salesCount} ${s.salesCount} · ${s.formatMoney(item.totalMinor, widget.session.currencyCode)}',
                       ),
-                      subtitle: Text('$date · ${item.openedBy}'),
-                      trailing: Chip(
-                        label: Text(
-                            item.isOpen ? s.statusOpen : s.statusClosed),
-                        visualDensity: VisualDensity.compact,
-                      ),
+                      subtitle: Text(trail),
+                      trailing: _canClose(item)
+                          ? OutlinedButton(
+                              onPressed: () => _closeSession(item),
+                              child: Text(s.finishSession),
+                            )
+                          : Chip(
+                              label: Text(item.isOpen
+                                  ? s.statusOpen
+                                  : s.statusClosed),
+                              visualDensity: VisualDensity.compact,
+                            ),
                       onTap: () => _openReport(item),
                     );
                   },
@@ -360,6 +555,76 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
               ],
             ),
           ),
+      ],
+    );
+  }
+}
+class _PinPrompt extends StatefulWidget {
+  const _PinPrompt({
+    required this.message,
+    required this.strings,
+    this.error,
+  });
+
+  final String message;
+  final AppStrings strings;
+  final String? error;
+
+  @override
+  State<_PinPrompt> createState() => _PinPromptState();
+}
+
+class _PinPromptState extends State<_PinPrompt> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.strings;
+    return AlertDialog(
+      title: Text(s.managerPin),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.message,
+              style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            onSubmitted: (value) => Navigator.of(context).pop(value.trim()),
+            decoration: InputDecoration(
+              labelText: s.managerPin,
+              hintText: s.managerPinHint,
+              errorText: widget.error,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(s.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+          child: Text(s.ok),
+        ),
       ],
     );
   }

@@ -112,3 +112,34 @@ func TestCloseManagerIntegration_DisabledSettingNoPinNeeded(t *testing.T) {
 		t.Fatalf("close with setting off: expected 200, got %d: %s", code, body)
 	}
 }
+
+const otherTerminalID = "00000000-0000-0000-0000-000000000099"
+
+func TestCloseOwnershipIntegration_CashierBlockedOnOtherTerminal(t *testing.T) {
+	router, seed, _ := setupRegistersIntegration(t)
+	ownToken := regToken(t, seed, seed.CashierID, "cashier")
+	sessionID := openSession(t, router, ownToken)
+
+	otherToken := testutil.MintAccess(t, seed.TenantID, seed.CashierID, otherTerminalID, "sess-reg", "cashier")
+	code, body := closeSession(t, router, otherToken, sessionID, "")
+	if code != http.StatusForbidden {
+		t.Fatalf("cross-terminal cashier close: expected 403, got %d: %s", code, body)
+	}
+
+	code, body = closeSession(t, router, ownToken, sessionID, "")
+	if code != http.StatusOK {
+		t.Fatalf("own-terminal close after denial: expected 200, got %d: %s", code, body)
+	}
+}
+
+func TestCloseOwnershipIntegration_ManagerClosesOtherTerminal(t *testing.T) {
+	router, seed, _ := setupRegistersIntegration(t)
+	cashierToken := regToken(t, seed, seed.CashierID, "cashier")
+	sessionID := openSession(t, router, cashierToken)
+
+	managerToken := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, otherTerminalID, "sess-reg", "manager")
+	code, body := closeSession(t, router, managerToken, sessionID, "")
+	if code != http.StatusOK {
+		t.Fatalf("cross-terminal manager close: expected 200, got %d: %s", code, body)
+	}
+}

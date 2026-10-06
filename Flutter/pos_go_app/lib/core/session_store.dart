@@ -162,6 +162,7 @@ class SessionStore {
   static const _rememberPasswordKey = 'remember_password';
 
   static const _focusModeKey = 'focus_mode';
+  static const _sessionMinimizedKey = 'session_minimized';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -357,6 +358,22 @@ class SessionStore {
     await _storage.write(key: _syncKey(tenantId), value: '$cursor');
   }
 
+  String _activeOrdersKey(String tenantId) => 'active_orders_$tenantId';
+
+  /// The in-progress order(s) on this device, as the POS screen serialized
+  /// them. Keyed per tenant so a different login never inherits the last one's
+  /// cart.
+  Future<void> saveActiveOrders(String tenantId, String orders) async {
+    await _storage.write(key: _activeOrdersKey(tenantId), value: orders);
+  }
+
+  Future<String?> readActiveOrders(String tenantId) =>
+      _storage.read(key: _activeOrdersKey(tenantId));
+
+  Future<void> clearActiveOrders(String tenantId) async {
+    await _storage.delete(key: _activeOrdersKey(tenantId));
+  }
+
   Future<bool> readFocusMode() async {
     return await _storage.read(key: _focusModeKey) == '1';
   }
@@ -364,6 +381,15 @@ class SessionStore {
   Future<void> saveFocusMode(bool enabled) async {
     await _storage.write(
         key: _focusModeKey, value: enabled ? '1' : '0');
+  }
+
+  Future<bool> readSessionMinimized() async {
+    return await _storage.read(key: _sessionMinimizedKey) == '1';
+  }
+
+  Future<void> saveSessionMinimized(bool minimized) async {
+    await _storage.write(
+        key: _sessionMinimizedKey, value: minimized ? '1' : '0');
   }
 
   static const _printerConfigKey = 'printer_config';

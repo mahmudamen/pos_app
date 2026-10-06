@@ -2,9 +2,11 @@ package registers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
@@ -25,6 +27,7 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/registers/current", h.current)
+	router.GET("/registers/summary", h.summary)
 	router.POST("/registers/open", h.open)
 	router.POST("/registers/:id/close", h.close)
 	router.GET("/registers", h.list)
@@ -265,16 +268,18 @@ func (h *Handler) close(c *gin.Context) {
 	}
 
 	var row sessionRow
+	var rowDeviceID string
 	err = tx.QueryRow(ctx, `
 		SELECT rs.id, rs.status, rs.opening_cash_minor, rs.closing_cash_minor,
 		       rs.expected_cash_minor, rs.cash_difference_minor, rs.opened_at::text,
-		       rs.closed_at::text, u.display_name
+		       rs.closed_at::text, u.display_name, rs.device_id::text
 		FROM register_sessions rs
 		JOIN users u ON u.tenant_id = rs.tenant_id AND u.id = rs.user_id
 		WHERE rs.id = $1
 		FOR UPDATE OF rs`, sessionID).
 		Scan(&row.id, &row.status, &row.openingCashMinor, &row.closingCashMinor,
-			&row.expectedCashMinor, &row.cashDifferenceMinor, &row.openedAt, &row.closedAt, &row.openedBy)
+			&row.expectedCashMinor, &row.cashDifferenceMinor, &row.openedAt, &row.closedAt,
+			&row.openedBy, &rowDeviceID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "session_not_found", "session not found")
 		return
@@ -285,6 +290,12 @@ func (h *Handler) close(c *gin.Context) {
 	}
 	if row.status != "open" {
 		writeError(c, http.StatusConflict, "session_not_open", "session is already closed")
+		return
+	}
+	if rowDeviceID != claims.DeviceID && claims.Role != "owner" &&
+		claims.Role != "manager" && claims.Role != "saas_admin" {
+		writeError(c, http.StatusForbidden, "permission_denied",
+			"only managers may close another terminal's session")
 		return
 	}
 
@@ -366,15 +377,6 @@ func (h *Handler) list(c *gin.Context) {
 	if !h.can(c, claims.Role, "pos", "read") {
 		return
 	}
-	if h.pool == nil {
-		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
-		return
-	}
-	tenantID, err := uuid.Parse(claims.TenantID)
-	if err != nil {
-		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
-		return
-	}
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
@@ -385,6 +387,53 @@ func (h *Handler) list(c *gin.Context) {
 		limit = 50
 	}
 	offset := int64((page - 1) * limit)
+
+	status := strings.TrimSpace(c.Query("status"))
+	if status != "" && status != "open" && status != "closed" {
+		writeError(c, http.StatusBadRequest, "validation_error", "status must be open or closed")
+		return
+	}
+	deviceID := c.Query("device_id")
+	if deviceID != "" {
+		if _, err := uuid.Parse(deviceID); err != nil {
+			writeError(c, http.StatusBadRequest, "validation_error", "invalid device id")
+			return
+		}
+	}
+	fromTime, err := parseTimeBound(c.Query("from"), false)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid from timestamp")
+		return
+	}
+	toTime, err := parseTimeBound(c.Query("to"), true)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid to timestamp")
+		return
+	}
+
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	tenantID, err := uuid.Parse(claims.TenantID)
+	if err != nil {
+		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
+		return
+	}
+
+	var filters []sessionFilter
+	if status != "" {
+		filters = append(filters, sessionFilter{column: "rs.status = ?", value: status})
+	}
+	if deviceID != "" {
+		filters = append(filters, sessionFilter{column: "rs.device_id = ?", value: deviceID})
+	}
+	if fromTime != nil {
+		filters = append(filters, sessionFilter{column: "rs.opened_at >= ?", value: *fromTime})
+	}
+	if toTime != nil {
+		filters = append(filters, sessionFilter{column: "rs.opened_at < ?", value: *toTime})
+	}
 
 	ctx := c.Request.Context()
 	tx, err := h.pool.Begin(ctx)
@@ -398,23 +447,27 @@ func (h *Handler) list(c *gin.Context) {
 		return
 	}
 
+	countWhere, countArgs := whereClause(filters, 1)
 	var total int64
-	if err = tx.QueryRow(ctx, `SELECT COUNT(*) FROM register_sessions`).Scan(&total); err != nil {
+	if err = tx.QueryRow(ctx, `SELECT COUNT(*) FROM register_sessions rs `+countWhere, countArgs...).Scan(&total); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to count sessions")
 		return
 	}
 
+	dataWhere, dataArgs := whereClause(filters, 3)
 	rows, err := tx.Query(ctx, `
 		SELECT rs.id, rs.status, rs.opening_cash_minor, rs.closing_cash_minor,
 		       rs.expected_cash_minor, rs.cash_difference_minor, rs.opened_at::text,
-		       rs.closed_at::text, u.display_name,
+		       rs.closed_at::text, u.display_name, rs.device_id::text, d.name,
 		       COUNT(s.id)::bigint, COALESCE(SUM(s.total_minor), 0)
 		FROM register_sessions rs
 		JOIN users u ON u.tenant_id = rs.tenant_id AND u.id = rs.user_id
+		JOIN devices d ON d.tenant_id = rs.tenant_id AND d.id = rs.device_id
 		LEFT JOIN sales s ON s.tenant_id = rs.tenant_id AND s.register_session_id = rs.id
-		GROUP BY rs.id, u.display_name
+		`+dataWhere+`
+		GROUP BY rs.id, u.display_name, d.name
 		ORDER BY rs.opened_at DESC
-		LIMIT $1 OFFSET $2`, limit, offset)
+		LIMIT $1 OFFSET $2`, append([]any{limit, offset}, dataArgs...)...)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sessions")
 		return
@@ -431,6 +484,8 @@ func (h *Handler) list(c *gin.Context) {
 		OpenedAt            string  `json:"opened_at"`
 		ClosedAt            *string `json:"closed_at,omitempty"`
 		OpenedBy            string  `json:"opened_by"`
+		DeviceID            string  `json:"device_id"`
+		DeviceName          string  `json:"device_name"`
 		SalesCount          int64   `json:"sales_count"`
 		TotalMinor          int64   `json:"total_minor"`
 	}
@@ -439,7 +494,7 @@ func (h *Handler) list(c *gin.Context) {
 		var item listItem
 		if err := rows.Scan(&item.ID, &item.Status, &item.OpeningCashMinor, &item.ClosingCashMinor,
 			&item.ExpectedCashMinor, &item.CashDifferenceMinor, &item.OpenedAt, &item.ClosedAt,
-			&item.OpenedBy, &item.SalesCount, &item.TotalMinor); err != nil {
+			&item.OpenedBy, &item.DeviceID, &item.DeviceName, &item.SalesCount, &item.TotalMinor); err != nil {
 			writeError(c, http.StatusInternalServerError, "internal_error", "unable to load sessions")
 			return
 		}
@@ -462,6 +517,133 @@ func (h *Handler) list(c *gin.Context) {
 			"limit":      limit,
 			"total":      total,
 		},
+	})
+}
+
+// summary aggregates register activity over an optional [from, to) window:
+// shifts opened in it, shifts closed in it, the Z-report sales figures with
+// their tender mix for sales taken in it, and the net drawer difference of
+// the shifts that closed in it. Bounds use the same syntax as the list
+// endpoint; an absent bound leaves that side open.
+func (h *Handler) summary(c *gin.Context) {
+	claims, ok := h.authenticate(c)
+	if !ok {
+		return
+	}
+	if !h.can(c, claims.Role, "pos", "read") {
+		return
+	}
+
+	fromTime, err := parseTimeBound(c.Query("from"), false)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid from timestamp")
+		return
+	}
+	toTime, err := parseTimeBound(c.Query("to"), true)
+	if err != nil {
+		writeError(c, http.StatusBadRequest, "validation_error", "invalid to timestamp")
+		return
+	}
+
+	if h.pool == nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	tenantID, err := uuid.Parse(claims.TenantID)
+	if err != nil {
+		writeError(c, http.StatusUnauthorized, "unauthorized", "authorization is invalid")
+		return
+	}
+
+	fromArg, toArg := timeBoundArgs(fromTime, toTime)
+
+	ctx := c.Request.Context()
+	tx, err := h.pool.Begin(ctx)
+	if err != nil {
+		writeError(c, http.StatusServiceUnavailable, "database_unavailable", "database unavailable")
+		return
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err = tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", tenantID.String()); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to establish tenant context")
+		return
+	}
+
+	var opened, closed, cashDifference int64
+	if err = tx.QueryRow(ctx, `
+		SELECT
+			(SELECT COUNT(*) FROM register_sessions rs
+			 WHERE ($1::timestamptz IS NULL OR rs.opened_at >= $1)
+			   AND ($2::timestamptz IS NULL OR rs.opened_at < $2)),
+			(SELECT COUNT(*) FROM register_sessions rs
+			 WHERE rs.status = 'closed'
+			   AND ($1::timestamptz IS NULL OR rs.closed_at >= $1)
+			   AND ($2::timestamptz IS NULL OR rs.closed_at < $2)),
+			(SELECT COALESCE(SUM(rs.cash_difference_minor), 0)
+			 FROM register_sessions rs
+			 WHERE rs.status = 'closed'
+			   AND ($1::timestamptz IS NULL OR rs.closed_at >= $1)
+			   AND ($2::timestamptz IS NULL OR rs.closed_at < $2))`,
+		fromArg, toArg).Scan(&opened, &closed, &cashDifference); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to tally sessions")
+		return
+	}
+
+	var totals accountTotals
+	if err = tx.QueryRow(ctx, `
+		WITH sale_agg AS (
+			SELECT s.id, s.tenant_id, s.subtotal_minor, s.discount_minor,
+			       s.tax_minor, s.total_minor
+			FROM sales s
+			WHERE s.status = 'completed'
+			  AND ($1::timestamptz IS NULL OR s.created_at >= $1)
+			  AND ($2::timestamptz IS NULL OR s.created_at < $2)
+		)
+		SELECT
+			(SELECT COUNT(*) FROM sale_agg),
+			(SELECT COALESCE(SUM(subtotal_minor), 0) FROM sale_agg),
+			(SELECT COALESCE(SUM(discount_minor), 0) FROM sale_agg),
+			(SELECT COALESCE(SUM(tax_minor), 0) FROM sale_agg),
+			(SELECT COALESCE(SUM(total_minor), 0) FROM sale_agg),
+			COALESCE(SUM(sp.amount_minor) FILTER (WHERE sp.method = 'cash'), 0),
+			COALESCE(SUM(sp.amount_minor) FILTER (WHERE sp.method = 'card'), 0),
+			COALESCE(SUM(sp.amount_minor) FILTER (WHERE sp.method = 'mobile'), 0)
+		FROM sale_agg s
+		LEFT JOIN sale_payments sp ON sp.tenant_id = s.tenant_id AND sp.sale_id = s.id`,
+		fromArg, toArg).
+		Scan(&totals.salesCount, &totals.subtotalMinor, &totals.discountMinor,
+			&totals.taxMinor, &totals.totalMinor, &totals.cashMinor,
+			&totals.cardMinor, &totals.mobileMinor); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to tally sales")
+		return
+	}
+	if err = tx.Commit(ctx); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to tally sessions")
+		return
+	}
+
+	var average int64
+	if totals.salesCount > 0 {
+		average = totals.totalMinor / totals.salesCount
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"from":                  c.Query("from"),
+			"to":                    c.Query("to"),
+			"sessions_opened":       opened,
+			"sessions_closed":       closed,
+			"sales_count":           totals.salesCount,
+			"subtotal_minor":        totals.subtotalMinor,
+			"discount_minor":        totals.discountMinor,
+			"tax_minor":             totals.taxMinor,
+			"total_minor":           totals.totalMinor,
+			"cash_minor":            totals.cashMinor,
+			"card_minor":            totals.cardMinor,
+			"mobile_minor":          totals.mobileMinor,
+			"cash_difference_minor": cashDifference,
+			"average_sale_minor":    average,
+		},
+		"meta": gin.H{"request_id": c.GetString("request_id")},
 	})
 }
 
@@ -559,6 +741,60 @@ func (h *Handler) authenticate(c *gin.Context) (security.Claims, bool) {
 
 func writeError(c *gin.Context, status int, code, message string) {
 	c.JSON(status, gin.H{"error": gin.H{"code": code, "message": message, "request_id": c.GetString("request_id")}})
+}
+
+type sessionFilter struct {
+	column string
+	value  any
+}
+
+// whereClause renders the filters with placeholders numbered from start, so
+// the count query ($1…) and the page query ($3…, after LIMIT/OFFSET) share
+// one definition.
+func whereClause(filters []sessionFilter, start int) (string, []any) {
+	if len(filters) == 0 {
+		return "", nil
+	}
+	parts := make([]string, 0, len(filters))
+	args := make([]any, 0, len(filters))
+	for i, f := range filters {
+		parts = append(parts, strings.Replace(f.column, "?", fmt.Sprintf("$%d", start+i), 1))
+		args = append(args, f.value)
+	}
+	return "WHERE " + strings.Join(parts, " AND "), args
+}
+
+// timeBoundArgs flattens optional range bounds into query parameters: a nil
+// bound becomes a SQL NULL so the "$n IS NULL OR ..." guards leave that side
+// of the window open.
+func timeBoundArgs(from, to *time.Time) (any, any) {
+	var fromArg, toArg any
+	if from != nil {
+		fromArg = *from
+	}
+	if to != nil {
+		toArg = *to
+	}
+	return fromArg, toArg
+}
+
+// parseTimeBound accepts RFC3339 instants and date-only days; a date-only
+// upper bound becomes the following midnight so the whole day is included by
+// the strict less-than comparison.
+func parseTimeBound(value string, endExclusive bool) (*time.Time, error) {
+	if value == "" {
+		return nil, nil
+	}
+	if t, err := time.Parse(time.RFC3339, value); err == nil {
+		return &t, nil
+	}
+	if t, err := time.Parse("2006-01-02", value); err == nil {
+		if endExclusive {
+			t = t.AddDate(0, 0, 1)
+		}
+		return &t, nil
+	}
+	return nil, errors.New("invalid time bound")
 }
 
 func toSession(row sessionRow, summary SessionSummary) RegisterSession {

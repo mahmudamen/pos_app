@@ -46,6 +46,7 @@ func TestRoutesRegistered(t *testing.T) {
 	}
 	for _, want := range []string{
 		"GET /v1/registers/current",
+		"GET /v1/registers/summary",
 		"POST /v1/registers/open",
 		"POST /v1/registers/:id/close",
 		"GET /v1/registers",
@@ -162,6 +163,56 @@ func TestSessionsUnavailableWithoutDatabase(t *testing.T) {
 	}
 }
 
+func TestSummaryRequiresAccessToken(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v1/registers/summary", nil))
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", recorder.Code)
+	}
+}
+
+func TestSummaryUnavailableWithoutDatabase(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	request := httptest.NewRequest(http.MethodGet, "/v1/registers/summary", nil)
+	request.Header.Set("Authorization", "Bearer "+validToken(t))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestSummaryRejectsInvalidBounds(t *testing.T) {
+	for _, query := range []string{"from=not-a-time", "to=not-a-time"} {
+		router, group := setup()
+		NewHandler(nil, testTokens()).Register(group)
+		request := httptest.NewRequest(http.MethodGet, "/v1/registers/summary?"+query, nil)
+		request.Header.Set("Authorization", "Bearer "+validToken(t))
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusBadRequest {
+			t.Fatalf("%s: expected 400, got %d: %s", query, recorder.Code, recorder.Body.String())
+		}
+	}
+}
+
+func TestSummaryValidBoundsPassValidation(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	query := "from=2026-10-01&to=2026-10-06"
+	request := httptest.NewRequest(http.MethodGet, "/v1/registers/summary?"+query, nil)
+	request.Header.Set("Authorization", "Bearer "+validToken(t))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("well-formed bounds should reach the database: got %d: %s",
+			recorder.Code, recorder.Body.String())
+	}
+}
+
 func deniedToken(t *testing.T) string {
 	t.Helper()
 	raw, err := testTokens().IssueWithRole(time.Now(), security.AccessToken,
@@ -185,6 +236,7 @@ func TestSessionsDeniedWithoutPermission(t *testing.T) {
 		{http.MethodGet, "/v1/registers", ""},
 		{http.MethodGet, "/v1/registers/list", ""},
 		{http.MethodGet, "/v1/registers/current", ""},
+		{http.MethodGet, "/v1/registers/summary", ""},
 		{http.MethodGet, "/v1/registers/00000000-0000-0000-0000-000000000001", ""},
 		{http.MethodPost, "/v1/registers/open", `{"opening_cash_minor":0}`},
 		{http.MethodPost, "/v1/registers/00000000-0000-0000-0000-000000000001/close", `{"closing_cash_minor":0}`},
@@ -198,5 +250,78 @@ func TestSessionsDeniedWithoutPermission(t *testing.T) {
 		if recorder.Code != http.StatusForbidden {
 			t.Fatalf("%s %s: expected 403, got %d", tc.method, tc.path, recorder.Code)
 		}
+	}
+}
+
+func TestListSessionsRejectsInvalidFilters(t *testing.T) {
+	for _, query := range []string{
+		"status=suspended",
+		"device_id=not-a-uuid",
+		"from=not-a-time",
+		"to=not-a-time",
+	} {
+		router, group := setup()
+		NewHandler(nil, testTokens()).Register(group)
+		request := httptest.NewRequest(http.MethodGet, "/v1/registers?"+query, nil)
+		request.Header.Set("Authorization", "Bearer "+validToken(t))
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusBadRequest {
+			t.Fatalf("%s: expected 400, got %d: %s", query, recorder.Code, recorder.Body.String())
+		}
+	}
+}
+
+func TestListSessionsValidFiltersPassValidation(t *testing.T) {
+	router, group := setup()
+	NewHandler(nil, testTokens()).Register(group)
+	query := "status=open&device_id=00000000-0000-0000-0000-000000000042&from=2026-10-01&to=2026-10-06"
+	request := httptest.NewRequest(http.MethodGet, "/v1/registers?"+query, nil)
+	request.Header.Set("Authorization", "Bearer "+validToken(t))
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("well-formed filters should reach the database: got %d: %s",
+			recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestParseTimeBound(t *testing.T) {
+	if from, err := parseTimeBound("", false); err != nil || from != nil {
+		t.Fatalf("empty bound: expected nil, nil, got %v, %v", from, err)
+	}
+	instant, err := parseTimeBound("2026-10-06T12:00:00Z", false)
+	if err != nil || instant == nil || instant.UTC().Hour() != 12 {
+		t.Fatalf("rfc3339: expected 12:00Z, got %v, %v", instant, err)
+	}
+	dayFrom, err := parseTimeBound("2026-10-06", false)
+	if err != nil || dayFrom == nil || dayFrom.UTC().Hour() != 0 {
+		t.Fatalf("date-only from: expected midnight, got %v, %v", dayFrom, err)
+	}
+	dayTo, err := parseTimeBound("2026-10-06", true)
+	if err != nil || dayTo == nil ||
+		dayTo.UTC().Year() != 2026 || dayTo.UTC().Month() != time.October || dayTo.UTC().Day() != 7 {
+		t.Fatalf("date-only to: expected next midnight, got %v, %v", dayTo, err)
+	}
+	if _, err := parseTimeBound("yesterday", false); err == nil {
+		t.Fatal("garbage bound: expected an error")
+	}
+}
+
+func TestWhereClause(t *testing.T) {
+	if clause, args := whereClause(nil, 1); clause != "" || args != nil {
+		t.Fatalf("no filters: expected empty clause, got %q, %v", clause, args)
+	}
+	filters := []sessionFilter{
+		{column: "rs.status = ?", value: "open"},
+		{column: "rs.device_id = ?", value: "device-1"},
+	}
+	clause, args := whereClause(filters, 3)
+	want := "WHERE rs.status = $3 AND rs.device_id = $4"
+	if clause != want {
+		t.Fatalf("clause: expected %q, got %q", want, clause)
+	}
+	if len(args) != 2 || args[0] != "open" || args[1] != "device-1" {
+		t.Fatalf("args: unexpected %v", args)
 	}
 }
