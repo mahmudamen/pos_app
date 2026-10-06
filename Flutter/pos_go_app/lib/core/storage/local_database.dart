@@ -40,7 +40,7 @@ class LocalDatabase {
     _database = await target.factory.openDatabase(
       target.path,
       options: OpenDatabaseOptions(
-        version: 5,
+        version: 6,
         onCreate: (db, _) async {
           await db.execute('''
             CREATE TABLE cached_products (
@@ -68,6 +68,7 @@ class LocalDatabase {
             )
           ''');
           await _createLocalSessions(db);
+          await _createLastSale(db);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -90,6 +91,9 @@ class LocalDatabase {
             // screen so a sale stuck in the queue is visible instead of silent.
             await _addColumnIfMissing(
                 db, 'pending_commands', 'last_error', 'TEXT');
+          }
+          if (oldVersion < 6) {
+            await _createLastSale(db);
           }
         },
       ),
@@ -132,6 +136,19 @@ class LocalDatabase {
         status TEXT NOT NULL DEFAULT 'open',
         server_session_id TEXT,
         reconciled_at INTEGER
+      )
+    ''');
+  }
+
+  /// The id of the newest sale completed on this device for a tenant.
+  /// Created by [_createLastSale] for both fresh installs and upgrades so the
+  /// two paths cannot diverge.
+  static Future<void> _createLastSale(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS last_sale (
+        tenant_id TEXT PRIMARY KEY,
+        sale_id TEXT NOT NULL,
+        saved_at INTEGER NOT NULL
       )
     ''');
   }
@@ -309,6 +326,35 @@ class LocalDatabase {
       orderBy: 'created_at ASC',
     );
     return rows.map(LocalRegisterSession.fromRow).toList();
+  }
+
+  /// Remembers the newest sale completed on this device for [tenantId], so the
+  /// POS can offer a one-tap reprint without paging through sale history.
+  /// Scoped per tenant: a device that switches businesses must not reprint
+  /// another tenant's receipt.
+  Future<void> saveLastSale(String tenantId, String saleId) async {
+    await (await database).insert(
+      'last_sale',
+      {
+        'tenant_id': tenantId,
+        'sale_id': saleId,
+        'saved_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// The sale [saveLastSale] recorded for [tenantId], or null when this device
+  /// has not completed one for that tenant yet.
+  Future<String?> readLastSale(String tenantId) async {
+    final rows = await (await database).query(
+      'last_sale',
+      columns: ['sale_id'],
+      where: 'tenant_id = ?',
+      whereArgs: [tenantId],
+      limit: 1,
+    );
+    return rows.isEmpty ? null : rows.first['sale_id'] as String;
   }
 
   Future<void> close() async {

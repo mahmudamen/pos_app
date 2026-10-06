@@ -1,6 +1,6 @@
 # POS.Go — Google Play listing (en-US)
 
-Package: `com.xamltech.pos_go` · Version 1.0.0 (code 5) · Category: Business
+Package: `com.xamltech.pos_go` · Version 1.1.1 (code 7) · Category: Business
 Contact: support@xamltech.com · Website: https://xamltech.com
 Privacy policy: https://posgo.xamltech.com/private
 
@@ -86,20 +86,14 @@ Support: support@xamltech.com
 Privacy: https://posgo.xamltech.com/private
 <!-- /field -->
 
-## Release notes for 1.0.0 (max 500)
+## Release notes for 1.1.1 (max 500)
 
 <!-- field: release_notes -->
-First public release.
+Critical update: POS.Go could fail to start after an update and become unusable.
 
-• Sells with no internet: sales queue and replay on reconnect
-• Cash, card and mobile, split any way, with cash rounding
-• Discount policy with manager PIN and per-user access levels
-• One cash session per terminal, with Z-report
-• Stock counts, low-stock warnings and adjustments
-• Scan a supplier invoice to update stock and cost
-• Dashboard, sales history, refunds, customers and loyalty
-• Receipt preview and thermal printer support
-• Arabic and English, right to left
+• Startup crash fixed — your cached catalogue and offline shifts are kept, no reinstall needed
+• The self-order queue opens again (it failed whenever no filter was picked)
+• Still runs in any browser as well as on Android
 <!-- /field -->
 
 ## Notes for the reviewer

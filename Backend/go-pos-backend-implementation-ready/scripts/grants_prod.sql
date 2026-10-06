@@ -227,6 +227,20 @@ BEGIN
 END
 $$;
 
+-- Onboarding & guided tours (migration 054): per-user tour progress the app
+-- reads and upserts, plus the idempotent business-event inbox (insert-only;
+-- a replayed event_id must violate the unique key so it can be detected, so
+-- no UPDATE is granted). Awareness data: NOT in the sync change feed and NOT
+-- in the platform backup catalog.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE onboarding_progress TO pos_app_rls;
+        GRANT SELECT, INSERT ON TABLE onboarding_events TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

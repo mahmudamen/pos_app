@@ -1621,6 +1621,7 @@ expect(() => client.dashboardSummary(session),
       'pos.low_stock_warning': 'true',
       'pos.validate_stock_payment': 'false',
       'pos.refresh_button': 'false',
+      'pos.reprint_last_receipt': 'false',
     });
 
     expect(settings.discountMode, DiscountMode.block);
@@ -1633,6 +1634,7 @@ expect(() => client.dashboardSummary(session),
     expect(settings.lowStockWarning, isTrue);
     expect(settings.validateStockPayment, isFalse);
     expect(settings.refreshButton, isFalse);
+    expect(settings.reprintLastReceipt, isFalse);
   });
 
   test('TenantSettings ma_pos keys fall back to defaults', () {
@@ -1649,6 +1651,7 @@ expect(() => client.dashboardSummary(session),
     expect(settings.lowStockWarning, isTrue);
     expect(settings.validateStockPayment, isTrue);
     expect(settings.refreshButton, isTrue);
+    expect(settings.reprintLastReceipt, isTrue);
   });
 
   test('RegisterSession parses an open session with its live summary', () {

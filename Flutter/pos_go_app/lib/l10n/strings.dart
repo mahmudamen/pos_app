@@ -551,6 +551,13 @@ class AppStrings {
       : 'Enable printing from the printer settings, then try again';
   String get receiptSentToPrinter =>
       isArabic ? 'أُرسل الإيصال إلى الطابعة' : 'Receipt sent to printer';
+  String get reprintLastReceipt =>
+      isArabic ? 'إعادة طباعة آخر إيصال' : 'Reprint last receipt';
+  String get noLastReceipt => isArabic
+      ? 'لا يوجد إيصال لإعادة الطباعة بعد'
+      : 'No receipt to reprint yet';
+  String get lastReceiptUnavailable =>
+      isArabic ? 'تعذّر جلب آخر إيصال' : 'Last receipt unavailable';
   String get printers => isArabic ? 'الطابعات' : 'Printers';
   String get printersSettings =>
       isArabic ? 'إعدادات الطباعة' : 'Printing preferences';
@@ -1317,6 +1324,117 @@ class AppStrings {
         : (days == 1 ? 'day' : 'days');
     return isArabic ? 'تنتهي التجربة خلال $n $unit' : 'trial ends in $n $unit';
   }
+
+  // ── Onboarding tours (TOUR_ENGINE.md + onboarding center) ────────────────
+
+  String get tourNext => isArabic ? 'التالي' : 'Next';
+  String get tourFinish => isArabic ? 'إنهاء' : 'Finish';
+  String get tourSkipStep => isArabic ? 'تخطّي الخطوة' : 'Skip step';
+  String get tourExit => isArabic ? 'إنهاء الجولة' : 'Exit tour';
+  String get tourPauseTooltip => isArabic ? 'إيقاف مؤقت' : 'Pause';
+  String get tourTryAgain => isArabic ? 'إعادة المحاولة' : 'Try again';
+  String get tourTargetMissing => isArabic
+      ? 'تعذّر العثور على العنصر المطلوب. أعد المحاولة أو تخطَّ الخطوة.'
+      : 'Could not find the element to highlight. Try again or skip the step.';
+  String tourTargetMissingStep(String id) => isArabic
+      ? 'تعذّر العثور على عنصر الخطوة $id. أعد المحاولة أو تخطَّها.'
+      : "The element for step '$id' could not be found. Try again or skip it.";
+  String get tourGoalNotMet => isArabic
+      ? 'لم يُسجَّل الهدف بعد — أتمِّ الإجراء داخل التطبيق ثم أعد الفحص.'
+      : "The goal isn't recorded yet. Complete the action in the app, then check again.";
+  String get tourKeepGoing => isArabic ? 'متابعة' : 'Keep going';
+  String get tourCheckAgain => isArabic ? 'إعادة الفحص' : 'Check again';
+
+  String get tourCashIntroTitle => isArabic ? 'جلسة الكاش' : 'Cash session';
+  String get tourCashIntroBody => isArabic
+      ? 'كل نوبة عمل تبدأ بجلسة كاش تتبع أصل الأموال. شاهد شريط الجلسة في أعلى الشاشة.'
+      : 'Every shift starts with a cash session that tracks where the money began. Watch for the session bar at the top.';
+  String get tourCashStartTitle => isArabic ? 'ابدأ الجلسة' : 'Start the session';
+  String get tourCashStartBody => isArabic
+      ? 'اضغط زر «فتح الجلسة» في شريط الجلسة.'
+      : 'Tap the "Open session" button on the session bar.';
+  String get tourCashCashTitle => isArabic ? 'الرصيد الافتتاحي' : 'Opening balance';
+  String get tourCashCashBody => isArabic
+      ? 'أدخل النقد الموجود في الدرج عند بدء النوبة — فهو نقطة انطلاق الجرد.'
+      : 'Enter the cash in the drawer when the shift starts — that is the starting point for the count.';
+  String get tourCashVerifyTitle => isArabic ? 'تحقّق من الجلسة' : 'Verify the session';
+  String get tourCashVerifyBody => isArabic
+      ? 'بعد فتح الجلسة سيتحقق النظام من تسجيلها. أتمِّ الفتح ثم عد وافحص.'
+      : 'Once the session is open, the system checks it was recorded. Start it, then come back and verify.';
+
+  String get tourFirstIntroTitle => isArabic ? 'أول عملية بيع' : 'Your first sale';
+  String get tourFirstIntroBody => isArabic
+      ? 'لنُنجز أول عملية بيع. اضغط منتجاً ليُضاف إلى السلة ثم أتمِم البيع.'
+      : 'Let\'s make your first sale. Tap a product to add it to the cart, then complete the sale.';
+  String get tourFirstAddTitle => isArabic ? 'أضف منتجاً' : 'Add a product';
+  String get tourFirstAddBody => isArabic
+      ? 'اضغط على أي منتج في الشبكة ليُضاف إلى السلة على اليمين.'
+      : 'Tap any product in the grid to drop it into the cart.';
+  String get tourFirstCheckoutTitle => isArabic ? 'إتمام عملية البيع' : 'Complete the sale';
+  String get tourFirstCheckoutBody => isArabic
+      ? 'عندما تكون السلة جاهزة اضغط «إتمام البيع» لتسجيل العملية بكل تفاصيلها.'
+      : 'When the cart is ready, tap "Complete sale" to record the transaction.';
+  String get tourFirstVerifyTitle => isArabic ? 'تحقّق من البيع' : 'Verify the sale';
+  String get tourFirstVerifyBody => isArabic
+      ? 'بعد إتمام البيع سيتحقق النظام من تسجيله. عد وافحص عندما تصل إلى هذه الخطوة.'
+      : 'Once the sale completes, the system checks it was recorded. Verify when you get back here.';
+
+  String get tourTermIntroTitle => isArabic ? 'إعداد الطابعة' : 'Set up your printer';
+  String get tourTermIntroBody => isArabic
+      ? 'تُطبع الإيصالات من طابعة تضيفها هنا. اضغط أيقونة الطابعة في الشريط العلوي لفتح شاشة الطابعات.'
+      : 'Receipts print from a printer you add here. Tap the printer icon in the app bar to open the printers screen.';
+  String get tourTermEnableTitle => isArabic ? 'تفعيل الطباعة' : 'Enable printing';
+  String get tourTermEnableBody => isArabic
+      ? 'فعِّل مفتاح «الطباعة مفعّلة» أعلى الإعدادات — لن تُطبع الإيصالات قبل ذلك.'
+      : 'Turn on "Printing enabled" at the top of the settings — receipts won\'t print before that.';
+  String get tourTermVerifyTitle => isArabic ? 'اختبر الطابعة' : 'Test your printer';
+  String get tourTermVerifyBody => isArabic
+      ? 'اضغط «طباعة صفحة تجريبية» للتأكد من أن شكل الإيصال صحيح، ثم عُد للتحقق.'
+      : 'Tap "Print test page" to confirm the receipt looks right, then come back and verify.';
+
+  String get onboardingCenterTitle => isArabic ? 'مركز الإرشاد' : 'Guides center';
+  String get onboardingCenterSubtitle => isArabic
+      ? 'جولات قصيرة تعلّمك أساسيات التطبيق خطوة بخطوة.'
+      : 'Short tours that walk you through the essentials, step by step.';
+  String get tourRecommended => isArabic ? 'موصى به' : 'Recommended';
+  String get tourRecommendedHint => isArabic
+      ? 'ابدأ بالجولة الموصى بها لإعداد متجرك.'
+      : 'Start with the recommended tour to set up your store.';
+  String get tourGoalLabel => isArabic ? 'الهدف' : 'Goal';
+  String get tourCompletedLabel => isArabic ? 'مكتملة' : 'Completed';
+  String get tourRunningLabel => isArabic ? 'قيد التنفيذ' : 'Running';
+  String get tourPausedLabel => isArabic ? 'متوقفة مؤقتاً' : 'Paused';
+  String get tourSkippedLabel => isArabic ? 'تم تخطّيها' : 'Skipped';
+  String get tourAvailableLabel => isArabic ? 'متاحة' : 'Available';
+  String get tourNotOnBuild => isArabic
+      ? 'غير متاحة في هذا الإصدار'
+      : 'Not available in this build';
+  String get tourStartAction => isArabic ? 'ابدأ' : 'Start';
+  String get tourResumeAction => isArabic ? 'استئناف' : 'Resume';
+  String get tourRetryAction => isArabic ? 'إعادة المحاولة' : 'Retry';
+  String get tourSkipTourAction => isArabic ? 'تخطّي الجولة' : 'Skip tour';
+  String get tourGoalNotYet => isArabic
+      ? 'لم يُسجَّل الهدف بعد'
+      : 'Goal not recorded yet';
+  String get tourTryAgainLater => isArabic
+      ? 'جرّب لاحقاً'
+      : 'Try again later';
+  String get tourVersionMismatch => isArabic
+      ? 'تغيّرت الجولة على الخادم — أعد تحميل التطبيق ثم حاول مجدداً.'
+      : 'The tour changed on the server. Reload the app and try again.';
+  String get tourAlreadyDone => isArabic
+      ? 'هذه الجولة مكتملة بالفعل'
+      : 'This tour is already completed.';
+  String get tourNotRunning => isArabic
+      ? 'الجولة غير نشطة حالياً'
+      : 'The tour is not running right now.';
+  String get tourActionFailed => isArabic
+      ? 'تعذّر تنفيذ الإجراء — حاول مرة أخرى.'
+      : 'Could not perform that action — try again.';
+  String get tourSkipped => isArabic ? 'تم تخطّي الجولة' : 'Tour skipped.';
+  String get tourContinueAction => isArabic ? 'متابعة' : 'Continue';
+  String get tourAllTours => isArabic ? 'كل الجولات' : 'All tours';
+  String get tourCenterEntry => isArabic ? 'مركز الإرشاد' : 'Guides center';
 
   static String _arDigits(int n) {
     const ar = '٠١٢٣٤٥٦٧٨٩';

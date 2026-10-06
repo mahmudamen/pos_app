@@ -2288,6 +2288,256 @@
         }
       }
     },
+    "/v1/onboarding": {
+      "get": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "GetV1Onboarding",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/events": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingEvents",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/readiness": {
+      "get": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "GetV1OnboardingReadiness",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours": {
+      "get": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "GetV1OnboardingTours",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours/{id}": {
+      "patch": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PatchV1OnboardingToursId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours/{id}/complete": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingToursIdComplete",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours/{id}/pause": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingToursIdPause",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours/{id}/resume": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingToursIdResume",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours/{id}/skip": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingToursIdSkip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/tours/{id}/start": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingToursIdStart",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/v1/platform/accounts/{id}/suspend": {
       "post": {
         "tags": [

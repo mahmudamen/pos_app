@@ -11,6 +11,7 @@ import 'billing.dart';
 import 'community.dart';
 import 'dashboard.dart';
 import 'inventory.dart';
+import 'onboarding.dart';
 import 'payments.dart';
 import 'purchases.dart';
 import 'receipts.dart';
@@ -3851,6 +3852,198 @@ class ApiClient {
       return null;
     }
   }
+
+  Future<OnboardingState> onboardingState(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/onboarding'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return OnboardingState.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<OnboardingReadiness> onboardingReadiness(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/onboarding/readiness'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return OnboardingReadiness.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TourActionResult> startTour(
+    Session session,
+    String tourId, {
+    int? version,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/tours/$tourId/start'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({if (version != null) 'tour_version': version}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TourActionResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TourActionResult> setTourStep(
+    Session session,
+    String tourId,
+    String currentStep,
+  ) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.patch(
+        Uri.parse('$baseUrl/v1/onboarding/tours/$tourId'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({'current_step': currentStep}),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TourActionResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TourActionResult> pauseTour(Session session, String tourId) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/tours/$tourId/pause'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TourActionResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TourActionResult> resumeTour(Session session, String tourId) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/tours/$tourId/resume'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TourActionResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<TourActionResult> skipTour(Session session, String tourId) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/tours/$tourId/skip'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TourActionResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Completing a tour is a server-side business-goal verification: the API
+  /// answers 409 `goal_not_met` (surfaced as [ApiException.isGoalNotMet])
+  /// until the real business fact exists, so the tour never lies.
+  Future<TourActionResult> completeTour(Session session, String tourId) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/tours/$tourId/complete'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return TourActionResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  Future<OnboardingEventResult> reportOnboardingEvent(
+    Session session, {
+    required String eventId,
+    required String event,
+    Map<String, dynamic>? payload,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/events'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'event_id': eventId,
+          'event': event,
+          if (payload != null && payload.isNotEmpty) 'payload': payload,
+        }),
+      ),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return OnboardingEventResult.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
 }
 
 class Product {
@@ -4021,6 +4214,14 @@ class ApiException implements Exception {
   /// 402 from the OCR meter: every active window is spent and the credit
   /// balance is empty. Actionable — the shop can top up and continue.
   bool get isScanLimit => code == 'ocr_window_limit_reached';
+
+  /// Onboarding tour completion was refused because the business goal it
+  /// represents is not actually satisfied server-side.
+  bool get isGoalNotMet => code == 'goal_not_met';
+
+  bool get isTourCompleted => code == 'tour_completed';
+  bool get isTourVersionMismatch => code == 'tour_version_mismatch';
+  bool get isTourNotRunning => code == 'tour_not_running';
 
   @override
   String toString() => message;
@@ -4309,6 +4510,7 @@ class TenantSettings {
     this.lowStockWarning = true,
     this.validateStockPayment = true,
     this.refreshButton = true,
+    this.reprintLastReceipt = true,
     this.roundingMode = 'off',
   });
 
@@ -4332,6 +4534,8 @@ class TenantSettings {
         validateStockPayment:
             (json['pos.validate_stock_payment'] as String?) != 'false',
         refreshButton: (json['pos.refresh_button'] as String?) != 'false',
+        reprintLastReceipt:
+            (json['pos.reprint_last_receipt'] as String?) != 'false',
         roundingMode: switch (
             roundingDenominator(json['pos.rounding_mode'] as String?)) {
           null => 'off',
@@ -4356,6 +4560,11 @@ class TenantSettings {
   final bool lowStockWarning;
   final bool validateStockPayment;
   final bool refreshButton;
+
+  /// `pos.reprint_last_receipt` — show the one-tap reprint action on the POS
+  /// app bar. Follows the same `!= 'false'` default-on convention as the
+  /// refresh button.
+  final bool reprintLastReceipt;
 
   /// `pos.rounding_mode` — "off", "25", "50" or "100" (minor-unit cash
   /// denomination the payable is rounded to). The pure
@@ -4388,6 +4597,7 @@ class TenantSettings {
         lowStockWarning: lowStockWarning,
         validateStockPayment: validateStockPayment,
         refreshButton: refreshButton,
+        reprintLastReceipt: reprintLastReceipt,
         roundingMode: roundingMode,
       );
 

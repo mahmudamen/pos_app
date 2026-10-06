@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/printer_service.dart';
 import '../../core/printers.dart';
 import '../../core/session_store.dart';
+import '../../core/tour/tour_target.dart';
 import '../../l10n/strings.dart';
 
 /// Per-device printer configuration: what to print, to which printer, in what
@@ -170,13 +171,16 @@ class _PrintersScreenState extends State<PrintersScreen> {
                     Card(
                       child: Column(
                         children: [
-                          SwitchListTile(
-                            title: Text(s.printingEnabled),
-                            subtitle: Text(s.printingEnabledHint),
-                            value: config.enabled,
-                            onChanged: _canEdit
-                                ? (v) => _persist(config.copyWith(enabled: v))
-                                : null,
+                          TourTarget(
+                            id: 'printers_enable',
+                            child: SwitchListTile(
+                              title: Text(s.printingEnabled),
+                              subtitle: Text(s.printingEnabledHint),
+                              value: config.enabled,
+                              onChanged: _canEdit
+                                  ? (v) => _persist(config.copyWith(enabled: v))
+                                  : null,
+                            ),
                           ),
                           if (config.enabled) ...[
                             const Divider(height: 1),
@@ -386,10 +390,13 @@ class _PrintersScreenState extends State<PrintersScreen> {
                                       .colorScheme
                                       .onSurfaceVariant)),
                         ),
-                      FilledButton.icon(
-                        onPressed: () => _testPrint(s),
-                        icon: const Icon(Icons.print_outlined),
-                        label: Text(s.testPrint),
+                      TourTarget(
+                        id: 'printers_test',
+                        child: FilledButton.icon(
+                          onPressed: () => _testPrint(s),
+                          icon: const Icon(Icons.print_outlined),
+                          label: Text(s.testPrint),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       _sectionTitle(s, s.troubleshoot),

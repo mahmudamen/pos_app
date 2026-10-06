@@ -16,11 +16,14 @@ import '../../core/security.dart';
 import '../../core/session_store.dart';
 import '../../core/theme.dart';
 import '../../core/storage/local_database.dart';
+import '../../core/tour/tour_controller.dart';
+import '../../core/tour/tour_target.dart';
 import '../../l10n/strings.dart';
 import '../customers/customers_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../community/community_hub_screen.dart';
 import '../inventory/inventory_screen.dart';
+import '../onboarding/onboarding_center_screen.dart';
 import '../purchases/purchases_screen.dart';
 import '../printers/printers_screen.dart';
 import '../restaurants/split_bill_screen.dart';
@@ -58,7 +61,8 @@ class PosScreen extends StatefulWidget {
       this.themeSetting = const ThemeSetting(),
       this.onThemePreferenceChanged,
       this.onThemeAccentChanged,
-      this.printerService});
+      this.printerService,
+      this.tourController});
 
   final Session session;
   final ApiClient apiClient;
@@ -73,6 +77,7 @@ class PosScreen extends StatefulWidget {
   final ValueChanged<ThemePreference>? onThemePreferenceChanged;
   final ValueChanged<ThemeAccent>? onThemeAccentChanged;
   final PrinterService? printerService;
+  final TourController? tourController;
 
   @override
   State<PosScreen> createState() => _PosScreenState();
@@ -587,15 +592,16 @@ class _PosScreenState extends State<PosScreen> {
 
   /// Best-effort on-screen receipt after a sale. A failure here never surfaces:
   /// the sale already exists and the thermal print already ran, so the caller
-  /// just falls back to the completion SnackBar.
-  Future<void> _openSaleReceipt(String saleId) async {
+  /// just falls back to the completion SnackBar. Returns whether the receipt
+  /// route was actually opened, which the reprint action reports on.
+  Future<bool> _openSaleReceipt(String saleId) async {
     try {
       // Bounded: the checkout stays in its busy state until this returns, so a
       // stalled link must not leave the sale button disabled forever.
       final receipt = await widget.apiClient
           .fetchReceipt(widget.session, saleId)
           .timeout(const Duration(seconds: 8));
-      if (!mounted) return;
+      if (!mounted) return false;
       await Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => ReceiptScreen(
           receipt: receipt,
@@ -605,8 +611,47 @@ class _PosScreenState extends State<PosScreen> {
           printerService: _printerService,
         ),
       ));
+      return true;
     } catch (_) {
       // The receipt is a bonus; never let it fail a completed sale.
+      return false;
+    }
+  }
+
+  /// Remembers the sale so the app bar can reprint it later. Best effort: a
+  /// failed write only degrades the reprint to "no receipt yet".
+  Future<void> _recordLastSale(String saleId) async {
+    final db = widget.localDatabase;
+    if (db == null) return;
+    try {
+      await db.saveLastSale(widget.session.tenantId, saleId);
+    } catch (_) {
+      // Local persistence is opportunistic; the sale itself already exists.
+    }
+  }
+
+  /// One-tap reprint of the newest sale completed on this device.
+  Future<void> _reprintLastReceipt() async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final db = widget.localDatabase;
+    String? saleId;
+    if (db != null) {
+      try {
+        saleId = await db.readLastSale(widget.session.tenantId);
+      } catch (_) {
+        // Treated as "nothing to reprint" below.
+      }
+    }
+    if (!mounted) return;
+    if (saleId == null || saleId.isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(s.noLastReceipt)));
+      return;
+    }
+    final opened = await _openSaleReceipt(saleId);
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(s.lastReceiptUnavailable)));
     }
   }
 
@@ -695,6 +740,12 @@ class _PosScreenState extends State<PosScreen> {
                     tooltip: s.salesHistory,
                     icon: const Icon(Icons.receipt_long),
                   ),
+                  if (_settings.reprintLastReceipt)
+                    IconButton(
+                      onPressed: _reprintLastReceipt,
+                      tooltip: s.reprintLastReceipt,
+                      icon: const Icon(Icons.print_outlined),
+                    ),
                   IconButton(
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -752,19 +803,22 @@ class _PosScreenState extends State<PosScreen> {
                         ? Icons.center_focus_weak
                         : Icons.center_focus_strong),
                   ),
-                  IconButton(
-                    onPressed: _openPrinters,
-                    tooltip: s.printers,
-                    icon: Icon(
-                      switch (_printerStatus) {
-                        PrinterStatus.online => Icons.print,
-                        PrinterStatus.offline => Icons.print_disabled,
-                        PrinterStatus.noPrinter =>
-                          Icons.local_printshop_outlined,
-                      },
-                      color: _printerStatus == PrinterStatus.offline
-                          ? Theme.of(context).colorScheme.error
-                          : null,
+                  TourTarget(
+                    id: 'printers_button',
+                    child: IconButton(
+                      onPressed: _openPrinters,
+                      tooltip: s.printers,
+                      icon: Icon(
+                        switch (_printerStatus) {
+                          PrinterStatus.online => Icons.print,
+                          PrinterStatus.offline => Icons.print_disabled,
+                          PrinterStatus.noPrinter =>
+                            Icons.local_printshop_outlined,
+                        },
+                        color: _printerStatus == PrinterStatus.offline
+                            ? Theme.of(context).colorScheme.error
+                            : null,
+                      ),
                     ),
                   ),
                   if (_settings.refreshButton)
@@ -780,6 +834,21 @@ class _PosScreenState extends State<PosScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Center(child: Text(widget.session.displayName))),
                   IconButton(
+                    onPressed: widget.tourController == null
+                        ? null
+                        : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => OnboardingCenterScreen(
+                                  session: widget.session,
+                                  apiClient: widget.apiClient,
+                                  tourController: widget.tourController!,
+                                ),
+                              ),
+                            ),
+                    tooltip: s.tourCenterEntry,
+                    icon: const Icon(Icons.explore_outlined),
+                  ),
+                  IconButton(
                     onPressed: () => _openSettings(context),
                     tooltip: s.settings,
                     icon: const Icon(Icons.settings_outlined),
@@ -792,18 +861,21 @@ class _PosScreenState extends State<PosScreen> {
       ),
       body: Column(
         children: [
-          _SessionBar(
-            session: _registerSession,
-            localSession: _localSession,
-            loading: _sessionLoading,
-            strings: s,
-            currency: widget.session.currencyCode,
-            minimized: _sessionMinimized,
-            resumed: _sessionResumedAtStart,
-            onOpen: () => _openSessionFlow(context),
-            onFinish: () => _finishSessionFlow(context),
-            onHistory: () => _openSessionHistory(context),
-            onToggleMinimize: _toggleSessionMinimized,
+          TourTarget(
+            id: 'session_bar',
+            child: _SessionBar(
+              session: _registerSession,
+              localSession: _localSession,
+              loading: _sessionLoading,
+              strings: s,
+              currency: widget.session.currencyCode,
+              minimized: _sessionMinimized,
+              resumed: _sessionResumedAtStart,
+              onOpen: () => _openSessionFlow(context),
+              onFinish: () => _finishSessionFlow(context),
+              onHistory: () => _openSessionHistory(context),
+              onToggleMinimize: _toggleSessionMinimized,
+            ),
           ),
           Expanded(
             child: LayoutBuilder(builder: (context, constraints) {
@@ -828,21 +900,24 @@ class _PosScreenState extends State<PosScreen> {
                   onCategorySelected: (id) =>
                       setState(() => _selectedCategoryId = id),
                   onAdd: _add);
-              final cart = _CartPanel(
-                  orders: _orders,
-                  selectedOrder: _selectedOrder,
-                  strings: s,
-                  currency: widget.session.currencyCode,
-                  tableName: _activeOrder.tableName,
-                  onPickTable: () => _pickTable(context),
-                  onSelect: _selectOrder,
-                  onNewOrder: _newOrder,
-                  onIncrease: _increase,
-                  onDecrease: _decrease,
-                  onRemove: _removeLine,
-                  onCheckout: _activeOrder.isEmpty || _checkingOut
-                      ? null
-                      : () => _checkout(context));
+              final cart = TourTarget(
+                  id: 'cart_panel',
+                  child: _CartPanel(
+                      orders: _orders,
+                      selectedOrder: _selectedOrder,
+                      strings: s,
+                      currency: widget.session.currencyCode,
+                      tableName: _activeOrder.tableName,
+                      onPickTable: () => _pickTable(context),
+                      onSelect: _selectOrder,
+                      onNewOrder: _newOrder,
+                      onIncrease: _increase,
+                      onDecrease: _decrease,
+                      onRemove: _removeLine,
+                      onCheckout: _activeOrder.isEmpty || _checkingOut
+                          ? null
+                          : () => _checkout(context)),
+                );
               return wide
                   ? Row(children: [
                       Expanded(child: catalog),
@@ -894,14 +969,17 @@ class _PosScreenState extends State<PosScreen> {
           children: [
             Text(s.openSessionHint),
             const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: s.startingCash,
-                border: const OutlineInputBorder(),
+            TourTarget(
+              id: 'session_starting_cash_field',
+              child: TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: s.startingCash,
+                  border: const OutlineInputBorder(),
+                ),
               ),
             ),
           ],
@@ -933,6 +1011,7 @@ class _PosScreenState extends State<PosScreen> {
       });
       messenger.showSnackBar(
           SnackBar(content: Text('${s.posSession} ${s.statusOpen}')));
+      widget.tourController?.handleBusinessAction('open');
     } catch (error) {
       final db = widget.localDatabase;
       if (!isTransportFailure(error) || db == null) {
@@ -953,6 +1032,7 @@ class _PosScreenState extends State<PosScreen> {
         _sessionResumedAtStart = false;
       });
       messenger.showSnackBar(SnackBar(content: Text(s.sessionOpenedOffline)));
+      widget.tourController?.handleBusinessAction('open');
     }
   }
 
@@ -1148,8 +1228,10 @@ class _PosScreenState extends State<PosScreen> {
         await _loadRegisterSession();
       }
       unawaited(_printAfterSale(result.id));
+      await _recordLastSale(result.id);
       await _openSaleReceipt(result.id);
       if (!mounted) return;
+      widget.tourController?.handleBusinessAction('sale');
       final notice = decision?.kind == DiscountDecisionKind.capped
           ? s.discountCapped
           : decision?.kind == DiscountDecisionKind.warned
@@ -1615,7 +1697,9 @@ class _Catalog extends StatelessWidget {
             Expanded(child: Center(child: Text(error!)))
           else
             Expanded(
-                child: GridView.builder(
+                child: TourTarget(
+                    id: 'product_grid',
+                    child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: wide ? 280 : 220,
                         childAspectRatio: wide ? 1.2 : 1.25,
@@ -1677,7 +1761,7 @@ class _Catalog extends StatelessWidget {
                                                             .onSurfaceVariant)),
                                         ]),
                                   ]))));
-                    }))
+                    })))
         ]));
   }
 }
@@ -1828,10 +1912,13 @@ class _CartPanel extends StatelessWidget {
             onPressed: onPickTable,
           ),
           const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: onCheckout,
-            icon: const Icon(Icons.payments_outlined),
-            label: Text(strings.completeSale),
+          TourTarget(
+            id: 'checkout_button',
+            child: FilledButton.icon(
+              onPressed: onCheckout,
+              icon: const Icon(Icons.payments_outlined),
+              label: Text(strings.completeSale),
+            ),
           ),
         ],
       ),
@@ -2223,10 +2310,13 @@ class _SessionBar extends StatelessWidget {
                             tooltip: strings.sessionsHistory,
                             icon: const Icon(Icons.history),
                           ),
-                          FilledButton.icon(
-                            onPressed: onOpen,
-                            icon: const Icon(Icons.add),
-                            label: Text(strings.openSession),
+                          TourTarget(
+                            id: 'session_bar_open_button',
+                            child: FilledButton.icon(
+                              onPressed: onOpen,
+                              icon: const Icon(Icons.add),
+                              label: Text(strings.openSession),
+                            ),
                           ),
                         ],
                       )

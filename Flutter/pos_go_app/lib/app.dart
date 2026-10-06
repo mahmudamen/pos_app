@@ -12,6 +12,9 @@ import 'core/storage/local_database.dart';
 import 'core/telemetry.dart';
 import 'core/push.dart';
 import 'core/theme.dart';
+import 'core/tour/tour_controller.dart';
+import 'core/tour/tour_overlay.dart';
+import 'core/tour/tour_target_registry.dart';
 import 'features/auth/login_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/pos/pos_screen.dart';
@@ -49,6 +52,7 @@ class _PosAppState extends State<PosApp> {
   bool _languageCustomized = false;
   FontSetting _fontSetting = const FontSetting();
   ThemeSetting _themeSetting = const ThemeSetting();
+  TourController? _tour;
 
   @override
   void initState() {
@@ -73,6 +77,8 @@ class _PosAppState extends State<PosApp> {
 
   @override
   void dispose() {
+    _tour?.disposeController();
+    _tour = null;
     _appLinks.dispose();
     super.dispose();
   }
@@ -180,6 +186,7 @@ class _PosAppState extends State<PosApp> {
     );
     final theme = await _sessionStore.readThemeSetting();
     Telemetry.instance.setSession(session);
+    _setTour(session);
     if (!mounted) return;
     setState(() {
       _session = session;
@@ -189,6 +196,26 @@ class _PosAppState extends State<PosApp> {
       _themeSetting = theme;
       _restoring = false;
     });
+  }
+
+  void _setTour(Session? session) {
+    if (session == null) {
+      _tour?.disposeController();
+      _tour = null;
+      return;
+    }
+    _tour?.disposeController();
+    _tour = TourController(
+      registry: TourTargetRegistry.instance,
+      api: _apiClient,
+      session: session,
+    );
+  }
+
+  Widget _wrapTour(BuildContext context, Widget? child) {
+    final tour = _tour;
+    if (tour == null || child == null) return child ?? const SizedBox.shrink();
+    return TourOverlayHost(controller: tour, child: child);
   }
 
   Future<void> _setLanguage(String code) async {
@@ -231,6 +258,7 @@ class _PosAppState extends State<PosApp> {
   }
 
   Future<void> _authenticated(Session session) async {
+    _setTour(session);
     await _sessionStore.save(session);
     if (!_languageCustomized) {
       // Tenant's default language applies only until the user explicitly picks
@@ -273,6 +301,7 @@ class _PosAppState extends State<PosApp> {
         fontSizeFactor: fontScale(_fontSetting.size),
       ),
       themeMode: _themeSetting.preference.toThemeMode,
+      builder: (context, child) => _wrapTour(context, child),
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         child: _restoring || !_splashDone
@@ -323,6 +352,7 @@ class _PosAppState extends State<PosApp> {
                   sessionStore: _sessionStore,
                   fontSetting: _fontSetting,
                   themeSetting: _themeSetting,
+                  tourController: _tour,
                   onLanguageChanged: _setLanguage,
                   onFontModeChanged: _setFontMode,
                   onFontSizeChanged: _setFontSize,
@@ -340,6 +370,7 @@ class _PosAppState extends State<PosApp> {
                     } catch (_) {
                       // Unlock the UI even if secure storage is transiently unavailable.
                     }
+                    _setTour(null);
                     if (mounted) setState(() => _session = null);
                     Telemetry.instance.setSession(null);
                   },

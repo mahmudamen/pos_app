@@ -1,6 +1,6 @@
 # Data safety — draft answers for Play Console
 
-App: POS.Go · Package `com.xamltech.pos_go` · Version 1.0.0 (code 3)
+App: POS.Go · Package `com.xamltech.pos_go` · Version 1.1.1 (code 7)
 
 These answers are derived from what the shipped code actually does. Every line
 marked **[verify]** has to be confirmed by a human before the form is submitted,

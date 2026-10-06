@@ -249,6 +249,27 @@ void main() {
 
   // Local register sessions: the offline half of a shift, recorded on the
   // device when POST /v1/registers/open cannot reach the server.
+  group('last sale', () {
+    test('a completed sale is remembered per tenant', () async {
+      await db.saveLastSale('tenant-1', 'sale-1');
+
+      expect(await db.readLastSale('tenant-1'), 'sale-1');
+      expect(await db.readLastSale('tenant-2'), isNull,
+          reason: 'a device switched to another tenant must not reprint it');
+    });
+
+    test('a newer sale replaces the previous one', () async {
+      await db.saveLastSale('tenant-1', 'sale-1');
+      await db.saveLastSale('tenant-1', 'sale-2');
+
+      expect(await db.readLastSale('tenant-1'), 'sale-2');
+    });
+
+    test('nothing is remembered before the first sale', () async {
+      expect(await db.readLastSale('tenant-1'), isNull);
+    });
+  });
+
   group('local session storage', () {
     test('an offline shift is readable as the open session', () async {
       final db = LocalDatabase(

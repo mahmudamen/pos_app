@@ -48,6 +48,10 @@ func init() {
 	// invite; real gating is the community_members row checked in the handler
 	// (e.g. guests can be invited but may not join unless offered a code).
 	grant([]string{"owner", "manager", "cashier", "guest", "saas_admin"}, "community", "invite")
+	// Onboarding: every signed-in role may read its own progress and report
+	// its own tour steps/events; tours only ever move a user's own rows.
+	grant([]string{"owner", "manager", "cashier", "guest", "saas_admin"}, "onboarding", "read")
+	grant([]string{"owner", "manager", "cashier", "guest", "saas_admin"}, "onboarding", "write")
 	// community.moderate is NOT in the static matrix: moderation rides on the
 	// national membership role (moderator/admin) or the saas_admin org role,
 	// both checked dynamically in the national handlers.
