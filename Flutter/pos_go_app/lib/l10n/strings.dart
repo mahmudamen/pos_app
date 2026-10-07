@@ -114,6 +114,17 @@ class AppStrings {
 
   String get createStore => isArabic ? 'إنشاء المتجر' : 'Create store';
   String get storeName => isArabic ? 'اسم المتجر' : 'Store name';
+  String get storeAddress => isArabic ? 'عنوان المتجر' : 'Store address';
+  String get storeSectionTitle =>
+      isArabic ? 'بيانات المتجر' : 'Store details';
+  String get storeSectionHint => isArabic
+      ? 'يظهر الاسم والعنوان على الإيصالات المطبوعة'
+      : 'Name and address are shown on printed receipts';
+  String get storeDetailsSaved =>
+      isArabic ? 'تم حفظ بيانات المتجر' : 'Store details saved';
+  String get storeDetailsFailed => isArabic
+      ? 'تعذّر حفظ بيانات المتجر'
+      : 'Could not save store details';
   String get ownerName => isArabic ? 'اسم المالك' : 'Owner name';
   String get signUp =>
       isArabic ? 'إنشاء الحساب وبدء البيع' : 'Sign up & start selling';
@@ -1199,6 +1210,14 @@ class AppStrings {
   String get lowConfidenceMatch =>
       isArabic ? 'تطابق ضعيف، راجعه' : 'Low confidence — check this match';
   String get newProduct => isArabic ? 'منتج جديد' : 'New product';
+  String get productNameLabel => isArabic ? 'اسم المنتج' : 'Product name';
+  String get skuLabel => isArabic ? 'SKU (اختياري)' : 'SKU (optional)';
+  String get productAdded =>
+      isArabic ? 'تمت إضافة المنتج' : 'Product added';
+  String get addProductFailed =>
+      isArabic ? 'تعذّرت إضافة المنتج' : 'Could not add the product';
+  String get invalidPrice =>
+      isArabic ? 'أدخل سعراً صحيحاً' : 'Enter a valid price';
   String get matchedProduct => isArabic ? 'مطابق' : 'Matched';
   String get changeProduct => isArabic ? 'تغيير المنتج' : 'Change product';
   String get purchasePrice => isArabic ? 'سعر الشراء' : 'Purchase price';
@@ -1379,6 +1398,36 @@ class AppStrings {
       ? 'بعد إتمام البيع سيتحقق النظام من تسجيله. عد وافحص عندما تصل إلى هذه الخطوة.'
       : 'Once the sale completes, the system checks it was recorded. Verify when you get back here.';
 
+  String get tourStoreIntroTitle => isArabic ? 'إعداد المتجر' : 'Store setup';
+  String get tourStoreIntroBody => isArabic
+      ? 'ابدأ باسم متجرك وعنوانه — يظهران أعلى كل إيصال مطبوع. افتح الإعدادات بأيقونة الترس في الشريط العلوي.'
+      : 'Start with your store name and address — they appear at the top of every printed receipt. Open Settings with the gear icon in the top bar.';
+  String get tourStoreAddressTitle =>
+      isArabic ? 'عنوان المتجر' : 'Store address';
+  String get tourStoreAddressBody => isArabic
+      ? 'أدخل عنوان متجرك هنا مثل: «35 كورنيش النيل، القاهرة».'
+      : 'Enter your store address here, like "35 Nile Corniche, Cairo".';
+  String get tourStoreSaveTitle =>
+      isArabic ? 'حفظ بيانات المتجر' : 'Save store details';
+  String get tourStoreSaveBody => isArabic
+      ? 'اضغط «حفظ» ليُسجَّل الاسم والعنوان، ثم تحقّق.'
+      : 'Tap "Save" to record the name and address, then verify.';
+
+  String get tourProductIntroTitle =>
+      isArabic ? 'أضف أول منتج' : 'Add your first product';
+  String get tourProductIntroBody => isArabic
+      ? 'تبدأ المنتجات من شاشة المخزون. افتحها بأيقونة المخزون في الشريط العلوي.'
+      : 'Products live in the inventory screen. Open it with the inventory icon in the top bar.';
+  String get tourProductAddTitle => isArabic ? 'منتج جديد' : 'New product';
+  String get tourProductAddBody => isArabic
+      ? 'اضغط زر الإضافة لفتح نموذج المنتج الجديد.'
+      : 'Tap the add button to open the new-product form.';
+  String get tourProductSaveTitle =>
+      isArabic ? 'حفظ المنتج' : 'Save the product';
+  String get tourProductSaveBody => isArabic
+      ? 'أدخل الاسم والسعر، اضغط «حفظ»، ثم تحقّق.'
+      : 'Enter the name and price, tap "Save", then verify.';
+
   String get tourTermIntroTitle => isArabic ? 'إعداد الطابعة' : 'Set up your printer';
   String get tourTermIntroBody => isArabic
       ? 'تُطبع الإيصالات من طابعة تضيفها هنا. اضغط أيقونة الطابعة في الشريط العلوي لفتح شاشة الطابعات.'
@@ -1435,6 +1484,41 @@ class AppStrings {
   String get tourContinueAction => isArabic ? 'متابعة' : 'Continue';
   String get tourAllTours => isArabic ? 'كل الجولات' : 'All tours';
   String get tourCenterEntry => isArabic ? 'مركز الإرشاد' : 'Guides center';
+
+  String get rewardTitle => isArabic ? 'مكافأة التفعيل' : 'Activation reward';
+  String get rewardBody => isArabic
+      ? 'أتمِ أول عملية بيع واحصل على مكافأة التفعيل — علامة على انطلاق متجرك.'
+      : 'Complete your first sale and claim the activation reward — a mark that your store is up and running.';
+  String get rewardUnlocked => isArabic
+      ? 'متجرك أصبح نشطاً! المكافأة متاحة الآن.'
+      : 'Your store is active! The reward is now available.';
+  String get rewardGranted => isArabic ? 'تم منح المكافأة' : 'Reward granted';
+  String get claimRewardAction => isArabic ? 'استلام المكافأة' : 'Claim reward';
+  String get rewardClaimedHint =>
+      isArabic ? 'استلمت مكافأة التفعيل' : 'You claimed the activation reward';
+  String get rewardReplayedHint => isArabic
+      ? 'سبق أن استلمت هذه المكافأة'
+      : 'You already claimed this reward';
+
+  String get analyticsTitle =>
+      isArabic ? 'متجرك في لمحة' : 'Your store at a glance';
+  String get analyticsSubtitle => isArabic
+      ? 'إحصاءات مركز الإرشاد لجلسات الجولات والتفعيل'
+      : 'Onboarding and activation stats for your team';
+  String get statToursStarted =>
+      isArabic ? 'جولات بدأت' : 'Tours started';
+  String get statToursCompleted =>
+      isArabic ? 'جولات مكتملة' : 'Tours completed';
+  String get statRewardsGranted =>
+      isArabic ? 'مكافآت' : 'Rewards granted';
+  String get statCompletionRate =>
+      isArabic ? 'نسبة الإكمال' : 'Completion rate';
+  String get statTimeToFirstSale =>
+      isArabic ? 'الوقت حتى أول بيع' : 'Time to first sale';
+  String get statActive =>
+      isArabic ? 'المتجر نشط' : 'Store active';
+  String get analyticsUnavailable =>
+      isArabic ? 'الإحصاءات متاحة للمدير فقط' : 'Analytics are manager-only';
 
   static String _arDigits(int n) {
     const ar = '٠١٢٣٤٥٦٧٨٩';

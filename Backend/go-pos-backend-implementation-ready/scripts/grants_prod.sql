@@ -237,6 +237,15 @@ BEGIN
     IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
         GRANT SELECT, INSERT, UPDATE ON TABLE onboarding_progress TO pos_app_rls;
         GRANT SELECT, INSERT ON TABLE onboarding_events TO pos_app_rls;
+        -- migration 055: idempotent activation reward (server INSERT + the
+        -- summary aggregation reads it back). Awareness data like 054.
+        GRANT SELECT, INSERT ON TABLE onboarding_rewards TO pos_app_rls;
+        -- migration 056: password reset tokens. The table is deliberately
+        -- without RLS (a platform-level lookup keyed by a random token hash,
+        -- exactly like email_verification_tokens) but the app role still needs
+        -- every DML statement on it — mint (INSERT), burn-predecessors and
+        -- consume (conditional UPDATE) and lookup by hash.
+        GRANT SELECT, INSERT, UPDATE ON TABLE password_reset_tokens TO pos_app_rls;
     END IF;
 END
 $$;

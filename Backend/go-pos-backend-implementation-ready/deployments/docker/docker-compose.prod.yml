@@ -98,6 +98,15 @@ services:
       OCR_DAY_LIMIT: ${OCR_DAY_LIMIT:-100}
       OCR_WEEK_LIMIT: ${OCR_WEEK_LIMIT:-500}
       OCR_MONTH_LIMIT: ${OCR_MONTH_LIMIT:-2000}
+      # Transactional email (welcome / notify / password reset / invoice).
+      # MAILER=smtp requires SMTP_HOST; MAIL_FROM is the envelope sender.
+      MAILER: ${MAILER:-noop}
+      MAIL_FROM: ${MAIL_FROM:-support@xamltech.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-POS.Go}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

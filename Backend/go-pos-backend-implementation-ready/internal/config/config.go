@@ -98,6 +98,15 @@ type TrialConfig struct {
 	PromoTrialsEnabled           bool
 	Mailer                       string
 	SMSSender                    string
+	// Outbound mail identity and SMTP transport. MailFrom is the envelope
+	// sender for every transactional email (verification, welcome); SMTPHost
+	// must be set when Mailer == "smtp" (STARTTLS on SMTPPort, default 587).
+	MailFrom     string
+	MailFromName string
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
 }
 
 // ValidTrialScopes lists the supported trial-identity scopes.
@@ -325,6 +334,11 @@ func loadTrialConfig() (TrialConfig, error) {
 		OfflinePolicy:                envOr("OFFLINE_TRIAL_POLICY", "grace24h"),
 		Mailer:                       envOr("MAILER", "noop"),
 		SMSSender:                    envOr("SMS_SENDER", "noop"),
+		MailFrom:                     envOr("MAIL_FROM", "support@xamltech.com"),
+		MailFromName:                 envOr("MAIL_FROM_NAME", "POS.Go"),
+		SMTPHost:                     os.Getenv("SMTP_HOST"),
+		SMTPUsername:                 os.Getenv("SMTP_USERNAME"),
+		SMTPPassword:                 os.Getenv("SMTP_PASSWORD"),
 	}
 	if !oneOf(t.Scope, ValidTrialScopes) {
 		return TrialConfig{}, fmt.Errorf("TRIAL_SCOPE must be one of %v, got %q", ValidTrialScopes, t.Scope)
@@ -339,6 +353,15 @@ func loadTrialConfig() (TrialConfig, error) {
 		return TrialConfig{}, fmt.Errorf("SMS_SENDER must be noop or provider, got %q", t.SMSSender)
 	}
 	var err error
+	if t.SMTPPort, err = intValue("SMTP_PORT", 587); err != nil {
+		return TrialConfig{}, err
+	}
+	if t.SMTPPort < 1 || t.SMTPPort > 65535 {
+		return TrialConfig{}, fmt.Errorf("SMTP_PORT must be between 1 and 65535, got %d", t.SMTPPort)
+	}
+	if t.Mailer == "smtp" && strings.TrimSpace(t.SMTPHost) == "" {
+		return TrialConfig{}, fmt.Errorf("SMTP_HOST is required when MAILER=smtp")
+	}
 	if t.DurationDays, err = intValue("TRIAL_DURATION_DAYS", 14); err != nil {
 		return TrialConfig{}, err
 	}

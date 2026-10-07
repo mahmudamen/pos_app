@@ -18,6 +18,12 @@ var sharedRoutes = []string{
 	"/v1/auth/login",
 	"/v1/auth/refresh",
 	"/v1/auth/logout",
+	// Self-service password recovery, like the session bootstrap it feeds: a
+	// store signs in from whichever domain its client points at, and the
+	// platform console admin is on the other one. Both must be able to request
+	// and consume a reset link.
+	"/v1/auth/forgot-password",
+	"/v1/auth/reset-password",
 }
 
 // googleVerifyPath is the Search Console HTML-file verification token, published
@@ -57,14 +63,18 @@ func under(path, prefix string) bool {
 // install pages, and the console domain publishes nothing but its redirect to
 // the admin single-page app.
 //
+// The password-recovery pages are on the two surfaces that can actually call
+// the API behind them (the company domain exposes no /v1 route at all, so a
+// form there would post into a 404).
+//
 // The Search Console verification file is on every surface: it is an inert
 // 53-byte ownership token, and which domain the property is verified against is
 // chosen in the Search Console UI, so gating it per host would only make
 // verification fail on the domain that happens to be submitted.
 var publicRoutes = map[config.Surface][]string{
 	config.SurfaceCompany: {"/", "/pricing", "/private", "/screenshots", "/delete-account", googleVerifyPath},
-	config.SurfacePOS:     {"/", "/pricing", "/private", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account", googleVerifyPath},
-	config.SurfaceSaaS:    {"/", googleVerifyPath},
+	config.SurfacePOS:     {"/", "/pricing", "/private", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account", "/forgot-password", "/reset-password", googleVerifyPath},
+	config.SurfaceSaaS:    {"/", "/forgot-password", "/reset-password", googleVerifyPath},
 }
 
 // ServesAPI reports whether an API path is published on the surface. The company

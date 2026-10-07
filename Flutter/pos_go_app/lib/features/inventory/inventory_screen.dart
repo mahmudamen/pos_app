@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/api_client.dart';
 import '../../core/inventory.dart';
 import '../../core/layout.dart';
+import '../../core/payments.dart';
 import '../../core/session_store.dart';
+import '../../core/tour/tour_target.dart';
 import '../../l10n/strings.dart';
 
 enum _AdjustType { refill, remove, setOnHand }
@@ -32,6 +34,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   InventoryAdjustmentPage? _history;
   int _historyPage = 1;
   bool _saving = false;
+  bool _adding = false;
   bool _allowNegativeStock = false;
 
   @override
@@ -93,6 +96,62 @@ class _InventoryScreenState extends State<InventoryScreen> {
         _historyError = e.toString();
         _loadingHistory = false;
       });
+    }
+  }
+
+  void _openAddProductSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SafeArea(
+          child: _AddProductSheet(
+            strings: AppStrings.of(context),
+            currency: widget.session.currencyCode,
+            saving: _adding,
+            onSubmit: _addProduct,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addProduct(String name, String sku, String priceText) async {
+    final s = AppStrings.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    if (name.trim().isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(s.required)));
+      return;
+    }
+    final priceMinor = minorFromInput(priceText);
+    if (priceMinor == null || priceMinor <= 0) {
+      messenger.showSnackBar(SnackBar(content: Text(s.invalidPrice)));
+      return;
+    }
+    setState(() => _adding = true);
+    try {
+      final product = await widget.apiClient.createProduct(
+        widget.session,
+        name: name.trim(),
+        sku: sku.trim(),
+        priceMinor: priceMinor,
+        currency: widget.session.currencyCode,
+      );
+      if (!mounted) return;
+      setState(() {
+        _adding = false;
+        _products = [product, ..._products];
+      });
+      navigator.pop();
+      messenger.showSnackBar(SnackBar(content: Text(s.productAdded)));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _adding = false);
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -228,6 +287,16 @@ class _InventoryScreenState extends State<InventoryScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(s.inventory),
+          actions: [
+            TourTarget(
+              id: 'inventory_add_button',
+              child: IconButton(
+                onPressed: _openAddProductSheet,
+                tooltip: s.newProduct,
+                icon: const Icon(Icons.add),
+              ),
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Tab(text: s.adjustStock),
@@ -631,6 +700,109 @@ class _AdjustSheetState extends State<_AdjustSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet used to create a product from the inventory screen (the
+/// `first_product` tour's add step). The save button carries the
+/// `inventory_save_button` tour target.
+class _AddProductSheet extends StatefulWidget {
+  const _AddProductSheet({
+    required this.strings,
+    required this.currency,
+    required this.saving,
+    required this.onSubmit,
+  });
+
+  final AppStrings strings;
+  final String currency;
+  final bool saving;
+  final Future<void> Function(String name, String sku, String price)
+      onSubmit;
+
+  @override
+  State<_AddProductSheet> createState() => _AddProductSheetState();
+}
+
+class _AddProductSheetState extends State<_AddProductSheet> {
+  final _name = TextEditingController();
+  final _sku = TextEditingController();
+  final _price = TextEditingController();
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _sku.dispose();
+    _price.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.strings;
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(s.newProduct, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _name,
+            autofocus: true,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: s.productNameLabel,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _sku,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: s.skuLabel,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _price,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: '${s.salePrice} (${widget.currency})',
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed:
+                    widget.saving ? null : () => Navigator.of(context).pop(),
+                child: Text(s.cancel),
+              ),
+              const SizedBox(width: 8),
+              TourTarget(
+                id: 'inventory_save_button',
+                child: FilledButton(
+                  onPressed: widget.saving
+                      ? null
+                      : () => widget.onSubmit(
+                            _name.text,
+                            _sku.text,
+                            _price.text,
+                          ),
+                  child: Text(widget.saving ? s.saving : s.save),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -21,6 +21,8 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/settings", h.getSettings)
 	router.PUT("/settings", h.updateSettings)
+	router.GET("/store", h.getStore)
+	router.PUT("/store", h.updateStore)
 }
 
 type updateSettingsRequest struct {

@@ -67,6 +67,8 @@ func TestRoutesRegistered(t *testing.T) {
 		"POST /v1/onboarding/tours/:id/skip",
 		"POST /v1/onboarding/tours/:id/complete",
 		"POST /v1/onboarding/events",
+		"POST /v1/onboarding/reward",
+		"GET /v1/onboarding/summary",
 	} {
 		if !routes[want] {
 			t.Fatalf("route %s not registered", want)
@@ -84,6 +86,8 @@ func TestOnboardingRequiresAccessToken(t *testing.T) {
 		{http.MethodGet, "/v1/onboarding/readiness"},
 		{http.MethodPost, "/v1/onboarding/tours/cash_session/start"},
 		{http.MethodPost, "/v1/onboarding/events"},
+		{http.MethodPost, "/v1/onboarding/reward"},
+		{http.MethodGet, "/v1/onboarding/summary"},
 	} {
 		if rec := do(router, tc.method, tc.path, "", ""); rec.Code != http.StatusUnauthorized {
 			t.Fatalf("%s %s without token: expected 401, got %d", tc.method, tc.path, rec.Code)
@@ -121,6 +125,8 @@ func TestOnboardingUnavailableWithoutDatabase(t *testing.T) {
 		{http.MethodPost, "/v1/onboarding/tours/first_sale/start", ""},
 		{http.MethodPatch, "/v1/onboarding/tours/first_sale", `{"current_step":"grid"}`},
 		{http.MethodPost, "/v1/onboarding/events", `{"event_id":"7f6b6d1e-6a6e-4b7a-8a9b-1c2d3e4f5a6b","event":"sale.completed"}`},
+		{http.MethodPost, "/v1/onboarding/reward", ""},
+		{http.MethodGet, "/v1/onboarding/summary", ""},
 	} {
 		rec := do(router, tc.method, tc.path, tokenWithRole(t, "cashier"), tc.body)
 		if rec.Code != http.StatusServiceUnavailable {

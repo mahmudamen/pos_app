@@ -30,6 +30,8 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	router.GET("/onboarding", h.state)
 	router.GET("/onboarding/tours", h.list)
 	router.GET("/onboarding/readiness", h.readinessHandler)
+	router.GET("/onboarding/summary", h.summary)
+	router.POST("/onboarding/reward", h.claimReward)
 	router.POST("/onboarding/tours/:id/start", h.start)
 	router.PATCH("/onboarding/tours/:id", h.updateStep)
 	router.POST("/onboarding/tours/:id/pause", h.pause)
@@ -280,24 +282,29 @@ func statusMap(rows map[string]progressRow) map[string]string {
 }
 
 // loadView is the shared read path: readiness + progress in one tx.
-func (h *Handler) loadView(c *gin.Context, tenantID, userID string) ([]gin.H, readiness, map[string]string, bool) {
+func (h *Handler) loadView(c *gin.Context, tenantID, userID string) ([]gin.H, readiness, map[string]string, rewardView, bool) {
 	tx, ok := h.beginTx(c, tenantID)
 	if !ok {
-		return nil, readiness{}, nil, false
+		return nil, readiness{}, nil, rewardView{}, false
 	}
 	defer func() { _ = tx.Rollback(c.Request.Context()) }()
 	ctx := c.Request.Context()
 	ready, err := readinessInTx(ctx, tx, tenantID)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load onboarding readiness")
-		return nil, readiness{}, nil, false
+		return nil, readiness{}, nil, rewardView{}, false
 	}
 	rows, err := h.loadProgress(c, tx, tenantID, userID)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load onboarding progress")
-		return nil, readiness{}, nil, false
+		return nil, readiness{}, nil, rewardView{}, false
 	}
-	return h.toursJSON(rows, ready), ready, statusMap(rows), true
+	reward, err := loadReward(ctx, tx, tenantID, userID, ready)
+	if err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to load onboarding reward")
+		return nil, readiness{}, nil, rewardView{}, false
+	}
+	return h.toursJSON(rows, ready), ready, statusMap(rows), reward, true
 }
 
 func (h *Handler) state(c *gin.Context) {
@@ -305,7 +312,7 @@ func (h *Handler) state(c *gin.Context) {
 	if !ok {
 		return
 	}
-	tours, ready, statuses, ok := h.loadView(c, tenantID, userID)
+	tours, ready, statuses, reward, ok := h.loadView(c, tenantID, userID)
 	if !ok {
 		return
 	}
@@ -313,6 +320,7 @@ func (h *Handler) state(c *gin.Context) {
 		"tours":       tours,
 		"readiness":   ready,
 		"recommended": recommendTour(statuses),
+		"reward":      reward,
 	})
 }
 
@@ -321,7 +329,7 @@ func (h *Handler) list(c *gin.Context) {
 	if !ok {
 		return
 	}
-	tours, _, _, ok := h.loadView(c, tenantID, userID)
+	tours, _, _, _, ok := h.loadView(c, tenantID, userID)
 	if !ok {
 		return
 	}

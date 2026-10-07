@@ -212,6 +212,8 @@ const (
 	ActionSuspiciousRegistration  = "registration.suspicious"
 	ActionManualTrialOverride     = "trial.manual_override"
 	ActionSubscriptionChanged     = "subscription.changed"
+	ActionPasswordResetRequested  = "password_reset.requested"
+	ActionPasswordResetCompleted  = "password_reset.completed"
 )
 
 // Entity types written into audit_log.entity_type.

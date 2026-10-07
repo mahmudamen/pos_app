@@ -42,9 +42,13 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager, cfg config.Con
 		audit:    audit,
 		installs: identity.NewInstallationStore(),
 		counters: identity.NewMemoryCounter("identity:"),
-		mailer:   identity.NewMailer(cfg.Trial.Mailer, outbox),
-		sms:      identity.NewSMSSender(cfg.Trial.SMSSender, outbox),
-		outbox:   outbox,
+		mailer: identity.NewMailer(identity.MailerConfig{
+			Kind: cfg.Trial.Mailer, Host: cfg.Trial.SMTPHost, Port: cfg.Trial.SMTPPort,
+			Username: cfg.Trial.SMTPUsername, Password: cfg.Trial.SMTPPassword,
+			From: cfg.Trial.MailFrom, FromName: cfg.Trial.MailFromName,
+		}, outbox),
+		sms:    identity.NewSMSSender(cfg.Trial.SMSSender, outbox),
+		outbox: outbox,
 	}
 }
 

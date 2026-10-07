@@ -3475,6 +3475,54 @@ class ApiClient {
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
   }
 
+  /// The tenant's store profile (name/address surface on receipts).
+  Future<StoreDetails> fetchStore(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/store'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return StoreDetails.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Updates the tenant store profile. Only owner/manager roles are allowed
+  /// (403 `forbidden` otherwise is surfaced as a plain ApiException).
+  Future<StoreDetails> updateStore(
+    Session session, {
+    String? name,
+    String? address,
+  }) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.put(
+        Uri.parse('$baseUrl/v1/store'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          if (name != null) 'name': name,
+          if (address != null) 'address': address,
+        }),
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response));
+    }
+    return StoreDetails.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
   /// The terminal's open register session, or null when the terminal has none.
   Future<RegisterSession?> currentSession(Session session) async {
     final response = await _authenticatedRequest(
@@ -4016,6 +4064,48 @@ class ApiClient {
         jsonDecode(response.body)['data'] as Map<String, dynamic>);
   }
 
+  /// Idempotent activation reward claim (EPIC 11). The server decides
+  /// eligibility from the real sales feed; a repeated claim replays the stored
+  /// grant instead of minting a second one.
+  Future<OnboardingReward> claimReward(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.post(
+        Uri.parse('$baseUrl/v1/onboarding/reward'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return OnboardingReward.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
+  /// Tenant-wide onboarding + activation aggregates (EPIC 13). Requires the
+  /// `dashboard.read` permission; guests get 403 `permission_denied`.
+  Future<OnboardingSummary> onboardingSummary(Session session) async {
+    final response = await _authenticatedRequest(
+      session,
+      (accessToken) => _client.get(
+        Uri.parse('$baseUrl/v1/onboarding/summary'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw ApiException(_message(response), code: _errorCode(response));
+    }
+    return OnboardingSummary.fromJson(
+        jsonDecode(response.body)['data'] as Map<String, dynamic>);
+  }
+
   Future<OnboardingEventResult> reportOnboardingEvent(
     Session session, {
     required String eventId,
@@ -4492,6 +4582,38 @@ class SyncPushResult {
   bool get applied => status == 'applied' || status == 'replayed';
   bool get conflicted => status == 'conflict';
   bool get rejected => status == 'rejected';
+}
+
+/// The tenant store profile served by `GET/PUT /v1/store`. Name and address are
+/// shown at the top of printed receipts.
+class StoreDetails {
+  const StoreDetails({
+    required this.name,
+    required this.address,
+    this.businessType = '',
+    this.countryCode = '',
+    this.currencyCode = '',
+    this.defaultLanguage = '',
+    this.plan = '',
+  });
+
+  factory StoreDetails.fromJson(Map<String, dynamic> json) => StoreDetails(
+        name: json['name'] as String? ?? '',
+        address: json['address'] as String? ?? '',
+        businessType: json['business_type'] as String? ?? '',
+        countryCode: json['country_code'] as String? ?? '',
+        currencyCode: json['currency_code'] as String? ?? '',
+        defaultLanguage: json['default_language'] as String? ?? '',
+        plan: json['plan'] as String? ?? '',
+      );
+
+  final String name;
+  final String address;
+  final String businessType;
+  final String countryCode;
+  final String currencyCode;
+  final String defaultLanguage;
+  final String plan;
 }
 
 class TenantSettings {

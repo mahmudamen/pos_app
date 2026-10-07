@@ -3,11 +3,13 @@ package auth
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/example/pos-api/internal/email"
 	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/gin-gonic/gin"
@@ -360,6 +362,17 @@ func (h *Handler) Signup(c *gin.Context) {
 	if err := tx.Commit(ctx); err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to commit registration")
 		return
+	}
+
+	// Welcome email is best-effort: a delivery failure must never fail a
+	// registration that has already committed.
+	if h.mail != nil {
+		if err := h.mail.SendTemplate(ctx, email.TemplateWelcome, request.Email, map[string]string{
+			"name":  request.DisplayName,
+			"store": request.StoreName,
+		}); err != nil {
+			slog.Warn("auth: welcome email delivery failed", "err", err, "tenant_id", tenantID.String())
+		}
 	}
 
 	accessToken, err := h.tokens.IssueWithRole(time.Now(), security.AccessToken, tenantID.String(), userID.String(), deviceUUID.String(), sessionID.String(), "owner")

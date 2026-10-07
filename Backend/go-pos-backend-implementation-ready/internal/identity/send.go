@@ -4,13 +4,36 @@ import (
 	"context"
 	"errors"
 	"sync"
+
+	"github.com/example/pos-api/internal/config"
 )
 
-// EmailMessage is what the mailer transport delivers.
+// SupportEmail is the public support/from address printed on outbound mail and
+// the default envelope sender for transactional mail. The email template layer
+// aliases this constant so there is a single source of truth.
+const SupportEmail = "support@xamltech.com"
+
+// EmailMessage is what the mailer transport delivers. From is the envelope
+// sender (empty falls back to the mailer's configured identity); HTML, when
+// present, is sent as an alternative part alongside Text.
 type EmailMessage struct {
 	To      string
+	From    string
 	Subject string
 	Text    string
+	HTML    string
+}
+
+// MailerConfig configures the mail transport selected by NewMailer. Kind is
+// "noop" (record to the dev outbox) or "smtp" (deliver over STARTTLS).
+type MailerConfig struct {
+	Kind     string
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+	FromName string
 }
 
 // Mailer delivers verification emails. Only opaque carriers travel here; the
@@ -18,6 +41,20 @@ type EmailMessage struct {
 // in the database (only its sha256 hash is persisted).
 type Mailer interface {
 	Send(ctx context.Context, msg EmailMessage) error
+}
+
+// NewConfiguredMailer builds the process-wide outbound transport from the
+// mail section of the config (MAILER / SMTP_*). Every module that sends mail —
+// auth, billing, notifications, support — must build it the same way, so the
+// envelope sender and the STARTTLS credentials cannot drift apart per caller.
+// Nothing is configured → a noop transport writing to the dev outbox, which is
+// what a developer without SMTP credentials expects.
+func NewConfiguredMailer(t config.TrialConfig) Mailer {
+	return NewMailer(MailerConfig{
+		Kind: t.Mailer, Host: t.SMTPHost, Port: t.SMTPPort,
+		Username: t.SMTPUsername, Password: t.SMTPPassword,
+		From: t.MailFrom, FromName: t.MailFromName,
+	}, NewDevOutbox())
 }
 
 // SMSMessage is what the SMS transport delivers.
@@ -41,8 +78,10 @@ var ErrDeliveryUnconfigured = errors.New("delivery backend is not configured")
 // flows before a provider is chosen).
 type OutboxItem struct {
 	To      string
+	From    string
 	Subject string
 	Text    string
+	HTML    string
 }
 
 // DevOutbox is an in-memory, process-local transcript of NoopMailer/NoopSMS
@@ -85,7 +124,7 @@ func NewNoopMailer(outbox *DevOutbox) *NoopMailer { return &NoopMailer{outbox: o
 
 func (m *NoopMailer) Send(_ context.Context, msg EmailMessage) error {
 	if m.outbox != nil {
-		m.outbox.Add(OutboxItem{To: msg.To, Subject: msg.Subject, Text: msg.Text})
+		m.outbox.Add(OutboxItem{To: msg.To, From: msg.From, Subject: msg.Subject, Text: msg.Text, HTML: msg.HTML})
 	}
 	return nil
 }
@@ -114,12 +153,25 @@ type ProviderSMSDeclared struct{}
 
 func (ProviderSMSDeclared) Send(context.Context, SMSMessage) error { return ErrDeliveryUnconfigured }
 
-// NewMailer selects a mailer by config name.
-func NewMailer(kind string, outbox *DevOutbox) Mailer {
-	if kind == "noop" {
+// NewMailer selects a mailer by config. SMTP with no host falls back to the
+// declared-but-unconfigured mailer so a misconfigured deployment fails loudly
+// rather than silently dropping mail.
+func NewMailer(cfg MailerConfig, outbox *DevOutbox) Mailer {
+	switch cfg.Kind {
+	case "noop", "":
 		return NewNoopMailer(outbox)
+	case "smtp":
+		if cfg.Host == "" {
+			return SMTPMailerDeclared{}
+		}
+		return &SMTPMailer{
+			host: cfg.Host, port: cfg.Port,
+			username: cfg.Username, password: cfg.Password,
+			from: cfg.From, fromName: cfg.FromName,
+		}
+	default:
+		return SMTPMailerDeclared{}
 	}
-	return SMTPMailerDeclared{}
 }
 
 // NewSMSSender selects an SMS sender by config name.

@@ -206,6 +206,8 @@ func requiredSecurity(path string) []map[string][]string {
 		strings.HasPrefix(path, "/v1/selforder/") ||
 		strings.HasPrefix(path, "/screenshots/") ||
 		path == "/v1/auth/login" ||
+		path == "/v1/auth/forgot-password" ||
+		path == "/v1/auth/reset-password" ||
 		path == "/selforder" ||
 		path == "/sw.js"
 	// The site pages rendered by the Go app (registerSitePages), the Search
@@ -215,6 +217,7 @@ func requiredSecurity(path string) []map[string][]string {
 	// needs a Bearer token.
 	switch path {
 	case "/", "/pricing", "/private", "/delete-account",
+		"/forgot-password", "/reset-password",
 		"/google79d5199d984f63af.html", "/.well-known/assetlinks.json":
 		return nil
 	}

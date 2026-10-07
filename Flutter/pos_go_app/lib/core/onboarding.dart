@@ -86,6 +86,7 @@ class OnboardingState {
     required this.tours,
     required this.readiness,
     this.recommended = '',
+    this.reward = const OnboardingReward(),
   });
 
   factory OnboardingState.fromJson(Map<String, dynamic> json) =>
@@ -96,11 +97,14 @@ class OnboardingState {
         readiness: OnboardingReadiness.fromJson(
             json['readiness'] as Map<String, dynamic>? ?? const {}),
         recommended: json['recommended'] as String? ?? '',
+        reward: OnboardingReward.fromJson(
+            json['reward'] as Map<String, dynamic>? ?? const {}),
       );
 
   final List<TourProgress> tours;
   final OnboardingReadiness readiness;
   final String recommended;
+  final OnboardingReward reward;
 
   TourProgress? tour(String id) {
     for (final row in tours) {
@@ -108,6 +112,125 @@ class OnboardingState {
     }
     return null;
   }
+}
+
+/// The activation reward (EPIC 11). Eligibility is server-authoritative: it is
+/// true only once the tenant activated with a completed, paid sale.
+class OnboardingReward {
+  const OnboardingReward({
+    this.eligible = false,
+    this.granted = false,
+    this.rewardType = '',
+    this.grantedAt,
+    this.replayed = false,
+  });
+
+  factory OnboardingReward.fromJson(Map<String, dynamic> json) =>
+      OnboardingReward(
+        eligible: json['eligible'] as bool? ?? false,
+        granted: json['granted'] as bool? ?? false,
+        rewardType: json['reward_type'] as String? ?? '',
+        grantedAt: json['granted_at'] as String?,
+        replayed: json['replayed'] as bool? ?? false,
+      );
+
+  final bool eligible;
+  final bool granted;
+  final String rewardType;
+
+  /// ISO-8601 time of the grant; null when not yet granted.
+  final String? grantedAt;
+  final bool replayed;
+}
+
+/// Tenant-wide onboarding + activation aggregates (EPIC 13). Manager-only.
+class OnboardingSummary {
+  const OnboardingSummary({
+    required this.totals,
+    required this.completionRate,
+    required this.skipRate,
+    required this.events,
+    required this.rewardGrants,
+    required this.activated,
+    this.timeToFirstSaleSeconds,
+    this.tours = const [],
+  });
+
+  factory OnboardingSummary.fromJson(Map<String, dynamic> json) {
+    final totals =
+        json['totals'] as Map<String, dynamic>? ?? const <String, dynamic>{};
+    final rates =
+        json['rates'] as Map<String, dynamic>? ?? const <String, dynamic>{};
+    return OnboardingSummary(
+      totals: TourTotals.fromJson(totals),
+      completionRate: (rates['completion_rate'] as num?)?.toDouble() ?? 0,
+      skipRate: (rates['skip_rate'] as num?)?.toDouble() ?? 0,
+      events: (json['events'] as Map<String, dynamic>? ?? const {})
+          .map((key, value) => MapEntry(key, (value as num?)?.toInt() ?? 0)),
+      rewardGrants: (json['reward_grants'] as num?)?.toInt() ?? 0,
+      activated: json['activated'] as bool? ?? false,
+      timeToFirstSaleSeconds:
+          (json['time_to_first_sale_seconds'] as num?)?.toInt(),
+      tours: (json['tours'] as List<dynamic>? ?? [])
+          .map((row) =>
+              TourAggregate.fromJson(row as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final TourTotals totals;
+  final double completionRate;
+  final double skipRate;
+  final Map<String, int> events;
+  final int rewardGrants;
+  final bool activated;
+  final int? timeToFirstSaleSeconds;
+  final List<TourAggregate> tours;
+}
+
+class TourTotals {
+  const TourTotals({
+    this.started = 0,
+    this.completed = 0,
+    this.skipped = 0,
+    this.inProgress = 0,
+  });
+
+  factory TourTotals.fromJson(Map<String, dynamic> json) => TourTotals(
+        started: (json['started'] as num?)?.toInt() ?? 0,
+        completed: (json['completed'] as num?)?.toInt() ?? 0,
+        skipped: (json['skipped'] as num?)?.toInt() ?? 0,
+        inProgress: (json['in_progress'] as num?)?.toInt() ?? 0,
+      );
+
+  final int started;
+  final int completed;
+  final int skipped;
+  final int inProgress;
+}
+
+class TourAggregate {
+  const TourAggregate({
+    required this.id,
+    this.started = 0,
+    this.completed = 0,
+    this.skipped = 0,
+    this.inProgress = 0,
+  });
+
+  factory TourAggregate.fromJson(Map<String, dynamic> json) => TourAggregate(
+        id: json['id'] as String? ?? '',
+        started: (json['started'] as num?)?.toInt() ?? 0,
+        completed: (json['completed'] as num?)?.toInt() ?? 0,
+        skipped: (json['skipped'] as num?)?.toInt() ?? 0,
+        inProgress: (json['in_progress'] as num?)?.toInt() ?? 0,
+      );
+
+  final String id;
+  final int started;
+  final int completed;
+  final int skipped;
+  final int inProgress;
 }
 
 class TourActionResult {

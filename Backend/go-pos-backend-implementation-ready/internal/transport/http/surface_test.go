@@ -94,6 +94,9 @@ func surfaceEngine(t *testing.T, routing config.SurfaceRouting) *gin.Engine {
 	engine.GET("/v1/sales", echo)
 	engine.POST("/v1/saas/summary", echo)
 	engine.GET("/v1/auth/login", echo)
+	engine.POST("/v1/auth/forgot-password", echo)
+	engine.GET("/forgot-password", echo)
+	engine.GET("/reset-password", echo)
 	engine.GET("/v1/meta/countries", echo)
 	engine.GET("/health/live", echo)
 	engine.GET("/", echo)
@@ -173,6 +176,10 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		{config.DefaultCompanyDomain, "/private", http.StatusOK},
 		{config.DefaultCompanyDomain, "/screenshots/hero", http.StatusOK},
 		{config.DefaultCompanyDomain, "/selforder", http.StatusNotFound},
+		// The brand domain exposes no API, so a recovery form there would post
+		// into a 404 — the pages are not published either.
+		{config.DefaultCompanyDomain, "/forgot-password", http.StatusNotFound},
+		{config.DefaultCompanyDomain, "/reset-password", http.StatusNotFound},
 		{config.DefaultCompanyDomain, "/health/live", http.StatusOK},
 		// POS: the install site plus self-ordering.
 		{config.DefaultPOSDomain, "/", http.StatusOK},
@@ -180,12 +187,18 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		{config.DefaultPOSDomain, "/private", http.StatusOK},
 		{config.DefaultPOSDomain, "/selforder", http.StatusOK},
 		{config.DefaultPOSDomain, "/health/live", http.StatusOK},
+		// Password recovery: the emailed link lands on the host that served
+		// the request, so the store domain must publish both pages.
+		{config.DefaultPOSDomain, "/forgot-password", http.StatusOK},
+		{config.DefaultPOSDomain, "/reset-password", http.StatusOK},
 		// Console: the redirect to the admin app, nothing else.
 		{config.DefaultSaaSDomain, "/", http.StatusOK},
 		{config.DefaultSaaSDomain, "/pricing", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/private", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/selforder", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/screenshots/hero", http.StatusNotFound},
+		{config.DefaultSaaSDomain, "/forgot-password", http.StatusOK},
+		{config.DefaultSaaSDomain, "/reset-password", http.StatusOK},
 		{config.DefaultSaaSDomain, "/health/live", http.StatusOK},
 	}
 	for _, c := range cases {
@@ -201,6 +214,13 @@ func TestServesPageAndAPI(t *testing.T) {
 	}
 	if !ServesAPI(config.SurfaceSaaS, "/v1/auth/login") {
 		t.Error("the console domain must publish sign-in")
+	}
+	if !ServesAPI(config.SurfacePOS, "/v1/auth/forgot-password") ||
+		!ServesAPI(config.SurfaceSaaS, "/v1/auth/reset-password") {
+		t.Error("password recovery rides with the session bootstrap on both hosts")
+	}
+	if ServesAPI(config.SurfaceCompany, "/v1/auth/forgot-password") {
+		t.Error("the brand domain exposes no API, recovery included")
 	}
 	if ServesAPI(config.SurfaceSaaS, "/v1/sales") {
 		t.Error("the console domain must not publish the store API")

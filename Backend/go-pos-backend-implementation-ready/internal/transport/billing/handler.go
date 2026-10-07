@@ -7,13 +7,18 @@
 package billing
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/example/pos-api/internal/billing"
+	"github.com/example/pos-api/internal/email"
+	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
 	"github.com/gin-gonic/gin"
@@ -26,10 +31,20 @@ const defaultCurrency = "EGP"
 type Handler struct {
 	pool   *pgxpool.Pool
 	tokens security.TokenManager
+	mail   *email.Service
 }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager) *Handler {
 	return &Handler{pool: pool, tokens: tokens}
+}
+
+// SetMailer overrides the outbound transport; tests capture sends here. The
+// transactional email service is re-bound so invoices deliver through the same
+// transport the rest of the platform uses.
+func (h *Handler) SetMailer(m identity.Mailer) {
+	if m != nil {
+		h.mail = email.NewService(m, "")
+	}
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {

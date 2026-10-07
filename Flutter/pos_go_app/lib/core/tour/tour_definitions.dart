@@ -54,17 +54,58 @@ class TourCatalog {
   TourDefinition? operator [](String id) => byId[id];
 
   static TourCatalog build(AppStrings s) => TourCatalog._({
-        'store_setup': const TourDefinition(
+        'store_setup': TourDefinition(
           id: 'store_setup',
           version: 1,
           goal: 'store_configured',
-          steps: [],
+          steps: [
+            TourStepDef(
+              id: 'intro',
+              title: s.tourStoreIntroTitle,
+              body: s.tourStoreIntroBody,
+              target: 'settings_button',
+            ),
+            TourStepDef(
+              id: 'address',
+              title: s.tourStoreAddressTitle,
+              body: s.tourStoreAddressBody,
+              target: 'store_address_field',
+            ),
+            TourStepDef(
+              id: 'save',
+              title: s.tourStoreSaveTitle,
+              body: s.tourStoreSaveBody,
+              target: 'settings_save_button',
+            ),
+          ],
         ),
-        'first_product': const TourDefinition(
+        'first_product': TourDefinition(
           id: 'first_product',
           version: 1,
           goal: 'product_ready',
-          steps: [],
+          steps: [
+            TourStepDef(
+              id: 'intro',
+              title: s.tourProductIntroTitle,
+              body: s.tourProductIntroBody,
+              target: 'inventory_button',
+            ),
+            TourStepDef(
+              id: 'add',
+              title: s.tourProductAddTitle,
+              body: s.tourProductAddBody,
+              target: 'inventory_add_button',
+            ),
+            TourStepDef(
+              id: 'save',
+              title: s.tourProductSaveTitle,
+              body: s.tourProductSaveBody,
+              target: 'inventory_save_button',
+              // The save button only exists inside the add-product sheet, so
+              // a genuinely gone target must not nag.
+              optional: true,
+            ),
+          ],
         ),
         'terminal_setup': TourDefinition(
           id: 'terminal_setup',

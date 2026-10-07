@@ -771,17 +771,20 @@ class _PosScreenState extends State<PosScreen> {
                     icon: const Icon(Icons.forum_outlined),
                   ),
                   if (widget.session.isManager)
-                    IconButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => InventoryScreen(
-                            session: widget.session,
-                            apiClient: widget.apiClient,
+                    TourTarget(
+                      id: 'inventory_button',
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => InventoryScreen(
+                              session: widget.session,
+                              apiClient: widget.apiClient,
+                            ),
                           ),
                         ),
+                        tooltip: s.inventory,
+                        icon: const Icon(Icons.inventory_2),
                       ),
-                      tooltip: s.inventory,
-                      icon: const Icon(Icons.inventory_2),
                     ),
                   if (widget.session.isManager)
                     IconButton(
@@ -848,10 +851,13 @@ class _PosScreenState extends State<PosScreen> {
                     tooltip: s.tourCenterEntry,
                     icon: const Icon(Icons.explore_outlined),
                   ),
-                  IconButton(
-                    onPressed: () => _openSettings(context),
-                    tooltip: s.settings,
-                    icon: const Icon(Icons.settings_outlined),
+                  TourTarget(
+                    id: 'settings_button',
+                    child: IconButton(
+                      onPressed: () => _openSettings(context),
+                      tooltip: s.settings,
+                      icon: const Icon(Icons.settings_outlined),
+                    ),
                   ),
                 ],
               ),

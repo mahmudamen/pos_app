@@ -108,6 +108,26 @@
         }
       }
     },
+    "/forgot-password": {
+      "get": {
+        "tags": [
+          "forgot-password"
+        ],
+        "operationId": "GetForgot-password",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/google79d5199d984f63af.html": {
       "get": {
         "tags": [
@@ -208,6 +228,26 @@
         }
       }
     },
+    "/reset-password": {
+      "get": {
+        "tags": [
+          "reset-password"
+        ],
+        "operationId": "GetReset-password",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/screenshots/{name}": {
       "get": {
         "tags": [
@@ -254,6 +294,26 @@
           "sw.js"
         ],
         "operationId": "GetSw.js",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "PostV1AuthForgot-password",
         "responses": {
           "default": {
             "content": {
@@ -349,6 +409,26 @@
             "bearerAuth": []
           }
         ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/auth/reset-password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "PostV1AuthReset-password",
         "responses": {
           "default": {
             "content": {
@@ -2344,6 +2424,56 @@
           "onboarding"
         ],
         "operationId": "GetV1OnboardingReadiness",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/reward": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "PostV1OnboardingReward",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/onboarding/summary": {
+      "get": {
+        "tags": [
+          "onboarding"
+        ],
+        "operationId": "GetV1OnboardingSummary",
         "security": [
           {
             "bearerAuth": []
@@ -4378,6 +4508,54 @@
           "settings"
         ],
         "operationId": "PutV1Settings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/v1/store": {
+      "get": {
+        "tags": [
+          "store"
+        ],
+        "operationId": "GetV1Store",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "store"
+        ],
+        "operationId": "PutV1Store",
         "security": [
           {
             "bearerAuth": []

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/example/pos-api/internal/config"
+	"github.com/example/pos-api/internal/email"
 	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	"github.com/example/pos-api/internal/transport/access"
@@ -35,10 +36,14 @@ type Handler struct {
 	maxSessions     int
 	cfg             config.Config
 	registerLimiter identity.Counter
+	resetLimiter    identity.Counter
+	mailer          identity.Mailer
+	mailFrom        string
+	mail            *email.Service
 }
 
 func NewHandler(pool *pgxpool.Pool, cfg config.Config) *Handler {
-	return &Handler{
+	h := &Handler{
 		pool: pool,
 		tokens: security.TokenManager{
 			Issuer: cfg.JWTIssuer, AccessSecret: []byte(cfg.JWTAccessSecret), RefreshSecret: []byte(cfg.JWTRefreshSecret),
@@ -48,6 +53,21 @@ func NewHandler(pool *pgxpool.Pool, cfg config.Config) *Handler {
 		maxSessions:     cfg.MaxSessionsPerUser,
 		cfg:             cfg,
 		registerLimiter: identity.NewMemoryCounter("register:"),
+		resetLimiter:    identity.NewMemoryCounter("password_reset:"),
+		mailer:          identity.NewConfiguredMailer(cfg.Trial),
+		mailFrom:        cfg.Trial.MailFrom,
+	}
+	h.mail = email.NewService(h.mailer, h.mailFrom)
+	return h
+}
+
+// SetMailer overrides the outbound mailer; used by tests to capture sends. The
+// transactional email service is re-bound so it delivers through the same
+// test double.
+func (h *Handler) SetMailer(m identity.Mailer) {
+	h.mailer = m
+	if m != nil {
+		h.mail = email.NewService(m, h.mailFrom)
 	}
 }
 
@@ -83,6 +103,8 @@ func (h *Handler) Register(router *gin.RouterGroup) {
 	router.POST("/auth/set-pin", h.SetPin())
 	router.POST("/auth/verify-pin", h.VerifyPin())
 	router.POST("/auth/unlock-pin", h.UnlockPin)
+	router.POST("/auth/forgot-password", h.ForgotPassword)
+	router.POST("/auth/reset-password", h.ResetPassword)
 }
 
 func (h *Handler) Login() gin.HandlerFunc {

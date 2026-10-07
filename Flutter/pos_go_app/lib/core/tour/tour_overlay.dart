@@ -141,6 +141,17 @@ class _TourOverlayState extends State<TourOverlay>
             controller: controller,
             step: step,
             hole: hole,
+          )
+        else
+          // An optional step whose target has not resolved (missing target):
+          // show the guidance centered instead of leaving a silent dead end.
+          Center(
+            child: SafeArea(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: _BubbleCard(controller: controller, step: step),
+              ),
+            ),
           ),
       ],
     );

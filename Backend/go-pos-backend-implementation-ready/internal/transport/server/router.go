@@ -108,6 +108,7 @@ func Register(engine *gin.Engine, d Deps) {
 	})
 
 	registerSitePages(engine, d.Pool, d.Config.Surfaces)
+	registerAuthPages(engine)
 
 	api := engine.Group("/v1")
 	authHandler := authtransport.NewHandler(d.Pool, d.Config)
@@ -123,6 +124,8 @@ func Register(engine *gin.Engine, d Deps) {
 	authGroup.POST("/set-pin", authHandler.SetPin())
 	authGroup.POST("/verify-pin", authHandler.VerifyPin())
 	authGroup.POST("/unlock-pin", authHandler.UnlockPin)
+	authGroup.POST("/forgot-password", authHandler.ForgotPassword)
+	authGroup.POST("/reset-password", authHandler.ResetPassword)
 	notifHandler := notificationstransport.NewHandler(d.Pool, authHandler.Tokens(), notificationstransport.WebPushConfig{
 		PublicKey:  d.Config.VAPIDPublicKey,
 		PrivateKey: d.Config.VAPIDPrivateKey,

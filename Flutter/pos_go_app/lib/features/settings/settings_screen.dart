@@ -6,6 +6,7 @@ import '../../core/fonts.dart';
 import '../../core/payments.dart';
 import '../../core/session_store.dart';
 import '../../core/theme.dart';
+import '../../core/tour/tour_target.dart';
 import '../../l10n/strings.dart';
 import '../saas/control_panel_screen.dart';
 import '../users/users_screen.dart';
@@ -52,6 +53,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _loading = true;
   bool _saving = false;
   String? _error;
+  String _storeName = '';
+  String _storeAddress = '';
 
   bool get _canEdit => widget.session.canManageSettings;
 
@@ -106,6 +109,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _theme = widget.themeSetting;
     _loadSound();
     _load();
+    _loadStore();
+  }
+
+  Future<void> _loadStore() async {
+    try {
+      final store = await widget.apiClient.fetchStore(widget.session);
+      if (!mounted) return;
+      setState(() {
+        _storeName = store.name;
+        _storeAddress = store.address;
+      });
+    } catch (_) {
+      // The store profile is best-effort: keep the defaults when it cannot
+      // be loaded (older server, offline) rather than blocking the screen.
+    }
   }
 
   Future<void> _loadSound() async {
@@ -143,6 +161,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _saving = true);
     try {
+      if (_canEdit) {
+        await widget.apiClient.updateStore(
+          widget.session,
+          name: _storeName.trim().isEmpty ? null : _storeName.trim(),
+          address: _storeAddress,
+        );
+      }
       final updated = await widget.apiClient
           .updateSettings(widget.session, _settings!);
       if (!mounted) return;
@@ -200,6 +225,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    _sectionHeader(s, s.storeSectionTitle),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.storeSectionHint,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              enabled: _canEdit,
+                              controller: TextEditingController(text: _storeName)
+                                ..selection = TextSelection.collapsed(
+                                    offset: _storeName.length),
+                              decoration: InputDecoration(
+                                labelText: s.storeName,
+                                border: const OutlineInputBorder(),
+                              ),
+                              onChanged: (value) => _storeName = value,
+                            ),
+                            const SizedBox(height: 12),
+                            TourTarget(
+                              id: 'store_address_field',
+                              child: TextField(
+                                enabled: _canEdit,
+                                controller: TextEditingController(
+                                    text: _storeAddress)
+                                  ..selection = TextSelection.collapsed(
+                                      offset: _storeAddress.length),
+                                decoration: InputDecoration(
+                                  labelText: s.storeAddress,
+                                  hintText: '35 Nile Corniche, Cairo',
+                                  border: const OutlineInputBorder(),
+                                ),
+                                onChanged: (value) => _storeAddress = value,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     _sectionHeader(s, s.posSettings),
                     Card(
                       child: settings == null
@@ -305,10 +382,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     if (_canEdit) ...[
                       const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _saving ? null : _save,
-                        icon: const Icon(Icons.save_outlined),
-                        label: Text(s.save),
+                      TourTarget(
+                        id: 'settings_save_button',
+                        child: FilledButton.icon(
+                          onPressed: _saving ? null : _save,
+                          icon: const Icon(Icons.save_outlined),
+                          label: Text(s.save),
+                        ),
                       ),
                     ],
                     _sectionHeader(s, s.account),
