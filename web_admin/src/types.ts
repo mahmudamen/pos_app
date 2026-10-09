@@ -496,3 +496,45 @@ export interface NationalInvitation {
   expires_at: string
   created_at: string
 }
+
+// ---- support inbox (platform) -------------------------------------------
+
+export type SupportDirection = 'inbound' | 'outbound'
+export type SupportStatus = 'unread' | 'read' | 'archived'
+
+export interface SupportMessage {
+  id: string
+  thread_id: string
+  direction: SupportDirection
+  mailbox: string
+  tenant_id: string | null
+  tenant_name: string | null
+  message_id: string | null
+  in_reply_to: string | null
+  from_email: string
+  from_name: string
+  to_email: string
+  subject: string
+  body_text: string
+  body_html: string
+  status: SupportStatus
+  error: string | null
+  received_at: string | null
+  sent_at: string | null
+  created_at: string
+}
+
+export interface SupportSummary {
+  unread: number
+  read: number
+  archived: number
+  total: number
+}
+
+export interface SupportSendInput {
+  to: string
+  subject: string
+  body_text: string
+  body_html?: string
+  tenant_id?: string
+}

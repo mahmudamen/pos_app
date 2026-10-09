@@ -34,6 +34,10 @@ import type {
   StoreUserInput,
   Subscription,
   SubscriptionStatus,
+  SupportMessage,
+  SupportSendInput,
+  SupportStatus,
+  SupportSummary,
   Tenant,
   TenantAnalytics,
 } from '../types'
@@ -403,6 +407,94 @@ export class ApiClient {
 
   paymentProviders(): Promise<Provider[]> {
     return this.request<Provider[]>('GET', '/saas/payment-providers')
+  }
+
+  // ---- support inbox ----------------------------------------------------
+  listSupportMessages(
+    filters: {
+      status?: string
+      direction?: string
+      tenant_id?: string
+      thread_id?: string
+      q?: string
+      page?: number
+      limit?: number
+    } = {},
+  ): Promise<Page<SupportMessage>> {
+    const params = new URLSearchParams({
+      page: String(filters.page ?? 1),
+      limit: String(filters.limit ?? 25),
+    })
+    if (filters.status) {
+      params.set('status', filters.status)
+    }
+    if (filters.direction) {
+      params.set('direction', filters.direction)
+    }
+    if (filters.tenant_id) {
+      params.set('tenant_id', filters.tenant_id)
+    }
+    if (filters.thread_id) {
+      params.set('thread_id', filters.thread_id)
+    }
+    if (filters.q) {
+      params.set('q', filters.q)
+    }
+    return this.requestPage<SupportMessage>(
+      'GET',
+      `/saas/support/messages?${params.toString()}`,
+    )
+  }
+
+  supportSummary(): Promise<SupportSummary> {
+    return this.request<SupportSummary>('GET', '/saas/support/summary')
+  }
+
+  getSupportMessage(id: string): Promise<SupportMessage> {
+    return this.request<SupportMessage>('GET', `/saas/support/messages/${id}`)
+  }
+
+  markSupportRead(id: string): Promise<{ id: string; status: SupportStatus }> {
+    return this.request<{ id: string; status: SupportStatus }>(
+      'POST',
+      `/saas/support/messages/${id}/read`,
+      {},
+    )
+  }
+
+  archiveSupportMessage(
+    id: string,
+  ): Promise<{ id: string; status: SupportStatus }> {
+    return this.request<{ id: string; status: SupportStatus }>(
+      'POST',
+      `/saas/support/messages/${id}/archive`,
+      {},
+    )
+  }
+
+  unarchiveSupportMessage(
+    id: string,
+  ): Promise<{ id: string; status: SupportStatus }> {
+    return this.request<{ id: string; status: SupportStatus }>(
+      'POST',
+      `/saas/support/messages/${id}/unarchive`,
+      {},
+    )
+  }
+
+  replySupportMessage(
+    id: string,
+    body: { body_text: string; body_html?: string },
+  ): Promise<SupportMessage> {
+    return this.request<SupportMessage>(
+      'POST',
+      `/saas/support/messages/${id}/reply`,
+      body,
+    )
+  }
+
+  sendSupportMessage(input: SupportSendInput): Promise<SupportMessage> {
+    return this.request<SupportMessage>('POST', '/saas/support/messages', input)
   }
 
   // ---- store console ----------------------------------------------------

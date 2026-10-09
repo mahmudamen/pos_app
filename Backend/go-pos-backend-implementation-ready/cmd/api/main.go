@@ -16,6 +16,7 @@ import (
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	redisinfra "github.com/example/pos-api/internal/infrastructure/redis"
 	"github.com/example/pos-api/internal/pricing"
+	"github.com/example/pos-api/internal/support"
 	"github.com/example/pos-api/internal/transport/server"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -95,6 +96,26 @@ func main() {
 			"variation_pct", cfg.PriceCronVariationPct)
 	}
 
+	// Support inbox: when an IMAP mailbox is configured, poll it into the
+	// platform ticket queue on an interval. Read/reply/compose then run through
+	// /v1/saas/support/*.
+	var supportPoller *support.Poller
+	if cfg.Support.Enabled() && pool != nil {
+		store := support.NewPGStore(pool)
+		fetcher := support.NewIMAPFetcher(support.IMAPConfig{
+			Host:     cfg.Support.IMAPHost,
+			Port:     cfg.Support.IMAPPort,
+			Username: cfg.Support.IMAPUsername,
+			Password: cfg.Support.IMAPPassword,
+			Mailbox:  cfg.Support.IMAPMailbox,
+			TLS:      cfg.Support.IMAPTLS,
+		}, store, logger)
+		supportPoller = support.NewPoller(fetcher, store, cfg.Support.PollInterval, logger)
+		supportPoller.Start()
+		logger.Info("support inbox poller started",
+			"mailbox", cfg.Support.IMAPMailbox, "interval", cfg.Support.PollInterval.String())
+	}
+
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,
 		Handler:           router,
@@ -126,6 +147,9 @@ func main() {
 
 	if pricer != nil {
 		pricer.Stop()
+	}
+	if supportPoller != nil {
+		supportPoller.Stop()
 	}
 
 	if pool != nil {

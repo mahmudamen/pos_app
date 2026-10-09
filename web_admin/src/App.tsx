@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { DashboardPage } from './pages/DashboardPage'
 import { InvoicesPage } from './pages/InvoicesPage'
 import { LoginPage } from './pages/LoginPage'
+import { SupportInboxPage } from './pages/SupportInboxPage'
 import { PlansPage } from './pages/PlansPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
 import { TenantsPage } from './pages/TenantsPage'
@@ -42,6 +43,7 @@ function AppRoutes() {
           <Route path="plans" element={<PlansPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
           <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="support" element={<SupportInboxPage />} />
         </Route>
       </Routes>
     )

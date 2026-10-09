@@ -250,6 +250,19 @@ BEGIN
 END
 $$;
 
+-- Support inbox (migration 057): platform-level (no RLS) inbound/outbound
+-- message queue + the per-mailbox IMAP resume cursor. The runtime role reads
+-- and writes the queue (reply/compose UPDATE the status, ingest INSERTs) and
+-- upserts the cursor. Like the other platform tables it is server-only.
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'pos_app_rls') THEN
+        GRANT SELECT, INSERT, UPDATE ON TABLE support_messages TO pos_app_rls;
+        GRANT SELECT, INSERT, UPDATE ON TABLE support_sync_state TO pos_app_rls;
+    END IF;
+END
+$$;
+
 -- Maintenance permissions stay OUTSIDE this script by design:
 --   * schema migrations / create table     -> owner or a dedicated migrator role
 --   * pg_dump backups                      -> run as owner (scripts/backup.sh)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/example/pos-api/internal/config"
+	"github.com/example/pos-api/internal/email"
 	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
@@ -24,6 +25,7 @@ type Handler struct {
 	accounts *identity.AccountStore
 	audit    identity.AuditRecorder
 	trials   *identity.TrialStore
+	mail     *email.Service
 }
 
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager, cfg config.Config) *Handler {
@@ -35,6 +37,14 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager, cfg config.Con
 		accounts: identity.NewAccountStore(audit),
 		audit:    audit,
 		trials:   identity.NewTrialStore(),
+		mail:     email.NewService(identity.NewConfiguredMailer(cfg.Trial), cfg.Trial.MailFrom),
+	}
+}
+
+// SetMailer overrides the outbound transport; tests capture sends here.
+func (h *Handler) SetMailer(m identity.Mailer) {
+	if m != nil {
+		h.mail = email.NewService(m, h.cfg.Trial.MailFrom)
 	}
 }
 
@@ -484,6 +494,10 @@ func (h *Handler) suspendTenant(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to suspend tenant")
 		return
 	}
+	h.mailAccountNotice(ctx, c.Param("id"),
+		"تم إيقاف حسابك / Account suspended",
+		noticeBody("تم إيقاف حساب متجرك مؤقتًا. تواصل مع الدعم لإعادة التفعيل.",
+			"Your store account has been suspended. Contact support to reactivate.", req.Reason))
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"suspended": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
@@ -534,6 +548,10 @@ func (h *Handler) activateTenant(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to activate tenant")
 		return
 	}
+	h.mailAccountNotice(ctx, c.Param("id"),
+		"تم تفعيل حسابك / Account reactivated",
+		noticeBody("تمت إعادة تفعيل حساب متجرك. يمكنك تسجيل الدخول ومتابعة العمل.",
+			"Your store account has been reactivated. You can sign in and continue.", ""))
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"activated": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 
@@ -590,6 +608,10 @@ func (h *Handler) stopTenant(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to stop tenant")
 		return
 	}
+	h.mailAccountNotice(ctx, c.Param("id"),
+		"تم إيقاف حسابك نهائيًا / Account stopped",
+		noticeBody("تم إيقاف حساب متجرك واشتراكاته. تواصل مع الدعم لاستعادة الحساب.",
+			"Your store account and subscriptions have been stopped. Contact support to restore.", req.Reason))
 	c.JSON(http.StatusOK, gin.H{"data": gin.H{"stopped": true, "tenant_id": c.Param("id")}, "meta": gin.H{"request_id": c.GetString("request_id")}})
 }
 

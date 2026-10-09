@@ -117,6 +117,61 @@ func TestLoadRejectsInvalidMetricsEnabled(t *testing.T) {
 	}
 }
 
+func TestLoadSupportDefaultsDisabled(t *testing.T) {
+	clearEnv()
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Support.Enabled() {
+		t.Fatalf("Support.Enabled: got true, want false without IMAP_HOST")
+	}
+	if cfg.Support.IMAPPort != 993 || cfg.Support.IMAPMailbox != "INBOX" || !cfg.Support.IMAPTLS {
+		t.Fatalf("Support defaults wrong: %+v", cfg.Support)
+	}
+	if cfg.Support.PollInterval <= 0 {
+		t.Fatalf("PollInterval: got %v, want positive", cfg.Support.PollInterval)
+	}
+}
+
+func TestLoadSupportEnablesAndValidates(t *testing.T) {
+	clearEnv()
+	t.Setenv("IMAP_HOST", "imap.example.com")
+	t.Setenv("IMAP_USERNAME", "support@example.com")
+	t.Setenv("IMAP_PASSWORD", "secret")
+	t.Setenv("IMAP_PORT", "143")
+	t.Setenv("IMAP_TLS", "false")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Support.Enabled() {
+		t.Fatal("Support.Enabled: got false, want true")
+	}
+	if cfg.Support.IMAPPort != 143 || cfg.Support.IMAPTLS {
+		t.Fatalf("Support overrides wrong: %+v", cfg.Support)
+	}
+}
+
+func TestLoadSupportRequiresCredentialsWhenHostSet(t *testing.T) {
+	clearEnv()
+	t.Setenv("IMAP_HOST", "imap.example.com")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load: expected error for IMAP_HOST without credentials")
+	}
+}
+
+func TestLoadSupportRejectsBadPort(t *testing.T) {
+	clearEnv()
+	t.Setenv("IMAP_HOST", "imap.example.com")
+	t.Setenv("IMAP_USERNAME", "u")
+	t.Setenv("IMAP_PASSWORD", "p")
+	t.Setenv("IMAP_PORT", "70000")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load: expected error for out-of-range IMAP_PORT")
+	}
+}
+
 func TestLoadKeepsWildcardDefaultWhenCORSBlank(t *testing.T) {
 	clearEnv()
 	t.Setenv("CORS_ALLOWED_ORIGINS", "   ")
@@ -486,6 +541,8 @@ func clearEnv() {
 		"REQUIRE_DEVICE_INTEGRITY", "PROMO_TRIALS_ENABLED",
 		"SURFACE_ROUTING_ENABLED", "COMPANY_DOMAIN", "SAAS_DOMAIN", "POS_DOMAIN",
 		"TRUSTED_PROXIES",
+		"IMAP_HOST", "IMAP_PORT", "IMAP_USERNAME", "IMAP_PASSWORD",
+		"IMAP_MAILBOX", "IMAP_TLS", "IMAP_POLL_INTERVAL",
 	}
 	for _, k := range keys {
 		_ = os.Unsetenv(k)

@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/example/pos-api/internal/config"
+	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/metrics"
 	"github.com/example/pos-api/internal/infrastructure/ratelimit"
 	ocrorcore "github.com/example/pos-api/internal/ocr"
@@ -37,6 +38,7 @@ import (
 	selftransport "github.com/example/pos-api/internal/transport/selforder"
 	settingsTransport "github.com/example/pos-api/internal/transport/settings"
 	subscriptiontransport "github.com/example/pos-api/internal/transport/subscription"
+	supporttransport "github.com/example/pos-api/internal/transport/support"
 	synctransport "github.com/example/pos-api/internal/transport/sync"
 	telemetrytransport "github.com/example/pos-api/internal/transport/telemetry"
 	usertransport "github.com/example/pos-api/internal/transport/users"
@@ -163,7 +165,12 @@ func Register(engine *gin.Engine, d Deps) {
 	// it intentionally bypasses the API-wide rate limiter (the admin panel makes
 	// several parallel /v1/saas/* calls per page).
 	saastransport.NewHandler(d.Pool, authHandler.Tokens()).Register(saasGroup)
-	billingtransport.NewHandler(d.Pool, authHandler.Tokens()).Register(saasGroup)
+	billingHandler := billingtransport.NewHandler(d.Pool, authHandler.Tokens())
+	billingHandler.SetMailer(identity.NewConfiguredMailer(d.Config.Trial))
+	billingHandler.Register(saasGroup)
+	supporttransport.NewHandler(d.Pool, authHandler.Tokens(),
+		d.Config.Support.IMAPMailbox, d.Config.Trial.MailFrom,
+		identity.NewConfiguredMailer(d.Config.Trial)).Register(saasGroup)
 	restauranttransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	lotstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)
 	variantstransport.NewHandler(d.Pool, authHandler.Tokens()).Register(api)

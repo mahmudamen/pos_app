@@ -3,10 +3,11 @@ package identitytransport
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/example/pos-api/internal/config"
+	"github.com/example/pos-api/internal/email"
 	"github.com/example/pos-api/internal/identity"
 	"github.com/example/pos-api/internal/infrastructure/security"
 	httptransport "github.com/example/pos-api/internal/transport/http"
@@ -27,6 +28,7 @@ type Handler struct {
 	installs *identity.InstallationStore
 	counters identity.Counter
 	mailer   identity.Mailer
+	mail     *email.Service
 	sms      identity.SMSSender
 	outbox   *identity.DevOutbox
 }
@@ -34,6 +36,11 @@ type Handler struct {
 func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager, cfg config.Config) *Handler {
 	audit := identity.NewAuditRecorder()
 	outbox := identity.NewDevOutbox()
+	mailer := identity.NewMailer(identity.MailerConfig{
+		Kind: cfg.Trial.Mailer, Host: cfg.Trial.SMTPHost, Port: cfg.Trial.SMTPPort,
+		Username: cfg.Trial.SMTPUsername, Password: cfg.Trial.SMTPPassword,
+		From: cfg.Trial.MailFrom, FromName: cfg.Trial.MailFromName,
+	}, outbox)
 	return &Handler{
 		pool:     pool,
 		tokens:   tokens,
@@ -42,14 +49,20 @@ func NewHandler(pool *pgxpool.Pool, tokens security.TokenManager, cfg config.Con
 		audit:    audit,
 		installs: identity.NewInstallationStore(),
 		counters: identity.NewMemoryCounter("identity:"),
-		mailer: identity.NewMailer(identity.MailerConfig{
-			Kind: cfg.Trial.Mailer, Host: cfg.Trial.SMTPHost, Port: cfg.Trial.SMTPPort,
-			Username: cfg.Trial.SMTPUsername, Password: cfg.Trial.SMTPPassword,
-			From: cfg.Trial.MailFrom, FromName: cfg.Trial.MailFromName,
-		}, outbox),
-		sms:    identity.NewSMSSender(cfg.Trial.SMSSender, outbox),
-		outbox: outbox,
+		mailer:   mailer,
+		mail:     email.NewService(mailer, cfg.Trial.MailFrom),
+		sms:      identity.NewSMSSender(cfg.Trial.SMSSender, outbox),
+		outbox:   outbox,
 	}
+}
+
+// SetMailer overrides the outbound transport; tests capture sends here.
+func (h *Handler) SetMailer(m identity.Mailer) {
+	if m == nil {
+		return
+	}
+	h.mailer = m
+	h.mail = email.NewService(m, h.cfg.Trial.MailFrom)
 }
 
 func (h *Handler) Register(router *gin.RouterGroup) {
@@ -261,10 +274,9 @@ func (h *Handler) emailResend(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to issue verification")
 		return
 	}
-	err = h.mailer.Send(ctx, identity.EmailMessage{
-		To:      account.PrimaryEmail,
-		Subject: "Verify your email",
-		Text:    fmt.Sprintf("Your verification code is:\n%s\nIt expires in %s.", plain, h.cfg.Trial.EmailTokenTTL),
+	err = h.mail.SendTemplate(ctx, email.TemplateVerifyEmail, account.PrimaryEmail, map[string]string{
+		"code":    plain,
+		"expires": h.cfg.Trial.EmailTokenTTL.String(),
 	})
 	if err != nil {
 		writeError(c, http.StatusBadGateway, "delivery_failed", "verification email could not be sent")
@@ -308,6 +320,12 @@ func (h *Handler) emailChange(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", err.Error())
 		return
 	}
+	// Owner-credential check reads the RLS-scoped users table, so the tx must
+	// run inside the caller's tenant context.
+	if _, err := tx.Exec(ctx, "SELECT set_config('app.current_tenant', $1, true)", claims.TenantID); err != nil {
+		writeError(c, http.StatusInternalServerError, "internal_error", "unable to start identity transaction")
+		return
+	}
 	var passwordHash string
 	if err := tx.QueryRow(ctx, `
 		SELECT u.password_hash FROM users u JOIN tenants t ON u.id = t.owner_user_id
@@ -341,11 +359,12 @@ func (h *Handler) emailChange(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to issue email change")
 		return
 	}
-	_ = h.mailer.Send(ctx, identity.EmailMessage{
-		To:      newEmail,
-		Subject: "Confirm your new email",
-		Text:    fmt.Sprintf("Confirm your new email with code:\n%s\nIt expires in %s.", plain, h.cfg.Trial.EmailTokenTTL),
-	})
+	if err := h.mail.SendTemplate(ctx, email.TemplateVerifyEmail, newEmail, map[string]string{
+		"code":    plain,
+		"expires": h.cfg.Trial.EmailTokenTTL.String(),
+	}); err != nil {
+		slog.Warn("identity: email-change mail failed", "to", newEmail, "err", err)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{"requires_verification": true, "sent_to": newEmail},
 		"meta": gin.H{"request_id": c.GetString("request_id")},

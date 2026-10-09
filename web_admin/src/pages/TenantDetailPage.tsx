@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ApiError, api } from '../lib/api'
 import type { Invoice, Plan, Subscription, TenantAnalytics } from '../types'
 import { businessTypeLabel, formatMoney, PERIOD_LABELS } from '../lib/billing'
@@ -125,6 +125,9 @@ export function TenantDetailPage() {
         <button className="btn" onClick={() => setInvoiceOpen(true)} disabled={busy}>
           New invoice
         </button>
+        <Link className="btn" to={`/support?tenant=${analytics.id}`}>
+          Support messages
+        </Link>
       </PageHead>
 
       <ErrorBanner error={error} />

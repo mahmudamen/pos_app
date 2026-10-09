@@ -7,11 +7,8 @@
 package billing
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -512,6 +509,15 @@ func (h *Handler) setSubscriptionStatus(c *gin.Context) {
 		writeError(c, http.StatusNotFound, "subscription_not_found", "subscription not found")
 		return
 	}
+	// A genuine cancel notifies the merchant that sales will stop.
+	if req.Status == billing.StatusCancelled && current != req.Status {
+		var tenantID, tenantName string
+		if err := h.pool.QueryRow(ctx, `
+			SELECT t.id::text, t.name FROM subscriptions s JOIN tenants t ON t.id = s.tenant_id
+			WHERE s.id = $1::uuid`, c.Param("id")).Scan(&tenantID, &tenantName); err == nil {
+			h.mailSubscriptionEnded(ctx, tenantID, c.Param("id"), tenantName, "")
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{"id": c.Param("id"), "status": req.Status, "changed": current != req.Status},
 		"meta": gin.H{"request_id": c.GetString("request_id")},
@@ -801,6 +807,7 @@ func (h *Handler) createInvoice(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to create invoice")
 		return
 	}
+	h.mailInvoice(ctx, c.Param("id"), tenantName, id, req.AmountMinor, req.Currency, dueAt)
 	c.JSON(http.StatusCreated, gin.H{
 		"data": gin.H{"id": id, "tenant_id": c.Param("id"), "tenant_name": tenantName,
 			"amount_minor": req.AmountMinor, "currency": req.Currency, "status": billing.InvoiceOpen,
@@ -825,10 +832,12 @@ func (h *Handler) payInvoice(c *gin.Context) {
 	}
 	ctx := c.Request.Context()
 	var amount int64
-	var currency, status, provider, tenantID string
+	var currency, status, provider, tenantID, tenantName string
 	err := h.pool.QueryRow(ctx, `
-		SELECT tenant_id::text, amount_minor, currency, status, provider FROM invoices WHERE id = $1::uuid`, c.Param("id")).
-		Scan(&tenantID, &amount, &currency, &status, &provider)
+		SELECT i.tenant_id::text, i.amount_minor, i.currency, i.status, i.provider, t.name
+		FROM invoices i JOIN tenants t ON t.id = i.tenant_id
+		WHERE i.id = $1::uuid`, c.Param("id")).
+		Scan(&tenantID, &amount, &currency, &status, &provider, &tenantName)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "invoice_not_found", "invoice not found")
 		return
@@ -876,6 +885,7 @@ func (h *Handler) payInvoice(c *gin.Context) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to settle invoice")
 		return
 	}
+	h.mailInvoiceStatus(ctx, tenantID, tenantName, c.Param("id"), amount, currency, "paid")
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{"id": c.Param("id"), "status": billing.InvoicePaid,
 			"provider": charge.Provider, "provider_ref": charge.Reference, "paid_at": charge.PaidAt.Format(time.RFC3339)},
@@ -904,9 +914,12 @@ func (h *Handler) refundInvoice(c *gin.Context) {
 // on already-transitioned invoices.
 func (h *Handler) transitionInvoice(c *gin.Context, to string) {
 	ctx := c.Request.Context()
-	var current string
-	err := h.pool.QueryRow(ctx,
-		`SELECT status FROM invoices WHERE id = $1::uuid`, c.Param("id")).Scan(&current)
+	var current, tenantID, tenantName, currency string
+	var amount int64
+	err := h.pool.QueryRow(ctx, `
+		SELECT i.status, i.tenant_id::text, i.amount_minor, i.currency, t.name
+		FROM invoices i JOIN tenants t ON t.id = i.tenant_id
+		WHERE i.id = $1::uuid`, c.Param("id")).Scan(&current, &tenantID, &amount, &currency, &tenantName)
 	if errors.Is(err, pgx.ErrNoRows) {
 		writeError(c, http.StatusNotFound, "invoice_not_found", "invoice not found")
 		return
@@ -923,6 +936,7 @@ func (h *Handler) transitionInvoice(c *gin.Context, to string) {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to update invoice")
 		return
 	}
+	h.mailInvoiceStatus(ctx, tenantID, tenantName, c.Param("id"), amount, currency, to)
 	c.JSON(http.StatusOK, gin.H{
 		"data": gin.H{"id": c.Param("id"), "status": to},
 		"meta": gin.H{"request_id": c.GetString("request_id")},

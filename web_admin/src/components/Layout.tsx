@@ -17,6 +17,7 @@ const SAAS_NAV: { group: string; items: NavItem[] }[] = [
     items: [
       { to: '/', label: 'Dashboard', end: true, icon: 'dashboard' },
       { to: '/tenants', label: 'Tenants', end: false, icon: 'tenants' },
+      { to: '/support', label: 'Support inbox', end: false, icon: 'support' },
     ],
   },
   {

@@ -78,7 +78,29 @@ type Config struct {
 	TrustedProxyCIDRs []string
 
 	Trial TrialConfig
+
+	// Support is the platform support-inbox configuration. The inbound IMAP
+	// mailbox is polled into `support_messages`; outbound replies reuse the
+	// transactional SMTP transport from Trial. Inert unless IMAP_HOST is set,
+	// in which case the poller never starts and the console is read/compose
+	// only.
+	Support SupportConfig
 }
+
+// SupportConfig configures the platform support inbox (IMAP ingest + poll
+// cadence). Credentials are backend-owned; nothing here is exposed to clients.
+type SupportConfig struct {
+	IMAPHost     string
+	IMAPPort     int
+	IMAPUsername string
+	IMAPPassword string
+	IMAPMailbox  string
+	IMAPTLS      bool
+	PollInterval time.Duration
+}
+
+// Enabled reports whether inbound polling is configured.
+func (s SupportConfig) Enabled() bool { return strings.TrimSpace(s.IMAPHost) != "" }
 
 // TrialConfig is the configurable free-trial and identity policy. Every field
 // is backend-owned: the client never supplies trial duration, scope, or dates.
@@ -324,7 +346,48 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	c.Trial = trial
+
+	if c.Support, err = loadSupportConfig(); err != nil {
+		return Config{}, err
+	}
 	return c, nil
+}
+
+// loadSupportConfig reads the platform support-inbox section. The only hard
+// requirement is that a configured transport has credentials; an unset
+// IMAP_HOST disables inbound polling entirely.
+func loadSupportConfig() (SupportConfig, error) {
+	s := SupportConfig{
+		IMAPHost:     os.Getenv("IMAP_HOST"),
+		IMAPUsername: os.Getenv("IMAP_USERNAME"),
+		IMAPPassword: os.Getenv("IMAP_PASSWORD"),
+		IMAPMailbox:  envOr("IMAP_MAILBOX", "INBOX"),
+	}
+	var err error
+	if s.IMAPPort, err = intValue("IMAP_PORT", 993); err != nil {
+		return SupportConfig{}, err
+	}
+	if s.IMAPPort < 1 || s.IMAPPort > 65535 {
+		return SupportConfig{}, fmt.Errorf("IMAP_PORT must be between 1 and 65535, got %d", s.IMAPPort)
+	}
+	if s.IMAPTLS, err = boolValue("IMAP_TLS", true); err != nil {
+		return SupportConfig{}, err
+	}
+	if s.PollInterval, err = duration("IMAP_POLL_INTERVAL", 2*time.Minute); err != nil {
+		return SupportConfig{}, err
+	}
+	if s.PollInterval <= 0 {
+		return SupportConfig{}, fmt.Errorf("IMAP_POLL_INTERVAL must be positive")
+	}
+	if s.Enabled() {
+		if strings.TrimSpace(s.IMAPUsername) == "" || strings.TrimSpace(s.IMAPPassword) == "" {
+			return SupportConfig{}, fmt.Errorf("IMAP_USERNAME and IMAP_PASSWORD are required when IMAP_HOST is set")
+		}
+		if strings.TrimSpace(s.IMAPMailbox) == "" {
+			return SupportConfig{}, fmt.Errorf("IMAP_MAILBOX must not be blank")
+		}
+	}
+	return s, nil
 }
 
 func loadTrialConfig() (TrialConfig, error) {

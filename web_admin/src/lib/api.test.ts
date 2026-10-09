@@ -338,6 +338,83 @@ describe('ApiClient', () => {
     expect(murl).toContain('level=silver')
     expect(murl).toContain('role=moderator')
   })
+
+  it('lists support messages with status/direction/search filters', async () => {
+    fetchMock.mockResolvedValueOnce(PAGE([], { page: 2, limit: 25, total: 40 }))
+    const page = await client.listSupportMessages({
+      page: 2,
+      status: 'unread',
+      direction: 'inbound',
+      q: 'refund',
+      tenant_id: 't1',
+    })
+    expect(page.meta.total).toBe(40)
+    const url = fetchMock.mock.calls[0][0] as string
+    expect(url).toContain('/saas/support/messages?')
+    expect(url).toContain('status=unread')
+    expect(url).toContain('direction=inbound')
+    expect(url).toContain('q=refund')
+    expect(url).toContain('tenant_id=t1')
+    expect(url).toContain('page=2')
+  })
+
+  it('reads the support summary', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ unread: 3, read: 5, archived: 1, total: 9 }))
+    const summary = await client.supportSummary()
+    expect(summary.unread).toBe(3)
+    expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/v1/saas/support/summary')
+  })
+
+  it('gets, marks read, replies and sends support messages', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm1', subject: 'Hi' }))
+    const message = await client.getSupportMessage('m1')
+    expect(message.subject).toBe('Hi')
+
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm1', status: 'read' }))
+    const read = await client.markSupportRead('m1')
+    expect(read.status).toBe('read')
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      'http://api.test/v1/saas/support/messages/m1/read',
+    )
+
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm2' }))
+    await client.replySupportMessage('m1', { body_text: 'on it' })
+    const [rurl, rinit] = fetchMock.mock.calls[2] as [string, RequestInit]
+    expect(rurl).toBe('http://api.test/v1/saas/support/messages/m1/reply')
+    expect(JSON.parse(String(rinit.body))).toEqual({ body_text: 'on it' })
+
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm3' }))
+    await client.sendSupportMessage({
+      to: 'a@b.com',
+      subject: 'Hello',
+      body_text: 'body',
+      tenant_id: 't1',
+    })
+    const [surl, sinit] = fetchMock.mock.calls[3] as [string, RequestInit]
+    expect(surl).toBe('http://api.test/v1/saas/support/messages')
+    expect(sinit.method).toBe('POST')
+    expect(JSON.parse(String(sinit.body))).toEqual({
+      to: 'a@b.com',
+      subject: 'Hello',
+      body_text: 'body',
+      tenant_id: 't1',
+    })
+  })
+
+  it('archives and unarchives a support message', async () => {
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm9', status: 'archived' }))
+    const archived = await client.archiveSupportMessage('m9')
+    expect(archived.status).toBe('archived')
+    const [aurl, ainit] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(aurl).toBe('http://api.test/v1/saas/support/messages/m9/archive')
+    expect(ainit.method).toBe('POST')
+
+    fetchMock.mockResolvedValueOnce(OK({ id: 'm9', status: 'read' }))
+    const read = await client.unarchiveSupportMessage('m9')
+    expect(read.status).toBe('read')
+    const [uurl] = fetchMock.mock.calls[1] as [string, RequestInit]
+    expect(uurl).toBe('http://api.test/v1/saas/support/messages/m9/unarchive')
+  })
 })
 
 describe('deviceId', () => {

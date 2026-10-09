@@ -161,10 +161,10 @@ func (h *Handler) Signup(c *gin.Context) {
 	countryCode, currencyCode, language := defaults(request.CountryCode, request.CurrencyCode, request.Language)
 	_, err = tx.Exec(ctx, `
 		INSERT INTO tenants (id, name, slug, business_type, country_code, currency_code, default_language,
-		                     plan, trial_ends_at, address, is_demo_seeded, owner_account_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, 'standard', NULL, '', TRUE, $8)`,
+		                     plan, trial_ends_at, address, is_demo_seeded, owner_account_id, contact_email)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'standard', NULL, '', TRUE, $8, $9)`,
 		tenantID, request.StoreName, slugFor(request.StoreName), request.BusinessType,
-		countryCode, currencyCode, language, account.ID)
+		countryCode, currencyCode, language, account.ID, request.Email)
 	if err != nil {
 		writeError(c, http.StatusInternalServerError, "internal_error", "unable to create tenant")
 		return

@@ -228,3 +228,88 @@ func TestEmailVerify_RejectsWrongAccountToken(t *testing.T) {
 		t.Fatalf("status = %d, want 400", rec.Code)
 	}
 }
+
+// captureMailer records outbound envelopes instead of delivering them.
+type captureMailer struct {
+	sent []identity.EmailMessage
+}
+
+func (c *captureMailer) Send(_ context.Context, msg identity.EmailMessage) error {
+	c.sent = append(c.sent, msg)
+	return nil
+}
+
+func TestEmailResend_UsesVerifyTemplate(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	email := fmt.Sprintf("resend-%s@example.com", uuid.NewString()[:8])
+	seed, account := identityFixture(t, pool, email)
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	h := NewHandler(pool, testutil.TokenManager(), testCfg())
+	cap := &captureMailer{}
+	h.SetMailer(cap)
+	h.Register(router.Group("/v1"))
+
+	token := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, seed.DeviceID, "", "owner")
+	rec := doIdent(router, http.MethodPost, "/v1/identity/email/resend", "", token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("resend status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	if len(cap.sent) != 1 {
+		t.Fatalf("captured sends = %d, want 1", len(cap.sent))
+	}
+	sent := cap.sent[0]
+	if sent.To != account.PrimaryEmail {
+		t.Fatalf("sent to = %q, want %q", sent.To, account.PrimaryEmail)
+	}
+	// The branded Arabic/HTML verification template must be the delivery path,
+	// not the old plain-text fallback.
+	if sent.HTML == "" || sent.Subject == "" {
+		t.Fatalf("expected the template render (HTML+subject), got subject=%q html=%q", sent.Subject, sent.HTML)
+	}
+	if !strings.Contains(sent.Subject, "تأكيد البريد الإلكتروني") {
+		t.Fatalf("subject = %q, want the Arabic verification subject", sent.Subject)
+	}
+}
+
+func TestEmailChange_UsesVerifyTemplate(t *testing.T) {
+	pool := testutil.Pool(t)
+	testutil.Migrate(t, testutil.DatabaseURL(t))
+	email := fmt.Sprintf("changew-%s@example.com", uuid.NewString()[:8])
+	seed, _ := identityFixture(t, pool, email)
+
+	// The seeded tenant has no owner user (SeedTenant creates manager+cashier);
+	// point tenants.owner_user_id at the manager so password validation works.
+	if _, err := pool.Exec(context.Background(),
+		`UPDATE tenants SET owner_user_id = $2::uuid WHERE id = $1::uuid`,
+		seed.TenantID, seed.ManagerID); err != nil {
+		t.Fatalf("set owner user: %v", err)
+	}
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	h := NewHandler(pool, testutil.TokenManager(), testCfg())
+	cap := &captureMailer{}
+	h.SetMailer(cap)
+	h.Register(router.Group("/v1"))
+
+	newEmail := fmt.Sprintf("new-%s@example.com", uuid.NewString()[:8])
+	token := testutil.MintAccess(t, seed.TenantID, seed.ManagerID, seed.DeviceID, "", "owner")
+	rec := doIdent(router, http.MethodPost, "/v1/identity/email/change",
+		fmt.Sprintf(`{"new_email":%q,"password":%q}`, newEmail, seed.Password), token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("change status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	if len(cap.sent) != 1 {
+		t.Fatalf("captured sends = %d, want 1", len(cap.sent))
+	}
+	sent := cap.sent[0]
+	if sent.To != newEmail {
+		t.Fatalf("sent to = %q, want %q", sent.To, newEmail)
+	}
+	if sent.Subject == "" || sent.HTML == "" {
+		t.Fatalf("expected the template render, got subject=%q html=%q", sent.Subject, sent.HTML)
+	}
+}
