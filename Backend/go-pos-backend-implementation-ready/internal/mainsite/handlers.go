@@ -126,6 +126,8 @@ var funcs = template.FuncMap{
 		return m, nil
 	},
 	"moreText": func() bi { return more("Learn more", "اعرف المزيد") },
+	"icon":     iconHTML,
+	"mark":     brandMarkHTML,
 }
 
 var siteTmpl = template.Must(template.New("site").Funcs(funcs).Parse(siteTemplates))

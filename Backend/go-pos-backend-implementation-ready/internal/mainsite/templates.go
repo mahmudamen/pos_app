@@ -12,7 +12,7 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 <title>{{t .Page.Title .Lang}} · {{.Brand}}</title>
 <meta name="description" content="{{t .Page.Meta .Lang}}">
 {{if .Page.Robots}}<meta name="robots" content="{{.Page.Robots}}">{{else}}<meta name="robots" content="index,follow">{{end}}
-<meta name="theme-color" content="#0f8f95">
+<meta name="theme-color" content="#03010E">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{.Brand}}">
 <meta property="og:title" content="{{t .Page.Title .Lang}} · {{.Brand}}">
@@ -26,6 +26,9 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 <link rel="alternate" hreflang="x-default" href="{{.EnHref}}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>{{.CSS}}</style>
 <script type="application/ld+json">{{.OrgJSON}}</script>
 </head>
@@ -38,13 +41,13 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 {{if .Page.Final.Kind}}{{template "sec" (dict "S" .Page.Final "Lang" .Lang)}}{{end}}
 </main>
 {{template "footer" .}}
-<a class="wa-float" href="{{.Whatsapp}}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<a class="wa-float" href="{{.Whatsapp}}" target="_blank" rel="noopener" aria-label="WhatsApp">{{icon "whatsapp"}}</a>
 </body>
 </html>
 {{end}}
 
 {{define "header"}}<header class="site-header"><div class="container"><nav class="nav">
-<a class="brand" href="{{langURL .Lang "/"}}"><span class="brand-mark">X</span><span>{{.Brand}}<span class="brand-sub">{{t .BrandSub .Lang}}</span></span></a>
+<a class="brand" href="{{langURL .Lang "/"}}">{{mark}}<span>{{.Brand}}<span class="brand-sub">{{t .BrandSub .Lang}}</span></span></a>
 <input type="checkbox" id="nav-toggle" aria-label="Menu">
 <label class="nav-burger" for="nav-toggle"><span></span><span></span><span></span></label>
 <div class="nav-links">
@@ -64,7 +67,7 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 <h1>{{t .Page.H1 .Lang}}</h1>
 <p class="lead">{{t .Page.Lead .Lang}}</p>
 {{if .Page.HeroCTAs}}<div class="hero-ctas">{{range .Page.HeroCTAs}}{{template "btn" (dict "L" $.Lang "B" .)}}{{end}}</div>{{end}}
-{{if .Page.HeroTiles}}<div class="hero-tiles">{{range .Page.HeroTiles}}<span>{{.Icon}} {{t .Title $.Lang}}</span>{{end}}</div>{{end}}
+{{if .Page.HeroTiles}}<div class="hero-tiles">{{range .Page.HeroTiles}}<span>{{t .Title $.Lang}}</span>{{end}}</div>{{end}}
 {{if .Page.HeroNote}}<p class="hero-note">{{t .Page.HeroNote $.Lang}}</p>{{end}}
 </div></section>{{end}}
 
@@ -87,12 +90,11 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 </div></section>{{end}}{{end}}
 
 {{define "sec_features"}}<div class="grid grid-3">{{range .S.Features}}<div class="feature">
-<div class="ico">{{.Icon}}</div><h3>{{t .Title $.Lang}}</h3>{{if .Body}}<p>{{t .Body $.Lang}}</p>{{end}}
+<h3>{{t .Title $.Lang}}</h3>{{if .Body}}<p>{{t .Body $.Lang}}</p>{{end}}
 </div>{{end}}</div>{{end}}
 
 {{define "sec_cards"}}<div class="grid grid-3">{{range .S.Cards}}<div class="card">
 {{with .Badge}}<span class="badge {{if eq .En "Free"}}free{{else if eq .En "Best seller"}}hot{{end}}">{{t . $.Lang}}</span>{{end}}
-<div class="ico">{{.Icon}}</div>
 {{if .Eyebrow}}<p class="eyebrow">{{t .Eyebrow $.Lang}}</p>{{end}}
 <h3>{{t .Title $.Lang}}</h3>
 {{if .Body}}<p>{{t .Body $.Lang}}</p>{{end}}
@@ -132,13 +134,13 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 {{define "footer"}}<footer class="site-footer">
 <div class="footer-top"><div class="container"><div class="footer-grid">
 <div class="footer-brand">
-<a class="brand" href="{{langURL .Lang "/"}}"><span class="brand-mark">X</span><span>{{.Brand}}<span class="brand-sub">{{t .BrandSub .Lang}}</span></span></a>
+<a class="brand" href="{{langURL .Lang "/"}}">{{mark}}<span>{{.Brand}}<span class="brand-sub">{{t .BrandSub .Lang}}</span></span></a>
 <p>{{t .BrandTag .Lang}}</p>
 <div class="socials">
-<a href="{{.Whatsapp}}" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
-<a href="mailto:{{.Email}}" aria-label="Email">✉️</a>
-<a href="{{.Github}}" target="_blank" rel="noopener" aria-label="GitHub">🐙</a>
-<a href="{{.OdooApps}}" target="_blank" rel="noopener" aria-label="Odoo Apps">🛒</a>
+<a href="{{.Whatsapp}}" target="_blank" rel="noopener" aria-label="WhatsApp">{{icon "whatsapp"}}</a>
+<a href="mailto:{{.Email}}" aria-label="Email">{{icon "mail"}}</a>
+<a href="{{.Github}}" target="_blank" rel="noopener" aria-label="GitHub">{{icon "github"}}</a>
+<a href="{{.OdooApps}}" target="_blank" rel="noopener" aria-label="Odoo Apps">{{icon "apps"}}</a>
 </div>
 </div>
 {{range .Footer}}<div class="footer-col"><h4>{{t .Title $.Lang}}</h4>{{range .Links}}<a href="{{langURL $.Lang .Href}}"{{if .Ext}} target="_blank" rel="noopener"{{end}}>{{t .Label $.Lang}}</a>{{end}}</div>{{end}}
