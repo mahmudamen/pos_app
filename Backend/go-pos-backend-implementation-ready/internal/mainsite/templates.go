@@ -12,7 +12,8 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 <title>{{t .Page.Title .Lang}} · {{.Brand}}</title>
 <meta name="description" content="{{t .Page.Meta .Lang}}">
 {{if .Page.Robots}}<meta name="robots" content="{{.Page.Robots}}">{{else}}<meta name="robots" content="index,follow">{{end}}
-<meta name="theme-color" content="#03010E">
+<meta name="theme-color" content="#03010E" id="tc">
+<script>try{var th=localStorage.getItem("theme")||(window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");document.documentElement.setAttribute("data-theme",th);if(th==="light"){var m=document.getElementById("tc");if(m)m.setAttribute("content","#f5f6fb");}}catch(e){document.documentElement.setAttribute("data-theme","dark");}</script>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{.Brand}}">
 <meta property="og:title" content="{{t .Page.Title .Lang}} · {{.Brand}}">
@@ -42,6 +43,29 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 </main>
 {{template "footer" .}}
 <a class="wa-float" href="{{.Whatsapp}}" target="_blank" rel="noopener" aria-label="WhatsApp">{{icon "whatsapp"}}</a>
+<script>
+(function(){
+  var root=document.documentElement,tc=document.getElementById("tc");
+  function apply(t){
+    root.setAttribute("data-theme",t);
+    if(tc)tc.setAttribute("content",t==="light"?"#f5f6fb":"#03010E");
+    var b=document.getElementById("theme-toggle");
+    if(b)b.setAttribute("aria-pressed",t==="light"?"true":"false");
+  }
+  var btn=document.getElementById("theme-toggle");
+  if(btn)btn.addEventListener("click",function(){
+    var next=root.getAttribute("data-theme")==="light"?"dark":"light";
+    apply(next);
+    try{localStorage.setItem("theme",next)}catch(e){}
+  });
+  var hd=document.querySelector(".site-header");
+  if(hd){var onScroll=function(){hd.classList.toggle("scrolled",window.scrollY>8)};
+    onScroll();window.addEventListener("scroll",onScroll,{passive:true});}
+  var navT=document.getElementById("nav-toggle");
+  if(navT){Array.prototype.forEach.call(document.querySelectorAll(".nav-links a"),function(a){
+    a.addEventListener("click",function(){navT.checked=false;});});}
+})();
+</script>
 </body>
 </html>
 {{end}}
@@ -49,7 +73,6 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 {{define "header"}}<header class="site-header"><div class="container"><nav class="nav">
 <a class="brand" href="{{langURL .Lang "/"}}">{{mark}}<span>{{.Brand}}<span class="brand-sub">{{t .BrandSub .Lang}}</span></span></a>
 <input type="checkbox" id="nav-toggle" aria-label="Menu">
-<label class="nav-burger" for="nav-toggle"><span></span><span></span><span></span></label>
 <div class="nav-links">
 {{range .Nav}}{{if .Items}}
 <div class="dropdown"><button type="button">{{t .Label $.Lang}}</button>
@@ -58,7 +81,11 @@ const siteTemplates = `{{define "site"}}<!doctype html>
 <a href="{{langURL $.Lang .Href}}"{{if eq .Key $.Active}} class="active"{{end}}>{{t .Label $.Lang}}</a>
 {{end}}{{end}}
 <a class="btn btn-primary nav-cta" href="{{langURL .Lang "/request-demo"}}">{{t .DemoCTA .Lang}}</a>
+</div>
+<div class="nav-tools">
+<button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="{{if eq .HTMLang "ar"}}تبديل المظهر{{else}}Toggle theme{{end}}"><span class="i-sun">{{icon "sun"}}</span><span class="i-moon">{{icon "moon"}}</span></button>
 <a class="nav-links-lang" href="{{.AltHref}}" title="{{t .AltLabel .Lang}}">{{t .AltLabel .Lang}}</a>
+<label class="nav-burger" for="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></label>
 </div>
 </nav></div></header>{{end}}
 

@@ -5,15 +5,15 @@ import (
 	"testing"
 )
 
-// The AutoMark theme and the SVG asset helpers are the two pieces that changed
-// when the site was re-skinned. These tests pin the design tokens, the icon
-// markup and the "no emoji tiles" guarantee so a future edit cannot silently
-// regress the visual system.
+// The dual dark/light theme, the toggle and the SVG helpers are the pieces that
+// define the site's look. These tests pin the design tokens, the toggle markup
+// and the "no emoji tiles" guarantee so a future edit cannot silently regress
+// the visual system.
 
-func TestThemeStylesheetCarriesAutoMarkTokens(t *testing.T) {
+func TestThemeStylesheetCarriesBrandTokens(t *testing.T) {
 	for _, want := range []string{
-		"--body:#03010E",
-		"--light:#0B0C17",
+		"--bg:#03010E",
+		"--bg-2:#0B0C17",
 		"--border:#202128",
 		"--primary:#937AFF",
 		"--primary-light:#4D36D0",
@@ -24,7 +24,39 @@ func TestThemeStylesheetCarriesAutoMarkTokens(t *testing.T) {
 		"--grad:linear-gradient(0deg,var(--primary-light),var(--primary))",
 	} {
 		if !strings.Contains(siteCSS, want) {
-			t.Errorf("stylesheet missing AutoMark token %q", want)
+			t.Errorf("stylesheet missing brand token %q", want)
+		}
+	}
+}
+
+func TestThemeStylesheetHasLightVariant(t *testing.T) {
+	for _, want := range []string{
+		"html[data-theme=light]{",
+		"color-scheme:light",
+		"--bg:#f5f6fb",
+		"--heading:#0c0e18",
+		"--primary:#5b3ef0",
+	} {
+		if !strings.Contains(siteCSS, want) {
+			t.Errorf("stylesheet missing light-theme token %q", want)
+		}
+	}
+	// Light and dark headings must be distinct ink, or one theme goes invisible.
+	if !strings.Contains(siteCSS, "--heading:#ffffff") {
+		t.Error("stylesheet missing dark-theme heading ink")
+	}
+}
+
+func TestThemeToggleStyled(t *testing.T) {
+	for _, want := range []string{
+		".theme-toggle{",
+		".theme-toggle .i-sun{display:grid}",
+		".theme-toggle .i-moon{display:none}",
+		"html[data-theme=light] .theme-toggle .i-sun{display:none}",
+		"html[data-theme=light] .theme-toggle .i-moon{display:grid}",
+	} {
+		if !strings.Contains(siteCSS, want) {
+			t.Errorf("stylesheet missing theme-toggle rule %q", want)
 		}
 	}
 }
@@ -47,12 +79,12 @@ func TestThemeStylesheetNeutralizesArabicLetterSpacing(t *testing.T) {
 }
 
 func TestIconHTMLRendersSVG(t *testing.T) {
-	for _, name := range []string{"whatsapp", "mail", "github", "apps"} {
+	for _, name := range []string{"whatsapp", "mail", "github", "apps", "sun", "moon"} {
 		svg := string(iconHTML(name))
 		if !strings.Contains(svg, "<svg") || !strings.Contains(svg, "viewBox") {
 			t.Errorf("icon %q did not render an svg: %q", name, svg)
 		}
-		if strings.Contains(svg, "currentColor") == false {
+		if !strings.Contains(svg, "currentColor") {
 			t.Errorf("icon %q should inherit the surrounding text colour", name)
 		}
 	}
@@ -75,7 +107,7 @@ func TestBrandMarkAndFaviconUseVioletGradient(t *testing.T) {
 	}
 }
 
-func TestRenderedPagesCarryThemeAndNoEmoji(t *testing.T) {
+func TestRenderedPagesCarryThemeToggleAndNoEmoji(t *testing.T) {
 	e := newTestEngine()
 
 	emoji := []string{"💬", "✉️", "🐙", "🛒", "🎯", "📊", "📦", "🔐", "✨", "🌾", "🖧"}
@@ -91,9 +123,13 @@ func TestRenderedPagesCarryThemeAndNoEmoji(t *testing.T) {
 				`class="mark"`,
 				"fonts.googleapis.com",
 				"IBM+Plex+Sans+Arabic",
+				`id="theme-toggle"`,
+				"prefers-color-scheme",
+				`data-theme`,
+				"localStorage",
 			} {
 				if !strings.Contains(body, want) {
-					t.Errorf("%s: missing theme marker %q", path, want)
+					t.Errorf("%s: missing marker %q", path, want)
 				}
 			}
 			for _, bad := range dead {
@@ -118,5 +154,16 @@ func TestFaviconAndMarkHaveBalancedSVGTags(t *testing.T) {
 		if got, want := strings.Count(svg, "</svg>"), strings.Count(svg, "<svg"); got != want {
 			t.Errorf("%s: unbalanced svg tags (%d open, %d close)", name, want, got)
 		}
+	}
+}
+
+func TestThemeIconsAreDistinctShapes(t *testing.T) {
+	sun := siteIcons["sun"]
+	moon := siteIcons["moon"]
+	if sun == "" || moon == "" {
+		t.Fatal("sun and moon icons must be defined")
+	}
+	if sun == moon {
+		t.Fatal("sun and moon icons must differ")
 	}
 }
