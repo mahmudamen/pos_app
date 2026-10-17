@@ -273,6 +273,10 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 // loadPlanCards reads the active plans from the platform table. It degrades
 // gracefully (nil pool, query error, or empty catalog) to the seeded defaults
 // so the page — and the offline OpenAPI generator — always renders.
+//
+// The internal `trial` entitlement is excluded: it is granted automatically at
+// signup, mirrors Starter's limits, and its description is operator-facing, so
+// listing it beside the sellable plans only confuses the pricing page.
 func loadPlanCards(ctx context.Context, pool *pgxpool.Pool, lang string) []planCard {
 	if pool == nil {
 		return fallbackPlanCards(lang)
@@ -294,6 +298,9 @@ func loadPlanCards(ctx context.Context, pool *pgxpool.Pool, lang string) []planC
 		if err := rows.Scan(&code, &name, &desc, &priceMinor, &period, &features, &maxUsers, &maxProducts); err != nil {
 			return fallbackPlanCards(lang)
 		}
+		if !publicPlanCode(code) {
+			continue
+		}
 		var keys []string
 		_ = json.Unmarshal(features, &keys)
 		cards = append(cards, buildPlanCard(lang, code, name, desc, priceMinor, period, keys, maxUsers, maxProducts))
@@ -302,6 +309,15 @@ func loadPlanCards(ctx context.Context, pool *pgxpool.Pool, lang string) []planC
 		return fallbackPlanCards(lang)
 	}
 	return cards
+}
+
+// publicPlanCode reports whether a plan code belongs on the public pricing
+// page. The internal `trial` entitlement is filtered out: it is granted
+// automatically at signup, mirrors Starter's limits, and carries an
+// operator-facing description, so listing it beside the sellable plans only
+// confuses the pricing page.
+func publicPlanCode(code string) bool {
+	return code != "trial"
 }
 
 type fallbackPlan struct {

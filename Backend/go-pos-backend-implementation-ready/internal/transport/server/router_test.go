@@ -449,6 +449,14 @@ func TestIndexServesStatsStepsAndFAQ(t *testing.T) {
 	if !strings.Contains(body, `href="/pricing#compare"`) {
 		t.Error("index plans link should point to the pricing comparison anchor")
 	}
+	// The Copilot card must describe what ships (invoice capture), not the
+	// unreleased Q&A assistant the Copilot section itself defers.
+	if strings.Contains(body, "AI-assisted support built in") {
+		t.Error("index still promises the unreleased AI support assistant")
+	}
+	if !strings.Contains(body, "AI invoice capture, built in") {
+		t.Error("index Copilot card should describe the shipped invoice capture")
+	}
 }
 
 func TestPricingServesCompareTableAndFAQ(t *testing.T) {
@@ -466,6 +474,21 @@ func TestPricingServesCompareTableAndFAQ(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("pricing body missing %q", want)
 		}
+	}
+	// The page must describe a tiered catalog, not the retracted "every plan is
+	// identical" claim the comparison table below it contradicts.
+	for _, banned := range []string{"never features", "limits, not features"} {
+		if strings.Contains(body, banned) {
+			t.Errorf("pricing body still carries retracted copy %q", banned)
+		}
+	}
+	if !strings.Contains(body, "higher tiers unlock more modules and raise the limits") {
+		t.Error("pricing compare lead should describe the tiered catalog")
+	}
+	// The internal trial entitlement is granted at signup, not sold, and must
+	// not appear as a plan column or card on the public page.
+	if strings.Contains(body, `<th scope="col">Trial</th>`) {
+		t.Error("pricing comparison should not list the internal trial plan")
 	}
 }
 
