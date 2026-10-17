@@ -68,6 +68,7 @@ a:hover { color: var(--accent-hover); }
   color: var(--text); font-weight: 700; font-size: 17px; letter-spacing: 0.01em;
 }
 .brand svg { width: 32px; height: 32px; flex: none; }
+.brand .brand-mark { width: 32px; height: 32px; flex: none; display: block; border-radius: 9px; }
 .brand b { display: block; line-height: 1.05; }
 .brand small {
   display: block; font-size: 10.5px; font-weight: 500;

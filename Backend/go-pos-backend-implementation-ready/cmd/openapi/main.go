@@ -218,7 +218,9 @@ func requiredSecurity(path string) []map[string][]string {
 	switch path {
 	case "/", "/pricing", "/private", "/delete-account",
 		"/forgot-password", "/reset-password",
-		"/google79d5199d984f63af.html", "/.well-known/assetlinks.json":
+		"/google79d5199d984f63af.html", "/.well-known/assetlinks.json",
+		"/icon.png", "/icon-192.png", "/icon-32.png",
+		"/apple-touch-icon.png", "/favicon.ico", "/og-image.png":
 		return nil
 	}
 	if public {

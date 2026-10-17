@@ -102,3 +102,20 @@ var (
 
 // assetLinksPath is the exact path the Android package manager requests.
 const assetLinksPath = "/.well-known/assetlinks.json"
+
+// Brand mark. The site used to draw a placeholder letter "P" as an inline SVG
+// (header) and as a data-URI favicon; both are replaced by the real POS.Go app
+// icon — the mark that ships on Play — so the marketing site, the favicon, the
+// social preview and the server-rendered auth pages all carry one identity.
+// The 192/32 sizes are pre-scaled so a cold load does not downscale the 512px
+// source in the browser, and the 1200x630 card is the Open Graph preview.
+var (
+	//go:embed assets/brand-512.png
+	brandMark512 []byte
+	//go:embed assets/brand-192.png
+	brandMark192 []byte
+	//go:embed assets/brand-32.png
+	brandMark32 []byte
+	//go:embed assets/og-1200x630.png
+	brandOgImage []byte
+)

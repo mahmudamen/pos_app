@@ -268,6 +268,33 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 		c.Header("Content-Type", "image/png")
 		_, _ = c.Writer.Write(png)
 	})
+	// The POS.Go brand mark, served as static PNGs with the same long-lived
+	// cache headers as the gallery. Every path here is referenced from the
+	// shared document head (favicon, apple-touch-icon, og:image) so the head
+	// stays light instead of inlining the icon as a base64 data URI.
+	for _, a := range []struct {
+		Path string
+		Png  []byte
+	}{
+		{"/icon.png", brandMark512},
+		{"/icon-192.png", brandMark192},
+		{"/icon-32.png", brandMark32},
+		{"/apple-touch-icon.png", brandMark192},
+		{"/favicon.ico", brandMark32},
+		{"/og-image.png", brandOgImage},
+	} {
+		engine.GET(a.Path, serveStaticImage(a.Png))
+	}
+}
+
+// serveStaticImage answers with an embedded PNG and stamps the immutable cache
+// headers the brand assets share with the gallery screenshots.
+func serveStaticImage(png []byte) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
+		c.Header("Content-Type", "image/png")
+		_, _ = c.Writer.Write(png)
+	}
 }
 
 // loadPlanCards reads the active plans from the platform table. It degrades

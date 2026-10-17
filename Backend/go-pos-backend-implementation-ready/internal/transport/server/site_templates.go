@@ -23,7 +23,15 @@ const siteHead = `<!doctype html>
 <meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else if eq .Page "delete"}}{{.T.deleteTitle}}{{else if eq .Page "company"}}{{.T.companyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
 <meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
 <meta property="og:locale" content="{{if eq .Lang "ar"}}ar_EG{{else}}en_GB{{end}}"/>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect x='4' y='4' width='88' height='88' rx='22' fill='%230f2233' stroke='%2322c55e' stroke-width='4'/%3E%3Ctext x='48' y='68' text-anchor='middle' font-family='Verdana' font-size='52' font-weight='700' fill='%2322c55e'%3EP%3C/text%3E%3C/svg%3E"/>
+<meta property="og:image" content="{{.POSURL}}/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="{{.T.brand}} — {{.T.tagline}}"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="{{.POSURL}}/og-image.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
 <title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else if eq .Page "delete"}}{{.T.deleteTitle}} — {{.T.brand}}{{else if eq .Page "company"}}{{.T.companyName}} — {{.T.companyTagline}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
 <style>` + siteCSS + `</style>
 </head>
@@ -31,11 +39,7 @@ const siteHead = `<!doctype html>
 <header class="site-header">
   <nav class="nav container" aria-label="{{.T.navLabel}}">
     <a class="brand" href="/">
-      <svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="4" y="4" width="88" height="88" rx="22" fill="none" stroke="currentColor" stroke-width="6"/>
-        <circle cx="69" cy="27" r="7" fill="currentColor"/>
-        <text x="48" y="68" text-anchor="middle" font-family="Verdana, sans-serif" font-size="52" font-weight="700" fill="currentColor">P</text>
-      </svg>
+      <img class="brand-mark" src="/icon.png" width="32" height="32" alt=""/>
       <span><b>{{if eq .Page "company"}}{{.T.companyName}}{{else}}{{.T.brand}}{{end}}</b><small>{{if eq .Page "company"}}{{.T.companyBrandSub}}{{else}}{{.T.brandSub}}{{end}}</small></span>
     </a>
     <div class="nav-links">

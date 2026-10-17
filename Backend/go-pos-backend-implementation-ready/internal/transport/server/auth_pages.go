@@ -49,6 +49,7 @@ body {
   text-decoration: none; color: var(--text); margin-bottom: 18px;
 }
 .brand svg { width: 34px; height: 34px; }
+.brand .brand-mark { width: 34px; height: 34px; display: block; border-radius: 10px; }
 .brand b { font-size: 19px; letter-spacing: .01em; }
 .brand small { display: block; font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
 .card {
@@ -133,7 +134,7 @@ type authPageData struct {
 	Year  int
 }
 
-const authBrandMark = `<svg viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="4" y="4" width="88" height="88" rx="22" fill="none" stroke="currentColor" stroke-width="6"/><circle cx="69" cy="27" r="7" fill="currentColor"/><text x="48" y="68" text-anchor="middle" font-family="Verdana, sans-serif" font-size="52" font-weight="700" fill="currentColor">P</text></svg>`
+const authBrandMark = `<img class="brand-mark" src="/icon.png" width="34" height="34" alt=""/>`
 
 const authHead = `<!doctype html>
 <html lang="{{.Lang}}" dir="{{.Dir}}">

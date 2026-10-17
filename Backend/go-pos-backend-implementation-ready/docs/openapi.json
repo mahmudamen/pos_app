@@ -88,12 +88,52 @@
         }
       }
     },
+    "/apple-touch-icon.png": {
+      "get": {
+        "tags": [
+          "apple-touch-icon.png"
+        ],
+        "operationId": "GetApple-touch-icon.png",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/delete-account": {
       "get": {
         "tags": [
           "delete-account"
         ],
         "operationId": "GetDelete-account",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/favicon.ico": {
+      "get": {
+        "tags": [
+          "favicon.ico"
+        ],
+        "operationId": "GetFavicon.ico",
         "responses": {
           "default": {
             "content": {
@@ -174,6 +214,86 @@
           "ready"
         ],
         "operationId": "GetHealthReady",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/icon-192.png": {
+      "get": {
+        "tags": [
+          "icon-192.png"
+        ],
+        "operationId": "GetIcon-192.png",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/icon-32.png": {
+      "get": {
+        "tags": [
+          "icon-32.png"
+        ],
+        "operationId": "GetIcon-32.png",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/icon.png": {
+      "get": {
+        "tags": [
+          "icon.png"
+        ],
+        "operationId": "GetIcon.png",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/og-image.png": {
+      "get": {
+        "tags": [
+          "og-image.png"
+        ],
+        "operationId": "GetOg-image.png",
         "responses": {
           "default": {
             "content": {

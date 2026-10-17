@@ -301,6 +301,70 @@ func TestLandingGalleryServesExternalizedScreenshots(t *testing.T) {
 	}
 }
 
+// The site header, the favicon and the social preview all carry the real
+// POS.Go app icon (served from /icon*.png) rather than the placeholder letter
+// "P" that used to be an inline SVG and a data-URI favicon.
+func TestSiteServesRealBrandMarkAndSocialCard(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{
+		`class="brand-mark"`, `src="/icon.png"`,
+		`href="/icon-32.png"`, `href="/icon-192.png"`, `href="/apple-touch-icon.png"`,
+		`property="og:image"`, `twitter:card`, `og-image.png`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("index head/header missing %q", want)
+		}
+	}
+	// The placeholder mark is gone: no more inline P-SVG and no SVG favicon.
+	for _, gone := range []string{`rel="icon" type="image/svg+xml"`, `font-family="Verdana`} {
+		if strings.Contains(body, gone) {
+			t.Errorf("index still contains removed placeholder %q", gone)
+		}
+	}
+
+	// Every brand asset is served as a real PNG with long-lived caching.
+	for _, path := range []string{"/icon.png", "/icon-192.png", "/icon-32.png", "/apple-touch-icon.png", "/favicon.ico", "/og-image.png"} {
+		irec := httptest.NewRecorder()
+		engine.ServeHTTP(irec, httptest.NewRequest(http.MethodGet, path, nil))
+		if irec.Code != http.StatusOK {
+			t.Errorf("%s: expected 200, got %d", path, irec.Code)
+			continue
+		}
+		if ct := irec.Header().Get("Content-Type"); ct != "image/png" {
+			t.Errorf("%s: expected image/png, got %q", path, ct)
+		}
+		if cc := irec.Header().Get("Cache-Control"); !strings.Contains(cc, "max-age=31536000") {
+			t.Errorf("%s: missing long-lived Cache-Control", path)
+		}
+		if b := irec.Body.Bytes(); len(b) < 8 || string(b[:8]) != "\x89PNG\r\n\x1a\n" {
+			t.Errorf("%s: body is not a PNG", path)
+		}
+	}
+
+	// The server-rendered auth pages use the same mark, not the old SVG.
+	arec := httptest.NewRecorder()
+	engine.ServeHTTP(arec, httptest.NewRequest(http.MethodGet, "/forgot-password", nil))
+	if arec.Code != http.StatusOK {
+		t.Fatalf("/forgot-password: expected 200, got %d", arec.Code)
+	}
+	ab := arec.Body.String()
+	if !strings.Contains(ab, `class="brand-mark"`) || !strings.Contains(ab, `src="/icon.png"`) {
+		t.Error("auth page does not use the shared brand mark")
+	}
+	if strings.Contains(ab, `font-family="Verdana`) {
+		t.Error("auth page still renders the placeholder SVG mark")
+	}
+}
+
 func TestLandingRendersAllFeaturesModules(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
