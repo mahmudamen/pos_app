@@ -299,6 +299,9 @@ const siteIndexBody = `<main>
             <div class="vrow"><b>{{.T.vr12n}}</b><span>{{.T.vr12d}}</span><i class="vplan">{{.T.vr12p}}</i></div>
             <div class="vrow"><b>{{.T.vr13n}}</b><span>{{.T.vr13d}}</span><i class="vplan">{{.T.vr13p}}</i></div>
             <div class="vrow"><b>{{.T.vr14n}}</b><span>{{.T.vr14d}}</span><i class="vplan">{{.T.vr14p}}</i></div>
+            <div class="vrow"><b>{{.T.vr20n}}</b><span>{{.T.vr20d}}</span><i class="vplan">{{.T.vr20p}}</i></div>
+            <div class="vrow"><b>{{.T.vr21n}}</b><span>{{.T.vr21d}}</span><i class="vplan">{{.T.vr21p}}</i></div>
+            <div class="vrow"><b>{{.T.vr22n}}</b><span>{{.T.vr22d}}</span><i class="vplan">{{.T.vr22p}}</i></div>
           </div>
         </div>
         <div class="vgroup">
@@ -316,6 +319,8 @@ const siteIndexBody = `<main>
             <div class="vrow"><b>{{.T.vr17n}}</b><span>{{.T.vr17d}}</span><i class="{{.T.vr17c}}">{{.T.vr17p}}</i></div>
             <div class="vrow"><b>{{.T.vr18n}}</b><span>{{.T.vr18d}}</span><i class="{{.T.vr18c}}">{{.T.vr18p}}</i></div>
             <div class="vrow"><b>{{.T.vr19n}}</b><span>{{.T.vr19d}}</span><i class="vplan">{{.T.vr19p}}</i></div>
+            <div class="vrow"><b>{{.T.vr23n}}</b><span>{{.T.vr23d}}</span><i class="vplan">{{.T.vr23p}}</i></div>
+            <div class="vrow"><b>{{.T.vr24n}}</b><span>{{.T.vr24d}}</span><i class="vplan">{{.T.vr24p}}</i></div>
           </div>
         </div>
       </div>

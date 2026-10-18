@@ -92,8 +92,8 @@ describe('RegisterPage', () => {
     ).toBeInTheDocument()
 
     const options = screen.getAllByRole('option')
-    // placeholder + 19 verticals
-    expect(options).toHaveLength(20)
+    // placeholder + 24 verticals
+    expect(options).toHaveLength(25)
     expect(
       options.map((o) => o.textContent).filter(Boolean),
     ).toEqual(
@@ -105,6 +105,11 @@ describe('RegisterPage', () => {
         'Fruit & vegetable shop',
         'Beauty & cosmetics',
         'Supermarket',
+        'Auto parts shop',
+        'Optician',
+        'Pet shop',
+        'Flower shop',
+        'Laundry & dry cleaning',
       ]),
     )
     expect(fetchMock).not.toHaveBeenCalled()

@@ -48,6 +48,11 @@ var (
 		"hardware":      true,
 		"beauty":        true,
 		"supermarket":   true,
+		"auto_parts":    true,
+		"optics":        true,
+		"pets":          true,
+		"flowers":       true,
+		"laundry":       true,
 	}
 	slugClean = regexp.MustCompile(`[^a-z0-9]+`)
 )

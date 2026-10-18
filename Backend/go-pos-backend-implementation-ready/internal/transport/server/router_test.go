@@ -512,8 +512,8 @@ func TestLandingGroupsVerticalsWithDescriptionsAndPlanBadges(t *testing.T) {
 			}
 		}
 		rows := map[string][]string{
-			"en": {"Tables, bill split and tips", "Large baskets and by-weight items", "Sizes and colours, a barcode per variant", "Ta&#39;ameya, foul and sandwiches", "Business &amp; up"},
-			"ar": {"طاولات وتقسيم الفواتير والبقشيش", "سلال كبيرة وأصناف بالوزن", "مقاسات وألوان بباركود لكل متغير", "طعمية وفول وسندويتشات", "باقة الأعمال فأعلى"},
+			"en": {"Tables, bill split and tips", "Large baskets and by-weight items", "Sizes and colours, a barcode per variant", "Ta&#39;ameya, foul and sandwiches", "Business &amp; up", "Parts, filters and fluids", "Frames, lenses and sunglasses", "Wash, press and dry-clean by item"},
+			"ar": {"طاولات وتقسيم الفواتير والبقشيش", "سلال كبيرة وأصناف بالوزن", "مقاسات وألوان بباركود لكل متغير", "طعمية وفول وسندويتشات", "باقة الأعمال فأعلى", "قطع وفلاتر وسوائل", "إطارات وعدسات ونظارات شمسية", "غسيل وكي وتنظيف جاف بالقطعة"},
 		}
 		for _, want := range rows[lang] {
 			if !strings.Contains(body, want) {
