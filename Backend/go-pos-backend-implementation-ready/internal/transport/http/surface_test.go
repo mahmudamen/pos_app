@@ -102,6 +102,9 @@ func surfaceEngine(t *testing.T, routing config.SurfaceRouting) *gin.Engine {
 	engine.GET("/", echo)
 	engine.GET("/pricing", echo)
 	engine.GET("/private", echo)
+	engine.GET("/terms", echo)
+	engine.GET("/refund-policy", echo)
+	engine.GET("/help", echo)
 	engine.GET("/selforder", echo)
 	engine.GET("/screenshots/hero", echo)
 	engine.GET(googleVerifyPath, echo)
@@ -174,6 +177,9 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		{config.DefaultCompanyDomain, "/", http.StatusOK},
 		{config.DefaultCompanyDomain, "/pricing", http.StatusOK},
 		{config.DefaultCompanyDomain, "/private", http.StatusOK},
+		{config.DefaultCompanyDomain, "/terms", http.StatusOK},
+		{config.DefaultCompanyDomain, "/refund-policy", http.StatusOK},
+		{config.DefaultCompanyDomain, "/help", http.StatusOK},
 		{config.DefaultCompanyDomain, "/screenshots/hero", http.StatusOK},
 		{config.DefaultCompanyDomain, "/selforder", http.StatusNotFound},
 		// The brand domain exposes no API, so a recovery form there would post
@@ -185,6 +191,9 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		{config.DefaultPOSDomain, "/", http.StatusOK},
 		{config.DefaultPOSDomain, "/pricing", http.StatusOK},
 		{config.DefaultPOSDomain, "/private", http.StatusOK},
+		{config.DefaultPOSDomain, "/terms", http.StatusOK},
+		{config.DefaultPOSDomain, "/refund-policy", http.StatusOK},
+		{config.DefaultPOSDomain, "/help", http.StatusOK},
 		{config.DefaultPOSDomain, "/selforder", http.StatusOK},
 		{config.DefaultPOSDomain, "/health/live", http.StatusOK},
 		// Password recovery: the emailed link lands on the host that served
@@ -195,6 +204,9 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		{config.DefaultSaaSDomain, "/", http.StatusOK},
 		{config.DefaultSaaSDomain, "/pricing", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/private", http.StatusNotFound},
+		{config.DefaultSaaSDomain, "/terms", http.StatusNotFound},
+		{config.DefaultSaaSDomain, "/refund-policy", http.StatusNotFound},
+		{config.DefaultSaaSDomain, "/help", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/selforder", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/screenshots/hero", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/forgot-password", http.StatusOK},

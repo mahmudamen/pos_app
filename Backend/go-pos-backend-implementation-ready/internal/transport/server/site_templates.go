@@ -17,11 +17,11 @@ const siteHead = `<!doctype html>
 <meta name="color-scheme" content="light"/>
 <meta name="theme-color" content="#f7f9fb"/>
 <meta name="robots" content="{{if or (eq .Page "privacy") (eq .Page "delete")}}noindex{{else}}index, follow{{end}}"/>
-<meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta name="description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "terms"}}{{.T.termsMeta}}{{else if eq .Page "refund"}}{{.T.refundMeta}}{{else if eq .Page "help"}}{{.T.helpMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
 <meta property="og:site_name" content="{{if eq .Page "company"}}{{.T.companyName}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else if eq .Page "delete"}}{{.T.deleteTitle}}{{else if eq .Page "company"}}{{.T.companyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
-<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
+<meta property="og:title" content="{{if eq .Page "pricing"}}{{.T.pricingTitle}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}}{{else if eq .Page "delete"}}{{.T.deleteTitle}}{{else if eq .Page "terms"}}{{.T.termsTitle}}{{else if eq .Page "refund"}}{{.T.refundTitle}}{{else if eq .Page "help"}}{{.T.helpTitle}}{{else if eq .Page "company"}}{{.T.companyTitle}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}"/>
+<meta property="og:description" content="{{if eq .Page "pricing"}}{{.T.pricingMeta}}{{else if eq .Page "privacy"}}{{.T.privacyMeta}}{{else if eq .Page "delete"}}{{.T.deleteMeta}}{{else if eq .Page "terms"}}{{.T.termsMeta}}{{else if eq .Page "refund"}}{{.T.refundMeta}}{{else if eq .Page "help"}}{{.T.helpMeta}}{{else if eq .Page "company"}}{{.T.companyMeta}}{{else}}{{.T.heroLead}}{{end}}"/>
 <meta property="og:locale" content="{{if eq .Lang "ar"}}ar_EG{{else}}en_GB{{end}}"/>
 <meta property="og:image" content="{{.POSURL}}/og-image.png"/>
 <meta property="og:image:width" content="1200"/>
@@ -32,7 +32,7 @@ const siteHead = `<!doctype html>
 <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png"/>
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"/>
 <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
-<title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else if eq .Page "delete"}}{{.T.deleteTitle}} — {{.T.brand}}{{else if eq .Page "company"}}{{.T.companyName}} — {{.T.companyTagline}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
+<title>{{if eq .Page "pricing"}}{{.T.pricingTitle}} — {{.T.brand}}{{else if eq .Page "privacy"}}{{.T.privacyTitle}} — {{.T.brand}}{{else if eq .Page "delete"}}{{.T.deleteTitle}} — {{.T.brand}}{{else if eq .Page "terms"}}{{.T.termsTitle}} — {{.T.brand}}{{else if eq .Page "refund"}}{{.T.refundTitle}} — {{.T.brand}}{{else if eq .Page "help"}}{{.T.helpTitle}} — {{.T.brand}}{{else if eq .Page "company"}}{{.T.companyName}} — {{.T.companyTagline}}{{else}}{{.T.brand}} — {{.T.tagline}}{{end}}</title>
 <style>` + siteCSS + `</style>
 </head>
 <body>
@@ -311,7 +311,7 @@ const sitePricingBody = `<main>
     </div>
     <section class="section">
       <div class="plans">` + sitePlansGrid + `</div>
-      <p class="section-note">{{.T.priceNote}}</p>
+      <p class="section-note">{{.T.priceNote}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a>.</p>
     </section>
     <section id="compare" class="section">
       <span class="section-label">{{.T.secCompare}}</span>
@@ -362,8 +362,9 @@ const sitePrivacyBody = `<main>
       <h2>{{.T.s5t}}</h2><p>{{.T.s5b}}</p>
       <h2>{{.T.s6t}}</h2><p>{{.T.s6b}}</p>
       <h2>{{.T.s7t}}</h2><p>{{.T.s7b}}</p>
-      <h2>{{.T.s8t}}</h2><p>{{.T.s8b}}</p>
+      <h2>{{.T.s8t}}</h2><p>{{.T.s8b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
       <p class="section-note"><a href="/delete-account">{{.T.privacyDeleteLink}}</a></p>
+      <p class="section-note"><a href="/terms">{{.T.termsTitle}}</a> · <a href="/refund-policy">{{.T.refundTitle}}</a></p>
     <p class="section-note"><a href="/">{{.T.privacyBack}}</a></p>
     </section>
   </div>
@@ -384,16 +385,93 @@ const siteDeleteBody = `<main>
     <section class="section prose">
       <p>{{.T.deleteIntro}}</p>
       <h2>{{.T.d1t}}</h2>
-      <p>{{.T.d1b}}</p>
+      <p>{{.T.d1b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
       <ul><li>{{.T.d1a}}</li><li>{{.T.d1b2}}</li></ul>
       <h2>{{.T.d2t}}</h2>
       <ul><li>{{.T.d2a}}</li><li>{{.T.d2b}}</li><li>{{.T.d2c}}</li><li>{{.T.d2d}}</li></ul>
       <h2>{{.T.d3t}}</h2><p>{{.T.d3b}}</p>
       <h2>{{.T.d4t}}</h2><p>{{.T.d4b}}</p>
       <h2>{{.T.d5t}}</h2><p>{{.T.d5b}}</p>
-      <h2>{{.T.d6t}}</h2><p>{{.T.d6b}}</p>
+      <h2>{{.T.d6t}}</h2><p>{{.T.d6b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
       <p class="section-note"><a href="/private">{{.T.deletePrivacyLink}}</a></p>
       <p class="section-note"><a href="/">{{.T.deleteBack}}</a></p>
+    </section>
+  </div>
+</main>`
+
+// siteTermsBody is the public terms-of-use page (/terms). It states the
+// commercial terms a merchant agrees to when they subscribe, so a reviewer or
+// customer can find them without reading a PDF.
+const siteTermsBody = `<main>
+  <div class="container">
+    <div class="page-head">
+      <span class="section-label">{{.T.termsTitle}}</span>
+      <h1 class="page-title">{{.T.termsTitle}}</h1>
+      <p class="section-sub">{{.T.termsUpdated}}</p>
+    </div>
+    <section class="section prose">
+      <p>{{.T.termsIntro}}</p>
+      <h2>{{.T.tm1t}}</h2><p>{{.T.tm1b}}</p>
+      <h2>{{.T.tm2t}}</h2><p>{{.T.tm2b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
+      <h2>{{.T.tm3t}}</h2><p>{{.T.tm3b}}</p>
+      <h2>{{.T.tm4t}}</h2><p>{{.T.tm4b}}</p>
+      <h2>{{.T.tm5t}}</h2><p>{{.T.tm5b}}</p>
+      <h2>{{.T.tm6t}}</h2><p>{{.T.tm6b}}</p>
+      <h2>{{.T.tm7t}}</h2><p>{{.T.tm7b}}</p>
+      <h2>{{.T.tm8t}}</h2><p>{{.T.tm8b}}</p>
+      <h2>{{.T.tm9t}}</h2><p>{{.T.tm9b}}</p>
+      <h2>{{.T.tm10t}}</h2><p>{{.T.tm10b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
+      <p class="section-note"><a href="/refund-policy">{{.T.termsRefundLink}}</a> · <a href="/private">{{.T.termsPrivacyLink}}</a></p>
+      <p class="section-note"><a href="/">{{.T.termsBack}}</a></p>
+    </section>
+  </div>
+</main>`
+
+// siteRefundBody is the public refund-policy page (/refund-policy). It explains
+// trials, monthly billing, cancellation and how a billing error is refunded —
+// the top question a paying merchant asks.
+const siteRefundBody = `<main>
+  <div class="container">
+    <div class="page-head">
+      <span class="section-label">{{.T.refundTitle}}</span>
+      <h1 class="page-title">{{.T.refundTitle}}</h1>
+      <p class="section-sub">{{.T.refundUpdated}}</p>
+    </div>
+    <section class="section prose">
+      <p>{{.T.refundIntro}}</p>
+      <h2>{{.T.rf1t}}</h2><p>{{.T.rf1b}}</p>
+      <h2>{{.T.rf2t}}</h2><p>{{.T.rf2b}}</p>
+      <h2>{{.T.rf3t}}</h2><p>{{.T.rf3b}}</p>
+      <h2>{{.T.rf4t}}</h2><p>{{.T.rf4b}}</p>
+      <h2>{{.T.rf5t}}</h2><p>{{.T.rf5b}}</p>
+      <h2>{{.T.rf6t}}</h2><p>{{.T.rf6b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
+      <h2>{{.T.rf7t}}</h2><p>{{.T.rf7b}}</p>
+      <h2>{{.T.rf8t}}</h2><p>{{.T.rf8b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
+      <p class="section-note"><a href="/terms">{{.T.refundTermsLink}}</a></p>
+      <p class="section-note"><a href="/">{{.T.refundBack}}</a></p>
+    </section>
+  </div>
+</main>`
+
+// siteHelpBody is the public help center (/help). It points at the FAQ already
+// on the landing page, the support mailbox and the deletion page, so a customer
+// always has a next step.
+const siteHelpBody = `<main>
+  <div class="container">
+    <div class="page-head">
+      <span class="section-label">{{.T.helpTitle}}</span>
+      <h1 class="page-title">{{.T.helpTitle}}</h1>
+      <p class="section-sub">{{.T.helpIntro}}</p>
+    </div>
+    <section class="section prose">
+      <h2>{{.T.hp1t}}</h2><p>{{.T.hp1b}}</p>
+      <p class="section-note"><a href="/#faq">{{.T.hp1cta}}</a></p>
+      <h2>{{.T.hp2t}}</h2><p>{{.T.hp2b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
+      <h2>{{.T.hp3t}}</h2><p>{{.T.hp3b}}</p>
+      <p class="section-note"><a href="/delete-account">{{.T.hp3cta}}</a></p>
+      <h2>{{.T.hp4t}}</h2><p>{{.T.hp4b}}</p>
+      <p class="section-note"><a href="/private">{{.T.hp4cta}}</a></p>
+      <p class="section-note"><a href="/">{{.T.helpBack}}</a></p>
     </section>
   </div>
 </main>`
@@ -503,13 +581,14 @@ const siteFoot = `<footer class="site-footer">
       {{if eq .Page "company"}}
       <a href="{{.POSURL}}">{{.T.companyNavProduct}}</a>
       <a href="{{.SaaSURL}}/admin/">{{.T.companyNavConsole}}</a>
-      <a href="/private">{{.T.navPrivacy}}</a>
       {{else}}
       <a href="/pricing">{{.T.navPricing}}</a>
-      <a href="/private">{{.T.navPrivacy}}</a>
+      <a href="/help">{{.T.helpTitle}}</a>
       <a href="{{.SaaSURL}}/admin/">{{.T.navAdmin}}</a>
       {{end}}
-      <a href="mailto:{{.T.contact}}">{{.T.contact}}</a>
+      <a href="/terms">{{.T.termsTitle}}</a>
+      <a href="/refund-policy">{{.T.refundTitle}}</a>
+      <a href="/private">{{.T.navPrivacy}}</a>
     </div>
     <div class="footer-links">
       <a href="https://play.google.com/store/apps/details?id=com.xamltech.pos_go" target="_blank" rel="noopener">{{.T.storePlay}}</a>
@@ -536,6 +615,9 @@ func parseSiteTemplates() *template.Template {
 		"pricing": siteHead + sitePricingBody + siteFoot,
 		"privacy": siteHead + sitePrivacyBody + siteFoot,
 		"delete":  siteHead + siteDeleteBody + siteFoot,
+		"terms":   siteHead + siteTermsBody + siteFoot,
+		"refund":  siteHead + siteRefundBody + siteFoot,
+		"help":    siteHead + siteHelpBody + siteFoot,
 		"company": siteHead + siteCompanyBody + siteFoot,
 	} {
 		template.Must(t.New(name).Parse(src))

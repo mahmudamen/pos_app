@@ -217,6 +217,7 @@ func requiredSecurity(path string) []map[string][]string {
 	// needs a Bearer token.
 	switch path {
 	case "/", "/pricing", "/private", "/delete-account",
+		"/terms", "/refund-policy", "/help",
 		"/forgot-password", "/reset-password",
 		"/google79d5199d984f63af.html", "/.well-known/assetlinks.json",
 		"/icon.png", "/icon-192.png", "/icon-32.png",

@@ -228,6 +228,26 @@
         }
       }
     },
+    "/help": {
+      "get": {
+        "tags": [
+          "help"
+        ],
+        "operationId": "GetHelp",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/icon-192.png": {
       "get": {
         "tags": [
@@ -348,6 +368,26 @@
         }
       }
     },
+    "/refund-policy": {
+      "get": {
+        "tags": [
+          "refund-policy"
+        ],
+        "operationId": "GetRefund-policy",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
     "/reset-password": {
       "get": {
         "tags": [
@@ -414,6 +454,26 @@
           "sw.js"
         ],
         "operationId": "GetSw.js",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "data/error envelope; see docs/07_API_CONTRACT.md"
+          }
+        }
+      }
+    },
+    "/terms": {
+      "get": {
+        "tags": [
+          "terms"
+        ],
+        "operationId": "GetTerms",
         "responses": {
           "default": {
             "content": {

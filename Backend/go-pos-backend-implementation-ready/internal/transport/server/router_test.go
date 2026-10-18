@@ -208,6 +208,59 @@ func TestDeleteAccountServesPublicDeletionPage(t *testing.T) {
 	}
 }
 
+// The legal and help pages are public, auth-free and rendered from the same
+// string maps as the landing. Terms and refunds are the two questions a paying
+// merchant asks, so they are asserted here alongside the help center.
+func TestTermsRefundAndHelpServePublicPages(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	cases := map[string][]string{
+		"/terms":         {"Terms of Use", "support@xamltech.com", "15-day free trial", `href="/refund-policy"`},
+		"/refund-policy": {"Refund Policy", "support@xamltech.com", `href="/terms"`},
+		"/help":          {"Help center", "support@xamltech.com", `href="/#faq"`},
+	}
+	for path, wants := range cases {
+		rec := httptest.NewRecorder()
+		engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: expected 200, got %d", path, rec.Code)
+		}
+		if ct := rec.Header().Get("Content-Type"); ct != "text/html; charset=utf-8" {
+			t.Errorf("%s: Content-Type = %q, want text/html", path, ct)
+		}
+		body := rec.Body.String()
+		for _, want := range wants {
+			if !strings.Contains(body, want) {
+				t.Errorf("%s body missing %q", path, want)
+			}
+		}
+	}
+}
+
+// A key present in one language but missing in the other renders the literal
+// "<no value>" to that reader — the same trap the recovery-page test guards,
+// applied to every public site page.
+func TestSitePageStringsCoverBothLanguages(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	for _, path := range []string{"/", "/pricing", "/private", "/delete-account", "/terms", "/refund-policy", "/help"} {
+		for _, lang := range []string{"ar", "en"} {
+			rec := httptest.NewRecorder()
+			engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path+"?lang="+lang, nil))
+			if rec.Code != http.StatusOK {
+				t.Fatalf("%s lang=%s: got %d, want 200", path, lang, rec.Code)
+			}
+			if strings.Contains(rec.Body.String(), "<no value>") {
+				t.Errorf("%s lang=%s rendered a missing string key", path, lang)
+			}
+		}
+	}
+}
+
 func TestPricingServesFallbackPlansWithoutDatabase(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
@@ -458,7 +511,7 @@ func TestSitePagesServeArabicRTL(t *testing.T) {
 	engine := gin.New()
 	server.Register(engine, server.Deps{Config: config.Config{}})
 
-	for _, path := range []string{"/", "/pricing", "/private", "/delete-account"} {
+	for _, path := range []string{"/", "/pricing", "/private", "/delete-account", "/terms", "/refund-policy", "/help"} {
 		req := httptest.NewRequest(http.MethodGet, path+"?lang=ar", nil)
 		rec := httptest.NewRecorder()
 		engine.ServeHTTP(rec, req)
@@ -518,8 +571,8 @@ func TestIndexServesStatsStepsAndFAQ(t *testing.T) {
 	if strings.Contains(body, "AI-assisted support built in") {
 		t.Error("index still promises the unreleased AI support assistant")
 	}
-	if !strings.Contains(body, "AI invoice capture, built in") {
-		t.Error("index Copilot card should describe the shipped invoice capture")
+	if !strings.Contains(body, "AI invoice capture") || !strings.Contains(body, "Built in and available now") {
+		t.Error("index invoice-capture card should describe the shipped capability and mark it available")
 	}
 }
 
@@ -633,6 +686,9 @@ func TestSurfaceKeepsPricingAndPrivacyOnTheProductAndCompanyDomains(t *testing.T
 			"/pricing":        {"Simple pricing", "Starter", "/private"},
 			"/private":        {"Privacy Policy", "support@xamltech.com"},
 			"/delete-account": {"Delete your POS.Go data", "support@xamltech.com"},
+			"/terms":          {"Terms of Use", "/refund-policy"},
+			"/refund-policy":  {"Refund Policy", "/terms"},
+			"/help":           {"Help center", "support@xamltech.com"},
 		} {
 			rec := hostGet(t, engine, host, path)
 			if rec.Code != http.StatusOK {

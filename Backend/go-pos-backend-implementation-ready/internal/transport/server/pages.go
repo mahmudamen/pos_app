@@ -235,6 +235,18 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 	engine.GET("/delete-account", func(c *gin.Context) {
 		renderSite(c, "delete", nil, origins)
 	})
+	// Public legal + help pages: the commercial terms a merchant subscribes
+	// under, how refunds work, and a help center that routes to the FAQ,
+	// support and the deletion page. Auth-free and DB-free like the others.
+	engine.GET("/terms", func(c *gin.Context) {
+		renderSite(c, "terms", nil, origins)
+	})
+	engine.GET("/refund-policy", func(c *gin.Context) {
+		renderSite(c, "refund", nil, origins)
+	})
+	engine.GET("/help", func(c *gin.Context) {
+		renderSite(c, "help", nil, origins)
+	})
 	// Search Console ownership verification. Served verbatim from the embedded
 	// file (Google compares the body byte for byte) on every public surface, and
 	// deliberately cacheable for a day so a re-crawl is cheap but an edit still
