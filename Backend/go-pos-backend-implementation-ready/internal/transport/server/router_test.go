@@ -635,7 +635,7 @@ func TestPricingServesCompareTableAndFAQ(t *testing.T) {
 			t.Errorf("pricing body still carries retracted copy %q", banned)
 		}
 	}
-	if !strings.Contains(body, "higher tiers unlock more modules and raise the limits") {
+	if !strings.Contains(body, "you upgrade for add-ons and higher limits") {
 		t.Error("pricing compare lead should describe the tiered catalog")
 	}
 	// The internal trial entitlement is granted at signup, not sold, and must
