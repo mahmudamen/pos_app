@@ -27,6 +27,8 @@ import type {
   Purchase,
   PurchaseInput,
   RecentInvoice,
+  RegisterInput,
+  RegisterResponse,
   SaleSummary,
   StaffProfile,
   StoreSubscription,
@@ -245,6 +247,25 @@ export class ApiClient {
       email,
       password,
     })
+    this.setToken(data.access_token)
+    return data
+  }
+
+  /**
+   * Merchant self-signup (POST /v1/auth/register). Provisions a trial tenant
+   * with the caller as owner and returns an immediate session, so the token is
+   * stored here exactly like login does.
+   */
+  async register(input: RegisterInput): Promise<RegisterResponse> {
+    const body: Record<string, unknown> = {
+      ...input,
+      device_id: deviceId(),
+      device_name: 'web-admin',
+    }
+    if (!body.phone) {
+      delete body.phone
+    }
+    const data = await this.request<RegisterResponse>('POST', '/auth/register', body)
     this.setToken(data.access_token)
     return data
   }

@@ -76,7 +76,7 @@ const sitePlansGrid = `{{range .Plans}}
   <p class="desc">{{.Description}}</p>
   <div class="price"><span class="amount">{{.Price}}</span><span class="per">{{.Currency}} &nbsp;/ {{.Period}}</span></div>
   <ul>{{range .Features}}<li>{{.}}</li>{{end}}</ul>
-  <div class="fill"><a class="btn {{if .Featured}}btn-primary{{else}}btn-ghost{{end}} btn-block" href="{{$.SaaSURL}}/admin/">{{$.T.ctaPlan}}</a></div>
+  <div class="fill"><a class="btn {{if .Featured}}btn-primary{{else}}btn-ghost{{end}} btn-block" href="{{$.SaaSURL}}/admin/register">{{$.T.ctaPlan}}</a></div>
 </div>
 {{end}}`
 

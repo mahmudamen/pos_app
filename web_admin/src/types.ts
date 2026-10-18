@@ -177,6 +177,23 @@ export interface LoginResponse {
   user: Record<string, unknown>
 }
 
+export interface RegisterInput {
+  store_name: string
+  business_type: string
+  email: string
+  password: string
+  display_name: string
+  phone?: string
+}
+
+export interface RegisterResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  user: Record<string, unknown>
+  tenant: Record<string, unknown>
+}
+
 export type UserRole =
   | 'owner'
   | 'manager'

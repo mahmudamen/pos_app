@@ -24,6 +24,12 @@ var sharedRoutes = []string{
 	// and consume a reset link.
 	"/v1/auth/forgot-password",
 	"/v1/auth/reset-password",
+	// Merchant self-signup mints the first session of a tenant exactly like
+	// login does. It has to answer on both API domains: the Android app's
+	// default API base is the console host and it provisions tenants through
+	// this endpoint, so pinning it to the store surface would 404 onboarding
+	// as soon as routing is enforced.
+	"/v1/auth/register",
 }
 
 // googleVerifyPath is the Search Console HTML-file verification token, published

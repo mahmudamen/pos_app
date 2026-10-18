@@ -1,10 +1,11 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { isSaasAdmin } from './auth/roles'
 import { Layout } from './components/Layout'
 import { DashboardPage } from './pages/DashboardPage'
 import { InvoicesPage } from './pages/InvoicesPage'
 import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 import { SupportInboxPage } from './pages/SupportInboxPage'
 import { PlansPage } from './pages/PlansPage'
 import { SubscriptionsPage } from './pages/SubscriptionsPage'
@@ -26,7 +27,12 @@ import { CommunityNationalPage } from './pages/community/CommunityNationalPage'
 
 function Guard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
-  return isAuthenticated ? <>{children}</> : <LoginPage />
+  const location = useLocation()
+  if (isAuthenticated) return <>{children}</>
+  // /admin/register is the merchant self-signup entry (unauthenticated),
+  // everything else falls back to sign-in.
+  const path = location.pathname.replace(/\/+$/, '')
+  return path.endsWith('/register') ? <RegisterPage /> : <LoginPage />
 }
 
 function AppRoutes() {

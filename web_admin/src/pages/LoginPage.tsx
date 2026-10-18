@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../lib/api'
 import { ErrorBanner } from '../components/ui'
@@ -77,6 +78,10 @@ export function LoginPage() {
         <p className="login-foot">
           Store staff and community members sign in here. POS.Go routes you to
           your store console or the community automatically.
+        </p>
+        <p className="login-foot">
+          New here? <Link to="/register">Create your store</Link> — 15-day free
+          trial.
         </p>
       </form>
     </div>

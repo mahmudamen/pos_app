@@ -720,7 +720,7 @@ func TestSurfaceKeepsPricingAndPrivacyOnTheProductAndCompanyDomains(t *testing.T
 	for _, host := range []string{config.DefaultCompanyDomain, config.DefaultPOSDomain} {
 		for path, want := range map[string][]string{
 			"/pricing":        {"Simple pricing", "Starter", "/privacy-policy"},
-			"/privacy-policy":        {"Privacy Policy", "support@xamltech.com"},
+			"/privacy-policy": {"Privacy Policy", "support@xamltech.com"},
 			"/delete-account": {"Delete your POS.Go data", "support@xamltech.com"},
 			"/terms":          {"Terms of Use", "/refund-policy"},
 			"/refund-policy":  {"Refund Policy", "/terms"},

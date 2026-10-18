@@ -1,18 +1,22 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { api } from '../lib/api'
-import type { AuthUser, LoginResponse } from '../types'
+import type { AuthUser, RegisterInput, RegisterResponse } from '../types'
 
 interface AuthContextValue {
   isAuthenticated: boolean
   role: string | null
   user: AuthUser | null
   signIn: (tenantId: string, email: string, password: string) => Promise<void>
+  register: (input: RegisterInput) => Promise<void>
   signOut: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function userFromLogin(data: LoginResponse, tenantId: string): AuthUser | null {
+function userFromLogin(
+  data: { user: Record<string, unknown> },
+  tenantId: string,
+): AuthUser | null {
   const u = data.user
   if (!u || typeof u !== 'object') {
     return null
@@ -52,6 +56,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   )
 
+  const register = useCallback(async (input: RegisterInput) => {
+    const data: RegisterResponse = await api.register(input)
+    const tenantId =
+      data.tenant && typeof data.tenant.id === 'string' ? data.tenant.id : ''
+    const parsed = userFromLogin(data, tenantId)
+    if (parsed) {
+      api.setUser(parsed)
+      setUser(parsed)
+    }
+    setIsAuthenticated(true)
+  }, [])
+
   const signOut = useCallback(() => {
     api.setToken(null)
     api.clearUser()
@@ -65,9 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: user?.role ?? null,
       user,
       signIn,
+      register,
       signOut,
     }),
-    [isAuthenticated, user, signIn, signOut],
+    [isAuthenticated, user, signIn, register, signOut],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
