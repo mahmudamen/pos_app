@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!-- ============ ADDON FORM VIEW ============ -->
+    <record id="xamltech_addon_form_view" model="ir.ui.view">
+        <field name="name">xamltech.addon.form</field>
+        <field name="model">xamltech.addon</field>
+        <field name="arch" type="xml">
+            <form string="Addon">
+                <header>
+                    <button name="action_publish" string="Publish" type="object"
+                            class="btn-primary"
+                            invisible="state == 'published'"/>
+                    <button name="action_archive" string="Archive" type="object"
+                            class="btn-secondary"
+                            invisible="state == 'archived'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,published"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-download"
+                                disabled="1">
+                            <field name="downloads_count" string="Downloads"
+                                   widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-star"
+                                disabled="1">
+                            <field name="reviews_count" string="Reviews"
+                                   widget="statinfo"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Featured"
+                            invisible="not is_featured"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Addon Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="slug"/>
+                            <field name="category_id"/>
+                            <field name="version"/>
+                            <field name="price"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="icon_emoji"/>
+                            <field name="accent_color" widget="color"/>
+                            <field name="badge"/>
+                            <field name="rating"/>
+                            <field name="is_featured"/>
+                            <field name="sequence"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"
+                                   placeholder="Short description..."/>
+                            <separator string="Full Description"/>
+                            <field name="full_description"/>
+                        </page>
+                        <page string="Tags &amp; Versions">
+                            <group>
+                                <field name="tag_ids" widget="many2many_tags"
+                                       options="{'color_field': 'color'}"/>
+                                <field name="compatible_versions"
+                                       placeholder='["18","19"]'/>
+                                <field name="compatible_versions_display"
+                                       string="Versions Preview"/>
+                            </group>
+                        </page>
+                        <page string="Links">
+                            <group>
+                                <field name="odoo_store_url" widget="url"/>
+                                <field name="github_url" widget="url"/>
+                                <field name="documentation_url" widget="url"/>
+                            </group>
+                        </page>
+                        <page string="Screenshots">
+                            <field name="image_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="image" widget="image"
+                                           options='{"size": [120, 80]}'/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="xamltech_addon_list_view" model="ir.ui.view">
+        <field name="name">xamltech.addon.list</field>
+        <field name="model">xamltech.addon</field>
+        <field name="arch" type="xml">
+            <list string="Addons" default_order="sequence">
+                <field name="sequence" widget="handle"/>
+                <field name="icon_emoji" string=""/>
+                <field name="name"/>
+                <field name="slug"/>
+                <field name="category_id"/>
+                <field name="version"/>
+                <field name="price"/>
+                <field name="rating"/>
+                <field name="downloads_count"/>
+                <field name="badge" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'published'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'archived'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="xamltech_addon_kanban_view" model="ir.ui.view">
+        <field name="name">xamltech.addon.kanban</field>
+        <field name="model">xamltech.addon</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_group_by="category_id">
+                <field name="name"/>
+                <field name="icon_emoji"/>
+                <field name="price"/>
+                <field name="rating"/>
+                <field name="downloads_count"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span t-esc="record.icon_emoji.value"
+                                  style="font-size: 24px;"/>
+                            <strong t-esc="record.name.value"/>
+                        </div>
+                        <div class="text-muted small">
+                            ⭐ <t t-esc="record.rating.value"/> |
+                            ⬇ <t t-esc="record.downloads_count.value"/> |
+                            €<t t-esc="record.price.value"/>
+                        </div>
+                        <field name="state" widget="label_selection"
+                               options="{'classes': {
+                                   'draft': 'info',
+                                   'published': 'success',
+                                   'archived': 'default'
+                               }}"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="xamltech_addon_search_view" model="ir.ui.view">
+        <field name="name">xamltech.addon.search</field>
+        <field name="model">xamltech.addon</field>
+        <field name="arch" type="xml">
+            <search string="Search Addons">
+                <field name="name"/>
+                <field name="slug"/>
+                <field name="category_id"/>
+                <field name="tag_ids"/>
+                <filter name="published" string="Published"
+                        domain="[('state', '=', 'published')]"/>
+                <filter name="featured" string="Featured"
+                        domain="[('is_featured', '=', True)]"/>
+                <separator/>
+                <filter name="group_category" string="Category"
+                        context="{'group_by': 'category_id'}"/>
+                <filter name="group_badge" string="Badge"
+                        context="{'group_by': 'badge'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="xamltech_addon_action" model="ir.actions.act_window">
+        <field name="name">Addons</field>
+        <field name="res_model">xamltech.addon</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="xamltech_addon_search_view"/>
+        <field name="context">{'search_default_published': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Addon listing
+            </p>
+        </field>
+    </record>
+
+    <record id="xamltech_addon_category_action" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">xamltech.addon.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_xamltech_store_root"
+              name="Addons Store"
+              web_icon="xamltech_addons_store,static/description/icon.png"
+              sequence="80"/>
+    <menuitem id="menu_xamltech_addons"
+              name="Addons"
+              parent="menu_xamltech_store_root"
+              action="xamltech_addon_action"
+              sequence="1"/>
+    <menuitem id="menu_xamltech_categories"
+              name="Categories"
+              parent="menu_xamltech_store_root"
+              action="xamltech_addon_category_action"
+              sequence="2"/>
+</odoo>

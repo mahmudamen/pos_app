@@ -1,0 +1,186 @@
+{
+  "en": {
+    "meta": {
+      "title": "AI Marketing Copilot: Stop Wasting Marketing Budget | XamlTech",
+      "description": "How AI Marketing Copilot delivers 35% ROI improvements, 18% cost reduction and automated budget allocation — the pipeline, the case study and the rollout.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📊 AI Marketing Intelligence",
+        "title": "AI Marketing Copilot:",
+        "accent": "Stop Wasting Marketing Budget",
+        "lead": "Real marketing teams using AI Marketing Copilot increased ROI by 35%, reduced costs by 18% and automated half their marketing decisions. Here's exactly how.",
+        "ctas": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary", "big": true },
+          { "label": "See AI solutions", "href": "/ai-solutions?lang=en", "style": "ghost" }
+        ],
+        "stats": [
+          { "v": "+35%", "l": "ROI improvement" },
+          { "v": "−18%", "l": "Cost reduction" },
+          { "v": "50%", "l": "Decisions automated" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "What you'll learn",
+        "title": "Inside this guide",
+        "items": [
+          { "icon": "📈", "title": "The ROI math", "text": "Why marketing teams are seeing 35% ROI improvements — and where the waste was hiding." },
+          { "icon": "🤖", "title": "How AI works", "text": "The machine-learning pipeline behind smart budgeting, from ingestion to recommendations." },
+          { "icon": "💡", "title": "Real case studies", "text": "How agencies and brands deployed this system and what changed in three months." }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "eyebrow": "The problem",
+        "title": "Marketing decisions are guesses",
+        "lead": "Most marketing teams allocate budgets based on last year's numbers, gut feeling, or what worked for competitors. They run campaigns in silos with no channel attribution.",
+        "points": ["40–50% of marketing budget is wasted on underperforming channels", "Budget is set once and rarely rebalanced", "Channel crossover effects stay invisible"],
+        "media": { "src": "/static/img/ai-copilot.png", "alt": "AI Marketing Copilot dashboard" }
+      }},
+      { "partial": "split", "data": {
+        "reverse": true,
+        "eyebrow": "The solution",
+        "title": "AI-powered budget allocation",
+        "lead": "AI Marketing Copilot replaces guesswork with data-driven decisions. The system continuously analyzes campaign performance, customer behaviour, market trends, historical data and cross-channel effects.",
+        "points": ["Campaign performance — CTR, conversion rate, CPL, CAC in real time", "Customer behaviour — purchase patterns, LTV, repeat-purchase probability", "Market trends — seasonality, competitor activity, channel saturation", "Historical data — budget-to-revenue correlation and channel elasticity", "Cross-channel effects — how spending on email affects organic conversion"]
+      }},
+      { "partial": "steps", "data": {
+        "alt": true,
+        "eyebrow": "How it works",
+        "title": "The AI pipeline",
+        "sub": "Five stages from raw data to an explainable recommendation.",
+        "items": [
+          { "title": "1. Data Ingestion", "text": "Connects directly to your Odoo database and marketing platforms (Google Ads, Meta, email providers) via API." },
+          { "title": "2. Feature Engineering", "text": "Computes CTR, CAC, LTV, ROAS and budget elasticity for every channel and segment." },
+          { "title": "3. Predictive Modeling", "text": "Forecasts next month's conversion rate, segment LTV, optimal budget split and lead-conversion likelihood." },
+          { "title": "4. Recommendation Engine", "text": "Turns predictions into actionable steps — increase, pause, shift budget or target commissions." },
+          { "title": "5. Audit Trail & Learning", "text": "Logs why each recommendation was made, its confidence score and the actual outcome to improve over time." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Key features",
+        "title": "What you get",
+        "items": [
+          { "icon": "📈", "title": "Campaign Dashboard", "text": "Real-time ROAS, CAC, LTV, conversion rate and budget-vs-actual, with visual cross-campaign comparisons." },
+          { "icon": "🎯", "title": "Predictive Scoring", "text": "Every lead gets a conversion-probability score (0–100). Focus sales efforts on hot leads." },
+          { "icon": "💰", "title": "Budget Allocation Engine", "text": "AI recommends the exact budget split (e.g. 65% Google, 35% Meta) for maximum ROI." },
+          { "icon": "🏆", "title": "Incentive Rules", "text": "Automatically assign commissions to high-LTV customer segments and sales channels." },
+          { "icon": "📊", "title": "Drill-Down Reports", "text": "Compare performance by channel, customer segment, time period and geography." },
+          { "icon": "🔐", "title": "Full Audit Trail", "text": "Every recommendation is logged for compliance, accountability and continuous learning." }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "alt": true,
+        "eyebrow": "FAQ",
+        "title": "Getting started",
+        "items": [
+          { "q": "How do I install it?", "a": "Search \"AI Marketing Copilot\" on the Odoo Apps Store and install in two clicks. Demo data (30 sample campaigns, customers and financials) is included." },
+          { "q": "Does it need configuration?", "a": "No. Install, load the demo data and the system generates 5–10 actionable recommendations from your data immediately." },
+          { "q": "Can I connect my ad platforms?", "a": "Yes, optionally. Integrate Google Ads, Meta and email APIs for live data; until then the copilot works from your Odoo data." },
+          { "q": "Does it stay inside my Odoo?", "a": "Yes. All data stays within your Odoo instance — no cloud APIs and no third-party data storage." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to optimize your marketing budget?",
+        "text": "Install AI Marketing Copilot on the Odoo Apps Store — completely free, demo data included, no setup required.",
+        "actions": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary" },
+          { "label": "WhatsApp support", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "مساعد التسويق الذكي: أوقف إهدار ميزانية التسويق | زامل تك",
+      "description": "كيف يحقق مساعد التسويق الذكي تحسناً 35% في العائد و18% خفضاً في التكلفة وتوزيعاً آلياً للميزانية — خط الأنابيب ودراسة الحالة وخطوات الإطلاق.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📊 ذكاء تسويقي",
+        "title": "مساعد التسويق الذكي:",
+        "accent": "أوقف إهدار ميزانية التسويق",
+        "lead": "فِرق تسويق حقيقية تستخدم مساعد التسويق الذكي رفعت العائد 35% وخفضت التكاليف 18% وأتمتت نصف قراراتها التسويقية. إليك كيف بالتفصيل.",
+        "ctas": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary", "big": true },
+          { "label": "حلول الذكاء", "href": "/ai-solutions", "style": "ghost" }
+        ],
+        "stats": [
+          { "v": "+35%", "l": "تحسّن العائد" },
+          { "v": "−18%", "l": "خفض التكلفة" },
+          { "v": "50%", "l": "قرارات آلية" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "ما ستتعلمه",
+        "title": "داخل هذا الدليل",
+        "items": [
+          { "icon": "📈", "title": "حسابات العائد", "text": "لماذا يحقق الفريق تحسناً 35% في العائد — وأين كان الهدر مخفياً." },
+          { "icon": "🤖", "title": "كيف يعمل الذكاء", "text": "خط الأنابيب خلف التوزيع الذكي، من الإدخال حتى التوصيات." },
+          { "icon": "💡", "title": "دراسات حالة حقيقية", "text": "كيف نشرت الوكالات والعلامات هذا النظام وما تغيّر خلال ثلاثة أشهر." }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "eyebrow": "المشكلة",
+        "title": "قرارات التسويق تخمينات",
+        "lead": "معظم الفرق توزّع الميزانية بناءً على أرقام العام الماضي أو الحدس أو ما نجح للمنافسين. وتدير الحملات منفصلة بلا إسناد للقنوات.",
+        "points": ["40–50% من ميزانية التسويق تُهدر على قنوات ضعيفة الأداء", "الميزانية تُحدد مرة ونادراً ما يُعاد توزيعها", "تأثيرات القنوات المتراكمة تبقى غير مرئية"],
+        "media": { "src": "/static/img/ai-copilot.png", "alt": "لوحة مساعد التسويق الذكي" }
+      }},
+      { "partial": "split", "data": {
+        "reverse": true,
+        "eyebrow": "الحل",
+        "title": "توزيع ميزانية مدعوم بالذكاء",
+        "lead": "مساعد التسويق الذكي يستبدل التخمين بقرارات قائمة على البيانات. يحلل النظام باستمرار أداء الحملات وسلوك العملاء واتجاهات السوق والبيانات التاريخية وتأثيرات القنوات المتراكمة.",
+        "points": ["أداء الحملات — CTR ومعدل التحويل وتكلفة العميل المحتمل وCAC فورياً", "سلوك العملاء — أنماط الشراء والقيمة العمرية واحتمال الشراء المتكرر", "اتجاهات السوق — الموسمية ونشاط المنافسين وتشبع القنوات", "البيانات التاريخية — ارتباط الميزانية بالإيراد ومرونة القنوات", "تأثيرات القنوات — كيف يؤثر الإنفاق على البريد في التحويل العضوي"]
+      }},
+      { "partial": "steps", "data": {
+        "alt": true,
+        "eyebrow": "كيف يعمل",
+        "title": "خط أنابيب الذكاء",
+        "sub": "خمس مراحل من البيانات الخام إلى توصية قابلة للشرح.",
+        "items": [
+          { "title": "1. إدخال البيانات", "text": "يتصل مباشرة بقاعدة بيانات Odoo ومنصات التسويق (Google Ads وMeta ومزودي البريد) عبر API." },
+          { "title": "2. هندسة الخصائص", "text": "يحسب CTR وCAC وLTV وROAS ومرونة الميزانية لكل قناة وشريحة." },
+          { "title": "3. النمذجة التنبؤية", "text": "يتوقع معدل التحويل الشهر القادم والقيمة العمرية للشريحة والتوزيع الأمثل واحتمال تحويل العميل المحتمل." },
+          { "title": "4. محرك التوصيات", "text": "يحوّل التوقعات إلى خطوات قابلة للتنفيذ — زيادة أو إيقاف أو نقل ميزانية أو استهداف عمولات." },
+          { "title": "5. سجل التدقيق والتعلم", "text": "يسجل سبب كل توصية ودرجة ثقتها والنتيجة الفعلية لتحسينها لاحقاً." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "المزايا الرئيسية",
+        "title": "ما تحصل عليه",
+        "items": [
+          { "icon": "📈", "title": "لوحة الحملات", "text": "ROAS وCAC وLTV ومعدل التحويل والميزانية مقابل الفعلي فورياً، مع مقارنات مرئية بين الحملات." },
+          { "icon": "🎯", "title": "تقييم تنبؤي", "text": "كل عميل محتمل يحصل على درجة احتمال تحويل (0–100). ركّز جهود البيع على العملاء الساخنين." },
+          { "icon": "💰", "title": "محرك توزيع الميزانية", "text": "يوصي الذكاء بالتوزيع الدقيق (مثلاً 65% Google و35% Meta) لأقصى عائد." },
+          { "icon": "🏆", "title": "قواعد الحوافز", "text": "يعيّن العمولات آلياً لشرائح العملاء والقنوات ذات القيمة العمرية الأعلى." },
+          { "icon": "📊", "title": "تقارير تفصيلية", "text": "قارن الأداء حسب القناة والشريحة والفترة الجغرافية." },
+          { "icon": "🔐", "title": "سجل تدقيق كامل", "text": "كل توصية مسجلة للامتثال والمساءلة والتعلم المستمر." }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "alt": true,
+        "eyebrow": "الأسئلة الشائعة",
+        "title": "البدء",
+        "items": [
+          { "q": "كيف أثبّته؟", "a": "ابحث عن «AI Marketing Copilot» في متجر Odoo وثبّته بنقرتين. وتتضمن البيانات التجريبية 30 حملة وعميلاً وبيانات مالية." },
+          { "q": "هل يحتاج إعداداً؟", "a": "لا. ثبّت وحمّل البيانات التجريبية، فيولّد النظام 5–10 توصيات قابلة للتنفيذ من بياناتك فوراً." },
+          { "q": "هل أربط منصات إعلاناتي؟", "a": "نعم، اختيارياً. اربط Google Ads وMeta وواجهات البريد لبيانات حية؛ وحتى ذلك يعمل المساعد من بيانات Odoo." },
+          { "q": "هل تبقى البيانات داخل Odoo؟", "a": "نعم. تبقى كل البيانات داخل نسخة Odoo لديك — بلا واجهات سحابية أو تخزين لدى طرف ثالث." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "جاهز لتحسين ميزانية تسويقك؟",
+        "text": "ثبّت مساعد التسويق الذكي من متجر Odoo — مجاناً تماماً، ببيانات تجريبية، وبلا إعداد.",
+        "actions": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary" },
+          { "label": "دعم واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

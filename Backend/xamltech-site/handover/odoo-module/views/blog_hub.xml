@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="blog_hub_page" name="XamlTech AI Blog — Articles &amp; Guides">
+        <t t-call="website.layout">
+            <t t-set="title">AI Copilots for Odoo: Blog, Guides &amp; Case Studies | XamlTech</t>
+            <t t-set="meta_description">In-depth guides on AI Marketing Copilot, AI POS Copilot, and machine learning for Odoo 19. Technical articles and case studies by XamlTech.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "XamlTech AI Blog",
+  "description": "In-depth guides and case studies on AI Marketing Copilot, AI POS Copilot, and machine learning for Odoo 19.",
+  "url": "https://xamltech.com/insights",
+  "mainEntity": {
+    "@type": "Blog",
+    "name": "XamlTech AI Technology Blog",
+    "description": "Technical guides, case studies, and best practices for AI-powered Odoo modules",
+    "publisher": {
+      "@type": "Organization",
+      "name": "XamlTech",
+      "url": "https://xamltech.com"
+    }
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+      {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://xamltech.com/insights"}
+    ]
+  }
+}
+            </script>
+
+            <main>
+                <!-- ═══════════ HERO — Cinematic with Particles ═══════════ -->
+                <section class="xt-blog-hero xt-blog-mesh">
+                    <canvas class="xt-particles-canvas"/>
+                    <div class="xt-blog-hero__orb xt-blog-hero__orb--1"/>
+                    <div class="xt-blog-hero__orb xt-blog-hero__orb--2"/>
+                    <div class="xt-blog-hero__orb xt-blog-hero__orb--3"/>
+
+                    <div class="xt-c" style="position:relative;z-index:2;">
+                        <div class="xt-reveal">
+                            <span class="xt-blog-hero__badge">AI &amp; Odoo Insights</span>
+                        </div>
+                        <h1 class="xt-blog-hero__title xt-reveal xt-stagger-1">
+                            AI That <em>Transforms</em> How<br/>You Do Business
+                        </h1>
+                        <p class="xt-blog-hero__sub xt-reveal xt-stagger-2">
+                            Deep technical guides, real-world case studies, and implementation playbooks.
+                            Learn how machine learning is reshaping marketing and retail inside Odoo 19.
+                        </p>
+
+                        <div class="xt-blog-hero__stats xt-reveal xt-stagger-3">
+                            <div class="xt-blog-hero__stat">
+                                <span class="xt-blog-hero__stat-value" data-count-to="35" data-count-suffix="%">0%</span>
+                                <span class="xt-blog-hero__stat-label">ROI Boost</span>
+                            </div>
+                            <div class="xt-blog-hero__stat">
+                                <span class="xt-blog-hero__stat-value" data-count-to="24" data-count-suffix="%">0%</span>
+                                <span class="xt-blog-hero__stat-label">Basket Growth</span>
+                            </div>
+                            <div class="xt-blog-hero__stat">
+                                <span class="xt-blog-hero__stat-value" data-count-to="100" data-count-suffix="ms" data-count-prefix="&lt;">0ms</span>
+                                <span class="xt-blog-hero__stat-label">Response Time</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════ FEATURED ARTICLES — Asymmetric Editorial ═══════════ -->
+                <section class="xt-sec">
+                    <div class="xt-c">
+                        <h2 class="xt-h2 xt-reveal" style="margin-bottom:clamp(32px,5vw,48px);">Featured Guides</h2>
+
+                        <div class="xt-blog-featured">
+                            <a href="/insights/ai-marketing-copilot" class="xt-blog-featured__card xt-blog-featured__card--marketing xt-reveal xt-stagger-1">
+                                <span class="xt-blog-featured__tag xt-blog-featured__tag--purple">Marketing Intelligence</span>
+                                <h3 class="xt-blog-featured__title">AI Marketing Copilot: Stop Wasting Budget, Start Predicting ROI</h3>
+                                <p class="xt-blog-featured__excerpt">
+                                    How machine learning optimizes campaign budgets, forecasts ROI, and increases marketing efficiency by 35%.
+                                    Real case studies from agencies managing 50+ accounts.
+                                </p>
+                                <div class="xt-blog-featured__meta">
+                                    <span>8 min read</span>
+                                    <span class="xt-blog-featured__arrow">Read Guide &#8594;</span>
+                                </div>
+                            </a>
+
+                            <a href="/insights/ai-pos-copilot" class="xt-blog-featured__card xt-blog-featured__card--pos xt-reveal xt-stagger-2">
+                                <span class="xt-blog-featured__tag xt-blog-featured__tag--orange">Point of Sale</span>
+                                <h3 class="xt-blog-featured__title">AI POS Copilot: Sell More at Every Transaction</h3>
+                                <p class="xt-blog-featured__excerpt">
+                                    Real-time upsell suggestions that increase average basket size by 24%.
+                                    Works in Arabic and English, responds in under 100ms.
+                                </p>
+                                <div class="xt-blog-featured__meta">
+                                    <span>7 min read</span>
+                                    <span class="xt-blog-featured__arrow">Read Guide &#8594;</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="xt-blog-divider"/>
+
+                <!-- ═══════════ ALL ARTICLES — Grid ═══════════ -->
+                <section class="xt-sec">
+                    <div class="xt-c">
+                        <h2 class="xt-h2 xt-reveal" style="margin-bottom:clamp(32px,5vw,48px);">All Articles</h2>
+
+                        <div class="xt-blog-grid">
+                            <!-- Card 1: Marketing Deep Dive -->
+                            <a href="/insights/ai-marketing-copilot" class="xt-blog-article-card xt-reveal xt-stagger-1" itemscope="" itemtype="https://schema.org/Article">
+                                <div class="xt-blog-article-card__cover-wrap">
+                                    <div class="xt-blog-article-card__cover" style="background:linear-gradient(135deg,#1a1040 0%,#2d1b69 100%);">
+                                        <span>&#x1F4CA;</span>
+                                    </div>
+                                </div>
+                                <div class="xt-blog-article-card__body">
+                                    <span class="xt-blog-article-card__category" style="background:rgba(139,92,246,0.15);color:#c4b5fd;">Marketing Intelligence</span>
+                                    <h3 class="xt-blog-article-card__title" itemprop="headline">AI Marketing Copilot: Stop Wasting Budget</h3>
+                                    <p class="xt-blog-article-card__excerpt" itemprop="description">
+                                        How machine learning optimizes campaign budgets, forecasts ROI, and increases marketing efficiency by 35%. Real case studies from agencies managing 50+ accounts.
+                                    </p>
+                                    <div class="xt-blog-article-card__footer">
+                                        <span class="xt-blog-article-card__time">8 min read</span>
+                                        <span class="xt-blog-article-card__read">Read &#8594;</span>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Card 2: POS Deep Dive -->
+                            <a href="/insights/ai-pos-copilot" class="xt-blog-article-card xt-reveal xt-stagger-2" itemscope="" itemtype="https://schema.org/Article">
+                                <div class="xt-blog-article-card__cover-wrap">
+                                    <div class="xt-blog-article-card__cover" style="background:linear-gradient(135deg,#1a2010 0%,#3d2506 100%);">
+                                        <span>&#x1F916;</span>
+                                    </div>
+                                </div>
+                                <div class="xt-blog-article-card__body">
+                                    <span class="xt-blog-article-card__category" style="background:rgba(249,115,22,0.15);color:#fed7aa;">Point of Sale</span>
+                                    <h3 class="xt-blog-article-card__title" itemprop="headline">AI POS Copilot: Boost Every Transaction</h3>
+                                    <p class="xt-blog-article-card__excerpt" itemprop="description">
+                                        Real-time upsell suggestions that increase average transaction value by 24%. Works with Arabic/English, analyzes cart contents and inventory in under 100ms.
+                                    </p>
+                                    <div class="xt-blog-article-card__footer">
+                                        <span class="xt-blog-article-card__time">7 min read</span>
+                                        <span class="xt-blog-article-card__read">Read &#8594;</span>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Card 3: Getting Started -->
+                            <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank" class="xt-blog-article-card xt-reveal xt-stagger-3" itemscope="" itemtype="https://schema.org/Article">
+                                <div class="xt-blog-article-card__cover-wrap">
+                                    <div class="xt-blog-article-card__cover" style="background:linear-gradient(135deg,#0a1830 0%,#0d2444 100%);">
+                                        <span>&#x1F680;</span>
+                                    </div>
+                                </div>
+                                <div class="xt-blog-article-card__body">
+                                    <span class="xt-blog-article-card__category" style="background:rgba(0,173,238,0.15);color:#7dd3fc;">Getting Started</span>
+                                    <h3 class="xt-blog-article-card__title" itemprop="headline">AI Copilots Installation Guide</h3>
+                                    <p class="xt-blog-article-card__excerpt" itemprop="description">
+                                        Step-by-step installation, demo data, first recommendations. Zero configuration required. From install to first AI suggestion in 5 minutes.
+                                    </p>
+                                    <div class="xt-blog-article-card__footer">
+                                        <span class="xt-blog-article-card__time">3 min read</span>
+                                        <span class="xt-blog-article-card__read">Install &#8594;</span>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Card 4: Vibe Coding with AI -->
+                            <a href="/ai-solutions" class="xt-blog-article-card xt-reveal xt-stagger-4" itemscope="" itemtype="https://schema.org/Article">
+                                <div class="xt-blog-article-card__cover-wrap">
+                                    <div class="xt-blog-article-card__cover" style="background:linear-gradient(135deg,#0d1a24 0%,#0a2a3a 100%);">
+                                        <span>&#x2728;</span>
+                                    </div>
+                                </div>
+                                <div class="xt-blog-article-card__body">
+                                    <span class="xt-blog-article-card__category" style="background:rgba(34,197,94,0.15);color:#86efac;">AI Solutions</span>
+                                    <h3 class="xt-blog-article-card__title" itemprop="headline">Vibe Coding: Building AI-Native Odoo Modules</h3>
+                                    <p class="xt-blog-article-card__excerpt" itemprop="description">
+                                        How XamlTech uses AI-assisted development to ship production Odoo modules faster. Claude Code, prompt engineering, and automated testing workflows.
+                                    </p>
+                                    <div class="xt-blog-article-card__footer">
+                                        <span class="xt-blog-article-card__time">5 min read</span>
+                                        <span class="xt-blog-article-card__read">Explore &#8594;</span>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Card 5: ERP Transformation -->
+                            <a href="/solutions/erp" class="xt-blog-article-card xt-reveal xt-stagger-5" itemscope="" itemtype="https://schema.org/Article">
+                                <div class="xt-blog-article-card__cover-wrap">
+                                    <div class="xt-blog-article-card__cover" style="background:linear-gradient(135deg,#1a0d24 0%,#2a1040 100%);">
+                                        <span>&#x1F3E2;</span>
+                                    </div>
+                                </div>
+                                <div class="xt-blog-article-card__body">
+                                    <span class="xt-blog-article-card__category" style="background:rgba(168,85,247,0.15);color:#d8b4fe;">ERP Strategy</span>
+                                    <h3 class="xt-blog-article-card__title" itemprop="headline">Government ERP: Odoo 19 for Public Sector</h3>
+                                    <p class="xt-blog-article-card__excerpt" itemprop="description">
+                                        How we deployed a full HR, payroll, and medical claims system for an Egyptian government authority. Civil Service Law 81/2016 compliance built-in.
+                                    </p>
+                                    <div class="xt-blog-article-card__footer">
+                                        <span class="xt-blog-article-card__time">10 min read</span>
+                                        <span class="xt-blog-article-card__read">Read &#8594;</span>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Card 6: Agriculture Tech -->
+                            <a href="/solutions/agri-tech" class="xt-blog-article-card xt-reveal xt-stagger-6" itemscope="" itemtype="https://schema.org/Article">
+                                <div class="xt-blog-article-card__cover-wrap">
+                                    <div class="xt-blog-article-card__cover" style="background:linear-gradient(135deg,#0d1a10 0%,#1a3020 100%);">
+                                        <span>&#x1F33E;</span>
+                                    </div>
+                                </div>
+                                <div class="xt-blog-article-card__body">
+                                    <span class="xt-blog-article-card__category" style="background:rgba(34,197,94,0.15);color:#86efac;">AgriTech</span>
+                                    <h3 class="xt-blog-article-card__title" itemprop="headline">Smart Agriculture: IoT Meets Odoo ERP</h3>
+                                    <p class="xt-blog-article-card__excerpt" itemprop="description">
+                                        Precision farming with sensor data, automated irrigation scheduling, and crop yield prediction. Full Odoo integration for agricultural cooperatives.
+                                    </p>
+                                    <div class="xt-blog-article-card__footer">
+                                        <span class="xt-blog-article-card__time">6 min read</span>
+                                        <span class="xt-blog-article-card__read">Read &#8594;</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="xt-blog-divider"/>
+
+                <!-- ═══════════ FAQ — Smooth Accordion ═══════════ -->
+                <section class="xt-sec">
+                    <div class="xt-c">
+                        <h2 class="xt-h2 xt-reveal" style="text-align:center;margin-bottom:clamp(32px,5vw,48px);">Common Questions About AI Copilots</h2>
+
+                        <div class="xt-blog-faq xt-reveal xt-stagger-1">
+                            <div class="xt-blog-faq__item">
+                                <button class="xt-blog-faq__question" type="button">
+                                    <span>How do I choose between AI Marketing Copilot and AI POS Copilot?</span>
+                                    <span class="xt-blog-faq__icon">+</span>
+                                </button>
+                                <div class="xt-blog-faq__answer">
+                                    <div class="xt-blog-faq__answer-inner">
+                                        <p>
+                                            <strong>AI Marketing Copilot</strong> optimizes how you acquire customers — campaign ROI, budget allocation, and lead scoring.
+                                            <strong>AI POS Copilot</strong> optimizes what happens at checkout — transaction value, cross-sell, and inventory clearance.
+                                            Deploy both for a unified AI strategy: Marketing brings customers in, POS increases their spend. Combined effect: 52% revenue growth.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="xt-blog-faq__item">
+                                <button class="xt-blog-faq__question" type="button">
+                                    <span>Are these modules free?</span>
+                                    <span class="xt-blog-faq__icon">+</span>
+                                </button>
+                                <div class="xt-blog-faq__answer">
+                                    <div class="xt-blog-faq__answer-inner">
+                                        <p>
+                                            Yes, both AI Marketing Copilot and AI POS Copilot are free to install from the Odoo Apps Store.
+                                            No licensing fees, no per-user charges. You pay for Odoo hosting/service, not for the modules themselves.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="xt-blog-faq__item">
+                                <button class="xt-blog-faq__question" type="button">
+                                    <span>What about data privacy and security?</span>
+                                    <span class="xt-blog-faq__icon">+</span>
+                                </button>
+                                <div class="xt-blog-faq__answer">
+                                    <div class="xt-blog-faq__answer-inner">
+                                        <p>
+                                            All data stays within your Odoo instance. No cloud APIs, no external processing, no third-party data storage.
+                                            The AI runs locally on your server. Fully GDPR and Egyptian data regulation compliant.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="xt-blog-faq__item">
+                                <button class="xt-blog-faq__question" type="button">
+                                    <span>Can I integrate these with my existing tools?</span>
+                                    <span class="xt-blog-faq__icon">+</span>
+                                </button>
+                                <div class="xt-blog-faq__answer">
+                                    <div class="xt-blog-faq__answer-inner">
+                                        <p>
+                                            Yes. Both modules provide Python APIs and JSON webhooks. You can send recommendations to
+                                            HubSpot, Klaviyo, email platforms, ad networks, CRMs, and more. Full documentation and examples are included.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="xt-blog-faq__item">
+                                <button class="xt-blog-faq__question" type="button">
+                                    <span>Do I need machine learning expertise to use these?</span>
+                                    <span class="xt-blog-faq__icon">+</span>
+                                </button>
+                                <div class="xt-blog-faq__answer">
+                                    <div class="xt-blog-faq__answer-inner">
+                                        <p>
+                                            No. Both copilots work out of the box with zero configuration. Install, load demo data, and start
+                                            getting AI-powered recommendations immediately. The ML models are pre-trained and continuously learn from your data.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="xt-blog-divider"/>
+
+                <!-- ═══════════ RESOURCES — Hover-lift Grid ═══════════ -->
+                <section class="xt-sec">
+                    <div class="xt-c">
+                        <h2 class="xt-h2 xt-reveal" style="text-align:center;margin-bottom:clamp(32px,5vw,48px);">Resources</h2>
+
+                        <div class="xt-blog-resources xt-reveal xt-stagger-1">
+                            <a href="https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot" target="_blank" class="xt-blog-resource">
+                                <span class="xt-blog-resource__icon">&#x1F4CA;</span>
+                                <h3 class="xt-blog-resource__title">AI Marketing Copilot</h3>
+                                <p class="xt-blog-resource__desc">Install on Odoo Store</p>
+                            </a>
+
+                            <a href="https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot" target="_blank" class="xt-blog-resource">
+                                <span class="xt-blog-resource__icon">&#x1F916;</span>
+                                <h3 class="xt-blog-resource__title">AI POS Copilot</h3>
+                                <p class="xt-blog-resource__desc">Install on Odoo Store</p>
+                            </a>
+
+                            <a href="/ai-solutions" class="xt-blog-resource">
+                                <span class="xt-blog-resource__icon">&#x2728;</span>
+                                <h3 class="xt-blog-resource__title">AI Solutions Hub</h3>
+                                <p class="xt-blog-resource__desc">Full Feature Overview</p>
+                            </a>
+
+                            <a href="/contact-us" class="xt-blog-resource">
+                                <span class="xt-blog-resource__icon">&#x1F4AC;</span>
+                                <h3 class="xt-blog-resource__title">Request Demo</h3>
+                                <p class="xt-blog-resource__desc">Live Walkthrough</p>
+                            </a>
+
+                            <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank" class="xt-blog-resource">
+                                <span class="xt-blog-resource__icon">&#x1F381;</span>
+                                <h3 class="xt-blog-resource__title">All XamlTech Apps</h3>
+                                <p class="xt-blog-resource__desc">Browse Store Listing</p>
+                            </a>
+
+                            <a href="https://wa.me/201007982468" target="_blank" class="xt-blog-resource">
+                                <span class="xt-blog-resource__icon">&#x1F4AC;</span>
+                                <h3 class="xt-blog-resource__title">WhatsApp Support</h3>
+                                <p class="xt-blog-resource__desc">Quick Questions</p>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════════ CTA — Animated Border ═══════════ -->
+                <section class="xt-sec">
+                    <div class="xt-c">
+                        <div class="xt-blog-cta xt-reveal--scale">
+                            <h2 class="xt-blog-cta__title">Ready to Transform Your Business?</h2>
+                            <p class="xt-blog-cta__desc">
+                                Install AI Copilots from Odoo Apps Store today. No credit card required, demo data included, zero configuration.
+                            </p>
+                            <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank" class="xt-btn xt-btn--primary" style="font-size:15px;">Browse All XamlTech Apps &#8594;</a>
+                        </div>
+                    </div>
+                </section>
+
+                <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+
+    <record id="page_blog_hub" model="website.page">
+        <field name="view_id" ref="blog_hub_page"/>
+        <field name="url">/insights</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+</odoo>

@@ -1,0 +1,106 @@
+{
+  "en": {
+    "meta": {
+      "title": "Odoo Development Knowledge Base — Custom ERP Solutions | XamlTech Egypt",
+      "description": "Real technical solutions from production deployments — Odoo ERP customisation, POS module development, ZATCA e-invoicing, agriculture ERP, network infrastructure and AI.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📚 Technical Knowledge Base",
+        "title": "Odoo development & IT solutions knowledge base",
+        "lead": "Real technical solutions from our production deployments — Odoo ERP customisation, POS module development, network infrastructure and CCTV systems.",
+        "ctas": [
+          { "label": "Talk to us about a project", "href": "/contact-us?lang=en", "style": "primary", "big": true }
+        ]
+      }},
+      { "partial": "articles", "data": {
+        "eyebrow": "Technical guides",
+        "title": "From our engineering blog",
+        "sub": "How we actually build things.",
+        "more": "Read guide →",
+        "items": [
+          { "tag": "Textile POS", "title": "How we build custom Odoo POS modules for textile businesses", "text": "Extending PosOrder with cutting fields, OWL v3 migration lessons and real-time stock sync.", "href": "/insights" },
+          { "tag": "ZATCA", "title": "Implementing ZATCA e-invoicing compliance in Odoo", "text": "A dual-system architecture for XML signing, QR embedding and API submission.", "href": "/insights" },
+          { "tag": "Agriculture", "title": "Building agriculture ERP with Odoo for Qatf Company", "text": "Hierarchical locations, work orders and harvest analytics for real farms.", "href": "/insights" },
+          { "tag": "Infrastructure", "title": "Hospital IT infrastructure: Furkan Surgical Center case study", "text": "Structured cabling, VLANs, a 128-channel CCTV system and a Dockerised software stack.", "href": "/portfolio" },
+          { "tag": "AI", "title": "How to implement AI intelligence in Odoo POS and marketing", "text": "Two production-tested AI modules that bring automation into Odoo.", "href": "/ai-solutions" },
+          { "tag": "Architecture", "title": "Odoo AI integration architecture: clean design for long-term maintenance", "text": "DDD, clean architecture and TDD for AI modules that scale.", "href": "/ai-solutions" }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "alt": true,
+        "eyebrow": "FAQ",
+        "title": "Frequently asked questions",
+        "items": [
+          { "q": "What Odoo versions do you support?", "a": "We develop for Odoo 16, 17, 18 and 19 — both Enterprise and Community. Our published addons target Odoo 18 and 19." },
+          { "q": "Can you customise Odoo POS for my specific business?", "a": "Yes. We've built POS customisations for textile (cutting orders), agriculture (harvest tracking) and retail (multi-store sync), plus the POS Security Framework." },
+          { "q": "Do you work outside Aswan?", "a": "Yes. While based in Aswan, we serve clients across Egypt and Saudi Arabia, with ERP handled remotely and on-site visits for infrastructure." },
+          { "q": "What makes your Odoo modules different?", "a": "They are built from real production deployments — each addon solves a specific problem encountered with real clients." },
+          { "q": "How long does an Odoo ERP implementation take?", "a": "Starter (3 modules): 2–4 weeks. Business (8+ modules): 2–3 months. Enterprise (unlimited modules, custom dev): 3–6 months." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Have a technical question?",
+        "text": "We share real solutions from real deployments. Contact us for technical consulting.",
+        "actions": [
+          { "label": "Contact us", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "قاعدة معرفة تطوير Odoo — حلول ERP مخصصة | زامل تك مصر",
+      "description": "حلول تقنية حقيقية من تنفيذاتنا الإنتاجية — تخصيص Odoo ERP وتطوير موديولات نقاط البيع وفاتورة ZATCA وERP الزراعة والبنية التحتية والذكاء الاصطناعي.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📚 قاعدة معرفة تقنية",
+        "title": "قاعدة معرفة تطوير Odoo وحلول تقنية المعلومات",
+        "lead": "حلول تقنية حقيقية من تنفيذاتنا — تخصيص Odoo ERP وتطوير موديولات نقاط البيع والبنية التحتية وأنظمة الكاميرات.",
+        "ctas": [
+          { "label": "تحدّث معنا عن مشروعك", "href": "/contact-us", "style": "primary", "big": true }
+        ]
+      }},
+      { "partial": "articles", "data": {
+        "eyebrow": "أدلة تقنية",
+        "title": "من مدونة هندستنا",
+        "sub": "كيف نبني الأشياء فعلاً.",
+        "more": "اقرأ الدليل ←",
+        "items": [
+          { "tag": "نقاط بيع المنسوجات", "title": "كيف نبني موديولات Odoo POS مخصصة لمنسوجات", "text": "توسيع PosOrder بحقول القص ودروس الترحيل إلى OWL v3 ومزامنة المخزون الفورية.", "href": "/insights" },
+          { "tag": "ZATCA", "title": "تنفيذ توافق فاتورة ZATCA الإلكترونية في Odoo", "text": "بنية نظام مزدوج لتوقيع XML وتضمين QR والتقديم عبر API.", "href": "/insights" },
+          { "tag": "الزراعة", "title": "بناء ERP زراعي بـ Odoo لشركة قطف", "text": "مواقع هرمية وأوامر عمل وتحليلات حصاد لمزارع حقيقية.", "href": "/insights" },
+          { "tag": "البنية التحتية", "title": "بنية مستشفى تقنية: دراسة حالة مركز الفرقان", "text": "تمديدات منظمة وVLANs ونظام كاميرات بـ 128 قناة ومنظومة برمجيات بحاويات Docker.", "href": "/portfolio" },
+          { "tag": "الذكاء الاصطناعي", "title": "كيف تطبّق ذكاءً اصطناعياً في نقاط البيع والتسويق", "text": "موديولان مُختبران في الإنتاج يجلبان الأتمتة إلى Odoo.", "href": "/ai-solutions" },
+          { "tag": "الهندسة", "title": "هندسة تكامل الذكاء الاصطناعي في Odoo لحفظ طويل الأمد", "text": "DDD وبنية نظيفة وTDD لموديولات ذكاء قابلة للتوسع.", "href": "/ai-solutions" }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "alt": true,
+        "eyebrow": "الأسئلة الشائعة",
+        "title": "أسئلة شائعة",
+        "items": [
+          { "q": "ما إصدارات Odoo التي تدعمونها؟", "a": "نطوّر لـ Odoo 16 و17 و18 و19 — بنسختي Enterprise وCommunity. وإضافاتنا المنشورة تستهدف 18 و19." },
+          { "q": "هل تخصّصون نقاط بيع Odoo لنشاطي؟", "a": "نعم. بنينا تخصيصات للمنسوجات (أوامر القص) والزراعة (تتبع الحصاد) والتجزئة (مزامنة الفروع)، مع إطار الأمان." },
+          { "q": "هل تعملون خارج أسوان؟", "a": "نعم. مقرنا أسوان ونخدم عملاء في مصر والسعودية، مع إدارة مشاريع ERP عن بُعد وزيارات ميدانية للبنية التحتية." },
+          { "q": "ما الذي يميز موديولاتكم؟", "a": "مبنية من تنفيذات إنتاجية حقيقية — كل إضافة تحل مشكلة واجهناها مع عميل فعلي." },
+          { "q": "كم يستغرق تنفيذ نظام Odoo ERP؟", "a": "Starter (3 موديولات): 2–4 أسابيع. Business (+8): 2–3 أشهر. Enterprise (غير محدود + تطوير مخصص): 3–6 أشهر." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "لديك سؤال تقني؟",
+        "text": "نشارك حلولاً حقيقية من تنفيذات حقيقية. تواصل معنا للاستشارات التقنية.",
+        "actions": [
+          { "label": "تواصل معنا", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

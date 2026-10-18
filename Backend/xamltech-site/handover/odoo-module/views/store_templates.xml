@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="store_page" name="XamlTech Store">
+        <t t-call="website.layout"><t t-set="title">Premium Odoo 19 POS Addons — Published on Odoo Apps Store — XamlTech</t>
+            <t t-set="meta_description">Browse XamlTech premium Odoo POS modules: cutting orders, real-time stock sync, security framework. Published on official Odoo Apps Store. Prices from €99.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><img src="/xamltech_addons_store/static/img/logo.png" alt="XamlTech" style="max-width:160px;margin-bottom:16px;"/><p class="xt-tag">🛒 Odoo Apps Store</p><h1 class="xt-hero__h1" style="font-size:40px;">Premium Odoo Addons</h1><div class="xt-btns" style="justify-content:center;margin-top:20px;"><a href="https://apps.odoo.com/apps/modules/browse?search=ma_pos" target="_blank" class="xt-btn xt-btn--outline">Odoo Apps ↗</a><a href="/request-demo" class="xt-btn xt-btn--primary">🖥️ Try Demo</a></div></div></section>
+            <section class="xt-sec xt-sec--dark" id="rs-addons-store" t-att-data-addons="addons_data_json" t-att-data-categories="categories_data_json">
+                <div class="xt-c"><div class="xt-stats" style="padding:0 0 40px;"><div class="xt-stat"><span class="xt-stat__i">📦</span><span class="xt-stat__v"><t t-esc="stats['total_addons']"/>+</span><span class="xt-stat__l">Addons</span></div><div class="xt-stat"><span class="xt-stat__i">⬇️</span><span class="xt-stat__v"><t t-esc="'{:,}'.format(stats['total_downloads'])"/></span><span class="xt-stat__l">Downloads</span></div><div class="xt-stat"><span class="xt-stat__i">⭐</span><span class="xt-stat__v"><t t-esc="stats['avg_rating']"/></span><span class="xt-stat__l">Rating</span></div><div class="xt-stat"><span class="xt-stat__i">💬</span><span class="xt-stat__v"><t t-esc="stats['total_reviews']"/></span><span class="xt-stat__l">Reviews</span></div></div>
+                <div class="xt-cats"><button class="xt-cat xt-cat--on" data-category="All">🏪 All <span class="xt-cat__c"><t t-esc="len(addons)"/></span></button><t t-foreach="categories" t-as="cat" t-key="cat.id"><button class="xt-cat" t-att-data-category="cat.name"><t t-esc="cat.icon_emoji"/> <t t-esc="cat.name"/> <span class="xt-cat__c"><t t-esc="cat.addon_count"/></span></button></t></div>
+                <div class="xt-toolbar"><div class="xt-toolbar__s"><span class="xt-toolbar__si">🔍</span><input type="text" id="rs-search-input" class="xt-inp xt-toolbar__inp" placeholder="Search addons…"/></div><select id="rs-sort-select" class="xt-inp xt-sel" style="max-width:200px;"><option value="popular">Popular</option><option value="rating">Rating</option><option value="newest">Newest</option><option value="price_low">Price ↑</option><option value="price_high">Price ↓</option></select><div class="xt-toolbar__cnt" id="rs-addon-count"><t t-esc="len(addons)"/> addons</div></div>
+                <div class="xt-grid3" id="rs-addons-grid"><t t-foreach="addons" t-as="addon" t-key="addon.id">
+                    <div class="xt-acard" t-att-data-addon-id="addon.id" t-att-data-name="addon.name" t-att-data-slug="addon.slug" t-att-data-category="addon.category_id.name" t-att-data-tags="','.join(addon.tag_ids.mapped('name'))" t-att-data-description="addon.description" t-att-data-downloads="addon.downloads_count" t-att-data-rating="addon.rating" t-att-data-price="addon.price" t-att-data-store-url="addon.odoo_store_url or ''">
+                        <t t-if="addon.badge"><span class="xt-acard__badge" t-att-style="'background:%s' % addon.accent_color"><t t-esc="addon.badge_label"/></span></t>
+                        <div class="xt-acard__head" t-att-style="'background:linear-gradient(135deg,%s12,%s04)' % (addon.accent_color,addon.accent_color)"><span class="xt-acard__icon"><t t-esc="addon.icon_emoji"/></span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" t-att-style="'color:%s' % addon.accent_color"><t t-esc="addon.category_id.name"/> · v<t t-esc="addon.version"/></span><h3 class="xt-acard__name"><t t-esc="addon.name"/></h3><p class="xt-acard__desc"><t t-esc="addon.description"/></p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€<t t-esc="'%.0f' % addon.price"/></span><span>⭐ <t t-esc="addon.rating"/></span></div>
+                    </div>
+                </t></div></div>
+            </section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+    <template id="addon_detail_page" name="Addon Detail">
+        <t t-call="website.layout"><t t-set="title" t-value="addon.name"/>
+            <section class="xt-sec xt-sec--dark" style="padding:40px 0 80px;"><div class="xt-c">
+                <nav style="margin-bottom:32px;font-size:14px;color:rgba(255,255,255,0.4);"><a href="/" style="color:rgba(255,255,255,0.4);">Home</a> › <a href="/addons-store" style="color:rgba(255,255,255,0.4);">Store</a> › <span t-esc="addon.name"/></nav>
+                <div class="xt-detail-grid">
+                    <div><div style="font-size:64px;margin-bottom:16px;" t-esc="addon.icon_emoji"/><h1 style="font-size:36px;font-weight:800;margin-bottom:12px;" t-esc="addon.name"/><p style="font-size:16px;color:rgba(255,255,255,0.6);line-height:1.65;margin-bottom:24px;" t-esc="addon.description"/><div class="xt-tags" style="margin-bottom:32px;"><t t-foreach="addon.tag_ids" t-as="tag" t-key="tag.id"><span t-esc="tag.name"/></t></div><div t-out="addon.full_description" style="line-height:1.7;font-size:15px;color:rgba(255,255,255,0.7);"/></div>
+                    <div style="position:sticky;top:100px;"><div class="xt-card" style="padding:28px;"><div style="font-size:40px;font-weight:800;margin-bottom:20px;">€<t t-esc="'%.0f' % addon.price"/></div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;font-size:14px;color:rgba(255,255,255,0.5);"><div>Version: <strong style="color:#F1F1F3;" t-esc="addon.version"/></div><div>Rating: <strong style="color:#F1F1F3;">⭐ <t t-esc="addon.rating"/></strong></div><div>Downloads: <strong style="color:#F1F1F3;" t-esc="'{:,}'.format(addon.downloads_count)"/></div></div><t t-if="addon.odoo_store_url"><a t-att-href="addon.odoo_store_url" target="_blank" class="xt-btn xt-btn--primary" style="width:100%;">Get on Odoo Apps ↗</a></t><a href="/request-demo" class="xt-btn xt-btn--outline" style="width:100%;margin-top:8px;">🖥️ Try Demo</a></div></div>
+                </div>
+            </div></section>
+        </t>
+    </template>
+</odoo>

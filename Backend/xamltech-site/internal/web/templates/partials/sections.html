@@ -1,0 +1,258 @@
+{{define "hero"}}
+<section class="hero">
+  <div class="hero__bg"></div>
+  <div class="wrap hero__inner">
+    <div class="hero__text">
+      {{if .eyebrow}}<span class="hero__eyebrow">{{.eyebrow}}</span>{{end}}
+      <h1>{{.title}}{{if .accent}} <span class="grad">{{.accent}}</span>{{end}}</h1>
+      {{if .lead}}<p class="hero__sub">{{.lead}}</p>{{end}}
+      {{if .points}}<ul class="ticks">{{range .points}}<li>{{.}}</li>{{end}}</ul>{{end}}
+      {{if .ctas}}<div class="hero__cta">
+        {{range .ctas}}<a class="btn {{if .style}}btn--{{.style}}{{else}}btn--primary{{end}}{{if .big}} btn--lg{{end}}" href="{{.href}}"{{if .external}} target="_blank" rel="noopener"{{end}}>{{.label}}</a>{{end}}
+      </div>{{end}}
+    </div>
+    {{if .media}}<div class="hero__media">
+      <div class="hero__glow"></div>
+      {{if .media.window}}
+      <figure class="window">
+        <div class="window__bar">
+          <span class="window__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="window__url">{{if .media.caption}}{{.media.caption}}{{else}}xamltech.com{{end}}</span>
+          <span class="window__live"><b></b>{{.media.live}}</span>
+        </div>
+        <img src="{{.media.src}}" alt="{{.media.alt}}" width="{{if .media.width}}{{.media.width}}{{else}}1200{{end}}" height="{{if .media.height}}{{.media.height}}{{else}}700{{end}}" loading="eager">
+      </figure>
+      {{else}}
+      <img src="{{.media.src}}" alt="{{.media.alt}}" loading="eager">
+      {{end}}
+    </div>{{end}}
+  </div>
+  {{if .stats}}<div class="wrap"><div class="hero__stats">
+    {{range .stats}}<div class="stat reveal"><div class="stat__v">{{.v}}</div><div class="stat__l">{{.l}}</div></div>{{end}}
+  </div></div>{{end}}
+</section>
+{{end}}
+
+{{define "features"}}
+<section class="sec {{if .alt}}sec--alt{{end}}"{{if .id}} id="{{.id}}"{{end}}>
+  <div class="wrap">
+    {{if .title}}<div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>{{end}}
+    <div class="grid grid--{{if .cols}}{{.cols}}{{else}}3{{end}}">
+      {{range .items}}
+      <article class="card reveal">
+        {{if .icon}}<div class="card__icon">{{.icon}}</div>{{end}}
+        {{if .img}}<img src="{{.img}}" alt="{{.alt}}" width="360" height="200" style="width:100%;border-radius:12px;margin-bottom:.9rem" loading="lazy">{{end}}
+        <h3 class="card__title">{{.title}}</h3>
+        <p class="card__text">{{.text}}</p>
+        {{if .chips}}<div class="card__meta">{{range .chips}}<span class="chip">{{.}}</span>{{end}}</div>{{end}}
+      </article>
+      {{end}}
+    </div>
+    {{if .cta}}<p style="text-align:center;margin-top:2.2rem"><a class="btn btn--primary btn--lg" href="{{.cta.href}}">{{.cta.label}}</a></p>{{end}}
+  </div>
+</section>
+{{end}}
+
+{{define "chips"}}
+<section class="sec sec--tight">
+  <div class="wrap reveal"><div class="logos">
+    {{range .items}}<span class="chip chip--accent">{{.}}</span>{{end}}
+  </div></div>
+</section>
+{{end}}
+
+{{define "steps"}}
+<section class="sec {{if .alt}}sec--alt{{end}}">
+  <div class="wrap">
+    <div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    <div class="steps">
+      {{range .items}}<div class="step reveal"><h3>{{.title}}</h3><p>{{.text}}</p></div>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "stats"}}
+<section class="sec sec--tight">
+  <div class="wrap">
+    {{if .title}}<div class="sec__head reveal"><h2 class="sec__title">{{.title}}</h2></div>{{end}}
+    <div class="stats">
+      {{range .items}}<div class="stat reveal"><div class="stat__v">{{.v}}</div><div class="stat__l">{{.l}}</div></div>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "testimonials"}}
+<section class="sec {{if .alt}}sec--alt{{end}}">
+  <div class="wrap">
+    <div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    <div class="grid grid--2">
+      {{range .items}}
+      <figure class="quote reveal">
+        {{if .stars}}<div class="quote__stars">{{.stars}}</div>{{end}}
+        <blockquote class="quote__text">{{.quote}}</blockquote>
+        <figcaption class="quote__by"><div class="quote__name">{{.name}}</div><div class="quote__role">{{.role}}</div></figcaption>
+      </figure>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "faq"}}
+<section class="sec {{if .alt}}sec--alt{{end}}">
+  <div class="wrap">
+    <div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    <div class="faq">
+      {{range .items}}
+      <details class="faq__item reveal">
+        <summary class="faq__q">{{.q}}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></summary>
+        <div class="faq__a">{{.a}}</div>
+      </details>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "split"}}
+<section class="sec {{if .alt}}sec--alt{{end}}">
+  <div class="wrap split {{if .reverse}}split--rev{{end}}">
+    <div class="split__body reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .lead}}<p class="sec__sub">{{.lead}}</p>{{end}}
+      {{if .points}}<ul class="ticks">{{range .points}}<li>{{.}}</li>{{end}}</ul>{{end}}
+      {{if .cta}}<p style="margin-top:1.4rem"><a class="btn btn--primary" href="{{.cta.href}}">{{.cta.label}}</a></p>{{end}}
+    </div>
+    {{if .media}}<div class="split__media reveal"><img src="{{.media.src}}" alt="{{.media.alt}}" loading="lazy"></div>{{end}}
+  </div>
+</section>
+{{end}}
+
+{{define "cta"}}
+<section class="sec">
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <h2>{{.title}}</h2>
+      {{if .text}}<p>{{.text}}</p>{{end}}
+      {{if .actions}}<div class="cta-band__actions">
+        {{range .actions}}<a class="btn {{if .style}}btn--{{.style}}{{else}}btn--primary{{end}} btn--lg" href="{{.href}}">{{.label}}</a>{{end}}
+      </div>{{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "richtext"}}
+<section class="sec">
+  <div class="wrap prose reveal"{{if .id}} id="{{.id}}"{{end}}>
+    {{.html | raw}}
+  </div>
+</section>
+{{end}}
+
+{{define "pricing"}}
+<section class="sec {{if .alt}}sec--alt{{end}}"{{if .id}} id="{{.id}}"{{end}}>
+  <div class="wrap">
+    <div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    <div class="grid grid--{{if .cols}}{{.cols}}{{else}}3{{end}}">
+      {{range .items}}
+      <article class="card price-card reveal{{if .featured}} price-card--featured{{end}}">
+        {{if .tag}}<span class="chip chip--accent">{{.tag}}</span>{{end}}
+        <h3 class="card__title">{{.title}}</h3>
+        <p class="card__text">{{.text}}</p>
+        <div class="price">{{if .currency}}<span class="price__cur">{{.currency}}</span>{{end}}<span class="price__amt">{{.price}}</span></div>
+        {{if .features}}<ul class="ticks">{{range .features}}<li>{{.}}</li>{{end}}</ul>{{end}}
+        {{if .cta}}<a class="btn btn--primary btn--block" href="{{.cta.href}}">{{.cta.label}}</a>{{end}}
+      </article>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "roi"}}
+<section class="sec {{if .alt}}sec--alt{{end}}" id="roi">
+  <div class="wrap">
+    <div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    <div class="roi reveal" data-roi
+         data-investment="{{.investment}}"
+         data-currency="{{.currency}}"
+         data-monthly="{{.monthlyDefault}}">
+      <div class="roi__controls">
+        <label class="field"><span class="field__label">{{.monthlyLabel}}</span>
+          <input class="input" data-roi-monthly type="number" min="0" step="100" value="{{.monthlyDefault}}">
+        </label>
+        <label class="field"><span class="field__label">{{.investmentLabel}}</span>
+          <input class="input" data-roi-investment type="number" min="0" step="50" value="{{.investment}}">
+        </label>
+      </div>
+      <div class="roi__out">
+        <div class="roi__cell"><div class="roi__v" data-roi-savings>—</div><div class="roi__l">{{.savingsLabel}}</div></div>
+        <div class="roi__cell"><div class="roi__v" data-roi-payback>—</div><div class="roi__l">{{.paybackLabel}}</div></div>
+        <div class="roi__cell"><div class="roi__v" data-roi-annual>—</div><div class="roi__l">{{.annualLabel}}</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "articles"}}
+<section class="sec {{if .alt}}sec--alt{{end}}">
+  <div class="wrap">
+    <div class="sec__head reveal">
+      {{if .eyebrow}}<span class="eyebrow">{{.eyebrow}}</span>{{end}}
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    {{$more := .more}}
+    <div class="grid grid--3">
+      {{range .items}}
+      <a class="card card--link reveal" href="{{.href}}">
+        {{if .tag}}<span class="chip chip--accent">{{.tag}}</span>{{end}}
+        <h3 class="card__title">{{.title}}</h3>
+        <p class="card__text">{{.text}}</p>
+        <span class="card__more">{{$more}}</span>
+      </a>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{define "logos"}}
+<section class="sec sec--tight">
+  <div class="wrap">
+    {{if .title}}<p class="sec__sub" style="text-align:center;margin-bottom:1.4rem">{{.title}}</p>{{end}}
+    <div class="logos reveal">
+      {{range .items}}<img src="{{.src}}" alt="{{.alt}}" loading="lazy">{{end}}
+    </div>
+  </div>
+</section>
+{{end}}

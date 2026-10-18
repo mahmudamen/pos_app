@@ -1,0 +1,66 @@
+# XamlTech - robots.txt
+# Allow all search engines and AI crawlers
+
+User-agent: *
+Allow: /
+Disallow: /web/
+Disallow: /odoo/
+Disallow: /jsonrpc
+Disallow: /website/translations
+
+# Sitemap
+Sitemap: https://xamltech.com/sitemap.xml
+
+# === AI Search Bots - EXPLICITLY ALLOWED ===
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic / Claude
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Google AI / Gemini
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Microsoft / Copilot / Bing
+User-agent: Bingbot
+Allow: /
+
+# Grok / xAI
+User-agent: Grok
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+# Apple / Siri
+User-agent: Applebot
+Allow: /
+
+# Common crawl (used by many AI training)
+User-agent: CCBot
+Allow: /
+
+# Yandex
+User-agent: YandexBot
+Allow: /

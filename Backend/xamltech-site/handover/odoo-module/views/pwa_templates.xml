@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="xt_pwa" inherit_id="website.layout" priority="99">
+        <xpath expr="//head" position="inside">
+            <meta name="theme-color" content="#0072BC"/>
+            <meta name="mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-title" content="XamlTech"/>
+            <link rel="manifest" href="/xamltech_addons_store/static/manifest.json"/>
+            <link rel="apple-touch-icon" href="/xamltech_addons_store/static/img/logo.png"/>
+
+            <!-- SEO: AI-readable structured data -->
+            <meta name="description" content="XamlTech — Odoo ERP development, custom modules, networking, CCTV, web development. Aswan, Egypt. Published addons on Odoo Apps Store."/>
+            <meta name="keywords" content="Odoo development, ERP Egypt, Odoo POS modules, CCTV Aswan, networking Egypt, web development, XamlTech, تطوير Odoo, أنظمة ERP"/>
+            <meta name="author" content="Mahmoud Amen - XamlTech"/>
+            <meta name="geo.region" content="EG-ASN"/>
+            <meta name="geo.placename" content="Aswan, Egypt"/>
+            <meta name="geo.position" content="24.0889;32.8998"/>
+            <meta name="ICBM" content="24.0889, 32.8998"/>
+            <meta property="og:type" content="website"/>
+            <meta property="og:site_name" content="XamlTech"/>
+            <meta property="og:locale" content="ar_EG"/>
+            <meta property="og:locale:alternate" content="en_US"/>
+
+            <!-- Schema.org JSON-LD: Organization + Services -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["Organization", "ProfessionalService"],
+      "@id": "https://xamltech.com/#organization",
+      "name": "XamlTech",
+      "alternateName": "زامل تك",
+      "url": "https://xamltech.com",
+      "logo": "https://xamltech.com/xamltech_addons_store/static/img/logo.png",
+      "description": "XamlTech is a full-service IT company specializing in Odoo ERP development (v16-v19), custom module development, POS customization, networking infrastructure, CCTV surveillance systems, web development, and digital transformation consulting. Based in Aswan, Egypt, we serve healthcare, textile, agriculture, and manufacturing industries with published addons on the official Odoo Apps Store.",
+      "foundingDate": "2018",
+      "founder": [
+        {"@type": "Person", "name": "Mahmoud Amen", "alternateName": "محمود أمين", "jobTitle": "Founder and Lead Odoo Developer", "email": "mahmudamen@gmail.com", "telephone": "+201007982468"},
+        {"@type": "Person", "name": "Osama M Salah", "alternateName": "أسامة م. صلاح", "telephone": "+201201410140"}
+      ],
+      "address": {"@type": "PostalAddress", "streetAddress": "Sahary", "addressLocality": "Aswan", "addressRegion": "Aswan Governorate", "postalCode": "81511", "addressCountry": "EG"},
+      "geo": {"@type": "GeoCoordinates", "latitude": "24.0889", "longitude": "32.8998"},
+      "telephone": "+201007982468",
+      "email": "mahmudamen@gmail.com",
+      "areaServed": [{"@type": "Country", "name": "Egypt"}, {"@type": "Country", "name": "Saudi Arabia"}],
+      "knowsAbout": ["Odoo ERP", "Odoo 16", "Odoo 17", "Odoo 18", "Odoo 19", "Point of Sale Development", "POS Customization", "OWL Framework", "Python", "PostgreSQL", "ZATCA E-Invoicing", "Network Infrastructure", "CCTV Surveillance", "Farm Management ERP", "Textile POS"],
+      "sameAs": ["https://wa.me/201007982468", "https://apps.odoo.com/apps/modules/browse?search=ma_pos", "https://github.com/mahmudamen"],
+      "hasOfferCatalog": {"@type": "OfferCatalog", "name": "XamlTech Services", "itemListElement": [
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Odoo ERP Implementation", "description": "Full Odoo deployment including requirements analysis, custom module development, data migration, ZATCA compliance, and training for versions 16-19"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "POS Custom Module Development", "description": "Published Odoo POS addons: cutting order management for textile, real-time stock sync, security framework with manager PIN and discount limits"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Network and Server Infrastructure", "description": "Enterprise LAN/WAN design, Wi-Fi deployment, Linux server administration, Docker, Proxmox virtualization, firewall and VPN configuration"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "CCTV Surveillance Systems", "description": "IP camera installation, DVR/NVR solutions up to 128 channels, remote monitoring via mobile, hospital and commercial surveillance"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Web Design and Development", "description": "Responsive websites, Odoo website development, e-commerce, PWA offline-first applications, SEO optimization"}}
+      ]}
+    },
+    {"@type": "WebSite", "@id": "https://xamltech.com/#website", "url": "https://xamltech.com", "name": "XamlTech", "publisher": {"@id": "https://xamltech.com/#organization"}, "inLanguage": ["ar", "en"]}
+  ]
+}</script>
+        </xpath>
+        <xpath expr="//body" position="inside">
+            <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){try{navigator.serviceWorker.register('/xamltech_addons_store/static/sw.js',{scope:'/xamltech_addons_store/static/'}).catch(function(){});}catch(e){}});}</script>
+        </xpath>
+    </template>
+</odoo>

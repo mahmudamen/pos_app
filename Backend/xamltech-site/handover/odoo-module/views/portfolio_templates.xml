@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portfolio_page" name="XamlTech Portfolio">
+        <t t-call="website.layout"><t t-set="title">Our Projects: Hospital IT, Textile POS, Agriculture ERP — XamlTech Egypt</t>
+            <t t-set="meta_description">XamlTech project portfolio: hospital ERP systems, 128-channel CCTV, textile POS, ZATCA e-invoicing, farm management platforms in Egypt.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><p class="xt-tag">🏆 Our Work</p><h1 class="xt-hero__h1" style="font-size:40px;">Partners &amp; Portfolio</h1><p class="xt-hero__sub" style="max-width:600px;margin:0 auto;">Trusted by hospitals, businesses, and organizations across Egypt.</p></div></section>
+            <section class="xt-sec xt-sec--dark"><div class="xt-c"><h2 class="xt-h2" style="text-align:center;margin-bottom:40px;">Our Partners</h2><div class="xt-partners">
+                <div class="xt-partner"><div class="xt-partner__img"><img src="/xamltech_addons_store/static/img/partner_furkan.png" alt="Furkan"/></div><h3>Furkan Surgical Center</h3><p class="xt-partner__ar">مركز الفرقان التخصصي</p><p>IT infrastructure, CCTV, networking, and hospital software for a leading surgical center in Aswan.</p><div class="xt-tags"><span>🏥 Hospital</span><span>📹 CCTV</span><span>🔌 Network</span><span>💻 Software</span></div></div>
+                <div class="xt-partner"><div class="xt-partner__img"><img src="/xamltech_addons_store/static/img/partner_helal.png" alt="Al Helal"/></div><h3>Al Helal Hospital</h3><p class="xt-partner__ar">مستشفى الهلال الأحمر</p><p>Full hospital IT — patient management, network infrastructure, CCTV surveillance, and digital healthcare.</p><div class="xt-tags"><span>🏥 Hospital</span><span>📊 ERP</span><span>🔌 Network</span><span>📹 CCTV</span></div></div>
+            </div></div></section>
+            <section class="xt-sec xt-sec--grad"><div class="xt-c"><h2 class="xt-h2" style="text-align:center;margin-bottom:40px;">Project Highlights</h2><div class="xt-grid3">
+                <div class="xt-card"><span>🏥</span><h3>Hospital Management</h3><p>Full Odoo ERP for medical facilities — patients, appointments, pharmacy, billing with Arabic workflows.</p></div>
+                <div class="xt-card"><span>📹</span><h3>Hospital CCTV</h3><p>128-channel IP camera system — operating rooms, corridors, pharmacy, parking, 24/7 remote monitoring.</p></div>
+                <div class="xt-card"><span>✂️</span><h3>Textile POS</h3><p>Custom Odoo 18 POS with cutting orders for Al-Ghazl Al-Arabi — real-time stock, multi-session sync.</p></div>
+                <div class="xt-card"><span>🧾</span><h3>ZATCA E-Invoice</h3><p>Saudi Arabia Phase 2 compliance — XML invoices, QR codes, API submission, government portal sync.</p></div>
+                <div class="xt-card"><span>🌾</span><h3>Farm Management</h3><p>Agriculture ERP for Qatf Company — farm locations, crop tracking, work orders, harvest analytics.</p></div>
+                <div class="xt-card"><span>🔌</span><h3>Medical Network</h3><p>Complete LAN/WLAN for hospital campus — structured cabling, VLANs, server room, redundant links.</p></div>
+            </div></div></section>
+
+            <!-- Open Source / GitHub Proof -->
+            <section class="xt-sec xt-sec--dark"><div class="xt-c"><h2 class="xt-h2" style="text-align:center;margin-bottom:12px;">Open Source &amp; GitHub</h2><p class="xt-sub" style="text-align:center;margin:0 auto 40px;">180+ public repositories — real code, not just marketing. Verify our skills on GitHub.</p><div class="xt-grid3">
+                <a href="https://github.com/mahmudamen/hospital-flask-1" target="_blank" class="xt-card" style="text-decoration:none;"><span>🏥</span><h3>hospital-flask-1</h3><p>Hospital Management System built with Python Flask — patient registration, appointments, pharmacy, billing. Demonstrates our healthcare domain knowledge.</p><p style="color:#00ADEE;font-size:13px;font-weight:600;">Python · ⭐ 2 · View on GitHub →</p></a>
+                <a href="https://github.com/mahmudamen/mvc-erp" target="_blank" class="xt-card" style="text-decoration:none;"><span>📊</span><h3>mvc-erp</h3><p>Full ERP system built with ASP.NET MVC and C# — accounting, inventory, HR modules. Shows our ERP architecture experience across multiple stacks.</p><p style="color:#00ADEE;font-size:13px;font-weight:600;">C# · ⭐ 1 · View on GitHub →</p></a>
+                <a href="https://github.com/mahmudamen/Openrol" target="_blank" class="xt-card" style="text-decoration:none;"><span>🐍</span><h3>Openrol</h3><p>Python-based open-source business application. Demonstrates our Python ecosystem expertise — the same language that powers Odoo backend development.</p><p style="color:#00ADEE;font-size:13px;font-weight:600;">Python · ⭐ 1 · View on GitHub →</p></a>
+                <a href="https://github.com/mahmudamen/web_google_maps_drawing" target="_blank" class="xt-card" style="text-decoration:none;"><span>🗺️</span><h3>web_google_maps_drawing</h3><p>Odoo module for Google Maps integration with drawing tools — geolocation, polygon mapping, route planning. Direct Odoo addon development proof.</p><p style="color:#00ADEE;font-size:13px;font-weight:600;">Odoo Module · View on GitHub →</p></a>
+                <a href="https://apps.odoo.com/apps/modules/browse?search=ma_pos" target="_blank" class="xt-card" style="text-decoration:none;"><span>🛒</span><h3>Odoo Apps Store</h3><p>3 published POS modules: Cutting Orders (€149), Stock Real-Time (€129), Security Framework (€99). Production-tested, commercially available.</p><p style="color:#00ADEE;font-size:13px;font-weight:600;">Published Addons · View on Odoo Apps →</p></a>
+                <a href="https://github.com/mahmudamen" target="_blank" class="xt-card" style="text-decoration:none;"><span>💻</span><h3>180+ Repositories</h3><p>Android, iOS, Python, JavaScript, C#, Java, VR — full-stack developer with Google Challenge Scholarship (Mobile Web Specialist). Explore all repos.</p><p style="color:#00ADEE;font-size:13px;font-weight:600;">All Repos · View Profile →</p></a>
+            </div></div></section>
+
+            <section class="xt-sec xt-sec--grad" style="padding:60px 0;"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Want to Be Our Next Success Story?</h2><div class="xt-btns" style="justify-content:center;margin-top:24px;"><a href="/contact-us" class="xt-btn xt-btn--primary">Let's Talk →</a><a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa">💬 WhatsApp</a></div></div></section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

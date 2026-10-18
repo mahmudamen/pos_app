@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!--
+        Comprehensive SEO & AI Discoverability Schemas for Blog Posts
+        These schemas help:
+        1. Search engines (Google, Bing) understand the content
+        2. AI systems (Claude, ChatGPT) find and recommend the articles
+        3. Social media platforms (LinkedIn, Twitter) display rich previews
+        4. Voice assistants (Alexa, Google Assistant) answer questions
+    -->
+
+    <template id="blog_ai_marketing_seo" inherit_id="xamltech_addons_store.blog_ai_marketing_copilot" priority="99">
+        <xpath expr="//script[@type='application/ld+json'][1]" position="after">
+            <!-- Software Application Schema (for app discovery) -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot",
+  "name": "AI Marketing Copilot for Odoo",
+  "alternateName": "AI Marketing Copilot",
+  "description": "Machine learning-powered marketing intelligence system. Automatically optimize campaigns, forecast ROI, assign incentives, and generate actionable insights using Clean Architecture and TDD principles.",
+  "applicationCategory": "MarketingApplication",
+  "operatingSystem": "Odoo 19",
+  "version": "19.0.2.0.0",
+  "releaseDate": "2025-05-08",
+  "url": "https://xamltech.com/ai-solutions",
+  "downloadUrl": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot",
+  "fileSize": "2.5MB",
+  "author": {
+    "@type": "Organization",
+    "@id": "https://xamltech.com/#organization",
+    "name": "XamlTech",
+    "url": "https://xamltech.com",
+    "logo": "https://xamltech.com/logo.svg"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "XamlTech",
+    "url": "https://xamltech.com"
+  },
+  "offers": {
+    "@type": "Offer",
+    "@id": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot#offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "url": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot"
+  },
+  "featureList": [
+    "AI-powered campaign performance analytics",
+    "Real-time ROI forecasting",
+    "Automated budget allocation recommendations",
+    "Lead scoring using machine learning",
+    "Incentive rule assignment by customer segment",
+    "Decision logging and audit trail",
+    "Integration with Google Ads, Meta, email platforms",
+    "Arabic + English interface",
+    "Clean Architecture codebase",
+    "Comprehensive test coverage (TDD)"
+  ],
+  "screenshot": [
+    {
+      "@type": "ImageObject",
+      "url": "https://xamltech.com/ai-marketing-copilot/dashboard.png",
+      "name": "Marketing Dashboard"
+    },
+    {
+      "@type": "ImageObject",
+      "url": "https://xamltech.com/ai-marketing-copilot/recommendations.png",
+      "name": "AI Recommendations"
+    }
+  ],
+  "softwareRequirements": "Odoo 19 (Community or Enterprise Edition)",
+  "permissions": "Read access to CRM, Sales, and Accounting data"
+}
+            </script>
+
+            <!-- FAQ Schema (for search result snippets) -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How much can AI Marketing Copilot improve my ROI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Based on real deployments, users report 35% average ROI improvement within 3 months. One marketing agency managing 50+ accounts reduced marketing spend by 18% while maintaining revenue."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What data sources does AI Marketing Copilot need?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The module analyzes Odoo CRM, sales, and accounting data. Optional: integrations with Google Ads API, Meta Ads API, email marketing platforms, HubSpot. Works fine with Odoo data alone."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can AI Marketing Copilot work with my existing marketing tools?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. AI Marketing Copilot provides JSON API and webhooks. You can send recommendations to HubSpot, Klaviyo, or any email platform. Bidirectional sync available for campaign metrics."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the code open source or proprietary?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Published on Odoo Apps Store as a full module. Source code follows LGPL-3 license (standard for Odoo addons). Full transparency, no hidden algorithms."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it support Arabic/RTL interfaces?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, fully bilingual (Arabic + English) with RTL support. All labels, reports, and dashboards are translated. Customizable for any language."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the learning curve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Zero setup required. Install from Odoo Apps Store, enable demo data, and recommendations appear immediately. No machine learning training needed. Customizable via UI without coding."
+      }
+    }
+  ]
+}
+            </script>
+
+            <!-- Breadcrumb Schema (for SERPs) -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "AI Solutions", "item": "https://xamltech.com/ai-solutions"},
+    {"@type": "ListItem", "position": 3, "name": "Blog", "item": "https://xamltech.com/insights"},
+    {"@type": "ListItem", "position": 4, "name": "AI Marketing Copilot", "item": "https://xamltech.com/insights/ai-marketing-copilot"}
+  ]
+}
+            </script>
+        </xpath>
+    </template>
+
+    <template id="blog_ai_pos_seo" inherit_id="xamltech_addons_store.blog_ai_pos_copilot" priority="99">
+        <xpath expr="//script[@type='application/ld+json'][1]" position="after">
+            <!-- Software Application Schema -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot",
+  "name": "AI POS Copilot for Odoo",
+  "alternateName": ["AI POS", "POS Upsell AI", "Real-Time POS Recommendations"],
+  "description": "Real-time AI upsell suggestions in Point of Sale. Analyzes customer cart, purchase history, and inventory to suggest complementary products. Increases basket size by 24% on average. Bilingual (Arabic + English).",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Odoo 19",
+  "version": "19.0.1.0.1",
+  "releaseDate": "2025-03-15",
+  "url": "https://xamltech.com/ai-solutions",
+  "downloadUrl": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot",
+  "fileSize": "1.8MB",
+  "author": {
+    "@type": "Organization",
+    "@id": "https://xamltech.com/#organization",
+    "name": "XamlTech",
+    "url": "https://xamltech.com"
+  },
+  "offers": {
+    "@type": "Offer",
+    "@id": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot#offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "url": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot"
+  },
+  "featureList": [
+    "Real-time product suggestion widget",
+    "Analyzes customer cart contents",
+    "Checks purchase history",
+    "Inventory-aware (only suggests in-stock items)",
+    "Bilingual interface (Arabic + English)",
+    "RTL support",
+    "Ultra-fast response (&lt;100ms)",
+    "Conversion tracking and analytics",
+    "Customizable suggestion rules",
+    "Compatible with all POS screens",
+    "Zero configuration required",
+    "Machine learning ranking by relevance"
+  ],
+  "screenshot": [
+    {
+      "@type": "ImageObject",
+      "url": "https://xamltech.com/ai-pos-copilot/widget.png",
+      "name": "POS Copilot Widget"
+    },
+    {
+      "@type": "ImageObject",
+      "url": "https://xamltech.com/ai-pos-copilot/dashboard.png",
+      "name": "Conversion Analytics"
+    }
+  ],
+  "softwareRequirements": "Odoo 19 (Community or Enterprise Edition), point_of_sale module",
+  "permissions": "Read/Write access to POS orders, product inventory"
+}
+            </script>
+
+            <!-- FAQ Schema -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How much will AI POS Copilot increase my sales?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Real deployments show 24% average basket size increase. Retail chains report 42% suggestion acceptance rate. For a store with 200 daily transactions at 100 EGP avg., that's 3,360,000 EGP extra monthly revenue (+24%)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Will my cashiers resist the AI suggestions?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The suggestion appears as a sidebar widget that doesn't interrupt checkout. Cashiers click 'add' in 1 tap or ignore it. No training required. Usage is 85%+."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I customize which products are suggested?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Tag products as complementary (shoes + socks, coffee + pastry). The system learns from your tagging and user behavior. Rule engine available for advanced setups."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work with slow-moving inventory?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. AI POS Copilot can suggest overstocked items to clear them. Useful for seasonal stock, end-of-life products, clearance sales."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What languages are supported?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Fully bilingual: Arabic (RTL) and English. Interface, product names, and prompts adapt automatically. Easy to add more languages."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does it handle new products?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "New products are suggested based on category tags and similarity to existing products. No manual tagging required, but tagging improves accuracy."
+      }
+    }
+  ]
+}
+            </script>
+
+            <!-- Breadcrumb Schema -->
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "AI Solutions", "item": "https://xamltech.com/ai-solutions"},
+    {"@type": "ListItem", "position": 3, "name": "Blog", "item": "https://xamltech.com/insights"},
+    {"@type": "ListItem", "position": 4, "name": "AI POS Copilot", "item": "https://xamltech.com/insights/ai-pos-copilot"}
+  ]
+}
+            </script>
+        </xpath>
+    </template>
+
+    <template id="xamltech_organization_schema" name="XamlTech Organization">
+        <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://xamltech.com/#organization",
+  "name": "XamlTech",
+  "url": "https://xamltech.com",
+  "logo": "https://xamltech.com/logo.svg",
+  "description": "Odoo 19 ERP solutions, AI copilots for marketing and POS, web development, network infrastructure, and CCTV surveillance in Egypt.",
+  "sameAs": [
+    "https://www.facebook.com/xamltech",
+    "https://www.linkedin.com/company/xamltech",
+    "https://github.com/xamltech",
+    "https://apps.odoo.com/apps/modules/browse?search=xamltech"
+  ],
+  "contact": {
+    "@type": "ContactPoint",
+    "contactType": "Customer Service",
+    "telephone": "+201007982468",
+    "email": "mahmudamen@gmail.com",
+    "availableLanguage": ["ar", "en"]
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Aswan",
+    "addressCountry": "EG"
+  },
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "XamlTech Odoo Modules",
+    "url": "https://apps.odoo.com/apps/modules/browse?search=xamltech",
+    "itemListElement": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "AI Marketing Copilot",
+        "url": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot",
+        "applicationCategory": "MarketingApplication"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "AI POS Copilot",
+        "url": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot",
+        "applicationCategory": "BusinessApplication"
+      }
+    ]
+  },
+  "knowsAbout": [
+    "Odoo 19",
+    "Odoo ERP",
+    "Point of Sale",
+    "AI/Machine Learning",
+    "Web Development",
+    "Network Infrastructure",
+    "CCTV Surveillance"
+  ]
+}
+        </script>
+    </template>
+</odoo>

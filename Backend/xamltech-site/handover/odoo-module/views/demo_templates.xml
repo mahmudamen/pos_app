@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="demo_page" name="XamlTech Demo">
+        <t t-call="website.layout"><t t-set="title">Try Odoo POS Live Demo Free — XamlTech Cutting Orders &amp; Stock Modules</t>
+            <t t-set="meta_description">Request a free live demo of XamlTech Odoo POS modules: cutting orders for textile, real-time stock sync, security framework. No credit card needed.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><p class="xt-tag">🖥️ Live Odoo 19 Demo</p><h1 class="xt-hero__h1" style="font-size:40px;">Try Our POS Addons Live</h1><p class="xt-hero__sub" style="max-width:560px;margin:0 auto;">Enter your details and get instant access to demo18.xamltech.com</p></div></section>
+            <section class="xt-sec xt-sec--dark" style="padding:40px 0 80px;"><div class="xt-c" style="max-width:480px;">
+                <div class="xt-card" style="padding:32px;"><h3>🖥️ Demo Access</h3><p style="color:rgba(255,255,255,0.5);margin-bottom:24px;">Fill in — get instant credentials</p>
+                <div class="xt-fg"><label class="xt-lbl">Name *</label><input type="text" id="demo-name" class="xt-inp" placeholder="Your name"/></div>
+                <div class="xt-fg"><label class="xt-lbl">WhatsApp *</label><input type="tel" id="demo-wa" class="xt-inp" placeholder="+20 1XX XXX XXXX"/></div>
+                <div class="xt-fg"><label class="xt-lbl">Interested In</label><select id="demo-interest" class="xt-inp xt-sel"><option value="Agriculture">🌾 Agriculture Management</option><option value="All POS">All POS Addons</option><option value="Cutting">POS Cutting</option><option value="Stock">POS Stock</option><option value="Security">POS Security</option></select></div>
+                <button type="button" id="demo-submit" class="xt-btn xt-btn--primary" style="width:100%;margin-top:18px;">🚀 Get Demo Access</button>
+                <div id="demo-status" class="xt-status"/></div>
+            </div></section>
+            <div id="demo-modal" class="xt-modal" style="display:none;"><div class="xt-modal__bg"/><div class="xt-modal__box"><button type="button" class="xt-modal__x" id="modal-close">✕</button><div style="font-size:48px;margin-bottom:12px;">🎉</div><h3 style="font-size:22px;font-weight:800;margin-bottom:8px;">Demo Ready!</h3><div class="xt-creds"><div class="xt-cred"><span>URL</span><strong>demo18.xamltech.com</strong></div><div class="xt-cred"><span>User</span><strong>demo</strong></div><div class="xt-cred"><span>Pass</span><strong>demo</strong></div></div><a href="https://demo18.xamltech.com/odoo/point-of-sale" target="_blank" class="xt-btn xt-btn--primary" style="width:100%;margin-top:16px;">Open POS Demo →</a><a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa" style="width:100%;margin-top:8px;">💬 WhatsApp</a></div></div>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

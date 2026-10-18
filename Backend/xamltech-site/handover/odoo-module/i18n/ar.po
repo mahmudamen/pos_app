@@ -1,0 +1,756 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* xamltech_addons_store
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-18 21:50+0000\n"
+"PO-Revision-Date: 2026-03-18 22:00+0200\n"
+"Last-Translator: Mahmoud Amen <mahmudamen@gmail.com>\n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon_category__addon_count
+msgid "# Addons"
+msgstr "عدد الإضافات"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__accent_color
+msgid "Accent Color"
+msgstr "اللون المميز"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_access_control
+msgid "Access Control"
+msgstr "التحكم في الوصول"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.category,name:xamltech_addons_store.category_accounting
+msgid "Accounting"
+msgstr "المحاسبة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__message_needaction
+msgid "Action Needed"
+msgstr "إجراء مطلوب"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon_category__active
+msgid "Active"
+msgstr "نشط"
+
+
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon_image__addon_id
+msgid "Addon"
+msgstr "الإضافة"
+
+#. module: xamltech_addons_store
+#: model:ir.model,name:xamltech_addons_store.model_xamltech_addon_category
+msgid "Addon Category"
+msgstr "فئة الإضافة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__name
+msgid "Addon Name"
+msgstr "اسم الإضافة"
+
+#. module: xamltech_addons_store
+#: model:ir.model,name:xamltech_addons_store.model_xamltech_addon_image
+msgid "Addon Screenshot"
+msgstr "لقطة شاشة الإضافة"
+
+#. module: xamltech_addons_store
+#: model:ir.model,name:xamltech_addons_store.model_xamltech_addon_tag
+msgid "Addon Tag"
+msgstr "وسم الإضافة"
+
+#. module: xamltech_addons_store
+#: model:ir.actions.act_window,name:xamltech_addons_store.xamltech_addon_action
+msgid "Addons"
+msgstr "الإضافات"
+
+#. module: xamltech_addons_store
+#: model:ir.ui.menu,name:xamltech_addons_store.menu_xamltech_store_root
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Addons Store"
+msgstr "متجر الإضافات"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__badge__advanced
+msgid "Advanced"
+msgstr "متقدم"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.category,name:xamltech_addons_store.category_agriculture
+msgid "Agriculture"
+msgstr "الزراعة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Al Helal Hospital"
+msgstr "مستشفى الهلال الأحمر"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Analyze business needs and determine optimal strategy"
+msgstr "تحليل احتياجات العمل وتحديد الاستراتيجية المثلى"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__state__archived
+msgid "Archived"
+msgstr "مؤرشف"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__rating
+msgid "Average Rating"
+msgstr "متوسط التقييم"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__badge
+msgid "Badge"
+msgstr "الشارة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__badge__best_seller
+msgid "Best Seller"
+msgstr "الأكثر مبيعاً"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.infra_page
+msgid "Book a Site Visit"
+msgstr "احجز زيارة موقع"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Business Intelligence"
+msgstr "ذكاء الأعمال"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__can_publish
+msgid "Can Publish"
+msgstr "يمكن النشر"
+
+#. module: xamltech_addons_store
+#: model:ir.actions.act_window,name:xamltech_addons_store.xamltech_addon_category_action
+msgid "Categories"
+msgstr "الفئات"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__category_id
+msgid "Category"
+msgstr "الفئة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Company"
+msgstr "الشركة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Complete ERP for Your Business"
+msgstr "نظام ERP متكامل لأعمالك"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Comprehensive training and ongoing support"
+msgstr "تدريب شامل ودعم مستمر"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Consulting &amp; Support"
+msgstr "الاستشارات والدعم الفني"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.contact_page
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Contact Us"
+msgstr "تواصل معنا"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Corporate Sites"
+msgstr "مواقع الشركات"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__create_uid
+msgid "Created by"
+msgstr "أنشئ بواسطة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__create_date
+msgid "Created on"
+msgstr "أنشئ في"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__currency_id
+msgid "Currency"
+msgstr "العملة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__version
+msgid "Current Version"
+msgstr "الإصدار الحالي"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Custom configuration of modules and features"
+msgstr "تهيئة مخصصة للموديولات والمميزات"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_customization
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Customization"
+msgstr "التخصيص"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_cutting
+msgid "Cutting"
+msgstr "القص"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Cybersecurity &amp; Protection"
+msgstr "الأمن السيبراني والحماية"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.demo_page
+msgid "Demo Ready!"
+msgstr "التجربة جاهزة!"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon_category__description
+msgid "Description"
+msgstr "الوصف"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Design"
+msgstr "التصميم"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Design &amp; Setup"
+msgstr "التصميم والإعداد"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Development"
+msgstr "التطوير"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Digital Transformation"
+msgstr "التحول الرقمي"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__display_name
+msgid "Display Name"
+msgstr "اسم العرض"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__downloads_count
+msgid "Downloads"
+msgstr "التحميلات"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__state__draft
+msgid "Draft"
+msgstr "مسودة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "E-Commerce"
+msgstr "التجارة الإلكترونية"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "ERP Systems (Odoo)"
+msgstr "أنظمة ERP (Odoo)"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__badge__essential
+msgid "Essential"
+msgstr "أساسي"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__is_featured
+msgid "Featured"
+msgstr "مميز"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.infra_page
+msgid "Firewall &amp; VPN"
+msgstr "جدار الحماية و VPN"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__message_follower_ids
+msgid "Followers"
+msgstr "المتابعون"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__full_description
+msgid "Full Description"
+msgstr "الوصف الكامل"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Furkan Surgical Center"
+msgstr "مركز الفرقان التخصصي"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Get Quote"
+msgstr "اطلب عرض سعر"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__github_url
+msgid "GitHub Repository"
+msgstr "مستودع GitHub"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.addon_detail_page
+msgid "Home"
+msgstr "الرئيسية"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__id
+msgid "ID"
+msgstr "المعرف"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "IT Services &amp; Technology"
+msgstr "خدمات تكنولوجيا المعلومات"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "IT Infrastructure"
+msgstr "البنية التحتية"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon_image__image
+msgid "Image"
+msgstr "الصورة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Implementation"
+msgstr "التنفيذ"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Implementation Methodology"
+msgstr "منهجية التنفيذ"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Industries We Serve with Odoo"
+msgstr "القطاعات التي نخدمها"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Information Security"
+msgstr "أمن المعلومات"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Integration"
+msgstr "التكامل"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.demo_page
+msgid "Interested In"
+msgstr "مهتم بـ"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.category,name:xamltech_addons_store.category_inventory
+msgid "Inventory"
+msgstr "المخزون"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__is_published
+msgid "Is Published"
+msgstr "منشور"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.write_date
+msgid "Last Updated by"
+msgstr "آخر تحديث بواسطة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Let's Talk →"
+msgstr "تحدث معنا →"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_manufacturing
+msgid "Manufacturing"
+msgstr "التصنيع"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__message_ids
+msgid "Messages"
+msgstr "الرسائل"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Module development and third-party integration"
+msgstr "تطوير الموديولات والتكامل مع أنظمة خارجية"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon_category__name
+msgid "Name"
+msgstr "الاسم"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Network &amp; Server Management"
+msgstr "إدارة الشبكات والسيرفرات"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__badge__new
+msgid "New"
+msgstr "جديد"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Odoo &amp; ERP Solutions"
+msgstr "حلول Odoo و ERP"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__odoo_store_url
+msgid "Odoo Apps Store URL"
+msgstr "رابط متجر Odoo"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Our ERP Services"
+msgstr "خدمات ERP"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Our Partners"
+msgstr "شركاؤنا"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Our Published Addons"
+msgstr "إضافاتنا المنشورة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Our Services"
+msgstr "خدماتنا"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_pos
+msgid "POS"
+msgstr "نقاط البيع"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Packages"
+msgstr "الباقات"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Partners &amp; Portfolio"
+msgstr "الشركاء والأعمال"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Past Work"
+msgstr "أعمالنا السابقة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.contact_page
+msgid "Phone"
+msgstr "الهاتف"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.category,name:xamltech_addons_store.category_pos
+msgid "Point of Sale"
+msgstr "نقاط البيع"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__badge__popular
+msgid "Popular"
+msgstr "شائع"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Portfolio"
+msgstr "أعمالنا"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.store_page
+msgid "Premium Odoo Addons"
+msgstr "إضافات Odoo المميزة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__price
+msgid "Price (EUR)"
+msgstr "السعر (يورو)"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__state__published
+msgid "Published"
+msgstr "منشور"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "REQ Analysis"
+msgstr "تحليل المتطلبات"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_realtime
+msgid "Real-Time"
+msgstr "فوري"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Ready to Transform Your Business?"
+msgstr "هل أنت مستعد للتحول الرقمي؟"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Ready to Start Your ERP Project?"
+msgstr "مستعد لبدء مشروع ERP؟"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Request Demo"
+msgstr "طلب تجربة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.infra_page
+msgid "Request a Quote →"
+msgstr "اطلب عرض سعر →"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__reviews_count
+msgid "Number of Reviews"
+msgstr "عدد المراجعات"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_security
+msgid "Security"
+msgstr "الأمان"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.contact_page
+msgid "Send Message"
+msgstr "إرسال الرسالة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.contact_page
+msgid "Send a Message"
+msgstr "أرسل رسالة"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__sequence
+msgid "Sequence"
+msgstr "التسلسل"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__description
+msgid "Short Description"
+msgstr "وصف مختصر"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Software Development"
+msgstr "تطوير البرمجيات"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Solutions"
+msgstr "الحلول"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__state
+msgid "Status"
+msgstr "الحالة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.contact_page
+msgid "Subject"
+msgstr "الموضوع"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Support"
+msgstr "الدعم الفني"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__tag_ids
+msgid "Tags"
+msgstr "الوسوم"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Team"
+msgstr "الفريق"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.category,name:xamltech_addons_store.category_technical
+msgid "Technical"
+msgstr "تقني"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__slug
+msgid "Technical Name"
+msgstr "الاسم التقني"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_textile
+msgid "Textile"
+msgstr "النسيج"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields.selection,name:xamltech_addons_store.selection__xamltech_addon__badge__top_rated
+msgid "Top Rated"
+msgstr "الأعلى تقييماً"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.erp_page
+msgid "Training"
+msgstr "التدريب"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Try Our POS Addons Live"
+msgstr "جرّب إضافات نقاط البيع مباشرة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "UAT Testing"
+msgstr "اختبار القبول"
+
+#. module: xamltech_addons_store
+#: model:xamltech.addon.tag,name:xamltech_addons_store.tag_ui
+msgid "UI/UX"
+msgstr "واجهة المستخدم"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "UI/UX Design"
+msgstr "تصميم واجهات المستخدم"
+
+#. module: xamltech_addons_store
+#: model:ir.model.fields,field_description:xamltech_addons_store.field_xamltech_addon__website_published
+msgid "Visible on current website"
+msgstr "مرئي على الموقع الحالي"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.portfolio_page
+msgid "Want to Be Our Next Success Story?"
+msgstr "هل تريد أن تكون قصة نجاحنا القادمة؟"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Web Applications"
+msgstr "تطبيقات الويب"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Web Design &amp; Development"
+msgstr "تطوير وبرمجة المواقع"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "Web Development"
+msgstr "تطوير المواقع"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.xt_footer_block
+msgid "WhatsApp"
+msgstr "واتساب"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Why Choose XamlTech?"
+msgstr "لماذا تختار زامل تك؟"
+
+#. module: xamltech_addons_store
+#: model:ir.model,name:xamltech_addons_store.model_xamltech_addon
+msgid "XamlTech Odoo Addon"
+msgstr "إضافة زامل تك لـ Odoo"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "A Professional Website That Delivers Results"
+msgstr "موقع احترافي يحقق نتائج"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "What We Build"
+msgstr "ماذا نبني"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Our Work"
+msgstr "أعمالنا"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Start Your Project →"
+msgstr "ابدأ مشروعك →"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.store_page
+msgid "addons"
+msgstr "إضافة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.infra_page
+msgid "Need a Network or CCTV Quote?"
+msgstr "تحتاج عرض سعر لشبكات أو كاميرات؟"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Ready for a Website That Works?"
+msgstr "مستعد لموقع يعمل بكفاءة؟"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "SEO"
+msgstr "تحسين محركات البحث"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Responsive Design"
+msgstr "تصميم متجاوب"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.web_dev_page
+msgid "Maintenance"
+msgstr "الصيانة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.infra_page
+msgid "CCTV &amp; Security"
+msgstr "كاميرات المراقبة والأمن"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "CCTV &amp; Surveillance"
+msgstr "كاميرات المراقبة"
+
+#. module: xamltech_addons_store
+#: model_terms:ir.ui.view,arch_db:xamltech_addons_store.homepage
+msgid "Networking &amp; CCTV Solutions"
+msgstr "حلول الشبكات والمراقبة"

@@ -1,0 +1,98 @@
+{
+  "en": {
+    "meta": {
+      "title": "Customer Success Stories: How XamlTech Transformed Business Operations",
+      "description": "Real businesses, real results. Hospitals, retailers and enterprises on transforming operations with XamlTech ERP, POS and IT infrastructure.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "⭐⭐⭐⭐⭐ 4.8/5 average rating",
+        "title": "Customer success stories",
+        "lead": "Real businesses, real results. See how hospitals, retailers and enterprises transformed their operations with XamlTech solutions.",
+        "ctas": [
+          { "label": "Start your project", "href": "/contact-us?lang=en", "style": "primary", "big": true },
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "ghost", "big": true }
+        ]
+      }},
+      { "partial": "stats", "data": {
+        "title": "Success metrics",
+        "items": [
+          { "v": "40+", "l": "Organisations served" },
+          { "v": "1M+", "l": "Transactions processed" },
+          { "v": "+30%", "l": "Avg. ROI improvement" },
+          { "v": "2–6wk", "l": "Avg. deployment time" }
+        ]
+      }},
+      { "partial": "testimonials", "data": {
+        "alt": true,
+        "eyebrow": "What our clients say",
+        "title": "Trusted by 40+ organisations",
+        "sub": "Across healthcare, retail and manufacturing.",
+        "items": [
+          { "stars": "★★★★★", "quote": "XamlTech completely transformed our hospital's IT infrastructure. The CCTV system is reliable, the network design handles 200+ concurrent users without lag, and the support is outstanding.", "name": "Dr. Ahmed Hassan", "role": "Administrator, Furkan Surgical Center" },
+          { "stars": "★★★★★", "quote": "The POS Cutting Orders module saved us hours daily. Before, cutting operations were manual and error-prone. Now everything is tracked in real time.", "name": "Marwa Sayed", "role": "Manager, Al-Ghazl Al-Arabi Trading" },
+          { "stars": "★★★★★", "quote": "Working with XamlTech on our farm ERP was seamless. Their agriculture expertise is unmatched — they understand crop cycles, harvest planning and work order logic.", "name": "Khalid Amin", "role": "CEO, Qatf Company (Agriculture)" },
+          { "stars": "★★★★★", "quote": "ZATCA compliance for Saudi Arabia was a nightmare until XamlTech stepped in. They handled XML generation, QR codes and the government portal integration.", "name": "Noor Al-Rashid", "role": "IT Director, Saudi Trading Group" }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to transform your business?",
+        "text": "Join 40+ organisations that trust XamlTech for mission-critical solutions.",
+        "actions": [
+          { "label": "Contact us", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "قصص نجاح العملاء: كيف غيّرت زامل تك عمليات الأعمال",
+      "description": "أعمال حقيقية ونتائج حقيقية. مستشفيات وشركات تجزئة ومؤسسات تحوّل عملياتها مع حلول زامل تك لأنظمة ERP ونقاط البيع والبنية التحتية.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "⭐⭐⭐⭐⭐ تقييم 4.8/5",
+        "title": "قصص نجاح العملاء",
+        "lead": "أعمال حقيقية ونتائج حقيقية. اكتشف كيف حوّل عملاؤنا من مستشفيات وشركات تجزئة ومؤسسات عملياتهم مع حلول زامل تك.",
+        "ctas": [
+          { "label": "ابدأ مشروعك", "href": "/contact-us", "style": "primary", "big": true },
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "ghost", "big": true }
+        ]
+      }},
+      { "partial": "stats", "data": {
+        "title": "مؤشرات النجاح",
+        "items": [
+          { "v": "+40", "l": "مؤسسة نخدمها" },
+          { "v": "مليون+", "l": "عملية معالجة" },
+          { "v": "+30%", "l": "متوسط تحسن العائد" },
+          { "v": "2–6 أسابيع", "l": "متوسط زمن التنفيذ" }
+        ]
+      }},
+      { "partial": "testimonials", "data": {
+        "alt": true,
+        "eyebrow": "ماذا يقول عملاؤنا",
+        "title": "موثوقون من أكثر من 40 مؤسسة",
+        "sub": "في القطاع الصحي والتجزئة والتصنيع.",
+        "items": [
+          { "stars": "★★★★★", "quote": "غيّرت زامل تك بنية مستشفانا التحتية بالكامل. نظام الكاميرات موثوق، وتصميم الشبكة يتحمل أكثر من 200 مستخدم متزامن دون تأخر، والدعم ممتاز.", "name": "د. أحمد حسن", "role": "مدير مركز الفرقان التخصصي" },
+          { "stars": "★★★★★", "quote": "موديول أوامر القص وفّر علينا ساعات يومياً. قبل ذلك كانت عمليات القص يدوية ومعرضة للأخطاء، والآن كل شيء متتبع لحظياً.", "name": "مروة سيد", "role": "مديرة، الغزل العربي للتجارة" },
+          { "stars": "★★★★★", "quote": "كان العمل مع زامل تك على نظام ERP الزراعي سلساً. خبرتهم الزراعية لا مثيل لها — يفهمون دورات المحاصيل وتخطيط الحصاد ومنطق أوامر العمل.", "name": "خالد أمين", "role": "الرئيس التنفيذي، شركة قطف للزراعة" },
+          { "stars": "★★★★★", "quote": "كان توافق ZATCA للسعودية كابوساً حتى تدخلت زامل تك. تولّوا توليد XML ورموز QR وتكامل البوابة الحكومية.", "name": "نور الرشيد", "role": "مدير تقنية المعلومات، مجموعة تجارية سعودية" }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "مستعد لتحويل أعمالك؟",
+        "text": "انضم لأكثر من 40 مؤسسة تثق بزامل تك للحلول الحرجة.",
+        "actions": [
+          { "label": "تواصل معنا", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

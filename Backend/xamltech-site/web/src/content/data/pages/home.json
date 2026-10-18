@@ -1,0 +1,244 @@
+{
+  "en": {
+    "meta": {
+      "title": "XamlTech — Odoo ERP, POS & IT Infrastructure in Egypt",
+      "description": "XamlTech implements, customises and supports Odoo ERP, point-of-sale and IT infrastructure across Egypt — with custom modules published on the official Odoo Apps Store.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "Odoo 16–19 Partner · Aswan, Egypt",
+      "title": "ERP and POS that run like they were built for you.",
+      "accent": "Because they were.",
+      "lead": "We implement, customise and support Odoo ERP, point-of-sale and the infrastructure behind them — publishing our own modules on the official Odoo Apps Store.",
+      "ctas": [
+        { "label": "Request a demo", "href": "/request-demo", "style": "primary", "big": true },
+        { "label": "Explore solutions", "href": "/solutions/erp", "style": "ghost", "big": true }
+      ],
+      "media": { "src": "/static/img/pos-light.png", "alt": "XamlTech Odoo POS — live register", "window": true, "caption": "pos.xamltech.com", "live": "Live" },
+      "stats": [
+        { "v": "40+", "l": "Organizations served" },
+        { "v": "180+", "l": "Open-source repositories" },
+        { "v": "8", "l": "Published Odoo addons" },
+        { "v": "16–19", "l": "Odoo versions mastered" }
+      ]
+    },
+    "chips": {
+      "items": ["ERP & POS", "Accounting & HR", "Networks & Servers", "CCTV & Access", "Web & Apps", "Cybersecurity", "Cloud & Hosting", "AI Copilots"]
+    },
+    "why": {
+      "eyebrow": "Why XamlTech",
+      "title": "Why teams across Egypt choose us",
+      "sub": "One partner for the whole stack — from the ERP that runs your business to the network and cameras that protect it.",
+      "cols": 3,
+      "items": [
+        { "icon": "🏅", "title": "Real Odoo partner experience", "text": "Odoo 16 through 19 implementation, customisation and migration — with modules published and sold on the official Odoo Apps Store." },
+        { "icon": "📍", "title": "Local Upper-Egypt support", "text": "Based in Aswan with on-site support, Arabic-first workflows and response times that remote-only vendors cannot match." },
+        { "icon": "🧩", "title": "End-to-end delivery", "text": "ERP, POS, networking, CCTV, hosting, web and AI under one roof — no finger-pointing between vendors." },
+        { "icon": "🛡️", "title": "Security-first engineering", "text": "Vulnerability assessment, encryption, access control, backups and disaster recovery built into every deployment." },
+        { "icon": "⚙️", "title": "Custom modules that fit", "text": "Fabric cutting, agriculture, healthcare, ZATCA e-invoicing — we build the vertical logic your business actually needs." },
+        { "icon": "🤖", "title": "AI where it pays off", "text": "AI POS and marketing copilots that optimise budgets and upsell in real time, with graceful degradation when offline." }
+      ]
+    },
+    "services": {
+      "alt": true,
+      "eyebrow": "Our services",
+      "title": "Complete technology services",
+      "sub": "Comprehensive technology solutions to accelerate your business growth.",
+      "cols": 3,
+      "items": [
+        { "icon": "🖥️", "title": "IT Services", "text": "Full IT infrastructure — provisioning, setup and maintenance." },
+        { "icon": "💻", "title": "Software Development", "text": "Custom software and app development — Python, JS, Android, iOS." },
+        { "icon": "🌐", "title": "Web Development", "text": "Professional websites and web applications, built and managed." },
+        { "icon": "🔄", "title": "Digital Transformation", "text": "Modernise operations and automate workflows end to end." },
+        { "icon": "🔗", "title": "Network & Server Management", "text": "Design, deploy and monitor networks and server systems." },
+        { "icon": "📊", "title": "ERP Systems (Odoo)", "text": "Odoo implementation and customisation — POS, accounting, inventory, HR." },
+        { "icon": "🔐", "title": "Information Security", "text": "Vulnerability assessment, encryption and access control." },
+        { "icon": "📹", "title": "CCTV & Surveillance", "text": "IP cameras, DVR/NVR systems, remote monitoring and security." },
+        { "icon": "🧭", "title": "Technical Consulting", "text": "Planning, implementation and maintenance of your technology stack." },
+        { "icon": "🛒", "title": "E-Commerce Solutions", "text": "Online stores with payment gateways, shipping and order management." },
+        { "icon": "☁️", "title": "Cloud & Hosting", "text": "VPS, cloud infrastructure, email hosting, backup and disaster recovery." },
+        { "icon": "📦", "title": "Hardware Supply", "text": "Servers, storage, network gear, laptops and workstations." },
+        { "icon": "📣", "title": "Digital Marketing & Ads", "text": "Strategy, social media management, Google, Facebook and Instagram ads." }
+      ]
+    },
+    "odoo": {
+      "eyebrow": "Odoo & ERP expertise",
+      "title": "Odoo specialists — not generalists",
+      "sub": "Deep specialisation in building and customising Odoo for real business operations.",
+      "cols": 3,
+      "items": [
+        { "icon": "🏗️", "title": "Odoo system engineering", "text": "Specialised development across accounting, point of sale, inventory and HR." },
+        { "icon": "🧱", "title": "Module customisation", "text": "Custom modules and integration with external systems and government portals." },
+        { "icon": "🥇", "title": "Published Odoo partner", "text": "Modules on the official Odoo store — years of Odoo 16–19 experience." }
+      ]
+    },
+    "method": {
+      "alt": true,
+      "eyebrow": "Our methodology",
+      "title": "A delivery process you can track",
+      "sub": "Structured phases keep scope clear and go-live predictable.",
+      "items": [
+        { "title": "Requirements analysis", "text": "We map your processes, data and constraints into a clear specification." },
+        { "title": "Design & configuration", "text": "Solution architecture, module selection and environment setup." },
+        { "title": "Development & integration", "text": "Custom modules, integrations and data migration, iterated with you." },
+        { "title": "Testing & acceptance", "text": "Functional and load testing against your real scenarios before go-live." },
+        { "title": "Training & support", "text": "Hands-on training, documentation and ongoing technical support." }
+      ]
+    },
+    "demo": {
+      "eyebrow": "⚡ Live demo",
+      "title": "See it in action — try our POS addons live",
+      "sub": "Watch the system work in real time, then request free access.",
+      "cols": 2,
+      "items": [
+        { "icon": "✂️", "title": "Fabric cutting from POS", "text": "Create cutting orders directly from the point of sale." },
+        { "icon": "📦", "title": "Live inventory updates", "text": "Stock badges refresh across every session in real time." },
+        { "icon": "🔑", "title": "Manager PIN & discount limits", "text": "Role-based access, discount caps and manager overrides." },
+        { "icon": "🎨", "title": "Themes, dark & light mode", "text": "A flexible Arabic-first POS UI with theme switching." }
+      ]
+    },
+    "addons": {
+      "alt": true,
+      "eyebrow": "Our work",
+      "title": "Published Odoo addons",
+      "sub": "Production-tested modules available on the Odoo Apps Store.",
+      "cols": 3,
+      "cta": { "label": "Visit the addons store", "href": "/addons-store" },
+      "items": [
+        { "icon": "✂️", "title": "POS Cutting Orders", "text": "Fabric cutting-order management from the point of sale with real-time tracking and OWL v2 UI." },
+        { "icon": "📦", "title": "POS Stock Real-Time", "text": "Real-time inventory synchronisation across all sessions with live badges and warehouse sync." },
+        { "icon": "🔐", "title": "POS Security Framework", "text": "Manager PIN validation, discount limits and multi-layer session security." }
+      ]
+    },
+    "cta": {
+      "title": "Ready for your digital transformation?",
+      "text": "Whether you need a custom ERP system or complete infrastructure, our team is ready to help.",
+      "actions": [
+        { "label": "Request a demo", "href": "/request-demo", "style": "primary" },
+        { "label": "Talk to us on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa" }
+      ]
+    }
+  },
+  "ar": {
+    "meta": {
+      "title": "زامل تك — أنظمة Odoo ERP ونقاط البيع والبنية التحتية في مصر",
+      "description": "نُنفّذ ونخصّص وندعم أنظمة Odoo ERP ونقاط البيع والبنية التحتية التقنية في مصر — مع موديولات مخصصة منشورة على متجر Odoo الرسمي.",
+      "og_image": "https://xamltech.com/static/img/pos-rtl.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "شريك Odoo 16–19 · أسوان، مصر",
+      "title": "أنظمة ERP ونقاط بيع تعمل وكأنها صُنعت من أجلك.",
+      "accent": "لأنها كذلك فعلاً.",
+      "lead": "نُنفّذ ونخصّص وندعم أنظمة Odoo ERP ونقاط البيع والبنية التحتية القائمة عليها — وننشر موديولاتنا الخاصة على متجر Odoo الرسمي.",
+      "ctas": [
+        { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary", "big": true },
+        { "label": "استكشف الحلول", "href": "/solutions/erp", "style": "ghost", "big": true }
+      ],
+      "media": { "src": "/static/img/pos-rtl.png", "alt": "نقطة بيع زامل تك — كاشير مباشر", "window": true, "caption": "pos.xamltech.com", "live": "مباشر" },
+      "stats": [
+        { "v": "+40", "l": "مؤسسة نخدمها" },
+        { "v": "+180", "l": "مستودع مفتوح المصدر" },
+        { "v": "8", "l": "إضافات Odoo منشورة" },
+        { "v": "16–19", "l": "إصدارات Odoo المدعومة" }
+      ]
+    },
+    "chips": {
+      "items": ["ERP ونقاط البيع", "المحاسبة والموارد البشرية", "الشبكات والسيرفرات", "كاميرات المراقبة", "الويب والتطبيقات", "الأمن السيبراني", "السحابة والاستضافة", "مساعدو الذكاء الاصطناعي"]
+    },
+    "why": {
+      "eyebrow": "لماذا زامل تك",
+      "title": "لماذا تختارنا المؤسسات في مصر",
+      "sub": "شريك واحد لكل التقنيات — من نظام ERP الذي يدير أعمالك إلى الشبكة والكاميرات التي تحميها.",
+      "cols": 3,
+      "items": [
+        { "icon": "🏅", "title": "خبرة حقيقية كشريك Odoo", "text": "تنفيذ وتخصيص وترحيل Odoo من الإصدار 16 إلى 19، مع موديولات منشورة ومُباعة على متجر Odoo الرسمي." },
+        { "icon": "📍", "title": "دعم محلي في صعيد مصر", "text": "مقرنا أسوان مع دعم ميداني وسير عمل عربي أولاً واستجابة لا تستطيع الشركات عن بُعد تقديمها." },
+        { "icon": "🧩", "title": "تسليم متكامل", "text": "ERP ونقاط بيع وشبكات وكاميرات واستضافة وويب وذكاء اصطناعي تحت سقف واحد — دون تهرّب من المسؤولية." },
+        { "icon": "🛡️", "title": "هندسة تبدأ من الأمان", "text": "تقييم الثغرات والتشفير والتحكم في الوصول والنسخ الاحتياطي والتعافي من الكوارث في كل نشر." },
+        { "icon": "⚙️", "title": "موديولات مخصصة تناسبك", "text": "أوامر القص للأقمشة، الزراعة، الرعاية الصحية، فاتورة ZATCA الإلكترونية — نبني ما يحتاجه عملك فعلاً." },
+        { "icon": "🤖", "title": "ذكاء اصطناعي حيث يعود بالنفع", "text": "مساعدو نقاط البيع والتسويق الذين يحسّنون الميزانيات ويقترحون البيع الإضافي فورياً، مع تدرّج آمن عند انقطاع الشبكة." }
+      ]
+    },
+    "services": {
+      "alt": true,
+      "eyebrow": "خدماتنا",
+      "title": "خدمات تقنية شاملة",
+      "sub": "حلول تقنية متكاملة لتسريع نمو أعمالك.",
+      "cols": 3,
+      "items": [
+        { "icon": "🖥️", "title": "خدمات تكنولوجيا المعلومات", "text": "بنية تحتية متكاملة — التجهيز والإعداد والصيانة." },
+        { "icon": "💻", "title": "تصميم وتطوير البرمجيات", "text": "تطوير برمجيات وتطبيقات مخصصة — Python، JS، أندرويد، iOS." },
+        { "icon": "🌐", "title": "تطوير وبرمجة المواقع", "text": "تصميم وتطوير وإدارة مواقع وتطبيقات الويب الاحترافية." },
+        { "icon": "🔄", "title": "حلول التحول الرقمي", "text": "تحديث العمليات وأتمتة سير العمل من البداية للنهاية." },
+        { "icon": "🔗", "title": "إدارة الشبكات والسيرفرات", "text": "تصميم ونشر ومراقبة الشبكات وأنظمة السيرفرات." },
+        { "icon": "📊", "title": "أنظمة ERP (Odoo)", "text": "تنفيذ وتخصيص Odoo — نقاط بيع، محاسبة، مخزون، موارد بشرية." },
+        { "icon": "🔐", "title": "أمن المعلومات", "text": "تقييم الثغرات والتشفير والتحكم في الوصول." },
+        { "icon": "📹", "title": "كاميرات المراقبة", "text": "كاميرات IP، أنظمة DVR/NVR، مراقبة عن بُعد وحلول أمنية." },
+        { "icon": "🧭", "title": "الاستشارات التقنية والدعم", "text": "تخطيط وتنفيذ وصيانة بنيتك التقنية." },
+        { "icon": "🛒", "title": "حلول التجارة الإلكترونية", "text": "متاجر إلكترونية مع بوابات الدفع والشحن وإدارة الطلبات." },
+        { "icon": "☁️", "title": "الحلول السحابية والاستضافة", "text": "VPS وبنية سحابية واستضافة بريد ونسخ احتياطي وتعافي من الكوارث." },
+        { "icon": "📦", "title": "توريد الأجهزة والمعدات", "text": "سيرفرات وأنظمة تخزين وأجهزة شبكات ولابتوب ومحطات عمل." },
+        { "icon": "📣", "title": "التسويق الرقمي والإعلانات", "text": "استراتيجية وإدارة سوشيال ميديا وإعلانات Google وFacebook وInstagram." }
+      ]
+    },
+    "odoo": {
+      "eyebrow": "خبرة Odoo و ERP",
+      "title": "متخصصون في Odoo — لا عموميون",
+      "sub": "تخصص عميق في بناء وتخصيص Odoo لعمليات الأعمال الحقيقية.",
+      "cols": 3,
+      "items": [
+        { "icon": "🏗️", "title": "تقنية أنظمة Odoo", "text": "تطوير متخصص في المحاسبة ونقاط البيع والمخزون والموارد البشرية." },
+        { "icon": "🧱", "title": "تخصيص الموديولات", "text": "تطوير موديولات مخصصة والتكامل مع الأنظمة الخارجية والبوابات الحكومية." },
+        { "icon": "🥇", "title": "شريك Odoo منشور", "text": "موديولات على متجر Odoo الرسمي — سنوات من خبرة Odoo 16–19." }
+      ]
+    },
+    "method": {
+      "alt": true,
+      "eyebrow": "منهجية التنفيذ",
+      "title": "عملية تسليم يمكنك تتبعها",
+      "sub": "مراحل منظمة تُبقي النطاق واضحاً والإطلاق متوقعاً.",
+      "items": [
+        { "title": "تحليل المتطلبات", "text": "نحوّل عملياتك وبياناتك وقيودك إلى مواصفات واضحة." },
+        { "title": "التصميم والإعداد", "text": "هندسة الحل واختيار الموديولات وتجهيز البيئة." },
+        { "title": "التطوير والتكامل", "text": "موديولات مخصصة وتكاملات وترحيل بيانات، بتكرار مستمر معك." },
+        { "title": "الاختبار والقبول", "text": "اختبار وظيفي وتحمل على سيناريوهاتك الحقيقية قبل الإطلاق." },
+        { "title": "التدريب والدعم", "text": "تدريب عملي وتوثيق ودعم فني مستمر." }
+      ]
+    },
+    "demo": {
+      "eyebrow": "⚡ تجربة مباشرة",
+      "title": "شاهد النظام أثناء العمل — جرّب إضافات نقاط البيع مباشرة",
+      "sub": "تابع النظام لحظياً ثم اطلب وصولاً مجانياً.",
+      "cols": 2,
+      "items": [
+        { "icon": "✂️", "title": "القص من نقطة البيع", "text": "إنشاء أوامر القص مباشرة من نقطة البيع." },
+        { "icon": "📦", "title": "تحديثات مخزون فورية", "text": "تحديث شارات المخزون في كل الجلسات لحظياً." },
+        { "icon": "🔑", "title": "رقم PIN للمدير وحدود الخصم", "text": "صلاحيات حسب الدور وحدود للخصم وتجاوز المدير." },
+        { "icon": "🎨", "title": "ثيمات والنمط الداكن/الفاتح", "text": "واجهة نقاط بيع عربية مرنة مع تبديل الثيم." }
+      ]
+    },
+    "addons": {
+      "alt": true,
+      "eyebrow": "أعمالنا",
+      "title": "إضافات Odoo المنشورة",
+      "sub": "موديولات مُختبرة في الإنتاج ومتاحة على متجر Odoo.",
+      "cols": 3,
+      "cta": { "label": "زيارة متجر الإضافات", "href": "/addons-store" },
+      "items": [
+        { "icon": "✂️", "title": "أوامر القص في نقاط البيع", "text": "إدارة أوامر قص الأقمشة من نقطة البيع مع تتبع فوري وواجهة OWL v2." },
+        { "icon": "📦", "title": "مخزون نقاط البيع الفوري", "text": "مزامنة فورية للمخزون عبر كل الجلسات مع شارات حية ومزامنة المخازن." },
+        { "icon": "🔐", "title": "إطار أمان نقاط البيع", "text": "تحقق برقم PIN للمدير وحدود للخصم وأمان متعدد الطبقات للجلسات." }
+      ]
+    },
+    "cta": {
+      "title": "هل أنت مستعد للتحول الرقمي؟",
+      "text": "سواء كنت تحتاج نظام ERP مخصصاً أو بنية تحتية متكاملة، فريقنا جاهز لمساعدتك.",
+      "actions": [
+        { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary" },
+        { "label": "تواصل معنا على واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,63 @@
+# XamlTech - IT Solutions & Digital Transformation
+> Your trusted partner for IT solutions, Odoo ERP, networking, CCTV, and web development. Based in Aswan, Egypt.
+
+## Company
+- Founder: Mahmoud Amen
+- Co-founder: Osama M Salah
+- Location: Sahary, Aswan, Egypt
+- Phone: +201007982468
+- Email: mahmudamen@gmail.com
+- Website: https://xamltech.com
+- GitHub: https://github.com/mahmudamen (180+ repositories)
+
+## Open Source Projects (GitHub)
+- Hospital Management System (Flask): https://github.com/mahmudamen/hospital-flask-1
+- ERP System (ASP.NET MVC): https://github.com/mahmudamen/mvc-erp
+- Openrol (Python): https://github.com/mahmudamen/Openrol
+- Odoo Google Maps Module: https://github.com/mahmudamen/web_google_maps_drawing
+
+## Services
+- IT Services & Technology Infrastructure
+- Odoo ERP Implementation (v16-v19)
+- Custom Software & App Development (Python, JS, Android, iOS)
+- Web Design & Development
+- Network & Server Management
+- CCTV & Surveillance Systems
+- Information Security & Data Protection
+- Digital Transformation Consulting
+- Technical Support & Maintenance
+
+## Odoo Addons (Published on Odoo Apps Store)
+- [Advanced Agricultural Management](https://apps.odoo.com/apps/modules/19.0/agricultural_management): Complete farm-to-warehouse ERP for Odoo 19 — OWL Dashboard with Chart.js, 4-level farm hierarchy (Farm→Sector→Unit→House), real-time costing engine, 7-step production request workflow, harvest scheduling with Grade A/B/C sorting, full accounting & analytic integration, 12-section operations dashboard, multi-warehouse stock management, role-based security. Live demo: https://demo.xamltech.com (DB: demo, User: demo, Pass: demo)
+- [POS Cutting Orders](https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting): Fabric cutting management for textile POS - €149
+- [POS Stock Real-Time](https://apps.odoo.com/apps/modules/18.0/ma_rs_pos_stock): Live inventory sync across POS sessions - €129
+- [POS Security Framework](https://apps.odoo.com/apps/modules/18.0/ma_pos_base): Manager PIN, discount limits, session security - €99
+
+## Live Demos
+- Agriculture Management Demo: https://demo.xamltech.com/web/database/manager (Database: demo, User: demo, Password: demo)
+- POS Demo: https://demo18.xamltech.com (User: demo, Password: demo)
+
+## Important Pages
+- Homepage: https://xamltech.com/
+- ERP Solutions: https://xamltech.com/solutions/erp
+- IT Infrastructure: https://xamltech.com/solutions/it-infrastructure
+- Web Development: https://xamltech.com/solutions/web
+- Addons Store: https://xamltech.com/addons-store
+- Portfolio: https://xamltech.com/portfolio
+- Request Demo: https://xamltech.com/request-demo
+- Contact Us: https://xamltech.com/contact-us
+- Knowledge Base: https://xamltech.com/knowledge
+- Odoo POS Solutions: https://xamltech.com/odoo-pos-egypt
+- Agriculture ERP: https://xamltech.com/erp-agriculture-egypt
+
+## Partners
+- Furkan Surgical Center (مركز الفرقان التخصصي) - Hospital IT, CCTV, Networking
+- Al Helal Hospital (مستشفى الهلال الأحمر) - Hospital ERP, Network, CCTV
+
+## Industries Served
+- Healthcare & Hospitals
+- Textile & Fabric Retail
+- Agriculture (Farm Management)
+- Manufacturing
+- Finance & ZATCA Compliance
+- Retail & POS

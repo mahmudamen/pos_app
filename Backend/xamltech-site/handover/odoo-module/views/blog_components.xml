@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <!--
+        BLOG COMPONENT LIBRARY
+
+        Purpose: Reusable components for blog articles (DRY Principle)
+
+        SOLID Compliance:
+        - Single Responsibility: Each component does ONE thing
+        - Open/Closed: Extensible via t-set variables, not modification
+        - Liskov: All components follow same interface (content + styling)
+        - Interface Segregation: Focused props, no bloated components
+        - Dependency Inversion: Depends on CSS classes, not inline styles
+    -->
+
+    <!-- COMPONENT 1: Blog Problem Section -->
+    <template id="blog_section_problem" name="Blog Problem Section">
+        <section class="blog-section blog-section--problem">
+            <div class="xt-c">
+                <h2 class="blog-section__heading" t-raw="heading"/>
+                <div class="blog-section__content" t-raw="content_html"/>
+            </div>
+        </section>
+    </template>
+
+    <!-- COMPONENT 2: Blog Solution Section -->
+    <template id="blog_section_solution" name="Blog Solution Section">
+        <section class="blog-section blog-section--solution">
+            <div class="xt-c">
+                <h2 class="blog-section__heading" t-raw="heading"/>
+                <div class="blog-section__content" t-raw="content_html"/>
+            </div>
+        </section>
+    </template>
+
+    <!-- COMPONENT 3: Blog Case Study Card -->
+    <template id="blog_case_study" name="Blog Case Study">
+        <section t-att-class="'blog-case-study blog-case-study--' + color">
+            <div class="blog-case-study__content">
+                <h3 class="blog-case-study__title" t-raw="title"/>
+                <p class="blog-case-study__context" t-raw="context"/>
+
+                <h4 class="blog-case-study__subheading">Key Findings:</h4>
+                <div class="blog-case-study__findings" t-raw="findings"/>
+
+                <div class="blog-case-study__result">
+                    <p class="blog-case-study__result-text">
+                        <strong>✅ Result:</strong>
+                        <span t-raw="result"/>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- COMPONENT 4: Blog How-It-Works Steps -->
+    <template id="blog_section_howworks" name="Blog How It Works Section">
+        <section class="blog-section blog-section--howworks">
+            <div class="xt-c">
+                <h2 class="blog-section__heading" t-raw="heading"/>
+                <div class="blog-steps">
+                    <t t-foreach="steps" t-as="step">
+                        <div class="blog-step">
+                            <div class="blog-step__number">
+                                <t t-esc="step_index + 1"/>
+                            </div>
+                            <div class="blog-step__content">
+                                <h4 class="blog-step__title" t-esc="step['title']"/>
+                                <p class="blog-step__description" t-esc="step['desc']"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- COMPONENT 5: Blog Features Grid (2x3, 3x2, flexible) -->
+    <template id="blog_features_grid" name="Blog Features Grid">
+        <section class="blog-section blog-section--features">
+            <div class="xt-c">
+                <div class="blog-features">
+                    <t t-foreach="features" t-as="feature">
+                        <div class="blog-feature-card">
+                            <div class="blog-feature__icon" t-raw="feature['icon']"/>
+                            <h3 class="blog-feature__title" t-esc="feature['title']"/>
+                            <p class="blog-feature__description" t-esc="feature['desc']"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- COMPONENT 6: Blog FAQ Section (Expandable) -->
+    <template id="blog_faq_section" name="Blog FAQ Section">
+        <section class="blog-section blog-section--faq">
+            <div class="xt-c">
+                <h2 class="blog-section__heading">Frequently Asked Questions</h2>
+                <div class="blog-faq">
+                    <t t-foreach="faqs" t-as="faq">
+                        <div class="blog-faq__item">
+                            <button class="blog-faq__question" onclick="this.parentElement.querySelector('[data-content]').style.display = this.parentElement.querySelector('[data-content]').style.display === 'none' ? 'block' : 'none'">
+                                <span t-esc="faq['q']"/>
+                                <span class="blog-faq__toggle">+</span>
+                            </button>
+                            <div class="blog-faq__answer" data-content="" style="display:none;">
+                                <p t-esc="faq['a']"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- COMPONENT 7: Blog Stat Card (for hero section) -->
+    <template id="blog_stat_card" name="Blog Stat Card">
+        <div class="blog-stat">
+            <div class="blog-stat__number" t-esc="value"/>
+            <p class="blog-stat__label" t-esc="label"/>
+        </div>
+    </template>
+
+    <!-- COMPONENT 8: Blog Content Card -->
+    <template id="blog_content_card" name="Blog Content Card">
+        <div t-att-class="'blog-card blog-card--' + color">
+            <div class="blog-card__icon" t-raw="icon"/>
+            <h3 class="blog-card__title" t-esc="title"/>
+            <p class="blog-card__content" t-esc="content"/>
+        </div>
+    </template>
+
+    <!-- COMPONENT 9: Blog Image + Text Section (Flexible) -->
+    <template id="blog_image_text" name="Blog Image + Text Section">
+        <section t-att-class="'blog-image-text blog-image-text--' + position">
+            <div class="xt-c blog-image-text__container">
+                <div class="blog-image-text__image">
+                    <img t-att-src="image_url" t-att-alt="image_alt" class="blog-image-text__img"/>
+                </div>
+                <div class="blog-image-text__content">
+                    <h2 class="blog-image-text__heading" t-esc="heading"/>
+                    <div class="blog-image-text__text" t-raw="content_html"/>
+                </div>
+            </div>
+        </section>
+    </template>
+</odoo>

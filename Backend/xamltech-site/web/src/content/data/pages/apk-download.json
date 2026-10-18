@@ -1,0 +1,66 @@
+{
+  "en": {
+    "meta": {
+      "title": "Download Android Apps — XamlTech",
+      "description": "Request a secure download link for XamlTech Android apps such as Network Copilot. Links are reviewed and valid for 30 days.",
+      "og_image": "https://xamltech.com/static/img/networktool-dashboard.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "📲 Android downloads",
+      "title": "Request the app, download securely",
+      "lead": "Choose the app you want and fill in the form. After we review your request, you receive a secure download link valid for 30 days.",
+      "points": ["Secure, expiring links (30 days)", "Reviewed requests", "No public mirror with stale builds"],
+      "ctas": [
+        { "label": "Chat on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+      ]
+    },
+    "formTitle": "Request a download link",
+    "formSub": "After review we'll email you a secure, expiring download link.",
+    "submit": "Request download",
+    "privacyLabel": "Privacy Policy",
+    "products": [
+      "Network Copilot (Android 10+)"
+    ],
+    "cta": {
+      "title": "Need it for your team?",
+      "text": "We can provide builds for multiple devices and deployment guidance.",
+      "actions": [
+        { "label": "Contact us", "href": "/contact-us?lang=en", "style": "primary" },
+        { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+      ]
+    }
+  },
+  "ar": {
+    "meta": {
+      "title": "تحميل تطبيقات أندرويد — زامل تك",
+      "description": "اطلب رابط تحميل آمناً لتطبيقات زامل تك لأندرويد مثل Network Copilot. تتم مراجعة الطلبات وتكون الروابط صالحة لمدة 30 يوماً.",
+      "og_image": "https://xamltech.com/static/img/networktool-dashboard.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "📲 تحميل أندرويد",
+      "title": "اطلب النسخة، وتحمّل بأمان",
+      "lead": "اختر التطبيق الذي تريده واملأ النموذج. بعد مراجعة طلبك، يصلك رابط تحميل آمن صالح لمدة 30 يوماً.",
+      "points": ["روابط آمنة منتهية الصلاحية (30 يوماً)", "مراجعة الطلبات", "بلا نسخ عامة ببناءات قديمة"],
+      "ctas": [
+        { "label": "محادثة واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+      ]
+    },
+    "formTitle": "اطلب رابط التحميل",
+    "formSub": "بعد المراجعة سنرسل لك رابط تحميل آمناً منتهي الصلاحية بالبريد.",
+    "submit": "اطلب التحميل",
+    "privacyLabel": "سياسة الخصوصية",
+    "products": [
+      "Network Copilot (أندرويد 10+)"
+    ],
+    "cta": {
+      "title": "تحتاجه لفريقك؟",
+      "text": "يمكننا توفير بناءات لعدة أجهزة وإرشادات النشر.",
+      "actions": [
+        { "label": "تواصل معنا", "href": "/contact-us", "style": "primary" },
+        { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+      ]
+    }
+  }
+}

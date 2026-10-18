@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="apk_view_list" model="ir.ui.view">
+        <field name="name">apk.list</field>
+        <field name="model">xamltech.apk</field>
+        <field name="arch" type="xml">
+            <list string="تطبيقات أندرويد" editable="bottom">
+                <field name="name"/>
+                <field name="version"/>
+                <field name="request_count"/>
+                <field name="approved_count"/>
+                <field name="sequence"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="apk_view_form" model="ir.ui.view">
+        <field name="name">apk.form</field>
+        <field name="model">xamltech.apk</field>
+        <field name="arch" type="xml">
+            <form string="تطبيق أندرويد">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="اسم التطبيق"/></h1>
+                        <h4><field name="version" placeholder="الإصدار"/></h4>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="file_name"/>
+                            <field name="datas" filename="file_name"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="request_count"/>
+                            <field name="approved_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="الوصف">
+                            <field name="description"/>
+                        </page>
+                        <page string="طلبات التحميل">
+                            <field name="request_ids" readonly="1">
+                                <list string="طلبات التحميل">
+                                    <field name="name"/>
+                                    <field name="applicant_name"/>
+                                    <field name="email"/>
+                                    <field name="state"/>
+                                    <field name="create_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apk_action" model="ir.actions.act_window">
+        <field name="name">تطبيقات أندرويد</field>
+        <field name="res_model">xamltech.apk</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="app_request_view_list" model="ir.ui.view">
+        <field name="name">app.request.list</field>
+        <field name="model">xamltech.app.request</field>
+        <field name="arch" type="xml">
+            <list string="طلبات تحميل التطبيقات" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'">
+                <field name="name"/>
+                <field name="apk_id"/>
+                <field name="applicant_name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="state"/>
+                <field name="expiry"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="app_request_view_form" model="ir.ui.view">
+        <field name="name">app.request.form</field>
+        <field name="model">xamltech.app.request</field>
+        <field name="arch" type="xml">
+            <form string="طلب تحميل تطبيق">
+                <header>
+                    <button name="action_approve" type="object"
+                            string="اعتماد الطلب" class="btn-primary" />
+                    <button name="action_reject" type="object"
+                            string="رفض الطلب" class="btn-secondary"
+                            confirm="هل أنت متأكد من رفض هذا الطلب؟"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="apk_id"/>
+                            <field name="applicant_name"/>
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="android_version"/>
+                        </group>
+                        <group>
+                            <field name="expiry"/>
+                            <field name="download_url" readonly="1"/>
+                            <field name="rejection_reason"/>
+                        </group>
+                    </group>
+                    <group string="سبب التحميل">
+                        <field name="reason"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="app_request_action" model="ir.actions.act_window">
+        <field name="name">طلبات تحميل التطبيقات</field>
+        <field name="res_model">xamltech.app.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+
+    <menuitem id="menu_apk_root" name="تحميل التطبيقات" sequence="50"/>
+    <menuitem id="menu_apk_apps" parent="menu_apk_root" action="apk_action" sequence="10"/>
+    <menuitem id="menu_apk_requests" parent="menu_apk_root" action="app_request_action" sequence="20"/>
+</odoo>

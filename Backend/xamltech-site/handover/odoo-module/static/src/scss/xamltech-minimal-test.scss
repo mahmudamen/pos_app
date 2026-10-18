@@ -1,0 +1,40 @@
+/*
+ * MINIMAL TEST SCSS — If this compiles but xamltech.scss doesn't,
+ * there's a specific issue preventing full SCSS from compiling.
+ *
+ * To use this:
+ * 1. Add 'xamltech_addons_store/static/src/scss/xamltech-minimal-test.scss'
+ *    to manifest web.assets_frontend
+ * 2. Restart Odoo
+ * 3. Check if this blue background appears on the page
+ * 4. If yes: the issue is in xamltech.scss syntax
+ *    If no: the issue is Odoo's SCSS compiler or asset pipeline
+ */
+
+:root {
+  --xt-test-color: #0072bc;
+}
+
+body {
+  background-color: var(--xt-test-color) !important;
+  color: white !important;
+}
+
+.xt-test-box {
+  background: linear-gradient(135deg, #0072bc, #00adee);
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px;
+  color: white;
+  font-weight: bold;
+}
+
+.xt-test-box:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .xt-test-box {
+    margin: 10px;
+  }
+}

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!--
+        Per-page JSON-LD schemas for AI discoverability.
+        Each page gets its own Service/FAQ schema so AI engines
+        understand EXACTLY what each page offers.
+    -->
+
+    <template id="erp_schema" inherit_id="xamltech_addons_store.erp_page" priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Odoo ERP Development and Implementation",
+  "provider": {"@id": "https://xamltech.com/#organization"},
+  "serviceType": "ERP Implementation",
+  "areaServed": [{"@type": "Country", "name": "Egypt"}, {"@type": "Country", "name": "Saudi Arabia"}],
+  "description": "We build custom Odoo 17/18/19 modules for agriculture management including farm hierarchy, stock movements, analytic accounting integration, POS cutting orders for textile businesses, ZATCA e-invoicing compliance, and multi-company deployment. Published addons on official Odoo Apps Store.",
+  "offers": [
+    {"@type": "Offer", "name": "Starter ERP Package", "description": "Basic Odoo setup, 3 modules, training, 3 months support"},
+    {"@type": "Offer", "name": "Business ERP Package", "description": "Full implementation, 8+ modules, customization, integration, 6 months support"},
+    {"@type": "Offer", "name": "Enterprise ERP Package", "description": "Complete deployment, unlimited modules, custom development, multi-company, 12 months support"}
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Odoo Modules",
+    "itemListElement": [
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "Advanced Agricultural Management", "url": "https://apps.odoo.com/apps/modules/19.0/agricultural_management"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "POS Cutting Orders", "url": "https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "POS Stock Real-Time", "url": "https://apps.odoo.com/apps/modules/18.0/ma_rs_pos_stock"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "POS Security Framework", "url": "https://apps.odoo.com/apps/modules/18.0/ma_pos_base"}}
+    ]
+  }
+}</script>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "What Odoo versions does XamlTech support?", "acceptedAnswer": {"@type": "Answer", "text": "We develop and customize Odoo modules for versions 16, 17, 18, and 19 (Enterprise and Community editions). Our published addons on Odoo Apps Store currently target Odoo 18."}},
+    {"@type": "Question", "name": "How much does Odoo ERP implementation cost in Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "Our Starter package begins at basic setup with 3 modules and 3 months support. Business packages include 8+ modules with customization. Enterprise packages offer unlimited modules with 12 months support. Contact us for a custom quote based on your specific requirements."}},
+    {"@type": "Question", "name": "Can you customize Odoo POS for textile and fabric businesses?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, we specialize in textile POS customization. Our POS Cutting Orders module (published on Odoo Apps) manages fabric cutting orders directly from POS with real-time tracking, cutting screen UI, and dark/light mode. We built this for Al-Ghazl Al-Arabi Trading Company."}},
+    {"@type": "Question", "name": "Do you provide ZATCA e-invoicing integration for Saudi Arabia?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, we implement Phase 2 ZATCA compliance including XML invoice generation, QR code embedding, API submission to the government portal, and full integration with Odoo accounting."}},
+    {"@type": "Question", "name": "What is your Odoo implementation methodology?", "acceptedAnswer": {"@type": "Answer", "text": "Our 5-step process: 1) Requirements Analysis — we analyze your business processes, 2) Design and Setup — custom configuration, 3) Development — module development and third-party integration, 4) UAT Testing — user acceptance and performance validation, 5) Training and Support — comprehensive training and ongoing maintenance."}}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <template id="infra_schema" inherit_id="xamltech_addons_store.infra_page" priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Network Infrastructure and CCTV Surveillance Systems",
+  "provider": {"@id": "https://xamltech.com/#organization"},
+  "serviceType": ["Computer Networking", "Security System Installation"],
+  "areaServed": {"@type": "City", "name": "Aswan", "containedIn": {"@type": "Country", "name": "Egypt"}},
+  "description": "Professional LAN/WAN network design, structured cabling, enterprise Wi-Fi, firewall and VPN configuration, Linux and Windows server deployment with Proxmox and Docker virtualization, IP camera CCTV systems up to 128 channels with DVR/NVR and remote monitoring for hospitals, commercial, and residential facilities in Aswan and Upper Egypt."
+}</script>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Who provides CCTV installation services in Aswan, Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "XamlTech provides professional CCTV and surveillance installation in Aswan and Upper Egypt. We install IP camera systems (2MP-8MP), DVR/NVR solutions up to 128 channels, with remote monitoring via mobile apps. We serve hospitals like Furkan Surgical Center and Al Helal Hospital."}},
+    {"@type": "Question", "name": "What network services does XamlTech provide?", "acceptedAnswer": {"@type": "Answer", "text": "We provide complete network infrastructure: LAN/WAN design with structured cabling, enterprise Wi-Fi with seamless roaming, firewall and VPN configuration, Linux/Windows server deployment, Proxmox and Docker virtualization, 24/7 network monitoring, and maintenance contracts."}},
+    {"@type": "Question", "name": "Do you provide hospital IT infrastructure in Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, we specialize in hospital IT. We deployed complete LAN/WLAN, 128-channel CCTV, server infrastructure, and ERP systems for Furkan Surgical Center and Al Helal Hospital in Aswan. We handle VLANs for departments, guest Wi-Fi, operating room surveillance, and pharmacy monitoring."}}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <template id="portfolio_schema" inherit_id="xamltech_addons_store.portfolio_page" priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "XamlTech Project Portfolio",
+  "description": "Completed IT projects including hospital ERP systems, CCTV surveillance, network infrastructure, textile POS, ZATCA compliance, and farm management platforms in Egypt.",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "item": {"@type": "CreativeWork", "name": "Hospital Management System", "description": "Full Odoo ERP deployment for Furkan Surgical Center — patient records, appointments, pharmacy, billing with Arabic workflows"}},
+    {"@type": "ListItem", "position": 2, "item": {"@type": "CreativeWork", "name": "Hospital CCTV System", "description": "128-channel IP camera system for Furkan Surgical Center — operating rooms, corridors, pharmacy, parking, 24/7 remote monitoring"}},
+    {"@type": "ListItem", "position": 3, "item": {"@type": "CreativeWork", "name": "Textile POS System", "description": "Custom Odoo 18 POS with cutting order management for Al-Ghazl Al-Arabi — real-time stock, multi-session sync, manager security controls"}},
+    {"@type": "ListItem", "position": 4, "item": {"@type": "CreativeWork", "name": "ZATCA E-Invoicing", "description": "Saudi Arabia Phase 2 ZATCA compliance — XML invoices, QR codes, API submission, government portal sync"}},
+    {"@type": "ListItem", "position": 5, "item": {"@type": "CreativeWork", "name": "Farm Management Platform", "description": "Odoo-based agriculture ERP for Qatf Company — hierarchical farm locations, crop management, work orders, harvest analytics"}}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <template id="webdev_schema" inherit_id="xamltech_addons_store.web_dev_page" priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Web Development and Design Services",
+  "provider": {"@id": "https://xamltech.com/#organization"},
+  "serviceType": "Web Development",
+  "description": "Responsive corporate websites, e-commerce platforms with payment integration, custom web applications built with Python, JavaScript, Odoo website framework, PWA offline-first applications, SEO optimization, and ongoing maintenance. Based in Aswan, Egypt."
+}</script>
+        </xpath>
+    </template>
+
+    <template id="store_schema" inherit_id="xamltech_addons_store.store_page" priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "XamlTech Odoo Addons Store",
+  "description": "Production-grade Odoo 18/19 POS modules published on the official Odoo Apps Store. Cutting orders for textile, real-time stock sync, security framework with manager PIN.",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "item": {"@type": "SoftwareApplication", "name": "POS Cutting Orders", "applicationCategory": "BusinessApplication", "operatingSystem": "Odoo 18", "url": "https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting", "offers": {"@type": "Offer", "price": "456.67", "priceCurrency": "USD"}}},
+    {"@type": "ListItem", "position": 2, "item": {"@type": "SoftwareApplication", "name": "POS Stock Real-Time", "applicationCategory": "BusinessApplication", "operatingSystem": "Odoo 18", "url": "https://apps.odoo.com/apps/modules/18.0/ma_rs_pos_stock", "offers": {"@type": "Offer", "price": "404.81", "priceCurrency": "USD"}}},
+    {"@type": "ListItem", "position": 3, "item": {"@type": "SoftwareApplication", "name": "POS Security Framework", "applicationCategory": "BusinessApplication", "operatingSystem": "Odoo 18", "url": "https://apps.odoo.com/apps/modules/18.0/ma_pos_base", "offers": {"@type": "Offer", "price": "253.71", "priceCurrency": "USD"}}}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+</odoo>

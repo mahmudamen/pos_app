@@ -1,0 +1,130 @@
+XamlTech Theme — Dark/Light RTL Odoo 19 Website Theme
+تخطي للذهاب إلى المحتوى
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
+0
+0
++201201410140
+الْعَرَبيّة
+الْعَرَبيّة
+English (US)
+تسجيل الدخول
+تواصل معنا
+0
+0
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
++201201410140
+الْعَرَبيّة
+الْعَرَبيّة
+English (US)
+تسجيل الدخول
+تواصل معنا
+🎨 Odoo 19 Website Theme
+XamlTech Theme
+Professional dark/light toggle theme with full RTL Arabic support.
+Built for technology companies and ERP consultancies.
+Get on Odoo Apps ↗
+Contact Us
+Theme Features
+🌙
+Dark Mode Default
+Deep-space dark theme with luminous accent blue. Reduces eye strain and looks stunning on modern displays.
+☀️
+One-Click Light Mode
+Seamless toggle persisted in localStorage. Follows OS colour scheme preference automatically.
+🌐
+Full RTL Arabic
+Every component supports right-to-left. Cairo font covers Arabic + Latin in one stack.
+🎨
+CSS Design Tokens
+Zero hardcoded colours. All values in :root CSS variables — one-line rebranding.
+📱
+Fluid Responsive
+CSS clamp() everywhere. Pixel-perfect from 320px to 4K. No media-query breakpoint hacks.
+⚡
+PWA + Service Worker
+Offline-first. Web App Manifest included. Installable on mobile home screens.
+🛒
+Addons Store
+Live search, category filter, sort, staggered animations — all vanilla JS, no jQuery.
+💬
+WhatsApp Integration
+Floating button and contact form with pre-filled WhatsApp deep-link. No plugin needed.
+🔍
+SEO + JSON-LD
+Organization, Service, FAQPage, ItemList structured data. AI-readable on every page.
+Screenshots
+🌙 Dark Mode
+☀️ Light Mode
+🌐 RTL Arabic
+🛒 Addons Store
+📱 Mobile Responsive
+Ready to transform your business?
+Get started with XamlTech solutions today.
+Get in Touch
+طلب تجربة
+Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.
+الحلول
+ERP & Odoo
+البنية التحتية
+تطوير المواقع
+AI Copilots
+متجر الإضافات
+Pricing
+Resources
+Blog & Guides
+AI Marketing Guide
+AI POS Guide
+Knowledge Base
+Testimonials
+طلب تجربة
+الشركة
+أعمالنا
+تواصل معنا
+Privacy Policy
+Terms of Service
+Odoo Apps Store ↗
+GitHub ↗
+Get in Touch
+[email protected]
++20 100 798 2468
++20 120 141 0140
+WhatsApp Chat
+Sahary, Aswan, Egypt
+© 2026 XamlTech. All rights reserved.
+xamltech.com
+·
+Contact
+·
+Blog
+·
+Privacy Policy
+·
+Terms

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="reactive_bright_theme_assets_web_late" model="ir.asset">
+        <field name="name">Reactive Bright Theme - Web Late</field>
+        <field name="bundle">web.assets_web</field>
+        <field name="directive">append</field>
+        <field name="path">xt_reactive_bright_theme/static/src/scss/reactive_bright_theme.scss</field>
+        <field name="sequence">12000</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="reactive_bright_theme_assets_backend_late" model="ir.asset">
+        <field name="name">Reactive Bright Theme - Backend Late</field>
+        <field name="bundle">web.assets_backend</field>
+        <field name="directive">append</field>
+        <field name="path">xt_reactive_bright_theme/static/src/scss/reactive_bright_theme.scss</field>
+        <field name="sequence">12000</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

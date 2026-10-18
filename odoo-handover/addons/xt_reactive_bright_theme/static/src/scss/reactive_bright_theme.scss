@@ -1,0 +1,485 @@
+/* Reactive Calm Theme - CSS-only Odoo overrides for a balanced modern UI. */
+
+:root {
+    --rb-ink: #14213d;
+    --rb-ink-soft: #334155;
+    --rb-muted: #64748b;
+    --rb-bg: #f4f7fb;
+    --rb-panel: #f8fbfd;
+    --rb-surface: #ffffff;
+    --rb-border: #d8e3ea;
+    --rb-border-strong: #b9cbd5;
+    --rb-primary: #14a6a6;
+    --rb-primary-strong: #0f8f95;
+    --rb-primary-soft: #e3f8f7;
+    --rb-secondary: #4451c7;
+    --rb-secondary-soft: #eceefe;
+    --rb-success: #239b6b;
+    --rb-success-soft: #e8f7ef;
+    --rb-warning: #c98214;
+    --rb-warning-soft: #fff4dc;
+    --rb-danger: #d6455d;
+    --rb-danger-soft: #fdecef;
+    --rb-info: #2f7dd3;
+    --rb-info-soft: #e8f2ff;
+    --rb-radius-xs: 6px;
+    --rb-radius-sm: 8px;
+    --rb-radius-md: 10px;
+    --rb-shadow-xs: 0 1px 2px rgba(20, 33, 61, 0.06);
+    --rb-shadow-sm: 0 6px 18px rgba(20, 33, 61, 0.08);
+    --o-brand-primary: var(--rb-primary);
+    --o-brand-secondary: var(--rb-secondary);
+    --o-brand-odoo: var(--rb-primary);
+    --o-enterprise-primary-color: var(--rb-primary);
+    --primary: var(--rb-primary);
+    --success: var(--rb-success);
+    --warning: var(--rb-warning);
+    --danger: var(--rb-danger);
+    --info: var(--rb-info);
+}
+
+html,
+body,
+.o_web_client,
+.o_action_manager,
+.o_content,
+.o_form_view,
+.o_list_view,
+.o_kanban_view,
+.o_calendar_view,
+.o_activity_view,
+.o_pivot,
+.o_graph_view {
+    background: var(--rb-bg) !important;
+    color: var(--rb-ink) !important;
+}
+
+.o_web_client * {
+    letter-spacing: 0 !important;
+}
+
+.o_main_navbar,
+.o_navbar,
+header.o_main_navbar,
+nav.o_main_navbar,
+.o_web_client > header {
+    min-height: 48px !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--rb-border) !important;
+    box-shadow: 0 6px 20px rgba(20, 33, 61, 0.08) !important;
+}
+
+.o_main_navbar .o_menu_brand,
+.o_navbar .o_menu_brand,
+.o_main_navbar .o_nav_entry,
+.o_main_navbar .dropdown-toggle,
+.o_main_navbar button,
+.o_main_navbar a,
+.o_main_navbar .nav-link,
+.o_web_client > header a,
+.o_web_client > header button {
+    color: var(--rb-ink) !important;
+    background: transparent !important;
+    border-radius: var(--rb-radius-sm) !important;
+    font-weight: 750 !important;
+}
+
+.o_main_navbar .o_menu_brand,
+.o_navbar .o_menu_brand {
+    color: var(--rb-primary-strong) !important;
+    font-weight: 850 !important;
+}
+
+.o_main_navbar .o_nav_entry:hover,
+.o_main_navbar .dropdown-toggle:hover,
+.o_main_navbar button:hover,
+.o_main_navbar a:hover,
+.o_main_navbar .nav-link:hover,
+.o_web_client > header a:hover,
+.o_web_client > header button:hover,
+.o_main_navbar .show > .dropdown-toggle,
+.o_main_navbar .active {
+    background: var(--rb-primary-soft) !important;
+    color: var(--rb-primary-strong) !important;
+}
+
+.o_control_panel,
+.o_cp_top,
+.o_cp_bottom {
+    background: var(--rb-panel) !important;
+    border-color: var(--rb-border) !important;
+    color: var(--rb-ink) !important;
+}
+
+.o_control_panel {
+    box-shadow: 0 1px 0 var(--rb-border) !important;
+}
+
+.o_breadcrumb,
+.o_breadcrumb a,
+.breadcrumb,
+.breadcrumb-item,
+.o_control_panel .breadcrumb-item,
+.o_form_label,
+.o_field_widget,
+.o_list_renderer th,
+.o_list_renderer td {
+    color: var(--rb-ink) !important;
+}
+
+.o_breadcrumb a,
+a,
+.text-primary {
+    color: var(--rb-primary-strong) !important;
+}
+
+.btn,
+.o_button {
+    border-radius: var(--rb-radius-sm) !important;
+    font-weight: 750 !important;
+}
+
+.btn-primary,
+.o_form_button_save,
+.o_list_button_add,
+.o-kanban-button-new,
+.o-kanban-button-new.btn-primary {
+    background: var(--rb-primary) !important;
+    border-color: var(--rb-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(20, 166, 166, 0.22) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.o_form_button_save:hover,
+.o_list_button_add:hover,
+.o-kanban-button-new:hover {
+    background: var(--rb-primary-strong) !important;
+    border-color: var(--rb-primary-strong) !important;
+    color: #ffffff !important;
+}
+
+.btn-secondary,
+.btn-light,
+.o_button_import,
+.o_form_button_cancel {
+    background: var(--rb-surface) !important;
+    border-color: var(--rb-border) !important;
+    color: var(--rb-ink-soft) !important;
+    box-shadow: var(--rb-shadow-xs) !important;
+}
+
+.btn-secondary:hover,
+.btn-light:hover,
+.o_button_import:hover,
+.o_form_button_cancel:hover {
+    background: var(--rb-primary-soft) !important;
+    border-color: #b8e7e5 !important;
+    color: var(--rb-primary-strong) !important;
+}
+
+.o_searchview,
+.o_input,
+.form-control,
+.form-select,
+.o_field_widget input,
+.o_field_widget textarea,
+.o_field_widget select {
+    background: var(--rb-surface) !important;
+    border-color: var(--rb-border) !important;
+    border-radius: var(--rb-radius-sm) !important;
+    color: var(--rb-ink) !important;
+    box-shadow: none !important;
+}
+
+.o_searchview input,
+.o_input::placeholder,
+.form-control::placeholder {
+    color: #94a3b8 !important;
+}
+
+.o_searchview:focus-within,
+.o_input:focus,
+.form-control:focus,
+.form-select:focus,
+.o_field_widget input:focus,
+.o_field_widget textarea:focus,
+.o_field_widget select:focus {
+    border-color: var(--rb-primary) !important;
+    box-shadow: 0 0 0 3px rgba(20, 166, 166, 0.14) !important;
+}
+
+.o_form_sheet_bg {
+    background: var(--rb-bg) !important;
+}
+
+.o_form_sheet,
+.o_kanban_record,
+.modal-content,
+.o_dialog,
+.dropdown-menu,
+.o_popover {
+    background: var(--rb-surface) !important;
+    border: 1px solid var(--rb-border) !important;
+    color: var(--rb-ink) !important;
+    box-shadow: var(--rb-shadow-xs) !important;
+}
+
+.o_form_sheet,
+.o_kanban_record,
+.modal-content,
+.o_dialog {
+    border-radius: var(--rb-radius-md) !important;
+}
+
+.o_form_sheet:hover,
+.o_kanban_record:hover {
+    border-color: var(--rb-border-strong) !important;
+    box-shadow: var(--rb-shadow-sm) !important;
+}
+
+.o_list_renderer,
+.o_list_view .table,
+.o_list_renderer .o_list_table {
+    background: var(--rb-surface) !important;
+    color: var(--rb-ink) !important;
+}
+
+.o_list_view .table thead,
+.o_list_renderer .o_list_table thead,
+.o_list_view .table thead tr,
+.o_list_renderer .o_list_table thead tr,
+.o_list_view .table thead th,
+.o_list_renderer .o_list_table thead th {
+    background: #f7fafc !important;
+    color: var(--rb-muted) !important;
+    border-color: var(--rb-border) !important;
+}
+
+.o_list_view .table th,
+.o_list_renderer .o_list_table th {
+    color: var(--rb-muted) !important;
+    font-weight: 850 !important;
+}
+
+.o_list_view .table tbody tr:hover,
+.o_list_renderer .o_list_table tbody tr:hover {
+    background: rgba(20, 166, 166, 0.07) !important;
+}
+
+.o_kanban_record {
+    overflow: hidden;
+}
+
+.o_kanban_record::before {
+    content: "";
+    display: block;
+    height: 3px;
+    background: var(--rb-primary);
+}
+
+.o_notebook .nav-link,
+.nav-tabs .nav-link {
+    border-radius: var(--rb-radius-sm) var(--rb-radius-sm) 0 0 !important;
+    color: var(--rb-muted) !important;
+    font-weight: 750 !important;
+}
+
+.o_notebook .nav-link.active,
+.nav-tabs .nav-link.active {
+    color: var(--rb-primary-strong) !important;
+    border-color: var(--rb-border) var(--rb-border) var(--rb-surface) !important;
+    background: var(--rb-surface) !important;
+}
+
+.dropdown-item,
+.o_dropdown_item,
+.o_menu_item {
+    color: var(--rb-ink-soft) !important;
+    border-radius: var(--rb-radius-xs) !important;
+}
+
+.dropdown-item:hover,
+.o_dropdown_item:hover,
+.o_menu_item:hover {
+    background: var(--rb-primary-soft) !important;
+    color: var(--rb-primary-strong) !important;
+}
+
+.o_tag,
+.badge {
+    border-radius: 999px !important;
+    border: 1px solid transparent !important;
+    font-weight: 800 !important;
+}
+
+.bg-primary,
+.badge.bg-primary,
+.badge.text-bg-primary,
+.progress-bar {
+    background: var(--rb-primary) !important;
+    color: #ffffff !important;
+}
+
+.bg-success,
+.badge.bg-success,
+.badge.text-bg-success,
+.alert-success {
+    background: var(--rb-success-soft) !important;
+    border-color: #badfcb !important;
+    color: var(--rb-success) !important;
+}
+
+.bg-warning,
+.badge.bg-warning,
+.badge.text-bg-warning,
+.alert-warning {
+    background: var(--rb-warning-soft) !important;
+    border-color: #f1d79b !important;
+    color: var(--rb-warning) !important;
+}
+
+.bg-danger,
+.badge.bg-danger,
+.badge.text-bg-danger,
+.alert-danger {
+    background: var(--rb-danger-soft) !important;
+    border-color: #f4bac4 !important;
+    color: var(--rb-danger) !important;
+}
+
+.bg-info,
+.badge.bg-info,
+.badge.text-bg-info,
+.alert-info {
+    background: var(--rb-info-soft) !important;
+    border-color: #bfd8f5 !important;
+    color: var(--rb-info) !important;
+}
+
+.text-success,
+.o_status_green {
+    color: var(--rb-success) !important;
+}
+
+.text-warning,
+.o_status_orange {
+    color: var(--rb-warning) !important;
+}
+
+.text-danger,
+.o_status_red {
+    color: var(--rb-danger) !important;
+}
+
+.o_web_client input[type="radio"],
+.o_web_client input[type="checkbox"],
+.o_web_client .form-check-input {
+    accent-color: var(--rb-primary) !important;
+    border-color: var(--rb-border-strong) !important;
+    cursor: pointer;
+}
+
+.o_home_menu_background,
+.o_web_client .o_home_menu_background,
+.o_web_client .o_home_menu,
+.o_web_client .o_apps,
+.o_web_client .o_grid_apps_menu,
+.o_web_client .o_app_drawer {
+    background: var(--rb-bg) !important;
+    color: var(--rb-ink) !important;
+}
+
+.o_web_client .o_home_menu .o_app,
+.o_web_client .o_grid_apps_menu .o_app,
+.o_web_client .o_app_drawer .o_app,
+.o_web_client .o_apps .o_app {
+    border-radius: var(--rb-radius-md) !important;
+    color: var(--rb-ink) !important;
+    transition: transform 0.16s ease, color 0.16s ease, background-color 0.16s ease !important;
+}
+
+.o_web_client .o_home_menu .o_app:hover,
+.o_web_client .o_grid_apps_menu .o_app:hover,
+.o_web_client .o_app_drawer .o_app:hover,
+.o_web_client .o_apps .o_app:hover {
+    background: rgba(255, 255, 255, 0.78) !important;
+    color: var(--rb-primary-strong) !important;
+    transform: translateY(-1px);
+}
+
+.o_web_client .o_home_menu .o_app .o_app_icon,
+.o_web_client .o_grid_apps_menu .o_app .o_app_icon,
+.o_web_client .o_app_drawer .o_app .o_app_icon,
+.o_web_client .o_apps .o_app .o_app_icon,
+.o_web_client .o_home_menu .o_app img,
+.o_web_client .o_grid_apps_menu .o_app img,
+.o_web_client .o_app_drawer .o_app img,
+.o_web_client .o_apps .o_app img {
+    border-radius: var(--rb-radius-sm) !important;
+    box-shadow: 0 8px 18px rgba(20, 33, 61, 0.12) !important;
+}
+
+.o_app .o_caption,
+.o_app span,
+.o_app_name {
+    color: var(--rb-ink) !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+}
+
+.o_loading_indicator {
+    background: var(--rb-primary) !important;
+    color: #ffffff !important;
+}
+
+.xt-login-page {
+    background: var(--rb-bg) !important;
+    color: var(--rb-ink) !important;
+}
+
+.xt-card {
+    border: 1px solid var(--rb-border) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 22px 70px rgba(20, 33, 61, 0.16) !important;
+}
+
+.xt-info-panel {
+    background: #ffffff !important;
+}
+
+.xt-form-panel {
+    background: linear-gradient(160deg, #12395a 0%, #0f6b78 100%) !important;
+}
+
+.xt-lang-pill.is-active,
+.xt-submit,
+.oe_login_buttons .btn-primary {
+    background: var(--rb-primary) !important;
+    border-color: var(--rb-primary) !important;
+    color: #ffffff !important;
+}
+
+.xt-control,
+.oe_login_form .form-control,
+.oe_login_form .o_input {
+    border-radius: var(--rb-radius-sm) !important;
+}
+
+.xt-feature::before {
+    background: var(--rb-primary) !important;
+}
+
+@media (max-width: 767.98px) {
+    .o_form_sheet,
+    .modal-content,
+    .o_dialog {
+        border-radius: var(--rb-radius-sm) !important;
+    }
+
+    .o_control_panel {
+        border-radius: 0 !important;
+    }
+}

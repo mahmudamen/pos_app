@@ -1,0 +1,132 @@
+{
+  "en": {
+    "meta": {
+      "title": "Our Projects: Hospital IT, Textile POS, Agriculture ERP — XamlTech Egypt",
+      "description": "Trusted by hospitals, businesses and organisations across Egypt. Hospital IT, 128-channel CCTV, textile POS, ZATCA e-invoicing, agriculture ERP and open source.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🏆 Our Work",
+        "title": "Partners & projects",
+        "lead": "Trusted by hospitals, businesses and organisations across Egypt — and verifiable in the open on GitHub.",
+        "ctas": [
+          { "label": "Start your project", "href": "/contact-us?lang=en", "style": "primary", "big": true },
+          { "label": "See our GitHub", "href": "https://github.com/XamlTech", "style": "ghost", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Partners",
+        "title": "Our partners",
+        "cols": 2,
+        "items": [
+          { "icon": "🏥", "title": "Al-Furqan Specialised Center", "text": "IT infrastructure, CCTV, networking and hospital software for a leading surgical center in Aswan." },
+          { "icon": "🚑", "title": "Red Crescent Hospital", "text": "Full hospital IT — patient management, network infrastructure, CCTV surveillance and digital healthcare." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Project highlights",
+        "title": "What we delivered",
+        "cols": 3,
+        "items": [
+          { "icon": "🏥", "title": "Hospital management", "text": "Full Odoo ERP for medical facilities — patients, appointments, pharmacy and billing with Arabic workflows." },
+          { "icon": "📹", "title": "Hospital CCTV", "text": "128-channel IP camera system — operating rooms, corridors, pharmacy and parking, with 24/7 remote monitoring." },
+          { "icon": "🧵", "title": "Textile POS", "text": "Custom Odoo 18 POS with cutting orders for Al-Ghazl Al-Arabi — real-time stock and multi-session sync." },
+          { "icon": "🧾", "title": "ZATCA e-invoice", "text": "Saudi Arabia Phase 2 compliance — XML invoices, QR codes, API submission and government portal sync." },
+          { "icon": "🌾", "title": "Farm management", "text": "Agriculture ERP for Qatf Company — farm locations, crop tracking, work orders and harvest analytics." },
+          { "icon": "🔗", "title": "Medical network", "text": "Complete LAN/WLAN for a hospital campus — structured cabling, VLANs, server room and redundant links." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Open source & GitHub",
+        "title": "180+ public repositories",
+        "sub": "Real code, not just marketing. Verify our skills on GitHub.",
+        "cols": 3,
+        "items": [
+          { "icon": "🐍", "title": "hospital-flask", "text": "Hospital management system in Python Flask — patient registration, appointments, pharmacy and billing." },
+          { "icon": "⚙️", "title": "mvc-erp", "text": "Full ERP in ASP.NET MVC and C# — accounting, inventory and HR modules across multiple stacks." },
+          { "icon": "🧰", "title": "Openrol", "text": "Python-based open-source business application demonstrating our Python ecosystem expertise." },
+          { "icon": "🗺️", "title": "web_google_maps_drawing", "text": "Odoo module for Google Maps with drawing tools — geolocation, polygon mapping and route planning." },
+          { "icon": "🛒", "title": "Odoo Apps Store", "text": "Published POS modules — Cutting Orders, Stock Real-Time and Security Framework, production-tested." },
+          { "icon": "🌟", "title": "180+ repositories", "text": "Android, iOS, Python, JavaScript, C#, Java and VR — a full-stack profile with a Google Challenge Scholarship." }
+        ],
+        "cta": { "label": "View GitHub profile", "href": "https://github.com/XamlTech" }
+      }},
+      { "partial": "cta", "data": {
+        "title": "Want to be our next success story?",
+        "text": "Tell us about your goals and we'll propose the right approach.",
+        "actions": [
+          { "label": "Contact us", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "مشاريعنا: بنية تحتية للمستشفيات، نقاط بيع للمنسوجات، ERP للزراعة — زامل تك مصر",
+      "description": "موثوقون من مستشفيات وشركات ومؤسسات في جميع أنحاء مصر. بنية تحتية للمستشفيات، 128 قناة مراقبة، نقاط بيع للمنسوجات، ZATCA، ERP زراعي ومصادر مفتوحة.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🏆 أعمالنا",
+        "title": "الشركاء والأعمال",
+        "lead": "موثوقون من مستشفيات وشركات ومؤسسات في جميع أنحاء مصر — وبإمكانك التحقق من كودنا على GitHub.",
+        "ctas": [
+          { "label": "ابدأ مشروعك", "href": "/contact-us", "style": "primary", "big": true },
+          { "label": "زيارة GitHub", "href": "https://github.com/XamlTech", "style": "ghost", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "الشركاء",
+        "title": "شركاؤنا",
+        "cols": 2,
+        "items": [
+          { "icon": "🏥", "title": "مركز الفرقان التخصصي", "text": "بنية تحتية وكاميرات مراقبة وشبكات وبرمجيات مستشفى لمركز جراحي رائد في أسوان." },
+          { "icon": "🚑", "title": "مستشفى الهلال الأحمر", "text": "بنية تحتية كاملة — إدارة المرضى والشبكات وكاميرات المراقبة والرعاية الرقمية." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "أبرز المشاريع",
+        "title": "ما نفذناه",
+        "cols": 3,
+        "items": [
+          { "icon": "🏥", "title": "إدارة المستشفيات", "text": "نظام Odoo كامل للمنشآت الطبية — المرضى والمواعيد والصيدلة والفوترة بسير عمل عربي." },
+          { "icon": "📹", "title": "كاميرات المستشفى", "text": "نظام كاميرات IP بـ 128 قناة — غرف العمليات والممرات والصيدلة والمواقف، بمراقبة عن بُعد 24/7." },
+          { "icon": "🧵", "title": "نقاط بيع المنسوجات", "text": "نقاط بيع Odoo 18 مخصصة بأوامر قص للغزل العربي — مخزون فوري ومزامنة متعددة الجلسات." },
+          { "icon": "🧾", "title": "فاتورة ZATCA", "text": "توافق المرحلة الثانية للسعودية — فواتير XML ورموز QR وتقديم عبر API ومزامنة البوابة الحكومية." },
+          { "icon": "🌾", "title": "إدارة المزارع", "text": "ERP زراعي لشركة قطف — مواقع المزرعة وتتبع المحاصيل وأوامر العمل وتحليلات الحصاد." },
+          { "icon": "🔗", "title": "شبكة طبية", "text": "شبكة LAN/WLAN كاملة لحرم مستشفى — تمديدات منظمة وVLANs وغرفة سيرفرات وروابط احتياطية." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "المصادر المفتوحة و GitHub",
+        "title": "+180 مستودعاً عاماً",
+        "sub": "كود حقيقي وليس تسويقاً فقط. تحقق من مهاراتنا على GitHub.",
+        "cols": 3,
+        "items": [
+          { "icon": "🐍", "title": "hospital-flask", "text": "نظام إدارة مستشفى بـ Python Flask — تسجيل المرضى والمواعيد والصيدلة والفوترة." },
+          { "icon": "⚙️", "title": "mvc-erp", "text": "نظام ERP كامل بـ ASP.NET MVC و C# — المحاسبة والمخزون والموارد البشرية عبر تقنيات متعددة." },
+          { "icon": "🧰", "title": "Openrol", "text": "تطبيق أعمال مفتوح المصدر بلغة Python يعكس خبرتنا في منظومة بايثون." },
+          { "icon": "🗺️", "title": "web_google_maps_drawing", "text": "موديول Odoo لتكامل خرائط Google بأدوات الرسم — تحديد الموقع والخرائط المتعددة الأضلاع وتخطيط المسارات." },
+          { "icon": "🛒", "title": "متجر Odoo", "text": "موديولات نقاط بيع منشورة — أوامر القص والمخزون الفوري وإطار الأمان، مُختبرة في الإنتاج." },
+          { "icon": "🌟", "title": "+180 مستودعاً", "text": "أندرويد وiOS وPython وJavaScript وC# وJava وVR — ملف مطوّر متكامل مع منحة Google Challenge." }
+        ],
+        "cta": { "label": "زيارة ملف GitHub", "href": "https://github.com/XamlTech" }
+      }},
+      { "partial": "cta", "data": {
+        "title": "هل تريد أن تكون قصة نجاحنا القادمة؟",
+        "text": "أخبرنا بأهدافك ونقترح لك النهج الأمثل.",
+        "actions": [
+          { "label": "تواصل معنا", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

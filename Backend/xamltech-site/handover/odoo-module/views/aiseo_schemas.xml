@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        AISEO (AI Search Engine Optimization) Schemas
+        ==============================================
+        JSON-LD structured data to make the site optimally readable
+        by AI crawlers: ChatGPT, Perplexity, Google AI Overviews, Bing Copilot.
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════
+         §1. SiteNavigationElement — helps AI understand site structure
+         Injected into website.layout so it appears on every page.
+         ═══════════════════════════════════════════════════════════ -->
+    <template id="aiseo_site_navigation"
+              name="AISEO Site Navigation Schema"
+              inherit_id="website.layout"
+              priority="99">
+        <xpath expr="//head" position="inside">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "SiteNavigationElement",
+  "name": "Main Navigation",
+  "hasPart": [
+    {"@type": "SiteNavigationElement", "name": "Home", "url": "https://xamltech.com/"},
+    {"@type": "SiteNavigationElement", "name": "ERP Solutions", "url": "https://xamltech.com/solutions/erp"},
+    {"@type": "SiteNavigationElement", "name": "IT Infrastructure", "url": "https://xamltech.com/solutions/it-infrastructure"},
+    {"@type": "SiteNavigationElement", "name": "Web Development", "url": "https://xamltech.com/solutions/web"},
+    {"@type": "SiteNavigationElement", "name": "AI Copilots", "url": "https://xamltech.com/ai-solutions"},
+    {"@type": "SiteNavigationElement", "name": "Addons Store", "url": "https://xamltech.com/addons-store"},
+    {"@type": "SiteNavigationElement", "name": "Portfolio", "url": "https://xamltech.com/portfolio"},
+    {"@type": "SiteNavigationElement", "name": "Insights", "url": "https://xamltech.com/insights"},
+    {"@type": "SiteNavigationElement", "name": "Pricing", "url": "https://xamltech.com/pricing"},
+    {"@type": "SiteNavigationElement", "name": "Contact", "url": "https://xamltech.com/contact-us"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         §2. Breadcrumb JSON-LD for pages missing them
+         Pages already covered in seo_schemas.xml / blog_seo_schemas.xml:
+           erp_page, infra_page, portfolio_page, web_dev_page, store_page, blog articles
+         ═══════════════════════════════════════════════════════════ -->
+
+    <!-- Contact Us breadcrumb -->
+    <template id="aiseo_contact_breadcrumb"
+              inherit_id="xamltech_addons_store.contact_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Contact Us", "item": "https://xamltech.com/contact-us"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- Request Demo breadcrumb -->
+    <template id="aiseo_demo_breadcrumb"
+              inherit_id="xamltech_addons_store.demo_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Request Demo", "item": "https://xamltech.com/request-demo"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- Knowledge Base breadcrumb -->
+    <template id="aiseo_knowledge_breadcrumb"
+              inherit_id="xamltech_addons_store.knowledge_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Knowledge Base", "item": "https://xamltech.com/knowledge"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- AI Solutions breadcrumb -->
+    <template id="aiseo_ai_apps_breadcrumb"
+              inherit_id="xamltech_addons_store.ai_apps_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "AI Solutions", "item": "https://xamltech.com/ai-solutions"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- Testimonials breadcrumb -->
+    <template id="aiseo_testimonials_breadcrumb"
+              inherit_id="xamltech_addons_store.testimonials_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Testimonials", "item": "https://xamltech.com/testimonials"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- Pricing breadcrumb -->
+    <template id="aiseo_pricing_breadcrumb"
+              inherit_id="xamltech_addons_store.pricing_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Pricing", "item": "https://xamltech.com/pricing"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- Odoo POS Egypt breadcrumb -->
+    <template id="aiseo_pos_breadcrumb"
+              inherit_id="xamltech_addons_store.pos_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Odoo POS Egypt", "item": "https://xamltech.com/odoo-pos-egypt"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- Agriculture ERP breadcrumb -->
+    <template id="aiseo_agri_breadcrumb"
+              inherit_id="xamltech_addons_store.agri_page"
+              priority="99">
+        <xpath expr="//t[@t-set='title']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://xamltech.com"},
+    {"@type": "ListItem", "position": 2, "name": "Agriculture ERP", "item": "https://xamltech.com/erp-agriculture-egypt"}
+  ]
+}</script>
+        </xpath>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         §3. SpeakableSpecification — Homepage
+         Helps voice assistants and AI know which text to read aloud.
+         ═══════════════════════════════════════════════════════════ -->
+    <template id="aiseo_homepage_speakable"
+              inherit_id="xamltech_addons_store.homepage"
+              priority="99">
+        <xpath expr="//t[@t-set='meta_description']" position="after">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "XamlTech — Odoo ERP, IT &amp; AI Solutions in Egypt",
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": [".xt-hero__h1", ".xt-hero__sub", ".xt-h2"]
+  },
+  "url": "https://xamltech.com"
+}</script>
+        </xpath>
+    </template>
+
+</odoo>

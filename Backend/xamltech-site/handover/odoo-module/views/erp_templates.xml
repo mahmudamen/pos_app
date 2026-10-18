@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="erp_page" name="XamlTech ERP">
+        <t t-call="website.layout"><t t-set="title">Odoo ERP Development &amp; Custom Module Implementation in Egypt — XamlTech</t>
+            <t t-set="meta_description">Custom Odoo ERP implementation in Egypt: v16-19, agriculture management, ZATCA e-invoicing, POS customization, multi-company deployment. Published modules on Odoo Apps Store.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><p class="xt-tag">⚙️ ERP Solutions</p><h1 class="xt-hero__h1" style="font-size:40px;">Complete ERP for Your Business</h1><p class="xt-hero__sub" style="max-width:600px;margin:0 auto;">Are your operations disorganized? We implement Odoo ERP to manage everything — from sales to accounting, inventory to HR — in one unified system.</p><div class="xt-btns" style="justify-content:center;margin-top:24px;"><a href="/request-demo" class="xt-btn xt-btn--primary">🖥️ Try Live Demo</a><a href="/contact-us" class="xt-btn xt-btn--outline">Get a Quote</a></div></div></section>
+            <section class="xt-sec xt-sec--dark"><div class="xt-c"><div style="text-align:center;margin-bottom:48px;"><h2 class="xt-h2">Our ERP Services</h2></div><div class="xt-grid3">
+                <div class="xt-card"><span>🔧</span><h3>Implementation</h3><p>Full Odoo deployment — requirements analysis, configuration, data migration, testing, and go-live support.</p></div>
+                <div class="xt-card"><span>🧩</span><h3>Customization</h3><p>Custom module development, workflow automation, report builder, and UI/UX tailoring to match your processes.</p></div>
+                <div class="xt-card"><span>🔗</span><h3>Integration</h3><p>Third-party system integration — payment gateways, shipping, ZATCA e-invoicing, APIs, and data sync.</p></div>
+                <div class="xt-card"><span>📊</span><h3>Business Intelligence</h3><p>Custom dashboards, KPI tracking, financial reports, and data analytics to drive informed decisions.</p></div>
+                <div class="xt-card"><span>🎓</span><h3>Training</h3><p>Comprehensive user training, admin training, video tutorials, and documentation in English and Arabic.</p></div>
+                <div class="xt-card"><span>🛠️</span><h3>Support</h3><p>24/7 technical support, bug fixes, performance optimization, security patches, and version upgrades.</p></div>
+            </div></div></section>
+            <section class="xt-sec xt-sec--grad"><div class="xt-c" style="text-align:center;"><p class="xt-tag">📋 Methodology</p><h2 class="xt-h2">Implementation Process</h2><div class="xt-steps">
+                <div class="xt-step"><div class="xt-step__n">01</div><span>🔍</span><h4>REQ Analysis</h4><p>Analyze business needs and determine optimal strategy</p></div>
+                <div class="xt-step"><div class="xt-step__n">02</div><span>📋</span><h4>Design</h4><p>Custom configuration of modules and features</p></div>
+                <div class="xt-step"><div class="xt-step__n">03</div><span>⚙️</span><h4>Development</h4><p>Module development and third-party integration</p></div>
+                <div class="xt-step"><div class="xt-step__n">04</div><span>✅</span><h4>UAT</h4><p>User acceptance testing and performance validation</p></div>
+                <div class="xt-step"><div class="xt-step__n">05</div><span>🎓</span><h4>Training</h4><p>Comprehensive training and ongoing support</p></div>
+            </div></div></section>
+            <section class="xt-sec xt-sec--dark"><div class="xt-c" style="text-align:center;"><p class="xt-tag">🏭 Industries</p><h2 class="xt-h2">Industries We Serve with Odoo</h2><div class="xt-ind-grid"><div class="xt-ind">🏭<br/>Manufacturing</div><div class="xt-ind">🏪<br/>Retail &amp; POS</div><div class="xt-ind">🏥<br/>Healthcare</div><div class="xt-ind">🧵<br/>Textile</div><div class="xt-ind">🌾<br/>Agriculture</div><div class="xt-ind">💰<br/>Finance</div></div></div></section>
+            <section class="xt-sec xt-sec--grad" style="padding:60px 0;"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Packages</h2><p class="xt-sub" style="margin:0 auto 40px;">Flexible pricing for every business size</p><div class="xt-grid3">
+                <div class="xt-card" style="text-align:center;"><h3>🟢 Starter</h3><p>Basic Odoo setup, 3 modules, training, 3 months support. Perfect for small businesses starting their ERP journey.</p><a href="/contact-us" class="xt-btn xt-btn--outline" style="margin-top:16px;">Get Quote</a></div>
+                <div class="xt-card" style="text-align:center;border-color:rgba(0,173,238,0.3);"><h3>🔵 Business</h3><p>Full implementation, 8+ modules, customization, integration, 6 months support. For growing companies.</p><a href="/contact-us" class="xt-btn xt-btn--primary" style="margin-top:16px;">Get Quote</a></div>
+                <div class="xt-card" style="text-align:center;"><h3>🟣 Enterprise</h3><p>Complete deployment, unlimited modules, custom dev, multi-company, 12 months support. For large organizations.</p><a href="/contact-us" class="xt-btn xt-btn--outline" style="margin-top:16px;">Get Quote</a></div>
+            </div></div></section>
+            <section class="xt-sec xt-sec--dark" style="padding:60px 0;"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Ready to Start Your ERP Project?</h2><div class="xt-btns" style="justify-content:center;margin-top:24px;"><a href="/request-demo" class="xt-btn xt-btn--primary">🖥️ Request Demo</a><a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa">💬 WhatsApp</a></div></div></section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Microsoft Clarity Tracking -->
+    <template id="xamltech_clarity_tracking" inherit_id="website.layout" name="XamlTech Clarity Tracking">
+        <xpath expr="//head" position="inside">
+            <script type="text/javascript">
+                (function(c,l,a,r,i,t,y){
+                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                })(window, document, "clarity", "script", "y1l8d34cyq");
+            </script>
+        </xpath>
+    </template>
+    <template id="xamltech_verification_meta" inherit_id="website.layout" name="Site Verification">
+    <xpath expr="//head" position="inside">
+        <!-- Google -->
+        <meta name="google-site-verification" content="googlea7b16c2b9c88eee4.html" />
+        <!-- Bing -->
+        <meta name="msvalidate.01" content="F81D3DF31605DF065183DAFCB3AE4CF2" />
+        <!-- Yandex
+        <meta name="yandex-verification" content="YOUR_YANDEX_CODE" />
+        -->
+    </xpath>
+</template>
+    <!-- Global SEO <head> injection — runs BEFORE pwa_templates (priority 99) -->
+    <template id="xt_seo_head"
+              name="XamlTech SEO Head Tags"
+              inherit_id="website.layout"
+              priority="95">
+        <xpath expr="//head" position="inside">
+
+            <!-- Canonical URL -->
+            <link rel="canonical" t-att-href="'https://xamltech.com' + request.httprequest.path"/>
+
+            <!-- Per-page Open Graph -->
+            <meta property="og:title" t-att-content="title or 'XamlTech — Odoo ERP, IT &amp; AI Solutions'"/>
+            <meta property="og:description" t-att-content="meta_description or 'XamlTech: Odoo ERP development, custom POS modules, AI copilots, networking &amp; CCTV. Aswan, Egypt.'"/>
+            <meta property="og:url" t-att-content="'https://xamltech.com' + request.httprequest.path"/>
+            <meta property="og:image" t-att-content="og_image or 'https://xamltech.com/xamltech_addons_store/static/img/logo.png'"/>
+            <meta property="og:image:width" content="1200"/>
+            <meta property="og:image:height" content="630"/>
+
+            <!-- Twitter Card -->
+            <meta name="twitter:card" content="summary_large_image"/>
+            <meta name="twitter:title" t-att-content="title or 'XamlTech — Odoo ERP, IT &amp; AI Solutions'"/>
+            <meta name="twitter:description" t-att-content="meta_description or 'XamlTech: Odoo ERP development, custom POS modules, AI copilots, networking &amp; CCTV. Aswan, Egypt.'"/>
+            <meta name="twitter:image" t-att-content="og_image or 'https://xamltech.com/xamltech_addons_store/static/img/logo.png'"/>
+
+            <!-- Robots -->
+            <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+
+            <!-- Hreflang for bilingual site -->
+            <link rel="alternate" hreflang="ar" t-att-href="'https://xamltech.com' + request.httprequest.path"/>
+            <link rel="alternate" hreflang="en" t-att-href="'https://xamltech.com' + request.httprequest.path"/>
+            <link rel="alternate" hreflang="x-default" t-att-href="'https://xamltech.com' + request.httprequest.path"/>
+
+        </xpath>
+    </template>
+
+</odoo>

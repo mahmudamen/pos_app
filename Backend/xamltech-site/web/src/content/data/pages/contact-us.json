@@ -1,0 +1,58 @@
+{
+  "en": {
+    "meta": {
+      "title": "Contact XamlTech — Odoo Development & IT Services in Aswan, Egypt",
+      "description": "Have a project or need support? Reach XamlTech by form, phone or WhatsApp — Odoo development and IT services from Aswan, Egypt.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "✉️ Get in Touch",
+      "title": "Contact us",
+      "lead": "Have a project? Need support? Reach out via the form or WhatsApp — we usually reply within one business day.",
+      "points": ["Aswan, Egypt · Sun–Thu, 9:00–18:00", "info@xamltech.com", "+20 120 141 0140 · WhatsApp +20 100 798 2468"],
+      "ctas": [
+        { "label": "Chat on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+      ]
+    },
+    "formTitle": "Send a message",
+    "formSub": "Tell us about your project and we'll get back to you shortly.",
+    "submit": "Send message",
+    "privacyLabel": "Privacy Policy",
+    "cta": {
+      "title": "Prefer a live walkthrough?",
+      "text": "Request a demo and we'll show you the POS addons and ERP in action.",
+      "actions": [
+        { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary" }
+      ]
+    }
+  },
+  "ar": {
+    "meta": {
+      "title": "تواصل مع زامل تك — تطوير Odoo وخدمات تقنية المعلومات في أسوان، مصر",
+      "description": "لديك مشروع أو تحتاج دعماً؟ تواصل مع زامل تك عبر النموذج أو الهاتف أو واتساب — تطوير Odoo وخدمات تقنية المعلومات من أسوان، مصر.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "✉️ ابقَ على تواصل",
+      "title": "تواصل معنا",
+      "lead": "لديك مشروع؟ تحتاج دعماً؟ تواصل عبر النموذج أو واتساب — نرد عادة خلال يوم عمل واحد.",
+      "points": ["أسوان، مصر · الأحد–الخميس، 9:00–18:00", "info@xamltech.com", "‎+20 120 141 0140 · واتساب ‎+20 100 798 2468"],
+      "ctas": [
+        { "label": "محادثة واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+      ]
+    },
+    "formTitle": "أرسل رسالة",
+    "formSub": "أخبرنا عن مشروعك وسنتواصل معك قريباً.",
+    "submit": "أرسل الرسالة",
+    "privacyLabel": "سياسة الخصوصية",
+    "cta": {
+      "title": "تفضّل عرضاً مباشراً؟",
+      "text": "اطلب تجربة وسنعرض عليك إضافات نقاط البيع ونظام ERP أثناء العمل.",
+      "actions": [
+        { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary" }
+      ]
+    }
+  }
+}

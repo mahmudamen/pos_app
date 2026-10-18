@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="homepage" name="XamlTech Home" inherit_id="website.homepage" priority="99">
+        <xpath expr="//div[@id='wrap']" position="replace">
+            <div id="wrap" class="xt-wrap">
+                <t t-set="meta_description">XamlTech — Odoo ERP development (v16-19), custom POS modules published on Odoo Apps Store, networking, CCTV, AI copilots. Based in Aswan, Egypt. #1 Odoo partner in Upper Egypt.</t>
+                <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+
+                <!-- Hero V2 — Image-backed centered layout -->
+                <section class="xt-hero--v2">
+                    <div class="xt-hero__img-bg" style="background-image:url('/xamltech_addons_store/static/img/hero_x_globe.jpg');"/>
+                    <div class="xt-hero__overlay"/>
+                    <div class="xt-c">
+                        <div class="xt-hero__center">
+                            <img src="/xamltech_addons_store/static/img/logo.png" alt="XamlTech" class="xt-hero__logo" loading="eager"/>
+                            <p class="xt-hero__tagline-ar">أكثر من تقنية — نبني نمو رقمي حقيقي</p>
+                            <h1 class="xt-hero__tagline-en">More Than <span>Technology</span> — We Build <span>Digital Growth</span></h1>
+                            <p class="xt-hero__desc" style="direction:rtl;">شركة XamlTech متخصصة في تطوير أنظمة Odoo ERP (الإصدارات 16-19)، تصميم الشبكات، كاميرات المراقبة، تطوير المواقع، الحلول السحابية، والتحول الرقمي. موديولات منشورة على متجر Odoo الرسمي — أسوان، مصر.</p>
+                            <p class="xt-hero__desc">Odoo ERP specialists, network infrastructure, CCTV, web development, cloud solutions &amp; digital transformation. Published modules on Odoo Apps Store. Based in Aswan — #1 Odoo developer in Upper Egypt.</p>
+                            <div class="xt-btns" style="justify-content:center;">
+                                <a href="/contact-us" class="xt-btn xt-btn--primary">تواصل معنا — Contact Us</a>
+                                <a href="/request-demo" class="xt-btn xt-btn--outline">تجربة مجانية — Free Demo</a>
+                            </div>
+                            <!-- Feature Pills -->
+                            <div class="xt-pills">
+                                <div class="xt-pill"><span class="xt-pill__icon">🎯</span> Smart Strategy</div>
+                                <div class="xt-pill"><span class="xt-pill__icon">⚙️</span> Reliable Systems</div>
+                                <div class="xt-pill"><span class="xt-pill__icon">📈</span> Better Performance</div>
+                                <div class="xt-pill"><span class="xt-pill__icon">🖥️</span> Scalable Infrastructure</div>
+                                <div class="xt-pill"><span class="xt-pill__icon">🌐</span> Stronger Digital Presence</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Links -->
+                <section class="xt-sec xt-sec--dark" style="padding:32px 0;">
+                    <div class="xt-c">
+                        <div class="xt-quicklinks">
+                            <a href="/solutions/erp" class="xt-hcard" data-xt-tilt="" style="text-decoration:none;"><span>📊</span><div><strong>أنظمة Odoo ERP</strong><p>ERP, POS, Accounting, HR</p></div></a>
+                            <a href="/solutions/it-infrastructure" class="xt-hcard" data-xt-tilt="" style="text-decoration:none;"><span>🔌</span><div><strong>الشبكات والمراقبة</strong><p>Networks, Servers, CCTV</p></div></a>
+                            <a href="/solutions/web" class="xt-hcard" data-xt-tilt="" style="text-decoration:none;"><span>🌐</span><div><strong>تطوير المواقع</strong><p>Web Design &amp; Apps</p></div></a>
+                            <a href="/portfolio" class="xt-hcard" data-xt-tilt="" style="text-decoration:none;"><span>🛡️</span><div><strong>أمن المعلومات</strong><p>Cybersecurity &amp; Protection</p></div></a>
+                            <a href="/contact-us" class="xt-hcard" data-xt-tilt="" style="text-decoration:none;"><span>🎧</span><div><strong>استشارات ودعم فني</strong><p>Consulting &amp; Support</p></div></a>
+                            <a href="/erp-agriculture-egypt" class="xt-hcard" data-xt-tilt="" style="text-decoration:none;"><span>🌾</span><div><strong>زراعة وإدارة مزارع</strong><p>Agriculture ERP — Upper Egypt</p></div></a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Why Us -->
+                <section class="xt-sec xt-sec--dark">
+                    <div class="xt-c" style="text-align:center;">
+                        <p style="font-size:30px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">لماذا نحن ؟</p>
+                        <h2 class="xt-h2">Why Choose XamlTech?</h2>
+                        <div class="xt-stats">
+                            <div class="xt-stat"><span class="xt-stat__i">✅</span><span class="xt-stat__v">حلول متكاملة</span><span class="xt-stat__l">Integrated Solutions</span></div>
+                            <div class="xt-stat"><span class="xt-stat__i">💎</span><span class="xt-stat__v">جودة عالية</span><span class="xt-stat__l">Premium Quality</span></div>
+                            <div class="xt-stat"><span class="xt-stat__i">🎯</span><span class="xt-stat__v">حلول مخصصة</span><span class="xt-stat__l">Custom Solutions</span></div>
+                            <div class="xt-stat"><span class="xt-stat__i">🕐</span><span class="xt-stat__v">دعم 24/7</span><span class="xt-stat__l">24/7 Support</span></div>
+                        </div>
+                        <div class="xt-stats" style="padding-top:0;">
+                            <div class="xt-stat"><span class="xt-stat__i">🏢</span><span class="xt-stat__v" data-count-target="50" data-count-suffix="+">0</span><span class="xt-stat__l">عميل — Clients</span></div>
+                            <div class="xt-stat"><span class="xt-stat__i">💻</span><span class="xt-stat__v" data-count-target="120" data-count-suffix="+">0</span><span class="xt-stat__l">مشروع — Projects</span></div>
+                            <div class="xt-stat"><span class="xt-stat__i">⚡</span><span class="xt-stat__v" data-count-target="8" data-count-suffix="+">0</span><span class="xt-stat__l">سنوات — Years</span></div>
+                            <div class="xt-stat"><span class="xt-stat__i">🌍</span><span class="xt-stat__v">مصر</span><span class="xt-stat__l">أسوان — Aswan</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Services -->
+                <section class="xt-sec xt-sec--grad">
+                    <div class="xt-c" style="text-align:center;">
+                        <p style="font-size:26px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">خدماتنا</p>
+                        <h2 class="xt-h2">Our Services</h2>
+                        <p class="xt-sub" style="margin:0 auto 40px;direction:rtl;">حلول تقنية شاملة لتسريع نمو أعمالك</p>
+                        <div class="xt-grid3" style="text-align:left;">
+                            <div class="xt-card" data-xt-tilt=""><span>💡</span><h3 style="direction:rtl;">خدمات تكنولوجيا المعلومات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">IT Services &amp; Technology</p><p style="direction:rtl;">مزاولة نشاط خدمات تكنولوجيا المعلومات — بنية تحتية متكاملة وإعداد وصيانة.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>⚙️</span><h3 style="direction:rtl;">تصميم وتطوير البرمجيات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Software Development</p><p style="direction:rtl;">تصميم وتطوير البرمجيات والتطبيقات — Python, JS, Android, iOS.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🌐</span><h3 style="direction:rtl;">تطوير وبرمجة المواقع</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Web Design &amp; Development</p><p style="direction:rtl;">تصميم وتطوير وإدارة مواقع الويب وتطبيقات الويب الاحترافية.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🚀</span><h3 style="direction:rtl;">حلول التحول الرقمي</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Digital Transformation</p><p style="direction:rtl;">حلول التحول الرقمي — تحديث العمليات وأتمتة سير العمل.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🔌</span><h3 style="direction:rtl;">إدارة الشبكات والسيرفرات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Network &amp; Server Management</p><p style="direction:rtl;">إدارة وصيانة الشبكات وأنظمة السيرفرات — تصميم ونشر ومراقبة.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>📊</span><h3 style="direction:rtl;">أنظمة تخطيط موارد المؤسسات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">ERP Systems (Odoo)</p><p style="direction:rtl;">أنظمة ERP — تنفيذ وتخصيص Odoo: نقاط بيع، محاسبة، مخزون، موارد بشرية.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🛡️</span><h3 style="direction:rtl;">أمن المعلومات وحماية البيانات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Information Security</p><p style="direction:rtl;">أمن المعلومات — تقييم الثغرات، التشفير، التحكم في الوصول.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>📹</span><h3 style="direction:rtl;">كاميرات المراقبة</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">CCTV &amp; Surveillance</p><p style="direction:rtl;">كاميرات IP، أنظمة DVR/NVR، المراقبة عن بُعد، وحلول أمنية.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🎧</span><h3 style="direction:rtl;">الاستشارات التقنية والدعم الفني</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Consulting &amp; Support</p><p style="direction:rtl;">الاستشارات التقنية — تخطيط وتنفيذ وصيانة البنية التقنية.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🛒</span><h3 style="direction:rtl;">حلول التجارة الإلكترونية</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">E-Commerce Solutions</p><p style="direction:rtl;">متاجر إلكترونية متكاملة — بوابات الدفع، إدارة الشحن والمنتجات والطلبات.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>☁️</span><h3 style="direction:rtl;">الحلول السحابية والاستضافة</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Cloud Solutions &amp; Hosting</p><p style="direction:rtl;">استضافة VPS، بنية سحابية، استضافة البريد، النسخ الاحتياطي والتعافي من الكوارث.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🖥️</span><h3 style="direction:rtl;">توريد الأجهزة والمعدات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Hardware Supply</p><p style="direction:rtl;">سيرفرات، أنظمة تخزين، أجهزة شبكات، لابتوب ومحطات عمل.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>📣</span><h3 style="direction:rtl;">التسويق الرقمي والإعلانات</h3><p style="color:#00ADEE;font-size:13px;font-weight:600;">Digital Marketing &amp; Ads</p><p style="direction:rtl;">استراتيجية تسويق، إدارة السوشيال ميديا، إعلانات Google وFacebook وInstagram.</p></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ERP / Implementation -->
+                <section class="xt-sec xt-sec--dark">
+                    <div class="xt-c" style="text-align:center;">
+                        <p style="font-size:26px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">حلول Odoo و ERP</p>
+                        <h2 class="xt-h2">Odoo &amp; ERP Solutions</h2>
+                        <div class="xt-grid3" style="margin-top:40px;text-align:left;">
+                            <div class="xt-card" data-xt-tilt=""><span>✅</span><h3 style="direction:rtl;">تقنية أنظمة Odoo</h3><p style="direction:rtl;">التخصص بتطوير أنظمة Odoo — محاسبة، نقاط بيع، مخزون، موارد بشرية.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🔧</span><h3 style="direction:rtl;">تخصيص الموديولات</h3><p style="direction:rtl;">تطوير موديولات مخصصة والتكامل مع أنظمة خارجية.</p></div>
+                            <div class="xt-card" data-xt-tilt=""><span>🏢</span><h3 style="direction:rtl;">نحن شركاء Odoo</h3><p style="direction:rtl;">موديولات منشورة على متجر Odoo الرسمي — خبرة Odoo 16-19.</p></div>
+                        </div>
+                        <!-- Steps -->
+                        <p style="font-size:22px;font-weight:800;color:#00ADEE;direction:rtl;margin:60px 0 8px;">منهجية التنفيذ</p>
+                        <h3 class="xt-h2" style="font-size:26px;">Implementation Methodology</h3>
+                        <div class="xt-steps" style="margin-top:32px;">
+                            <div class="xt-step"><div class="xt-step__n">01</div><span>🔍</span><h4 style="direction:rtl;">تحليل المتطلبات</h4><p>REQ Analysis</p></div>
+                            <div class="xt-step"><div class="xt-step__n">02</div><span>📋</span><h4 style="direction:rtl;">التصميم والإعداد</h4><p>Design &amp; Setup</p></div>
+                            <div class="xt-step"><div class="xt-step__n">03</div><span>⚙️</span><h4 style="direction:rtl;">التطوير والتكامل</h4><p>Development</p></div>
+                            <div class="xt-step"><div class="xt-step__n">04</div><span>✅</span><h4 style="direction:rtl;">الاختبار والقبول</h4><p>UAT Testing</p></div>
+                            <div class="xt-step"><div class="xt-step__n">05</div><span>🎓</span><h4 style="direction:rtl;">التدريب والدعم</h4><p>Support</p></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- GIF Showcase -->
+                <section class="xt-sec xt-sec--grad" style="padding:48px 0;">
+                    <div class="xt-c" style="text-align:center;">
+                        <p class="xt-tag">🎬 Preview — معاينة حية</p>
+                        <h2 class="xt-h2">See It In Action</h2>
+                        <p class="xt-sub" style="margin:0 auto 32px;direction:rtl;">شاهد النظام أثناء العمل</p>
+                        <div style="max-width:720px;margin:0 auto;border-radius:18px;overflow:hidden;border:1px solid var(--xt-border);box-shadow:var(--xt-shadow-lg);">
+                            <img src="/xamltech_addons_store/static/description/theme_preview.gif" alt="XamlTech Theme Preview" style="width:100%;display:block;" loading="eager"/>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Demo -->
+                <section class="xt-sec xt-sec--grad" id="demo-section">
+                    <div class="xt-c" style="text-align:center;">
+                        <p class="xt-tag">⚡ تجربة مباشرة — Live Demo</p>
+                        <p style="font-size:26px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">جرّب أنظمتنا مباشرة</p>
+                        <h2 class="xt-h2">Try Our POS Addons Live</h2>
+                        <div style="display:grid;grid-template-columns:1fr 400px;gap:40px;text-align:left;margin-top:40px;">
+                            <div>
+                                <div class="xt-hcard" style="margin-bottom:12px;"><span>✂️</span><div><strong style="direction:rtl;">إدارة أوامر القص — POS Cutting</strong><p>Fabric cutting from POS</p></div></div>
+                                <div class="xt-hcard" style="margin-bottom:12px;"><span>📦</span><div><strong style="direction:rtl;">مخزون فوري — Stock Real-Time</strong><p>Live inventory updates</p></div></div>
+                                <div class="xt-hcard" style="margin-bottom:12px;"><span>🔐</span><div><strong style="direction:rtl;">نظام أمان — Security Framework</strong><p>Manager PIN, discount limits</p></div></div>
+                                <div class="xt-hcard"><span>🎨</span><div><strong style="direction:rtl;">تخصيص شامل — Customization</strong><p>Themes, dark/light mode</p></div></div>
+                            </div>
+                            <div class="xt-card" style="padding:28px;">
+                                <h3>🖥️ طلب تجربة مجانية</h3>
+                                <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px;direction:rtl;">أدخل بياناتك — واحصل على وصول فوري</p>
+                                <div class="xt-fg"><label class="xt-lbl">الاسم — Name *</label><input type="text" id="demo-name" class="xt-inp" placeholder="مثال: أحمد محمد"/></div>
+                                <div class="xt-fg"><label class="xt-lbl">واتساب — WhatsApp *</label><input type="tel" id="demo-wa" class="xt-inp" placeholder="+20 1XX XXX XXXX"/></div>
+                                <div class="xt-fg"><label class="xt-lbl">مهتم بـ — Interest</label><select id="demo-interest" class="xt-inp xt-sel"><option value="All POS">جميع الإضافات — All POS</option><option value="Cutting">أوامر القص</option><option value="Stock">المخزون الفوري</option><option value="Security">نظام الأمان</option></select></div>
+                                <button type="button" id="demo-submit" class="xt-btn xt-btn--primary" style="width:100%;margin-top:16px;">🚀 احصل على التجربة — Get Demo</button>
+                                <div id="demo-status" class="xt-status"/>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Demo Modal -->
+                <div id="demo-modal" class="xt-modal" style="display:none;"><div class="xt-modal__bg"/><div class="xt-modal__box"><button type="button" class="xt-modal__x" id="modal-close">✕</button><div style="font-size:48px;margin-bottom:12px;">🎉</div><h3 style="font-size:22px;font-weight:800;margin-bottom:4px;">!تم بنجاح — Demo Ready!</h3><div class="xt-creds"><div class="xt-cred"><span>URL</span><strong>demo18.xamltech.com</strong></div><div class="xt-cred"><span>User</span><strong>demo</strong></div><div class="xt-cred"><span>Pass</span><strong>demo</strong></div></div><a href="https://demo18.xamltech.com/odoo/point-of-sale" target="_blank" class="xt-btn xt-btn--primary" style="width:100%;margin-top:16px;">افتح نقطة البيع — Open POS →</a><a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa" style="width:100%;margin-top:10px;">💬 واتساب — WhatsApp</a></div></div>
+
+                <!-- Addons -->
+                <section class="xt-sec xt-sec--dark">
+                    <div class="xt-c" style="text-align:center;">
+                        <p style="font-size:22px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">أعمالنا</p>
+                        <h2 class="xt-h2">Our Published Addons</h2>
+                        <div class="xt-grid3" style="text-align:left;margin-top:40px;">
+                            <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting" target="_blank" class="xt-acard" data-xt-tilt=""><div class="xt-acard__head" style="background:linear-gradient(135deg,rgba(232,54,79,0.1),rgba(232,54,79,0.02));"><span class="xt-acard__icon">✂️</span><span class="xt-acard__badge" style="background:#E8364F;">الأكثر مبيعاً</span></div><div class="xt-acard__body"><span class="xt-acard__cat" style="color:#E8364F;">نقاط البيع</span><h3 class="xt-acard__name">POS Cutting Orders</h3><p class="xt-acard__desc">إدارة أوامر القص للأقمشة من نقطة البيع.</p></div><div class="xt-acard__foot"><span class="xt-acard__price">€149</span><span>⭐ 4.9</span></div></a>
+                            <a href="https://apps.odoo.com/apps/modules/18.0/ma_rs_pos_stock" target="_blank" class="xt-acard" data-xt-tilt=""><div class="xt-acard__head" style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(59,130,246,0.02));"><span class="xt-acard__icon">📦</span><span class="xt-acard__badge" style="background:#3B82F6;">الأعلى تقييماً</span></div><div class="xt-acard__body"><span class="xt-acard__cat" style="color:#3B82F6;">نقاط البيع</span><h3 class="xt-acard__name">POS Stock Real-Time</h3><p class="xt-acard__desc">مزامنة المخزون الفورية عبر جميع الجلسات.</p></div><div class="xt-acard__foot"><span class="xt-acard__price">€129</span><span>⭐ 4.8</span></div></a>
+                            <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_base" target="_blank" class="xt-acard" data-xt-tilt=""><div class="xt-acard__head" style="background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.02));"><span class="xt-acard__icon">🔐</span><span class="xt-acard__badge" style="background:#10B981;">أساسي</span></div><div class="xt-acard__body"><span class="xt-acard__cat" style="color:#10B981;">نقاط البيع</span><h3 class="xt-acard__name">POS Security Framework</h3><p class="xt-acard__desc">التحقق برقم PIN للمدير وحدود الخصم.</p></div><div class="xt-acard__foot"><span class="xt-acard__price">€99</span><span>⭐ 4.7</span></div></a>
+                        </div>
+                        <a href="/addons-store" class="xt-btn xt-btn--primary" style="margin-top:40px;">عرض الكل — View All →</a>
+                    </div>
+                </section>
+
+                <!-- CTA -->
+                <section class="xt-sec xt-sec--grad" style="padding:60px 0;">
+                    <div class="xt-c" style="text-align:center;">
+                        <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">هل أنت مستعد للتحول الرقمي؟</p>
+                        <h2 class="xt-h2">Ready to Transform Your Business?</h2>
+                        <p class="xt-sub" style="margin:0 auto 32px;direction:rtl;">سواء كنت تحتاج نظام ERP مخصص أو بنية تحتية — فريقنا جاهز.</p>
+                        <div class="xt-btns" style="justify-content:center;">
+                            <a href="/contact-us" class="xt-btn xt-btn--primary">تواصل معنا — Get in Touch →</a>
+                            <a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa">💬 واتساب — WhatsApp</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Footer -->
+                <t t-call="xamltech_addons_store.xt_footer_block"/>
+
+            </div>
+        </xpath>
+    </template>
+</odoo>

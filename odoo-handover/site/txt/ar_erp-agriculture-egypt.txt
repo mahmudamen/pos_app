@@ -1,0 +1,205 @@
+Odoo ERP for Agriculture & Farm Management in Upper Egypt — XamlTech Aswan
+تخطي للذهاب إلى المحتوى
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
+0
+0
++201201410140
+الْعَرَبيّة
+الْعَرَبيّة
+English (US)
+تسجيل الدخول
+تواصل معنا
+0
+0
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
++201201410140
+الْعَرَبيّة
+الْعَرَبيّة
+English (US)
+تسجيل الدخول
+تواصل معنا
+🌾 Agriculture ERP Specialist
+نظام ERP للزراعة وإدارة المزارع — صعيد مصر
+Odoo ERP for Agriculture & Farm Management in Upper Egypt
+We build custom Odoo systems for farms, greenhouses, and agricultural operations. Crop tracking, work orders, harvest management, cost analytics — all integrated with accounting and payroll. Built by a team that understands Upper Egypt agriculture.
+نبني أنظمة Odoo مخصصة للمزارع والصوبات والعمليات الزراعية. تتبع المحاصيل، أوامر العمل، إدارة الحصاد، وتحليل التكاليف — متكامل مع المحاسبة والرواتب.
+💬 استشارة مجانية — Free Consultation
+🖥️ Live Demo (demo/demo)
+📦 Get on Odoo Apps Store
+🌱
+Crop Lifecycle
+من الزراعة للحصاد — تتبع كامل
+📍
+Farm Hierarchy
+مزرعة → قطاع → وحدة → بيت
+📋
+Work Orders
+ري، تسميد، رش، حصاد — أوامر عمل
+📊
+Cost Analytics
+تكلفة لكل محصول، موقع، موسم
+💰
+Full Accounting
+محاسبة + رواتب + مخزون متكامل
+ليه المزرعة محتاجة نظام ERP؟
+Why Your Farm Needs ERP
+❌
+بدون ERP
+سجلات ورقية ضايعة. مش عارف تكلفة كل محصول. مفيش تتبع للعمال. الحصاد بالتخمين. محاسبة يدوية بتضيع فلوس.
+✅
+مع Odoo ERP
+كل حاجة رقمية. تعرف تكلفة كل متر مربع. تتبع العمال والرواتب تلقائي. الحصاد موثق بالكميات. تقارير ربحية لكل محصول.
+🏆
+النتيجة
+قرارات مبنية على بيانات. تخفيض تكاليف 20-30%. إنتاجية أعلى. تخطيط مواسم أفضل. تقارير جاهزة للبنوك والمستثمرين.
+مميزات النظام
+Farm Management Module Features
+📍
+Hierarchical Locations
+مواقع هرمية
+4-level hierarchy: Farm → Sector → Unite → House. Each level maps to analytic accounts. Assign workers and costs per location. Kanban view for visual management.
+🌱
+Crop Management
+إدارة المحاصيل
+Track crop varieties, planting dates, growth stages, expected yields. Support for sugarcane, dates, vegetables, cotton, wheat. Crop rotation planning across seasons.
+📋
+Agriculture Work Orders
+أوامر العمل الزراعية
+Modeled after mrp.production. Create orders for planting, irrigation, fertilizing, spraying, harvesting. Track labor hours, materials used, equipment allocated per order.
+📦
+Harvest & Inventory
+الحصاد والمخزون
+Stock movement wizards auto-create warehouse receipts on harvest. Track produce from field to storage to sale. Lot tracking for quality control. Waste recording.
+💰
+Cost Analytics
+تحليل التكاليف
+Real P&L per farm, per crop, per season. Track all inputs: seeds, fertilizer, water, labor, equipment. Compare expected vs actual costs. Seasonal trends dashboard.
+👨‍🌾
+Worker Payroll
+رواتب العمال
+Assign workers to locations. Track attendance via work orders. Auto-calculate wages (daily, task-based, seasonal). Integrates with Odoo HR and Payroll modules.
+المحاصيل اللي بندعمها
+Crops We Support in Upper Egypt
+Our system handles all major Upper Egypt crops with specialized configurations
+🌿
+Sugarcane
+قصب السكر — المحصول الرئيسي في الصعيد
+🌴
+Date Palms
+نخيل التمور — أسوان والوادي الجديد
+🥬
+Vegetables
+خضروات — طماطم، فلفل، باذنجان
+🌾
+Wheat & Grains
+قمح وحبوب — المواسم الشتوية
+🍊
+Citrus Fruits
+حمضيات — برتقال، ليمون، يوسفي
+🫘
+Legumes
+بقوليات — فول، عدس، حمص
+🌻
+Cotton
+قطن — المحافظات الجنوبية
+🌿
+Herbs & Medicinal
+أعشاب ونباتات طبية — النعناع، البابونج
+🏆 Real Deployment — Client: Qatf Company
+Agriculture ERP in Production
+Built and deployed for real farming operations. Not a demo — a working system.
+المشكلة
+Qatf Company manages multiple farm locations with different crops. Manual paper records made it impossible to track costs per location, manage worker assignments, or plan seasonal rotations. No visibility into which crops were profitable.
+الحل
+We built farm_management for Odoo 17: 4-level farm hierarchy, crop.crop model for lifecycle tracking, work orders for all farming operations, stock wizards for harvest, analytic accounts per location, payroll integration for seasonal workers.
+النتيجة
+Complete visibility into per-crop profitability. Worker payroll automated (saved 2 days/month). Harvest tracking eliminated discrepancies. Management now plans seasons based on data, not guesswork. Cost reduction estimated at 25%.
+ليه زامل تك للزراعة؟
+Why XamlTech for Agriculture ERP?
+📍
+Based in Upper Egypt
+We're in Aswan — we understand Upper Egypt agriculture. Sugarcane seasons, Nile irrigation, date palm cultivation. We do on-site visits and local support.
+🌾
+Agriculture Specialist
+Not a generic ERP company. We built a complete farm management module from scratch for real farming operations. Crop tracking, work orders, harvest — production-tested.
+🔧
+Full-Stack Odoo
+8+ years Odoo development (v12-v19). Published modules on Odoo Apps Store. We handle Python, OWL, PostgreSQL, and infrastructure. Not just configuration — real development.
+جاهز تحول مزرعتك لنظام رقمي؟
+Ready to Digitize Your Farm?
+استشارة مجانية + زيارة موقع في صعيد مصر. تواصل معنا الآن.
+Free consultation + site visits in Upper Egypt. Contact us now.
+💬 WhatsApp — استشارة مجانية
+✉️ Contact Us
+🖥️ Live Demo (demo/demo)
+📦 Get on Odoo Apps Store
+Ready to transform your business?
+Get started with XamlTech solutions today.
+Get in Touch
+طلب تجربة
+Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.
+الحلول
+ERP & Odoo
+البنية التحتية
+تطوير المواقع
+AI Copilots
+متجر الإضافات
+Pricing
+Resources
+Blog & Guides
+AI Marketing Guide
+AI POS Guide
+Knowledge Base
+Testimonials
+طلب تجربة
+الشركة
+أعمالنا
+تواصل معنا
+Privacy Policy
+Terms of Service
+Odoo Apps Store ↗
+GitHub ↗
+Get in Touch
+[email protected]
++20 100 798 2468
++20 120 141 0140
+WhatsApp Chat
+Sahary, Aswan, Egypt
+© 2026 XamlTech. All rights reserved.
+xamltech.com
+·
+Contact
+·
+Blog
+·
+Privacy Policy
+·
+Terms

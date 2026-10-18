@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!--
+        Theme selection card shown in Odoo's website-setup / theme-chooser screen.
+        Inherits website.themes_page so the installer lists XamlTech Theme
+        alongside other available themes.
+    -->
+    <template id="xt_theme_preview" inherit_id="website.themes_page" priority="10" forcecreate="0">
+        <xpath expr="//div[hasclass('o_website_themes')]" position="inside">
+            <div class="o_website_theme" data-module-id="xamltech_addons_store">
+                <div class="o_website_theme_preview">
+                    <img src="/xamltech_addons_store/static/description/theme_preview.gif"
+                         alt="XamlTech Theme preview"
+                         style="width:100%;border-radius:8px;"/>
+                </div>
+                <div class="o_website_theme_name">
+                    <span>XamlTech Theme</span>
+                    <small style="color:#00ADEE;display:block;font-size:11px;margin-top:2px;">
+                        Dark · Light · RTL Arabic · Odoo 19
+                    </small>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!--
+        Standalone theme-info page accessible at /theme-info.
+        Shows the full feature overview and links to apps.odoo.com listing.
+    -->
+    <template id="xt_theme_info_page" name="XamlTech Theme Info">
+        <t t-call="website.layout">
+            <t t-set="title">XamlTech Theme — Dark/Light RTL Odoo 19 Website Theme</t>
+            <t t-set="meta_description">XamlTech Theme: dark/light RTL-ready Odoo 19 website theme with Cairo fonts, CSS custom properties, scroll animations, PWA support.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;">
+                <div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div>
+                <div class="xt-c" style="text-align:center;position:relative;z-index:1;">
+                    <p class="xt-tag">🎨 Odoo 19 Website Theme</p>
+                    <h1 class="xt-hero__h1" style="font-size:44px;">XamlTech Theme</h1>
+                    <p class="xt-hero__sub" style="max-width:620px;margin:16px auto 32px;">
+                        Professional dark/light toggle theme with full RTL Arabic support.
+                        Built for technology companies and ERP consultancies.
+                    </p>
+                    <div class="xt-btns" style="justify-content:center;">
+                        <a href="https://apps.odoo.com/apps/modules/19.0/xamltech_addons_store"
+                           target="_blank" class="xt-btn xt-btn--primary">
+                            Get on Odoo Apps ↗
+                        </a>
+                        <a href="/contact-us" class="xt-btn xt-btn--outline">Contact Us</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Animated preview -->
+            <section class="xt-sec xt-sec--dark" style="padding:0 0 60px;">
+                <div class="xt-c" style="max-width:900px;">
+                    <div style="border:1px solid rgba(0,173,238,0.2);border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.4);">
+                        <img src="/xamltech_addons_store/static/description/theme_preview.gif"
+                             alt="XamlTech Theme animated preview"
+                             style="width:100%;display:block;"/>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feature grid -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="text-align:center;">
+                    <h2 class="xt-h2">Theme Features</h2>
+                    <div class="xt-grid3" style="margin-top:40px;text-align:left;">
+                        <div class="xt-card"><span>🌙</span><h3>Dark Mode Default</h3><p>Deep-space dark theme with luminous accent blue. Reduces eye strain and looks stunning on modern displays.</p></div>
+                        <div class="xt-card"><span>☀️</span><h3>One-Click Light Mode</h3><p>Seamless toggle persisted in localStorage. Follows OS colour scheme preference automatically.</p></div>
+                        <div class="xt-card"><span>🌐</span><h3>Full RTL Arabic</h3><p>Every component supports right-to-left. Cairo font covers Arabic + Latin in one stack.</p></div>
+                        <div class="xt-card"><span>🎨</span><h3>CSS Design Tokens</h3><p>Zero hardcoded colours. All values in <code>:root</code> CSS variables — one-line rebranding.</p></div>
+                        <div class="xt-card"><span>📱</span><h3>Fluid Responsive</h3><p>CSS clamp() everywhere. Pixel-perfect from 320px to 4K. No media-query breakpoint hacks.</p></div>
+                        <div class="xt-card"><span>⚡</span><h3>PWA + Service Worker</h3><p>Offline-first. Web App Manifest included. Installable on mobile home screens.</p></div>
+                        <div class="xt-card"><span>🛒</span><h3>Addons Store</h3><p>Live search, category filter, sort, staggered animations — all vanilla JS, no jQuery.</p></div>
+                        <div class="xt-card"><span>💬</span><h3>WhatsApp Integration</h3><p>Floating button and contact form with pre-filled WhatsApp deep-link. No plugin needed.</p></div>
+                        <div class="xt-card"><span>🔍</span><h3>SEO + JSON-LD</h3><p>Organization, Service, FAQPage, ItemList structured data. AI-readable on every page.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Screenshots -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <h2 class="xt-h2">Screenshots</h2>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:40px;">
+                        <div>
+                            <img src="/xamltech_addons_store/static/description/ss_dark.png"
+                                 alt="Dark mode" style="border-radius:12px;width:100%;border:1px solid rgba(0,173,238,0.15);"/>
+                            <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:8px;">🌙 Dark Mode</p>
+                        </div>
+                        <div>
+                            <img src="/xamltech_addons_store/static/description/ss_light.png"
+                                 alt="Light mode" style="border-radius:12px;width:100%;border:1px solid rgba(0,173,238,0.15);"/>
+                            <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:8px;">☀️ Light Mode</p>
+                        </div>
+                        <div>
+                            <img src="/xamltech_addons_store/static/description/ss_rtl.png"
+                                 alt="RTL Arabic" style="border-radius:12px;width:100%;border:1px solid rgba(0,173,238,0.15);"/>
+                            <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:8px;">🌐 RTL Arabic</p>
+                        </div>
+                        <div>
+                            <img src="/xamltech_addons_store/static/description/ss_store.png"
+                                 alt="Addons store" style="border-radius:12px;width:100%;border:1px solid rgba(0,173,238,0.15);"/>
+                            <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:8px;">🛒 Addons Store</p>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <img src="/xamltech_addons_store/static/description/ss_mobile.png"
+                             alt="Mobile responsive" style="border-radius:12px;max-width:800px;width:100%;border:1px solid rgba(0,173,238,0.15);"/>
+                        <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:8px;">📱 Mobile Responsive</p>
+                    </div>
+                </div>
+            </section>
+
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,3 @@
+Collected 2026-10-10T05:15:05+03:00
+odoo version: Odoo Server 19.0-20260701
+python: Python 3.12.3

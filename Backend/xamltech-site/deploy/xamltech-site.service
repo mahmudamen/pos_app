@@ -1,0 +1,27 @@
+[Unit]
+Description=XamlTech marketing site (Go)
+Documentation=https://github.com/XamlTech
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/xamltech-site
+EnvironmentFile=/opt/xamltech-site/site.env
+ExecStart=/opt/xamltech-site/xamltech-site
+Restart=on-failure
+RestartSec=2
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/xamltech-site
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

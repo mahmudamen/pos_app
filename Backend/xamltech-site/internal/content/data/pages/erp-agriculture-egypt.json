@@ -1,0 +1,186 @@
+{
+  "en": {
+    "meta": {
+      "title": "Odoo ERP for Agriculture & Farm Management in Upper Egypt — XamlTech Aswan",
+      "description": "Custom Odoo systems for farms, greenhouses and agricultural operations — crop tracking, work orders, harvest management and cost analytics, integrated with accounting and payroll.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🌾 Agriculture ERP Specialist",
+        "title": "Odoo ERP for agriculture & farm management in Upper Egypt",
+        "lead": "We build custom Odoo systems for farms, greenhouses and agricultural operations. Crop tracking, work orders, harvest management and cost analytics — fully integrated with accounting and payroll.",
+        "points": ["From planting to harvest — full traceability", "Farm → Sector → Unit → House hierarchy", "Irrigation, fertilising, spraying, harvest work orders", "Cost per crop, location and season", "Accounting + payroll + inventory integrated"],
+        "ctas": [
+          { "label": "Request a free consultation", "href": "/contact-us?lang=en", "style": "primary", "big": true },
+          { "label": "Talk to us on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Why your farm needs ERP",
+        "title": "From paper chaos to data",
+        "cols": 3,
+        "items": [
+          { "icon": "📄", "title": "Without ERP", "text": "Lost paper records, unknown cost per crop, untracked labour and harvest by guesswork." },
+          { "icon": "🌱", "title": "With Odoo ERP", "text": "Everything digital, cost per square metre, automatic worker and payroll tracking and documented harvests." },
+          { "icon": "📈", "title": "The result", "text": "Data-driven decisions, 20–30% cost reduction, higher productivity and bank-ready reporting." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Features",
+        "title": "Farm management module features",
+        "sub": "Vertical logic built for real farming operations.",
+        "cols": 3,
+        "items": [
+          { "icon": "🗺️", "title": "Hierarchical locations", "text": "4-level hierarchy: Farm → Sector → Unit → House. Each level maps to analytic accounts, with workers and costs per location." },
+          { "icon": "🌾", "title": "Crop management", "text": "Track varieties, planting dates, growth stages and expected yields — with crop rotation planning across seasons." },
+          { "icon": "📋", "title": "Agricultural work orders", "text": "Orders for planting, irrigation, fertilising, spraying and harvesting, tracking labour hours, materials and equipment." },
+          { "icon": "🚜", "title": "Harvest & inventory", "text": "Stock wizards auto-create warehouse receipts on harvest; lot tracking from field to storage to sale." },
+          { "icon": "💰", "title": "Cost analytics", "text": "Real P&L per farm, crop and season, tracking seeds, fertiliser, water, labour and equipment." },
+          { "icon": "👷", "title": "Worker payroll", "text": "Assign workers to locations, track attendance via work orders and auto-calculate daily, task-based or seasonal wages." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Crops",
+        "title": "Crops we support in Upper Egypt",
+        "sub": "Specialised configurations for the region's major crops.",
+        "cols": 4,
+        "items": [
+          { "icon": "🎋", "title": "Sugarcane" },
+          { "icon": "🌴", "title": "Date palms" },
+          { "icon": "🍅", "title": "Vegetables" },
+          { "icon": "🌾", "title": "Wheat & grains" },
+          { "icon": "🍊", "title": "Citrus fruits" },
+          { "icon": "🫘", "title": "Legumes" },
+          { "icon": "🧵", "title": "Cotton" },
+          { "icon": "🌿", "title": "Herbs & medicinal" }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "alt": true,
+        "eyebrow": "🏆 Real deployment — Qatf Company",
+        "title": "Agriculture ERP in production",
+        "lead": "Built and deployed for real farming operations — not a demo.",
+        "points": [
+          "Problem: multiple farm locations with different crops and paper records",
+          "Solution: farm_management for Odoo 17 — hierarchy, crop lifecycle, work orders, harvest stock wizards",
+          "Result: complete per-crop profitability visibility",
+          "Worker payroll automated, saving 2 days per month"
+        ],
+        "media": { "src": "/static/img/pos-light.png", "alt": "Agriculture ERP deployment", "window": true, "caption": "erp.xamltech.com", "live": "Live" }
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Why XamlTech",
+        "title": "Why XamlTech for agriculture ERP?",
+        "cols": 3,
+        "items": [
+          { "icon": "📍", "title": "Based in Upper Egypt", "text": "We're in Aswan — we understand sugarcane seasons, Nile irrigation and date palm cultivation, with on-site visits and local support." },
+          { "icon": "🌾", "title": "Agriculture specialist", "text": "We built a complete farm management module from scratch, production-tested with real farming operations." },
+          { "icon": "⚙️", "title": "Full-stack Odoo", "text": "8+ years of Odoo development (v12–v19) with published modules, handling Python, OWL, PostgreSQL and infrastructure." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to digitise your farm?",
+        "text": "Free consultation and site visits in Upper Egypt. Contact us now.",
+        "actions": [
+          { "label": "Free consultation", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "نظام Odoo ERP للزراعة وإدارة المزارع في صعيد مصر — زامل تك أسوان",
+      "description": "أنظمة Odoo مخصصة للمزارع والصوبات والعمليات الزراعية — تتبع المحاصيل وأوامر العمل وإدارة الحصاد وتحليل التكاليف، متكاملة مع المحاسبة والرواتب.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🌾 متخصصون في ERP الزراعة",
+        "title": "نظام Odoo ERP للزراعة وإدارة المزارع في صعيد مصر",
+        "lead": "نبني أنظمة Odoo مخصصة للمزارع والصوبات والعمليات الزراعية. تتبع المحاصيل وأوامر العمل وإدارة الحصاد وتحليل التكاليف — متكاملة مع المحاسبة والرواتب.",
+        "points": ["من الزراعة للحصاد — تتبع كامل", "مزرعة → قطاع → وحدة → بيت", "ري وتسميد ورش وحصاد — أوامر عمل", "تكلفة لكل محصول وموقع وموسم", "محاسبة + رواتب + مخزون متكامل"],
+        "ctas": [
+          { "label": "اطلب استشارة مجانية", "href": "/contact-us", "style": "primary", "big": true },
+          { "label": "تواصل على واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "ليه المزرعة محتاجة نظام ERP؟",
+        "title": "من فوضى الورق إلى البيانات",
+        "cols": 3,
+        "items": [
+          { "icon": "📄", "title": "بدون ERP", "text": "سجلات ورقية ضايعة، مش عارف تكلفة كل محصول، مفيش تتبع للعمال والحصاد بالتخمين." },
+          { "icon": "🌱", "title": "مع Odoo ERP", "text": "كل حاجة رقمية، تعرف تكلفة كل متر مربع، تتبع تلقائي للعمال والرواتب وحصاد موثق." },
+          { "icon": "📈", "title": "النتيجة", "text": "قرارات مبنية على بيانات، تخفيض تكاليف 20–30%، إنتاجية أعلى وتقارير جاهزة للبنوك." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "المميزات",
+        "title": "مميزات موديول إدارة المزارع",
+        "sub": "منطق قطاعي مبني لعمليات زراعية حقيقية.",
+        "cols": 3,
+        "items": [
+          { "icon": "🗺️", "title": "مواقع هرمية", "text": "هرمية من 4 مستويات: مزرعة → قطاع → وحدة → بيت. كل مستوى مرتبط بحساب تحليلي، مع عمال وتكاليف لكل موقع." },
+          { "icon": "🌾", "title": "إدارة المحاصيل", "text": "تتبع الأصناف وتواريخ الزراعة ومراحل النمو والإنتاجية المتوقعة، مع تخطيط الدورة الزراعية عبر المواسم." },
+          { "icon": "📋", "title": "أوامر العمل الزراعية", "text": "أوامر للزراعة والري والتسميد والرش والحصاد، مع تتبع ساعات العمل والمواد والمعدات." },
+          { "icon": "🚜", "title": "الحصاد والمخزون", "text": "معالجات المخزون تُنشئ إيصالات استلام تلقائياً عند الحصاد، مع تتبع الدفعات من الحقل للمخزن للبيع." },
+          { "icon": "💰", "title": "تحليل التكاليف", "text": "أرباح وخسائر حقيقية لكل مزرعة ومحصول وموسم، مع تتبع البذور والأسمدة والمياه والعمالة والمعدات." },
+          { "icon": "👷", "title": "رواتب العمال", "text": "توزيع العمال على المواقع، تتبع الحضور عبر أوامر العمل وحساب الأجور اليومية أو بالقطعة أو الموسمية تلقائياً." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "المحاصيل",
+        "title": "المحاصيل التي ندعمها في صعيد مصر",
+        "sub": "تهيئات متخصصة لأهم محاصيل المنطقة.",
+        "cols": 4,
+        "items": [
+          { "icon": "🎋", "title": "قصب السكر" },
+          { "icon": "🌴", "title": "نخيل التمور" },
+          { "icon": "🍅", "title": "خضروات" },
+          { "icon": "🌾", "title": "قمح وحبوب" },
+          { "icon": "🍊", "title": "حمضيات" },
+          { "icon": "🫘", "title": "بقوليات" },
+          { "icon": "🧵", "title": "قطن" },
+          { "icon": "🌿", "title": "أعشاب ونباتات طبية" }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "alt": true,
+        "eyebrow": "🏆 تنفيذ حقيقي — شركة قطف",
+        "title": "نظام ERP الزراعة في الإنتاج",
+        "lead": "بُني ونُشر لعمليات زراعية حقيقية — وليس عرضاً تجريبياً.",
+        "points": [
+          "المشكلة: مواقع مزرعة متعددة بمحاصيل مختلفة وسجلات ورقية",
+          "الحل: موديول farm_management لإصدار Odoo 17 — الهرمية ودورة المحصول وأوامر العمل ومعالجات الحصاد",
+          "النتيجة: رؤية كاملة لربحية كل محصول",
+          "أتمتة رواتب العمال بتوفير يومين شهرياً"
+        ],
+        "media": { "src": "/static/img/pos-rtl.png", "alt": "تنفيذ ERP زراعي", "window": true, "caption": "erp.xamltech.com", "live": "مباشر" }
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "لماذا زامل تك",
+        "title": "ليه زامل تك للزراعة؟",
+        "cols": 3,
+        "items": [
+          { "icon": "📍", "title": "من صعيد مصر", "text": "مقرنا أسوان — نفهم زراعة الصعيد: مواسم القصب وري النيل وزراعة النخيل، مع زيارات ميدانية ودعم محلي." },
+          { "icon": "🌾", "title": "متخصصون في الزراعة", "text": "بنينا موديول إدارة مزارع متكاملاً من الصفر، مُختبراً في عمليات زراعية حقيقية." },
+          { "icon": "⚙️", "title": "Odoo متكامل", "text": "أكثر من 8 سنوات تطوير Odoo (v12–v19) مع موديولات منشورة، نتولى Python وOWL وPostgreSQL والبنية التحتية." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "جاهز تحوّل مزرعتك لنظام رقمي؟",
+        "text": "استشارة مجانية وزيارة موقع في صعيد مصر. تواصل معنا الآن.",
+        "actions": [
+          { "label": "استشارة مجانية", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <!-- Blog Categories -->
+    <record id="blog_category_ai_vibe" model="blog.blog">
+        <field name="name">AI &amp; Vibe Coding</field>
+        <field name="website_id" ref="website.default_website"/>
+    </record>
+
+    <record id="blog_category_odoo_dev" model="blog.blog">
+        <field name="name">Odoo Development</field>
+        <field name="website_id" ref="website.default_website"/>
+    </record>
+
+    <record id="blog_category_it_infra" model="blog.blog">
+        <field name="name">IT &amp; Infrastructure</field>
+        <field name="website_id" ref="website.default_website"/>
+    </record>
+
+    <!-- Blog Post 1: Vibe Coding with AI -->
+    <record id="blog_post_vibe_coding" model="blog.post">
+        <field name="blog_id" ref="blog_category_ai_vibe"/>
+        <field name="name">Vibe Coding with AI: Build Odoo Modules in Minutes</field>
+        <field name="subtitle">How Claude Code accelerates ERP development</field>
+        <field name="author_id" ref="base.partner_root"/>
+        <field name="website_id" ref="website.default_website"/>
+        <field name="content">&lt;div class="o_blog_post_content"&gt;
+&lt;h2&gt;What is Vibe Coding?&lt;/h2&gt;
+&lt;p&gt;Vibe coding (a term coined by Kent Beck in 2024) is development where AI becomes your pair programmer. Instead of hunting through Stack Overflow, you describe what you need, and your AI assistant generates 80% of the boilerplate while you focus on the domain logic.&lt;/p&gt;
+
+&lt;h3&gt;Why It Matters for Odoo&lt;/h3&gt;
+&lt;p&gt;Odoo development has always been boilerplate-heavy:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Model declarations (fields, constraints, computed fields)&lt;/li&gt;
+&lt;li&gt;CRUD operations and form views&lt;/li&gt;
+&lt;li&gt;OWL components for POS/web interfaces&lt;/li&gt;
+&lt;li&gt;Test cases (TransactionCase, assertions, fixtures)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These patterns repeat across every module. With AI assistance, you can scaffold a full Odoo model in 30 seconds, then focus on the unique business logic.&lt;/p&gt;
+
+&lt;h3&gt;XamlTech's Real Workflow&lt;/h3&gt;
+&lt;p&gt;We built &lt;strong&gt;ma_pos_base&lt;/strong&gt; (our security framework) using vibe coding:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Spec in CLAUDE.md&lt;/strong&gt; — Document what we need: "4-tier security groups, PIN verification with PBKDF2, audit logging"&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;/audit&lt;/strong&gt; — Let Claude analyze the codebase for patterns&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Generate&lt;/strong&gt; — Claude Code writes the models, views, controllers, and tests&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Iterate&lt;/strong&gt; — /test to verify 83 Python tests pass, /implement for fixes, /polish for UI&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Result: 4,000 lines of production-ready code in 3 days instead of 4 weeks.&lt;/p&gt;
+
+&lt;h3&gt;The Catch: Staying Vigilant&lt;/h3&gt;
+&lt;p&gt;AI can hallucinate:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;OWL imports that don't exist in v19 (@point_of_sale/app/hooks/pos_hook exists, old paths don't)&lt;/li&gt;
+&lt;li&gt;Trailing commas in class methods (syntax error in v19 OWL)&lt;/li&gt;
+&lt;li&gt;Test coverage that looks green but misses edge cases&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The human eye is still essential. Always review, test, and profile.&lt;/p&gt;
+
+&lt;h3&gt;What's Next?&lt;/h3&gt;
+&lt;p&gt;Vibe coding is the bridge between manual development and fully agentic code generation. In 2025, we're building entire Odoo modules where AI reads your CLAUDE.md, your requirements, and the Odoo source — then generates tested, deployable code without a human writing a single line.&lt;/p&gt;
+&lt;/div&gt;</field>
+    </record>
+
+    <!-- Blog Post 2: Ollama Local AI -->
+    <record id="blog_post_ollama" model="blog.post">
+        <field name="blog_id" ref="blog_category_ai_vibe"/>
+        <field name="name">Running Ollama Locally: Your Private AI Server in 5 Minutes</field>
+        <field name="subtitle">Privacy-first LLM inference without cloud APIs</field>
+        <field name="author_id" ref="base.partner_root"/>
+        <field name="website_id" ref="website.default_website"/>
+        <field name="content">&lt;div class="o_blog_post_content"&gt;
+&lt;h2&gt;Why Local LLMs Matter&lt;/h2&gt;
+&lt;p&gt;Cloud APIs (OpenAI, Claude, Gemini) are powerful but come with trade-offs:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Privacy&lt;/strong&gt; — Your data is sent to third-party servers&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Latency&lt;/strong&gt; — Network round-trips add 500ms-2s per request&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cost&lt;/strong&gt; — High-volume inference becomes expensive&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Ollama&lt;/strong&gt; solves this by running open-source LLMs locally on your server. Zero external calls, instant inference, unlimited usage.&lt;/p&gt;
+
+&lt;h3&gt;Installation (Linux/Mac)&lt;/h3&gt;
+&lt;p&gt;One command:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;curl -fsSL https://ollama.com/install.sh | sh&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Start the service:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ollama serve&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;That's it. Ollama is now listening on http://localhost:11434&lt;/p&gt;
+
+&lt;h3&gt;Popular Models&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;codellama:13b&lt;/strong&gt; — Code generation, Python/JavaScript/Odoo Python. 4GB RAM, 200ms response&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;mistral:7b&lt;/strong&gt; — Fast general-purpose, good for summarization. 3.5GB RAM&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;llama3:8b&lt;/strong&gt; — Reasoning, explanation, creative tasks. 4GB RAM&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;neural-chat:7b&lt;/strong&gt; — Conversational AI, lightweight. 3GB RAM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Using Ollama from Python&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;import requests
+import json
+
+response = requests.post('http://localhost:11434/api/generate', json={
+    'model': 'codellama:13b',
+    'prompt': 'Write an Odoo model for customer tickets',
+    'stream': False
+})
+
+result = response.json()
+print(result['response'])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Real-World Odoo Use Case&lt;/h3&gt;
+&lt;p&gt;Imagine a CRM that auto-classifies incoming emails:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Email lands in Odoo mail.mail&lt;/li&gt;
+&lt;li&gt;Server hook calls Ollama: "Classify this email: urgent? sales? support?"&lt;/li&gt;
+&lt;li&gt;Response in 200ms, zero API cost, no data leaves your server&lt;/li&gt;
+&lt;li&gt;Auto-assign to queue, set priority, create lead&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Performance Benchmark&lt;/h3&gt;
+&lt;p&gt;Latency comparison (request: "summarize this contract in 50 words"):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Claude API: 1200ms (network + inference)&lt;/li&gt;
+&lt;li&gt;Ollama mistral:7b: 180ms (local inference)&lt;/li&gt;
+&lt;li&gt;Ollama on GPU: 80ms&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For high-volume tasks (100 emails/day), Ollama pays for itself.&lt;/p&gt;
+&lt;/div&gt;</field>
+    </record>
+
+    <!-- Blog Post 3: AI-Generated Apps 2025 -->
+    <record id="blog_post_ai_generation" model="blog.post">
+        <field name="blog_id" ref="blog_category_odoo_dev"/>
+        <field name="name">How We Build Next-Gen Odoo Apps with AI in 2025</field>
+        <field name="subtitle">From spec to production in 3 days using Claude Code</field>
+        <field name="author_id" ref="base.partner_root"/>
+        <field name="website_id" ref="website.default_website"/>
+        <field name="content">&lt;div class="o_blog_post_content"&gt;
+&lt;h2&gt;The Shift: From "AI Assists" to "AI Architects"&lt;/h2&gt;
+&lt;p&gt;In 2024, AI was a helper—you describe a feature and AI writes 50% of the code. In 2025, AI is the architect. You describe the domain, and AI generates tested, deployable modules.&lt;/p&gt;
+
+&lt;h2&gt;Case Study: hda_collection&lt;/h2&gt;
+&lt;p&gt;Our largest module, built entirely with AI assistance:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;24 models&lt;/strong&gt; — ticket categories, collection sessions, deposits, treasury, incentives, budgets&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;26+ views&lt;/strong&gt; — forms, lists, dashboards, reports&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;180+ tests&lt;/strong&gt; — security, accounting, state transitions&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Build time: 3 days&lt;/strong&gt; (with vibe coding) vs. 20 days (traditional)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Post-launch defects: 2&lt;/strong&gt; (both in edge cases, not boilerplate)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Our Process: CLAUDE.md → /audit → /implement&lt;/h2&gt;
+
+&lt;h3&gt;Phase 1: Document Everything&lt;/h3&gt;
+&lt;p&gt;We maintain a CLAUDE.md file with:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Module purpose and dependencies&lt;/li&gt;
+&lt;li&gt;Odoo version gotchas (v18 → v19 breaking changes)&lt;/li&gt;
+&lt;li&gt;Security rules and access control matrix&lt;/li&gt;
+&lt;li&gt;Data model relationships (which tables reference which)&lt;/li&gt;
+&lt;li&gt;Code patterns (Python ORM, OWL v2, QWeb templates)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This becomes the context for Claude Code. Instead of searching docs, Claude reads your project's CLAUDE.md.&lt;/p&gt;
+
+&lt;h3&gt;Phase 2: Audit Existing Code&lt;/h3&gt;
+&lt;p&gt;Run /audit to identify:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Anti-patterns (hard-coded colors, layout thrashing)&lt;/li&gt;
+&lt;li&gt;Performance issues (missing lazy loading, expensive animations)&lt;/li&gt;
+&lt;li&gt;WCAG accessibility gaps&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Score each dimension 0-4, then prioritize fixes.&lt;/p&gt;
+
+&lt;h3&gt;Phase 3: Generate &amp; Iterate&lt;/h3&gt;
+&lt;p&gt;Tell Claude Code what you need:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;"Create a Python model for revenue collection sessions with:
+- Multi-point support (museum, amusement park, etc.)
+- 26+ ticket category types
+- Real-time collector POS integration
+- Immutable accounting journal entries
+- See CLAUDE.md §5.5 for schema details"
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Claude reads the context, generates the model with computed fields, constraints, and tests—all at once.&lt;/p&gt;
+
+&lt;h2&gt;What AI Does Well&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;✅ ORM boilerplate (model declarations, fields, constraints)&lt;/li&gt;
+&lt;li&gt;✅ CRUD views (form, list, search, action definitions)&lt;/li&gt;
+&lt;li&gt;✅ Tests (TransactionCase, assertions, fixtures)&lt;/li&gt;
+&lt;li&gt;✅ Admin screens (simple CRUD interfaces)&lt;/li&gt;
+&lt;li&gt;✅ Documentation (docstrings, comments)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;What Still Needs Humans&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;❌ Domain knowledge ("what does a 'cutting order' actually do?")&lt;/li&gt;
+&lt;li&gt;❌ UX decisions ("where should this button go?")&lt;/li&gt;
+&lt;li&gt;❌ Performance tuning (when to add indexes, optimize queries)&lt;/li&gt;
+&lt;li&gt;❌ Compliance edge cases (ZATCA e-invoicing rules, audit trails)&lt;/li&gt;
+&lt;li&gt;❌ Security architecture (who can see what data?)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;The Future&lt;/h2&gt;
+&lt;p&gt;By 2026, AI agents will read your requirements doc, your CLAUDE.md, and the Odoo source code—then generate entire modules from scratch, run tests, fix failures, and deploy without human intervention.&lt;/p&gt;
+&lt;p&gt;We're already close.&lt;/p&gt;
+&lt;/div&gt;</field>
+    </record>
+
+    <!-- Blog Post 4: ma_pos_cutting Addon -->
+    <record id="blog_post_pos_cutting" model="blog.post">
+        <field name="blog_id" ref="blog_category_odoo_dev"/>
+        <field name="name">ma_pos_cutting: Textile POS Cutting Orders for Odoo 19</field>
+        <field name="subtitle">Solve the "sell by meter/cut" problem in POS</field>
+        <field name="author_id" ref="base.partner_root"/>
+        <field name="website_id" ref="website.default_website"/>
+        <field name="content">&lt;div class="o_blog_post_content"&gt;
+&lt;h2&gt;The Problem: Textile Shops Selling Fabric by Cut&lt;/h2&gt;
+&lt;p&gt;Standard retail POS sells one unit = one product. But textile shops work differently:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Customer: "I want 3 meters of this cotton fabric"&lt;/li&gt;
+&lt;li&gt;Shop: Cuts it from the roll, weighs it, assigns a serial number&lt;/li&gt;
+&lt;li&gt;POS must: Print serial, track which roll it came from, bundle 5 cuts into one order&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Odoo's standard POS doesn't handle this. Each cut is a separate transaction. You lose traceability and bundle logic.&lt;/p&gt;
+
+&lt;h2&gt;The Solution: ma_pos_cutting&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;ma_pos_cutting&lt;/strong&gt; is our custom POS addon that adds:&lt;/p&gt;
+
+&lt;h3&gt;1. Cutting Orders&lt;/h3&gt;
+&lt;p&gt;A "cutting order" groups multiple cuts together:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Cutting Order #CO-001
+├── Cut 1: Serial CO-001-A, 3m cotton, $12
+├── Cut 2: Serial CO-001-B, 2.5m linen, $15
+├── Cut 3: Serial CO-001-C, 4m blend, $18
+└── Order Total: $45 (single payment)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;2. Batch Serial Assignment&lt;/h3&gt;
+&lt;p&gt;Instead of manually entering 100 serial numbers, POS auto-generates them:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;ir.sequence&lt;/strong&gt; provides next serial from DB (never duplicates)&lt;/li&gt;
+&lt;li&gt;Barcode printer shows serial + QR code&lt;/li&gt;
+&lt;li&gt;Customer gets receipt with all serials for traceability&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;3. Integration with Stock&lt;/h3&gt;
+&lt;p&gt;When a cutting order is confirmed:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Fabric rolls are decremented in inventory&lt;/li&gt;
+&lt;li&gt;Cut goods become "finished fabric" stock location&lt;/li&gt;
+&lt;li&gt;Real-time stock display in POS (see ma_rs_pos_stock addon)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Technical Highlights (Odoo 19)&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Models&lt;/strong&gt; — pos.cutting.order, pos.cutting.line&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;States&lt;/strong&gt; — draft → confirmed → cutting → done → cancelled&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;POS Screen&lt;/strong&gt; — OWL v2 screen to create/edit cuts in real-time&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Serial Gen&lt;/strong&gt; — ir.sequence with format CO-YYYY-XXXX&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Validation&lt;/strong&gt; — No cuts can be zero-length, total must be ≤ roll stock&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Real-World Impact&lt;/h2&gt;
+&lt;p&gt;A customer using ma_pos_cutting reported:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Time saved&lt;/strong&gt; — 30% faster checkout (batch processing)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Accuracy&lt;/strong&gt; — Zero serial duplicates (ir.sequence handles it)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Traceability&lt;/strong&gt; — Can audit which roll each cut came from&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stock Control&lt;/strong&gt; — Real-time visibility into remaining inventory&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Installation &amp; Pricing&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Requirements:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Odoo 19 Community or Enterprise&lt;/li&gt;
+&lt;li&gt;point_of_sale module installed&lt;/li&gt;
+&lt;li&gt;ma_pos_base (security framework)&lt;/li&gt;
+&lt;li&gt;ma_pos_customization (RTL/Arabic theme)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Price: $129/year&lt;/strong&gt; (single-company license)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Support:&lt;/strong&gt; Direct email + 48-hour response time&lt;/p&gt;
+
+&lt;h2&gt;Next Steps&lt;/h2&gt;
+&lt;p&gt;&lt;a href="/addons-store"&gt;Browse our addons store&lt;/a&gt; or &lt;a href="/contact-us"&gt;contact us for a demo&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;</field>
+    </record>
+</odoo>

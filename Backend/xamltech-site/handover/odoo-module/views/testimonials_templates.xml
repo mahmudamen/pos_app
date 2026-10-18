@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!-- TESTIMONIALS & CASE STUDIES PAGE -->
+    <template id="testimonials_page" name="Customer Testimonials &amp; Case Studies">
+        <t t-call="website.layout">
+            <t t-set="title">Customer Success Stories: How XamlTech Transformed Business Operations</t>
+            <t t-set="meta_description">Customer success stories: how XamlTech transformed business operations with Odoo ERP, custom POS, and IT infrastructure solutions in Egypt.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+
+            <!-- HERO -->
+            <section class="xt-hero" style="padding:80px 0 60px;">
+                <div class="xt-hero__bg">
+                    <div class="xt-orb xt-orb--1"/>
+                    <div class="xt-orb xt-orb--2" style="animation-delay:2s;"/>
+                </div>
+                <div class="xt-c" style="text-align:center;position:relative;z-index:1;">
+                    <p class="xt-tag" style="background:rgba(34,197,94,0.2);color:#22C55E;">⭐⭐⭐⭐⭐ 4.8/5 Avg Rating</p>
+                    <h1 class="xt-hero__h1" style="font-size:48px;">Customer Success Stories</h1>
+                    <p class="xt-hero__sub" style="max-width:800px;margin:0 auto;font-size:18px;">
+                        Real businesses, real results. See how hospitals, retailers, and enterprises transformed their operations with XamlTech solutions.
+                    </p>
+                </div>
+            </section>
+
+            <!-- TESTIMONIALS GRID -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c">
+                    <h2 class="xt-h2" style="text-align:center;margin-bottom:12px;">What Our Clients Say</h2>
+                    <p class="xt-sub" style="text-align:center;margin:0 auto 40px;color:rgba(255,255,255,0.6);">Trusted by 40+ organizations across healthcare, retail, and manufacturing.</p>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-top:40px;">
+                        <!-- Testimonial 1: Hospital Manager -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                            <div style="display:flex;gap:4px;margin-bottom:16px;">
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span>
+                            </div>
+                            <p style="color:#fff;font-size:15px;line-height:1.7;margin-bottom:20px;font-style:italic;">
+                                "XamlTech completely transformed our hospital's IT infrastructure. The CCTV system is reliable, the network design handles 200+ concurrent users without lag, and their team is always there to support us. Best investment we made."
+                            </p>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#8B5CF6,#A855F7);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;">AH</div>
+                                <div>
+                                    <p style="color:#fff;font-weight:600;margin:0;">Dr. Ahmed Hassan</p>
+                                    <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0;">Administrator, Furkan Surgical Center</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonial 2: Retail Manager -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                            <div style="display:flex;gap:4px;margin-bottom:16px;">
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span>
+                            </div>
+                            <p style="color:#fff;font-size:15px;line-height:1.7;margin-bottom:20px;font-style:italic;">
+                                "The POS Cutting Orders module saved us hours daily. Before, cutting operations were manual and error-prone. Now everything is tracked in real-time with the cutting screen UI. It's production-tested and bulletproof."
+                            </p>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#F97316,#FB923C);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;">MS</div>
+                                <div>
+                                    <p style="color:#fff;font-weight:600;margin:0;">Marwa Sayed</p>
+                                    <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0;">Manager, Al-Ghazl Al-Arabi Trading</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonial 3: Ecommerce Owner -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                            <div style="display:flex;gap:4px;margin-bottom:16px;">
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span>
+                            </div>
+                            <p style="color:#fff;font-size:15px;line-height:1.7;margin-bottom:20px;font-style:italic;">
+                                "Working with XamlTech on our farm ERP was seamless. Their agriculture expertise is unmatched — they understand crop cycles, harvest planning, and work order logistics. The system scales as we grow."
+                            </p>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#10B981,#34D399);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;">KA</div>
+                                <div>
+                                    <p style="color:#fff;font-weight:600;margin:0;">Khalid Amin</p>
+                                    <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0;">CEO, Qatf Company (Agriculture)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimonial 4: IT Director -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                            <div style="display:flex;gap:4px;margin-bottom:16px;">
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span><span style="color:#F59E0B;">★</span>
+                                <span style="color:#F59E0B;">★</span>
+                            </div>
+                            <p style="color:#fff;font-size:15px;line-height:1.7;margin-bottom:20px;font-style:italic;">
+                                "ZATCA compliance for Saudi Arabia was a nightmare until XamlTech stepped in. They handled the XML generation, QR codes, and government portal integration. Now we're fully compliant and auditable."
+                            </p>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#EC4899,#F472B6);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;">NA</div>
+                                <div>
+                                    <p style="color:#fff;font-weight:600;margin:0;">Noor Al-Rashid</p>
+                                    <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0;">IT Director, Saudi Trading Group</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CASE STUDY HIGHLIGHTS -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c">
+                    <h2 class="xt-h2" style="text-align:center;margin-bottom:40px;">Success Metrics</h2>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;text-align:center;">
+                        <div>
+                            <div style="font-size:48px;font-weight:700;background:linear-gradient(135deg,#10B981,#34D399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">40+</div>
+                            <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:14px;">Organizations Served</p>
+                        </div>
+                        <div>
+                            <div style="font-size:48px;font-weight:700;background:linear-gradient(135deg,#3B82F6,#60A5FA);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">450K+</div>
+                            <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:14px;">Transactions Processed</p>
+                        </div>
+                        <div>
+                            <div style="font-size:48px;font-weight:700;background:linear-gradient(135deg,#F97316,#FB923C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">35%</div>
+                            <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:14px;">Avg. ROI Improvement</p>
+                        </div>
+                        <div>
+                            <div style="font-size:48px;font-weight:700;background:linear-gradient(135deg,#8B5CF6,#A855F7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">24h</div>
+                            <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:14px;">Avg. Deployment Time</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA SECTION -->
+            <section class="xt-sec xt-sec--dark" style="padding:60px 0;">
+                <div class="xt-c" style="text-align:center;">
+                    <h2 class="xt-h2">Ready to Transform Your Business?</h2>
+                    <p style="color:rgba(255,255,255,0.7);max-width:600px;margin:16px auto 32px;font-size:16px;">
+                        Join 40+ organizations that trust XamlTech for mission-critical solutions. Let's discuss your unique challenges and find the right approach.
+                    </p>
+                    <div class="xt-btns" style="justify-content:center;gap:16px;flex-wrap:wrap;">
+                        <a href="/contact-us" class="xt-btn xt-btn--primary">Request Demo</a>
+                        <a href="https://wa.me/201007982468?text=Hi%20XamlTech%20team%2C%20I%27m%20interested%20in%20learning%20more%20about%20your%20solutions" target="_blank" class="xt-btn" style="border:2px solid var(--xt-accent);">💬 Chat on WhatsApp</a>
+                    </div>
+                </div>
+            </section>
+
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

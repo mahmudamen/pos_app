@@ -1,0 +1,248 @@
+{
+  "en": {
+    "meta": {
+      "title": "Odoo POS System for Retail, Restaurants & Textile in Egypt — XamlTech",
+      "description": "Complete Odoo point of sale for Egypt — works offline, multi-store sync, barcode scanning, receipt printing, custom POS modules on the Odoo Apps Store.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🖥️ Odoo POS Solutions",
+        "title": "Odoo POS for retail, restaurants & textile in Egypt",
+        "lead": "Complete point-of-sale deployment — software, hardware, training and support. Works offline, syncs across stores, prints receipts and scans barcodes. From a single store to a multi-branch chain.",
+        "points": ["Works offline — automatic sync", "Multi-branch central management", "Receipt printing — Epson, Star, any printer", "Tablet, laptop, desktop — any browser", "Inventory + accounting + CRM built in"],
+        "ctas": [
+          { "label": "Try the live demo", "href": "/request-demo?lang=en", "style": "primary", "big": true },
+          { "label": "Free consultation on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Built for your business type",
+        "title": "Every business adapts differently",
+        "sub": "Here is how Odoo POS maps to yours.",
+        "cols": 3,
+        "items": [
+          { "icon": "🛒", "title": "Supermarket & grocery", "text": "Barcode scanning, weight-based products, loyalty cards, daily cash reconciliation and multi-cashier shift management." },
+          { "icon": "🍽️", "title": "Café & restaurant", "text": "Floor plans, table management, kitchen display (KDS), split bills, tips and kitchen printing." },
+          { "icon": "🧵", "title": "Textile & fabric", "text": "Our specialty. POS Cutting Orders manages fabric cutting from the POS — dimensions, quantities, fabric type, with real-time stock per roll." },
+          { "icon": "💊", "title": "Pharmacy", "text": "Expiry tracking, lot/serial numbers, prescriptions and insurance integration with barcode scanning." },
+          { "icon": "👗", "title": "Fashion & clothing", "text": "Size and colour variants, tagging, customer profiles, loyalty and multi-location stock visibility." },
+          { "icon": "🏬", "title": "Multi-store chain", "text": "Central management for unlimited locations, per-store pricelists, warehouses and real-time inventory sync." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "POS features",
+        "title": "Odoo POS features",
+        "sub": "The capabilities that keep checkout fast and accurate.",
+        "cols": 3,
+        "items": [
+          { "icon": "📴", "title": "Offline mode", "text": "Internet drops? POS keeps working and every order syncs automatically when the connection returns." },
+          { "icon": "📦", "title": "Real-time inventory", "text": "Every sale updates stock instantly across locations, with reactive quantity badges on product cards." },
+          { "icon": "🏷️", "title": "Barcode & scanning", "text": "Plug-and-play USB HID scanners for products, customer cards and coupons; print your own barcodes." },
+          { "icon": "🔐", "title": "Security controls", "text": "Manager PIN for refunds and discounts, per-user discount limits and backend validation that prevents bypasses." },
+          { "icon": "💳", "title": "Payment methods", "text": "Cash, card, bank transfer and mobile payments, with split tender and credit-limit accounts." },
+          { "icon": "🎁", "title": "Loyalty & promotions", "text": "Points, automatic discounts, buy-X-get-Y, coupon codes and gift cards — all configurable." },
+          { "icon": "🧾", "title": "Receipt printing", "text": "ESC/POS thermal printers with custom layout, logo, Arabic text and QR codes; kitchen printing for restaurants." },
+          { "icon": "📱", "title": "Any device", "text": "Runs on any browser — iPad, Android tablet, laptop, desktop or touchscreen. No special hardware." },
+          { "icon": "📊", "title": "Reports & analytics", "text": "Daily sales, per-product analysis, cashier performance and payment breakdowns, exportable to Excel." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "🛒 Published on the Odoo Apps Store",
+        "title": "Our custom POS modules",
+        "sub": "Built from real client needs and published on the official store.",
+        "cols": 3,
+        "items": [
+          { "icon": "✂️", "title": "POS Cutting Orders", "text": "Manage fabric cutting from the POS — dimensions, quantities and fabric type, with a dedicated screen and manager PIN approvals." },
+          { "icon": "📦", "title": "POS Stock Real-Time", "text": "Live inventory badges, batch loading for large catalogues, navbar refresh and reactive updates with zero lag on 10K+ products." },
+          { "icon": "🔐", "title": "POS Security Framework", "text": "Manager PIN for session close, refunds and critical operations, with discount limits at three levels and backend validation." }
+        ],
+        "cta": { "label": "Browse the addons store", "href": "/addons-store?lang=en" }
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Hardware",
+        "title": "POS hardware setup",
+        "sub": "We handle complete procurement, configuration and installation.",
+        "cols": 3,
+        "items": [
+          { "icon": "🖨️", "title": "Receipt printer", "text": "Epson TM-T20III or Star TSP143 — ESC/POS thermal printer, USB or network, with Arabic text, logos and QR codes." },
+          { "icon": "📷", "title": "Barcode scanner", "text": "USB HID plug-and-play scanner for 1D and 2D barcodes; wireless Bluetooth options available." },
+          { "icon": "💰", "title": "Cash drawer", "text": "RJ11 cash drawer that opens automatically on cash payment, with manual key override." },
+          { "icon": "🖥️", "title": "Customer display", "text": "LCD/LED display showing order items and totals in Arabic and English." },
+          { "icon": "💻", "title": "POS terminal", "text": "Any browser device — iPad, Android tablet, touchscreen PC or laptop. We recommend 10\"+." },
+          { "icon": "🔗", "title": "IoT Box (optional)", "text": "Connects printers, scanners, scales and displays. Alternative direct USB/network printing available." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Packages",
+        "title": "POS packages",
+        "cols": 3,
+        "items": [
+          { "icon": "🟢", "title": "POS Starter", "text": "Single store, one POS. Basic product configuration, receipt printer setup, staff training (2 sessions) and 3 months support." },
+          { "icon": "🔵", "title": "POS Business", "text": "Multi-store deployment, custom UI/receipts, barcode setup, loyalty, inventory integration, hardware procurement and 6 months support." },
+          { "icon": "🟣", "title": "POS Enterprise", "text": "Everything in Business plus custom modules (cutting orders, security, workflows), full ERP integration and 12 months support." }
+        ],
+        "cta": { "label": "Get a POS quote", "href": "/contact-us?lang=en" }
+      }},
+      { "partial": "split", "data": {
+        "alt": true,
+        "eyebrow": "🏆 Real deployment",
+        "title": "POS in production: Al-Ghazl Al-Arabi",
+        "lead": "A textile trading company needed a POS with fabric cutting management.",
+        "points": [
+          "Problem: cutting orders had to be created directly from the POS screen",
+          "Solution: we built POS Cutting Orders (ma_pos_cutting)",
+          "Result: multi-session POS across two locations with real-time stock sync",
+          "Cutting orders processed 3× faster than the paper-based system"
+        ],
+        "media": { "src": "/static/img/pos-light.png", "alt": "POS deployment", "window": true, "caption": "pos.xamltech.com", "live": "Live" }
+      }},
+      { "partial": "faq", "data": {
+        "eyebrow": "FAQ",
+        "title": "POS frequently asked questions",
+        "items": [
+          { "q": "How much does Odoo POS cost in Egypt?", "a": "Odoo Community POS is free; Enterprise requires licensing. Our implementation packages start from a basic single-store setup, and custom modules on the Odoo Apps Store start at €99." },
+          { "q": "Does Odoo POS work without internet?", "a": "Yes. Odoo POS is a Progressive Web App that keeps working when the internet drops, syncing all transactions automatically when the connection returns." },
+          { "q": "What printers work with Odoo POS?", "a": "ESC/POS thermal printers such as Epson TM-T20III and Star TSP143, connected via the Odoo IoT Box or direct network printing." },
+          { "q": "Can I use Odoo POS for a restaurant?", "a": "Yes — floor plans, table management, kitchen display, split bills and tips, with kitchen printing that sends orders straight to the kitchen printer." },
+          { "q": "How long does POS setup take?", "a": "Single store: 3–5 days. Multi-store: 1–2 weeks. With custom modules: 2–4 weeks, including product import, hardware setup, receipt configuration and training." },
+          { "q": "Do you serve areas outside Aswan?", "a": "Yes. Software setup is done remotely; for hardware installation we travel to your location. We serve all of Egypt, with a focus on Upper Egypt." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to get started with Odoo POS?",
+        "text": "Try our live demo — or get a free consultation on WhatsApp.",
+        "actions": [
+          { "label": "Try the live demo", "href": "/request-demo?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "نظام نقاط بيع Odoo للتجزئة والمطاعم والمنسوجات في مصر — زامل تك",
+      "description": "نظام نقاط بيع Odoo متكامل في مصر — يعمل بدون إنترنت، مزامنة بين الفروع، قراءة باركود، طباعة فواتير، وموديولات مخصصة على متجر Odoo.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🖥️ حلول نقاط البيع",
+        "title": "نظام نقاط بيع Odoo للتجزئة والمطاعم والمنسوجات في مصر",
+        "lead": "نشر كامل لنقاط البيع — برمجيات، أجهزة، تدريب ودعم فني. يعمل بدون إنترنت، ويتزامن بين الفروع، ويطبع الفواتير ويقرأ الباركود. من محل واحد إلى سلسلة فروع.",
+        "points": ["يعمل بدون إنترنت — مزامنة تلقائية", "فروع متعددة بإدارة مركزية", "طباعة فواتير — Epson، Star، أي طابعة", "تابلت أو لابتوب أو كمبيوتر — أي متصفح", "مخزون + محاسبة + CRM مدمج"],
+        "ctas": [
+          { "label": "جرّب النظام مباشرة", "href": "/request-demo", "style": "primary", "big": true },
+          { "label": "استشارة مجانية على واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "مصمم لنوع نشاطك",
+        "title": "كل نشاط يحتاج حلولاً مختلفة",
+        "sub": "هكذا تتكيف نقاط بيع Odoo معك.",
+        "cols": 3,
+        "items": [
+          { "icon": "🛒", "title": "سوبر ماركت وبقالة", "text": "قراءة باركود، منتجات بالوزن، بطاقات ولاء، تسوية نقدية يومية وإدارة ورديات متعددة." },
+          { "icon": "🍽️", "title": "كافيهات ومطاعم", "text": "مخططات صالات، إدارة طاولات، شاشة مطبخ (KDS)، تقسيم الفواتير، بقشيش وطباعة المطبخ." },
+          { "icon": "🧵", "title": "أقمشة ومنسوجات", "text": "تخصصنا. موديول أوامر القص يدير قص الأقمشة من نقطة البيع — الأبعاد والكميات والنوع مع مخزون فوري لكل لفة." },
+          { "icon": "💊", "title": "صيدليات", "text": "تتبع تواريخ الصلاحية، أرقام الدفعات/المسلسل، الوصفات وتكامل التأمين مع قراءة الباركود." },
+          { "icon": "👗", "title": "ملابس وأزياء", "text": "متغيرات المقاس واللون، الوسم، ملفات العملاء، الولاء ورؤية المخزون متعدد المواقع." },
+          { "icon": "🏬", "title": "سلاسل فروع", "text": "إدارة مركزية لمواقع غير محدودة، قوائم أسعار لكل فرع، مخازن ومزامنة فورية للمخزون." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "مميزات النظام",
+        "title": "مميزات نقاط بيع Odoo",
+        "sub": "القدرات التي تُبقي الدفع سريعاً ودقيقاً.",
+        "cols": 3,
+        "items": [
+          { "icon": "📴", "title": "وضع دون إنترنت", "text": "انقطع الإنترنت؟ يواصل النظام العمل وتتزامن كل الطلبات تلقائياً عند عودة الاتصال." },
+          { "icon": "📦", "title": "مخزون فوري", "text": "كل عملية بيع تحدّث المخزون لحظياً في كل المواقع، مع شارات كمية تفاعلية على بطاقات المنتجات." },
+          { "icon": "🏷️", "title": "الباركود والمسح", "text": "ماسحات USB جاهزة للتشغيل للمنتجات وبطاقات العملاء والكوبونات، مع طباعة باركوداتك." },
+          { "icon": "🔐", "title": "ضوابط أمنية", "text": "رقم PIN للمدير لعمليات الاسترجاع والخصم، وحدود خصم لكل مستخدم وتحقق خلفي يمنع التجاوز." },
+          { "icon": "💳", "title": "طرق الدفع", "text": "نقدي، بطاقة، تحويل بنكي ومدفوعات موبايل، مع دفع مقسم وحسابات بحدود ائتمانية." },
+          { "icon": "🎁", "title": "الولاء والعروض", "text": "نقاط، خصومات تلقائية، اشترِ X واحصل على Y، كوبونات وبطاقات هدايا — كلها قابلة للتهيئة." },
+          { "icon": "🧾", "title": "طباعة الفواتير", "text": "طابعات حرارية ESC/POS بتصميم مخصص وشعار ونص عربي ورموز QR، وطباعة المطبخ للمطاعم." },
+          { "icon": "📱", "title": "أي جهاز", "text": "يعمل على أي متصفح — iPad، تابلت أندرويد، لابتوب، كمبيوتر أو شاشة لمس. بلا أجهزة خاصة." },
+          { "icon": "📊", "title": "التقارير والتحليلات", "text": "مبيعات يومية، تحليل لكل منتج، أداء الكاشير وتفاصيل طرق الدفع، قابلة للتصدير إلى Excel." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "🛒 على متجر Odoo",
+        "title": "موديولات نقاط البيع المخصصة",
+        "sub": "بُنيت من احتياجات عملاء حقيقيين ونُشرت على المتجر الرسمي.",
+        "cols": 3,
+        "items": [
+          { "icon": "✂️", "title": "أوامر القص", "text": "إدارة قص الأقمشة من نقطة البيع — الأبعاد والكميات والنوع، مع شاشة مخصصة واعتماد PIN للمدير." },
+          { "icon": "📦", "title": "مخزون فوري", "text": "شارات مخزون حية، تحميل دفعي للكتالوجات الكبيرة، زر تحديث في الشريط وتحديثات تفاعلية بلا تأخر." },
+          { "icon": "🔐", "title": "إطار الأمان", "text": "رقم PIN للمدير لإغلاق الجلسة والاسترجاع والعمليات الحساسة، مع حدود خصم بثلاثة مستويات وتحقق خلفي." }
+        ],
+        "cta": { "label": "تصفّح متجر الإضافات", "href": "/addons-store" }
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "الأجهزة",
+        "title": "تجهيز أجهزة نقاط البيع",
+        "sub": "نتولى التوريد والتهيئة والتركيب كاملاً.",
+        "cols": 3,
+        "items": [
+          { "icon": "🖨️", "title": "طابعة الفواتير", "text": "Epson TM-T20III أو Star TSP143 — طابعة حرارية ESC/POS، USB أو شبكة، مع نص عربي وشعارات ورموز QR." },
+          { "icon": "📷", "title": "ماسح الباركود", "text": "ماسح USB HID جاهز للتشغيل لباركود 1D و2D، مع خيارات بلوتوث لاسلكية." },
+          { "icon": "💰", "title": "درج النقود", "text": "درج RJ11 يُفتح تلقائياً عند الدفع النقدي، مع مفتاح يدوي احتياطي." },
+          { "icon": "🖥️", "title": "شاشة العميل", "text": "شاشة LCD/LED تعرض أصناف الطلب والإجمالي بالعربية والإنجليزية." },
+          { "icon": "💻", "title": "جهاز نقطة البيع", "text": "أي جهاز بمتصفح — iPad، تابلت أندرويد، كمبيوتر لمسي أو لابتوب. ننصح بـ 10 بوصات وأكثر." },
+          { "icon": "🔗", "title": "صندوق IoT (اختياري)", "text": "يوصل الطابعات والماسحات والموازين والشاشات، مع بديل الطباعة المباشرة USB/شبكة." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "الباقات",
+        "title": "باقات نقاط البيع",
+        "cols": 3,
+        "items": [
+          { "icon": "🟢", "title": "POS Starter", "text": "محل واحد ونقطة بيع واحدة. تهيئة أساسية للمنتجات، إعداد الطابعة، تدريب (جلستان) ودعم 3 أشهر." },
+          { "icon": "🔵", "title": "POS Business", "text": "نشر متعدد الفروع، واجهة/فواتير مخصصة، إعداد الباركود، الولاء، تكامل المخزون، توريد الأجهزة ودعم 6 أشهر." },
+          { "icon": "🟣", "title": "POS Enterprise", "text": "كل ما في Business مع موديولات مخصصة (أوامر القص، الأمان، سير العمل)، وتكامل ERP كامل ودعم 12 شهراً." }
+        ],
+        "cta": { "label": "اطلب عرض سعر لنقاط البيع", "href": "/contact-us" }
+      }},
+      { "partial": "split", "data": {
+        "alt": true,
+        "eyebrow": "🏆 تنفيذ حقيقي",
+        "title": "نقاط البيع في الإنتاج: الغزل العربي",
+        "lead": "شركة تجارة أقمشة احتاجت نظام نقاط بيع بإدارة قص الأقمشة.",
+        "points": [
+          "المشكلة: إنشاء أوامر القص مباشرة من شاشة نقطة البيع",
+          "الحل: بنينا موديول أوامر القص (ma_pos_cutting)",
+          "النتيجة: نقاط بيع بجلسات متعددة في موقعين مع مزامنة فورية",
+          "معالجة أوامر القص أسرع 3 مرات من النظام الورقي"
+        ],
+        "media": { "src": "/static/img/pos-rtl.png", "alt": "تنفيذ نقاط بيع", "window": true, "caption": "pos.xamltech.com", "live": "مباشر" }
+      }},
+      { "partial": "faq", "data": {
+        "eyebrow": "الأسئلة الشائعة",
+        "title": "أسئلة شائعة عن نقاط البيع",
+        "items": [
+          { "q": "كم تكلفة نقاط بيع Odoo في مصر؟", "a": "نسخة Odoo Community مجانية، وEnterprise يتطلب ترخيصاً. باقات التنفيذ تبدأ من إعداد محل واحد، والموديولات المخصصة على متجر Odoo تبدأ من 99 يورو." },
+          { "q": "هل تعمل نقاط بيع Odoo بدون إنترنت؟", "a": "نعم. النظام تطبيق ويب تقدمي يواصل العمل عند انقطاع الإنترنت، وتتزامن كل العمليات تلقائياً عند عودة الاتصال." },
+          { "q": "ما الطابعات المدعومة؟", "a": "الطابعات الحرارية ESC/POS مثل Epson TM-T20III وStar TSP143، عبر صندوق Odoo IoT أو الطباعة المباشرة على الشبكة." },
+          { "q": "هل أستطيع استخدام النظام لمطعم؟", "a": "نعم — مخططات الصالات، إدارة الطاولات، شاشة المطبخ، تقسيم الفواتير والباقشيش، مع طباعة المطبخ." },
+          { "q": "كم يستغرق الإعداد؟", "a": "محل واحد: 3–5 أيام. فروع متعددة: 1–2 أسبوع. مع موديولات مخصصة: 2–4 أسابيع، شاملاً استيراد المنتجات والأجهزة والفواتير والتدريب." },
+          { "q": "هل تخدمون مناطق خارج أسوان؟", "a": "نعم. إعداد البرمجيات يتم عن بُعد، ولتركيب الأجهزة ننزل لموقعك. نخدم كل مصر مع تركيز على الصعيد." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "جاهز تبدأ مع Odoo POS؟",
+        "text": "جرّب النظام مباشرة — أو احصل على استشارة مجانية على واتساب.",
+        "actions": [
+          { "label": "جرّب النظام مباشرة", "href": "/request-demo", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

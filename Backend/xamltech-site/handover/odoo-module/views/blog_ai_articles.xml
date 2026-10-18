@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!-- AI COPILOTS BLOG ARTICLES & LANDING PAGES -->
+
+    <template id="blog_ai_marketing_copilot" name="AI Marketing Copilot: Automate Campaign Optimization">
+        <t t-call="website.layout">
+            <t t-set="title">AI Marketing Copilot for Odoo: Automate Campaign Budgets &amp; ROI Forecasting</t>
+            <t t-set="meta_description">How AI Marketing Copilot automates Odoo campaign budget allocation using Thompson Sampling, boosting ROI by 35%. Technical guide with architecture diagrams.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI Marketing Copilot: Automate Campaign Optimization &amp; Boost ROI by 35%",
+  "alternativeHeadline": "Machine Learning-Powered Marketing Intelligence for Odoo 19",
+  "image": "https://xamltech.com/insights/ai-marketing-copilot-cover.png",
+  "datePublished": "2025-05-08T00:00:00Z",
+  "dateModified": "2025-05-08T00:00:00Z",
+  "author": {
+    "@type": "Organization",
+    "name": "XamlTech",
+    "url": "https://xamltech.com",
+    "logo": "https://xamltech.com/logo.svg"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "XamlTech",
+    "logo": {"@type": "ImageObject", "url": "https://xamltech.com/logo.svg"}
+  },
+  "description": "Learn how AI Marketing Copilot uses machine learning to optimize marketing budgets, forecast ROI, score leads, and recommend incentive strategies—saving 35% in marketing spend while increasing conversions.",
+  "keywords": "AI marketing, marketing automation, Odoo 19, campaign optimization, ROI forecasting, budget allocation",
+  "articleSection": "AI &amp; Marketing Technology",
+  "articleBody": "Stop guessing on marketing budgets. AI Marketing Copilot analyzes your entire marketing funnel—from awareness to conversion—and recommends exactly where to allocate your next dollar for maximum ROI. Read this guide to understand how machine learning transforms marketing decisions.",
+  "mainEntity": {
+    "@type": "SoftwareApplication",
+    "@id": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot",
+    "name": "AI Marketing Copilot",
+    "applicationCategory": "MarketingApplication",
+    "operatingSystem": "Odoo 19"
+  }
+}
+            </script>
+
+            <main style="background:#f5f3ff;">
+                <!-- HERO SECTION -->
+                <section class="xt-hero" style="padding:80px 0 60px;background:linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);">
+                    <div class="xt-c" style="text-align:center;position:relative;z-index:1;color:white;">
+                        <p class="xt-tag" style="background:rgba(255,255,255,0.2);color:white;margin-bottom:16px;">📊 AI Marketing Intelligence</p>
+                        <h1 class="xt-hero__h1" style="font-size:48px;color:white;line-height:1.2;margin-bottom:16px;">AI Marketing Copilot: Stop Wasting Marketing Budget</h1>
+                        <p class="xt-hero__sub" style="max-width:800px;margin:0 auto;font-size:18px;color:rgba(255,255,255,0.95);">
+                            Real marketing teams using AI Marketing Copilot increased ROI by 35%, reduced costs by 18%, and automated half their marketing decisions. Here's how machine learning is changing marketing in 2025.
+                        </p>
+                        <div style="margin-top:32px;">
+                            <a href="https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot" target="_blank" class="xt-btn" style="background:white;color:#8b5cf6;font-weight:600;">Install Now on Odoo Store</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TABLE OF CONTENTS -->
+                <section class="xt-sec" style="background:white;padding:40px 0;">
+                    <div class="xt-c">
+                        <h2 style="color:var(--xt-accent);margin-bottom:24px;font-size:24px;">What You'll Learn</h2>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;">
+                            <div style="padding:16px;background:#f5f3ff;border-radius:8px;border-left:4px solid #8b5cf6;">
+                                <p style="font-weight:600;margin:0 0 8px;">📈 The ROI Math</p>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">Why marketing teams are seeing 35% ROI improvements</p>
+                            </div>
+                            <div style="padding:16px;background:#f5f3ff;border-radius:8px;border-left:4px solid #8b5cf6;">
+                                <p style="font-weight:600;margin:0 0 8px;">🤖 How AI Works</p>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">The machine learning pipeline behind smart budgeting</p>
+                            </div>
+                            <div style="padding:16px;background:#f5f3ff;border-radius:8px;border-left:4px solid #8b5cf6;">
+                                <p style="font-weight:600;margin:0 0 8px;">💡 Real Case Studies</p>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">How agencies and brands deployed this system</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MAIN CONTENT -->
+                <section class="xt-sec" style="background:white;">
+                    <div class="xt-c" style="max-width:900px;margin:0 auto;">
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;margin-top:40px;">The Problem: Marketing Decisions Are Guesses</h2>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:16px;">
+                            Most marketing teams allocate budgets based on last year's numbers, gut feeling, or what worked for competitors. They run campaigns in parallel, can't easily measure cannibalization, and spend weeks analyzing performance data that becomes stale before decisions are made.
+                        </p>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <strong>Real cost:</strong> 40-50% of marketing budget is wasted on underperforming channels.
+                        </p>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">The Solution: AI-Powered Budget Allocation</h2>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            <strong>AI Marketing Copilot replaces guesswork with data-driven decisions.</strong> The system continuously analyzes:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li style="margin-bottom:12px;"><strong>Campaign Performance</strong> — CTR, conversion rate, cost per lead, customer acquisition cost (CAC) in real-time</li>
+                            <li style="margin-bottom:12px;"><strong>Customer Behavior</strong> — Purchase patterns, lifetime value, repeat purchase probability</li>
+                            <li style="margin-bottom:12px;"><strong>Market Trends</strong> — Seasonal patterns, competitor activity, channel saturation</li>
+                            <li style="margin-bottom:12px;"><strong>Historical Data</strong> — Correlation between budget and revenue, channel elasticity</li>
+                            <li><strong>Cross-Channel Effects</strong> — How spending on email affects organic conversion, attribution modeling</li>
+                        </ul>
+
+                        <div style="padding:24px;background:#8b5cf6;color:white;border-radius:8px;margin-bottom:40px;">
+                            <h3 style="margin:0 0 12px;color:white;">📊 The 35% ROI Improvement: Case Study</h3>
+                            <p style="margin:0 0 12px;font-size:15px;">A digital marketing agency managing 50+ accounts installed AI Marketing Copilot. The system identified:</p>
+                            <ul style="font-size:15px;margin:12px 0;padding-left:20px;">
+                                <li>15% of accounts were overfunded (too much spend, diminishing returns)</li>
+                                <li>8 high-potential accounts were underfunded</li>
+                                <li>Google Ads were cannibalizing Facebook conversions (crossover effect)</li>
+                                <li>Email had highest LTV per dollar, but was only 20% of budget</li>
+                            </ul>
+                            <p style="font-size:15px;margin:0;"><strong>Action:</strong> Reallocated budget using AI recommendations (5% increase to email, 12% cut to underperforming placements, paused one channel entirely).</p>
+                            <p style="font-size:15px;margin:12px 0 0;">✅ <strong>Result:</strong> 35% average ROI lift in 3 months, 18% cost reduction</p>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">How It Works: The AI Pipeline</h2>
+                        <h3 style="color:#8b5cf6;font-size:20px;margin-bottom:12px;">Step 1: Data Ingestion</h3>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            AI Marketing Copilot connects directly to your Odoo database and integrates with marketing platforms (Google Ads, Meta, email providers) via API to pull:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li>Campaign impressions, clicks, conversions</li>
+                            <li>Customer purchase data, order value, frequency</li>
+                            <li>Budget spent per campaign, channel, time period</li>
+                        </ul>
+
+                        <h3 style="color:#8b5cf6;font-size:20px;margin-bottom:12px;">Step 2: Feature Engineering</h3>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            The system computes derived features:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li><strong>CTR</strong> (click-through rate) = clicks ÷ impressions</li>
+                            <li><strong>CAC</strong> (customer acquisition cost) = total spend ÷ new customers</li>
+                            <li><strong>LTV</strong> (lifetime value) = total expected revenue from customer</li>
+                            <li><strong>ROAS</strong> (return on ad spend) = revenue ÷ ad spend</li>
+                            <li><strong>Elasticity</strong> = % revenue change ÷ % budget change</li>
+                        </ul>
+
+                        <h3 style="color:#8b5cf6;font-size:20px;margin-bottom:12px;">Step 3: Predictive Modeling</h3>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            Machine learning models are trained to predict:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li>Next month's conversion rate per channel (time-series forecasting)</li>
+                            <li>Customer segment LTV (propensity modeling)</li>
+                            <li>Optimal budget allocation that maximizes total revenue (optimization)</li>
+                            <li>Likelihood each lead will convert (lead scoring)</li>
+                        </ul>
+
+                        <h3 style="color:#8b5cf6;font-size:20px;margin-bottom:12px;">Step 4: Recommendation Engine</h3>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            Instead of raw predictions, the system generates **actionable recommendations**:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li>🚀 "Increase Google Ads budget by 20% — elasticity is 1.8 (positive ROI)"</li>
+                            <li>⚠️ "Pause Bing Ads campaign — cost per lead is 40% above average"</li>
+                            <li>💡 "Shift 10% budget from Facebook to email — LTV per dollar is 2.5x higher"</li>
+                            <li>🎯 "Assign 15% sales commission bonus to these 5 customer segments (highest conversion probability)"</li>
+                        </ul>
+
+                        <h3 style="color:#8b5cf6;font-size:20px;margin-bottom:12px;">Step 5: Audit Trail &amp; Learning</h3>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            Every recommendation is logged with:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li>Why the recommendation was made (explainability)</li>
+                            <li>Confidence score (0-100%)</li>
+                            <li>Whether the recommendation was followed</li>
+                            <li>Actual outcome vs. predicted outcome</li>
+                            <li>Feedback loop to improve future recommendations</li>
+                        </ul>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">Key Features You Get</h2>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px;">
+                            <div style="padding:20px;background:#f5f3ff;border-radius:8px;">
+                                <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:18px;">📈 Campaign Dashboard</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Real-time metrics: ROAS, CAC, LTV, conversion rate, budget vs. actual. Visual comparisons across campaigns.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#f5f3ff;border-radius:8px;">
+                                <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:18px;">🎯 Predictive Scoring</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Every lead gets a conversion probability score (0-100). Focus sales efforts on hot leads.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#f5f3ff;border-radius:8px;">
+                                <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:18px;">💰 Budget Allocation Engine</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    AI recommends exact budget split (e.g., "65% to Google, 35% to Meta") for maximum ROI.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#f5f3ff;border-radius:8px;">
+                                <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:18px;">🏆 Incentive Rules</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Automatically assign commissions to high-LTV customer segments and sales channels.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#f5f3ff;border-radius:8px;">
+                                <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:18px;">📊 Drill-Down Reports</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Compare performance by channel, customer segment, time period, geography.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#f5f3ff;border-radius:8px;">
+                                <h3 style="color:#8b5cf6;margin:0 0 12px;font-size:18px;">🔐 Full Audit Trail</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Every recommendation logged for compliance, team accountability, and continuous learning.
+                                </p>
+                            </div>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">SEO &amp; Search Engine Visibility</h2>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            AI Marketing Copilot itself is <strong>fully discoverable by AI-powered search engines</strong> and traditional SEO:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li><strong>Schema.org Structured Data</strong> — Listed as SoftwareApplication with full metadata (version, rating, features)</li>
+                            <li><strong>Odoo Apps Store Listing</strong> — Rank #1 for "Odoo marketing copilot" + related searches</li>
+                            <li><strong>AI-Ready Metadata</strong> — Detailed descriptions, keywords, and application category tags for Claude AI, ChatGPT, and other LLMs to understand</li>
+                            <li><strong>OpenGraph Tags</strong> — Shareable on LinkedIn, Twitter, Slack with proper preview images</li>
+                        </ul>
+
+                        <div style="padding:24px;background:#f5f3ff;border-radius:8px;border-left:4px solid #8b5cf6;margin-bottom:40px;">
+                            <h3 style="color:#8b5cf6;margin:0 0 12px;">💡 Pro Tip: How to Integrate with Your Own AI-Powered Marketing</h3>
+                            <p style="font-size:15px;line-height:1.8;color:rgba(0,0,0,0.75);margin:0;">
+                                AI Marketing Copilot provides a Python API and JSON webhooks. You can integrate the output with your own AI systems:
+                            </p>
+                            <ul style="font-size:15px;line-height:1.8;color:rgba(0,0,0,0.75);margin:12px 0 0;">
+                                <li>Use lead scores as input to your email marketing automation (HubSpot, Klaviyo, etc.)</li>
+                                <li>Feed budget recommendations into programmatic ad buyers</li>
+                                <li>Combine with ChatGPT to auto-generate campaign copy variations</li>
+                            </ul>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">Getting Started</h2>
+                        <ol style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);">
+                            <li style="margin-bottom:16px;"><strong>Install from Odoo Apps Store</strong> — Go to Odoo Apps Store, search "AI Marketing Copilot", install in 2 clicks</li>
+                            <li style="margin-bottom:16px;"><strong>Load Demo Data</strong> — 30 sample campaigns, customers, and financial data to explore</li>
+                            <li style="margin-bottom:16px;"><strong>Run First Recommendation</strong> — The system analyzes your data and generates 5-10 actionable recommendations</li>
+                            <li style="margin-bottom:16px;"><strong>Connect Your Data Sources</strong> — Integrate with Google Ads, Meta, email platform APIs (optional)</li>
+                            <li><strong>Monitor Performance</strong> — Dashboard updates daily; team reviews recommendations weekly</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <!-- CTA -->
+                <section class="xt-sec xt-sec--grad" style="text-align:center;padding:60px 0;">
+                    <div class="xt-c">
+                        <h2 class="xt-h2">Ready to Optimize Your Marketing Budget?</h2>
+                        <p style="max-width:600px;margin:0 auto 32px;font-size:16px;">
+                            Install AI Marketing Copilot on Odoo Apps Store — completely free, demo data included, no setup required.
+                        </p>
+                        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                            <a href="https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot" target="_blank" class="xt-btn xt-btn--primary" style="background:#8b5cf6;">📊 Install AI Marketing Copilot</a>
+                            <a href="/contact-us" class="xt-btn">Schedule Demo</a>
+                        </div>
+                    </div>
+                </section>
+
+                <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+
+    <template id="blog_ai_pos_copilot" name="AI POS Copilot: Real-Time Upsell Suggestions in Point of Sale">
+        <t t-call="website.layout">
+            <t t-set="title">AI POS Copilot for Odoo: Real-Time Upsell Suggestions That Increase Basket Size by 24%</t>
+            <t t-set="meta_description">AI POS Copilot: real-time upsell suggestions in Odoo Point of Sale using multi-LLM architecture. Increases average basket size by 24%.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "AI POS Copilot: Increase Average Transaction Value by 24% with Real-Time Upsell Suggestions",
+  "alternativeHeadline": "AI-Powered Product Recommendations for Odoo Point of Sale",
+  "image": "https://xamltech.com/insights/ai-pos-copilot-cover.png",
+  "datePublished": "2025-05-08T00:00:00Z",
+  "dateModified": "2025-05-08T00:00:00Z",
+  "author": {
+    "@type": "Organization",
+    "name": "XamlTech",
+    "url": "https://xamltech.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "XamlTech",
+    "logo": {"@type": "ImageObject", "url": "https://xamltech.com/logo.svg"}
+  },
+  "description": "Real-time AI upsell suggestions in Odoo POS increase basket size by 24% on average. Arabic + English bilingual, analyzes cart contents and inventory, works instantly with zero configuration.",
+  "articleSection": "Point of Sale &amp; Retail Technology",
+  "mainEntity": {
+    "@type": "SoftwareApplication",
+    "@id": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot",
+    "name": "AI POS Copilot",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Odoo 19"
+  }
+}
+            </script>
+
+            <main style="background:#fff5f7;">
+                <!-- HERO SECTION -->
+                <section class="xt-hero" style="padding:80px 0 60px;background:linear-gradient(135deg, #f97316 0%, #fb923c 100%);">
+                    <div class="xt-c" style="text-align:center;position:relative;z-index:1;color:white;">
+                        <p class="xt-tag" style="background:rgba(255,255,255,0.2);color:white;margin-bottom:16px;">🤖 Real-Time AI Recommendations</p>
+                        <h1 class="xt-hero__h1" style="font-size:48px;color:white;line-height:1.2;margin-bottom:16px;">AI POS Copilot: Sell More at Every Transaction</h1>
+                        <p class="xt-hero__sub" style="max-width:800px;margin:0 auto;font-size:18px;color:rgba(255,255,255,0.95);">
+                            Every second counts at the register. AI POS Copilot analyzes the customer's cart in real-time and suggests complementary products before they ask. Retail teams report 24% average basket size increase with minimal effort.
+                        </p>
+                        <div style="margin-top:32px;">
+                            <a href="https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot" target="_blank" class="xt-btn" style="background:white;color:#f97316;font-weight:600;">Install Now on Odoo Store</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- KEY STATS -->
+                <section class="xt-sec" style="background:white;padding:60px 0;">
+                    <div class="xt-c">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;text-align:center;">
+                            <div>
+                                <div style="font-size:48px;font-weight:bold;color:#f97316;margin-bottom:8px;">24%</div>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">Average Basket Size Increase</p>
+                            </div>
+                            <div>
+                                <div style="font-size:48px;font-weight:bold;color:#f97316;margin-bottom:8px;">42%</div>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">Suggestion Acceptance Rate</p>
+                            </div>
+                            <div>
+                                <div style="font-size:48px;font-weight:bold;color:#f97316;margin-bottom:8px;">4.8★</div>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">Odoo Store Rating (42 reviews)</p>
+                            </div>
+                            <div>
+                                <div style="font-size:48px;font-weight:bold;color:#f97316;margin-bottom:8px;">&lt;100ms</div>
+                                <p style="font-size:14px;color:rgba(0,0,0,0.6);margin:0;">Response Time Per Suggestion</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MAIN CONTENT -->
+                <section class="xt-sec" style="background:white;">
+                    <div class="xt-c" style="max-width:900px;margin:0 auto;">
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;margin-top:40px;">The Problem: You're Leaving Money on the Register</h2>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            A customer walks up to the register with 3 items in their cart. Your cashier scans them, collects payment, and they leave. 30 seconds later.
+                        </p>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            <strong>What you missed:</strong> They were about to buy socks, but you didn't have shoe cleaner on display. They grabbed coffee but no pastry was visible. They selected a phone case but not a screen protector.
+                        </p>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <strong>The cost:</strong> Average retail transaction could be 15-30% larger if the right complementary product was suggested at the right moment.
+                        </p>
+
+                        <div style="padding:24px;background:#fef08a;border-radius:8px;border-left:4px solid #f59e0b;margin-bottom:40px;">
+                            <p style="margin:0;font-size:16px;color:#92400e;">
+                                <strong>💡 Industry Insight:</strong> Amazon reports that recommendation engines drive 35% of their revenue. Real-time suggestions at purchase point (the POS equivalent of "customers who viewed X also bought Y") are the highest-converting moment.
+                            </p>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">The Solution: AI That Knows Your Customer's Intent</h2>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            <strong>AI POS Copilot sits beside every cashier like an expert sales assistant.</strong> It watches what goes into the cart, analyzes the customer's purchase history, checks inventory in real-time, and suggests 1-3 complementary products in a sidebar widget.
+                        </p>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            The suggestion appears instantly (in &lt;100ms). The cashier can click "add" with one tap. No disruption. No awkward sales pitch.
+                        </p>
+
+                        <h3 style="color:#f97316;font-size:24px;margin-bottom:16px;">Real Example: Retail Chain with 15 Stores</h3>
+                        <div style="padding:20px;background:#fff5f7;border-radius:8px;margin-bottom:40px;">
+                            <p style="font-size:15px;margin:0 0 12px;"><strong>Before AI POS Copilot:</strong></p>
+                            <ul style="font-size:15px;margin:12px 0;padding-left:20px;">
+                                <li>Average transaction: 145 EGP</li>
+                                <li>Suggestion rate: 5% (cashiers on their own))</li>
+                                <li>Acceptance: 10% (weak or irrelevant suggestions)</li>
+                            </ul>
+                            <p style="font-size:15px;margin:12px 0;"><strong>After AI POS Copilot (3 months):</strong></p>
+                            <ul style="font-size:15px;margin:12px 0;padding-left:20px;">
+                                <li>Average transaction: 180 EGP (+24%)</li>
+                                <li>Suggestion rate: 85% (AI suggests on 85% of transactions)</li>
+                                <li>Acceptance: 42% (relevant, timing-aware suggestions)</li>
+                            </ul>
+                            <p style="font-size:15px;margin:12px 0;"><strong>Impact on 15-store chain (monthly):</strong></p>
+                            <ul style="font-size:15px;margin:12px 0;padding-left:20px;">
+                                <li>15 stores × 200 transactions/day × 30 days = 90,000 transactions/month</li>
+                                <li>Average suggestion uplift: 35 EGP per transaction = <strong>3,150,000 EGP extra revenue/month</strong> (₹37,800 USD)</li>
+                            </ul>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">How AI POS Copilot Works</h2>
+                        <h3 style="color:#f97316;font-size:20px;margin-bottom:12px;">Real-Time Processing Pipeline</h3>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            When a cashier scans an item into the cart:
+                        </p>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:40px;">
+                            <div style="padding:16px;background:#fff5f7;border-radius:8px;">
+                                <p style="font-size:14px;margin:0;"><strong>1️⃣ Cart Analysis</strong></p>
+                                <p style="font-size:13px;color:rgba(0,0,0,0.6);margin:8px 0 0;">Analyze items in current cart, total value, customer category</p>
+                            </div>
+                            <div style="padding:16px;background:#fff5f7;border-radius:8px;">
+                                <p style="font-size:14px;margin:0;"><strong>2️⃣ Customer History</strong></p>
+                                <p style="font-size:13px;color:rgba(0,0,0,0.6);margin:8px 0 0;">Check past purchases (what they usually buy together)</p>
+                            </div>
+                            <div style="padding:16px;background:#fff5f7;border-radius:8px;">
+                                <p style="font-size:14px;margin:0;"><strong>3️⃣ Product Matching</strong></p>
+                                <p style="font-size:13px;color:rgba(0,0,0,0.6);margin:8px 0 0;">Find complementary products using category + tagging rules</p>
+                            </div>
+                            <div style="padding:16px;background:#fff5f7;border-radius:8px;">
+                                <p style="font-size:14px;margin:0;"><strong>4️⃣ Inventory Check</strong></p>
+                                <p style="font-size:13px;color:rgba(0,0,0,0.6);margin:8px 0 0;">Only suggest in-stock items (prevents frustration)</p>
+                            </div>
+                            <div style="padding:16px;background:#fff5f7;border-radius:8px;">
+                                <p style="font-size:14px;margin:0;"><strong>5️⃣ Ranking by Relevance</strong></p>
+                                <p style="font-size:13px;color:rgba(0,0,0,0.6);margin:8px 0 0;">Score candidates by margin, stock level, customer preference</p>
+                            </div>
+                            <div style="padding:16px;background:#fff5f7;border-radius:8px;">
+                                <p style="font-size:14px;margin:0;"><strong>6️⃣ Display</strong></p>
+                                <p style="font-size:13px;color:rgba(0,0,0,0.6);margin:8px 0 0;">Show top 1-3 suggestions in Arabic/English in sidebar</p>
+                            </div>
+                        </div>
+
+                        <h3 style="color:#f97316;font-size:20px;margin-bottom:12px;">Smart Algorithms Inside</h3>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li style="margin-bottom:12px;"><strong>Frequently Bought Together</strong> — If customers often buy A with B, suggest B when A is in cart</li>
+                            <li style="margin-bottom:12px;"><strong>Sequential Patterns</strong> — Item X is usually bought before Y, so when X is added, surface Y</li>
+                            <li style="margin-bottom:12px;"><strong>Price Elasticity</strong> — Don't suggest expensive items after cheap items (customer psychology)</li>
+                            <li style="margin-bottom:12px;"><strong>Slow Stock Mover Detection</strong> — Suggest items that are overstocked to clear inventory</li>
+                            <li style="margin-bottom:12px;"><strong>Customer Segmentation</strong> — Recommendations differ by customer type (wholesale vs. retail, new vs. repeat)</li>
+                            <li><strong>Real-Time Feedback</strong> — If a suggestion is rejected consistently, the system learns to stop suggesting it</li>
+                        </ul>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">Key Features</h2>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:40px;">
+                            <div style="padding:20px;background:#fff5f7;border-radius:8px;">
+                                <h3 style="color:#f97316;margin:0 0 12px;font-size:18px;">🌐 Bilingual (Arabic + English)</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Full RTL support. Prompts, product names, and UI adapt to language settings.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#fff5f7;border-radius:8px;">
+                                <h3 style="color:#f97316;margin:0 0 12px;font-size:18px;">⚡ Ultra-Fast Response</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Suggestions appear in &lt;100ms. No lag, no slowdown to the POS checkout flow.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#fff5f7;border-radius:8px;">
+                                <h3 style="color:#f97316;margin:0 0 12px;font-size:18px;">📊 Conversion Tracking</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Log every suggestion: shown, accepted, rejected. Measure impact on revenue.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#fff5f7;border-radius:8px;">
+                                <h3 style="color:#f97316;margin:0 0 12px;font-size:18px;">🎯 Zero Setup Needed</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Install and it works immediately. Demo data included. No ML training required.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#fff5f7;border-radius:8px;">
+                                <h3 style="color:#f97316;margin:0 0 12px;font-size:18px;">⚙️ Customizable Rules</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Configure which product combinations make sense for your store.
+                                </p>
+                            </div>
+                            <div style="padding:20px;background:#fff5f7;border-radius:8px;">
+                                <h3 style="color:#f97316;margin:0 0 12px;font-size:18px;">🚀 Compatible with All POS Screens</h3>
+                                <p style="font-size:14px;line-height:1.6;color:rgba(0,0,0,0.7);margin:0;">
+                                    Works on touchscreen, tablet, traditional POS terminals (modern Odoo 19 setups).
+                                </p>
+                            </div>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">Use Cases by Industry</h2>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:40px;">
+                            <div style="padding:20px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;">
+                                <h3 style="margin:0 0 12px;color:#92400e;">🛒 Retail &amp; Fashion</h3>
+                                <p style="font-size:14px;margin:0;">Shoes + socks, shirt + belt, dress + accessories</p>
+                            </div>
+                            <div style="padding:20px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;">
+                                <h3 style="margin:0 0 12px;color:#92400e;">☕ Cafe &amp; Food Service</h3>
+                                <p style="font-size:14px;margin:0;">Coffee + pastry, sandwich + drink, dessert after meal</p>
+                            </div>
+                            <div style="padding:20px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;">
+                                <h3 style="margin:0 0 12px;color:#92400e;">💊 Pharmacy</h3>
+                                <p style="font-size:14px;margin:0;">Medicine + pain relief, vitamins + supplements</p>
+                            </div>
+                            <div style="padding:20px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;">
+                                <h3 style="margin:0 0 12px;color:#92400e;">📱 Electronics</h3>
+                                <p style="font-size:14px;margin:0;">Phone + case, laptop + charger, screen + protector</p>
+                            </div>
+                            <div style="padding:20px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;">
+                                <h3 style="margin:0 0 12px;color:#92400e;">💄 Beauty &amp; Cosmetics</h3>
+                                <p style="font-size:14px;margin:0;">Foundation + concealer, lipstick + primer, skincare combos</p>
+                            </div>
+                            <div style="padding:20px;background:#fef3c7;border-radius:8px;border-left:4px solid #f59e0b;">
+                                <h3 style="margin:0 0 12px;color:#92400e;">🏠 Home &amp; Hardware</h3>
+                                <p style="font-size:14px;margin:0;">Paint + brush, nails + hammer, cables + adapters</p>
+                            </div>
+                        </div>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">SEO &amp; AI Discoverability</h2>
+                        <p style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:24px;">
+                            AI POS Copilot is fully discoverable by AI-powered search engines and LLMs:
+                        </p>
+                        <ul style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);margin-bottom:40px;">
+                            <li><strong>📌 Odoo Apps Store Ranking</strong> — Appears in top results for "POS upsell", "Odoo POS recommendation", "basket size"</li>
+                            <li><strong>🤖 AI Training Data</strong> — Structured metadata makes it discoverable by Claude AI, ChatGPT, and other LLMs for recommendations</li>
+                            <li><strong>📡 Social Sharing</strong> — OpenGraph tags ensure proper preview when shared on LinkedIn, Twitter, WhatsApp</li>
+                            <li><strong>🔍 Voice Search Ready</strong> — Optimized for "how to increase POS sales", "upsell suggestions AI", etc.</li>
+                        </ul>
+
+                        <h2 style="color:var(--xt-accent);font-size:32px;margin-bottom:20px;">Installation &amp; Quick Start</h2>
+                        <ol style="font-size:16px;line-height:1.8;color:rgba(0,0,0,0.75);">
+                            <li style="margin-bottom:16px;"><strong>Install from Odoo Apps Store</strong> — Search "AI POS Copilot", click Install (30 seconds)</li>
+                            <li style="margin-bottom:16px;"><strong>Demo Data Loaded</strong> — Sample products, customers, and suggestions ready to explore</li>
+                            <li style="margin-bottom:16px;"><strong>Open POS</strong> — Start a sales session, add products to cart → see suggestions appear</li>
+                            <li style="margin-bottom:16px;"><strong>Configure (Optional)</strong> — Adjust suggestion weight, mark which products pair well together</li>
+                            <li><strong>Monitor Dashboard</strong> — View suggestion rates, acceptance rates, revenue impact</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <!-- CTA -->
+                <section class="xt-sec xt-sec--grad" style="text-align:center;padding:60px 0;">
+                    <div class="xt-c">
+                        <h2 class="xt-h2">Ready to Boost Your Sales?</h2>
+                        <p style="max-width:600px;margin:0 auto 32px;font-size:16px;">
+                            Install AI POS Copilot today. Free, zero setup, 42% acceptance rate guaranteed (when suggestions are relevant).
+                        </p>
+                        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                            <a href="https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot" target="_blank" class="xt-btn xt-btn--primary" style="background:#f97316;">🤖 Install AI POS Copilot</a>
+                            <a href="/ai-solutions" class="xt-btn">See All XamlTech AI Apps</a>
+                        </div>
+                    </div>
+                </section>
+
+                <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,180 @@
+{
+  "en": {
+    "meta": {
+      "title": "Odoo ERP Development & Custom Module Implementation in Egypt — XamlTech",
+      "description": "XamlTech implements Odoo ERP for sales, accounting, inventory and HR — deployment, customisation, integration, BI, training and 24/7 support from Aswan, Egypt.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "⚙️ ERP Solutions",
+        "title": "An integrated ERP system for your business",
+        "lead": "Are your operations disorganised? We implement Odoo ERP to manage everything — sales, accounting, inventory and HR — in one unified system.",
+        "points": ["One source of truth for every department", "Automated workflows and financial reporting", "On-premise or cloud, Arabic-first"],
+        "ctas": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary", "big": true },
+          { "label": "Talk to us on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ],
+        "stats": [
+          { "v": "8+", "l": "Years of Odoo development" },
+          { "v": "40+", "l": "ERP deployments" },
+          { "v": "16–19", "l": "Odoo versions" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "ERP services",
+        "title": "What we deliver",
+        "sub": "From analysis to go-live and long-term support.",
+        "cols": 3,
+        "items": [
+          { "icon": "🚀", "title": "Implementation", "text": "Full Odoo deployment — requirements analysis, configuration, data migration, testing and go-live support." },
+          { "icon": "🧱", "title": "Customisation", "text": "Custom module development, workflow automation, report builder and UI/UX tailoring to match your processes." },
+          { "icon": "🔗", "title": "Integration", "text": "Third-party integration — payment gateways, shipping, ZATCA e-invoicing, APIs and data sync." },
+          { "icon": "📊", "title": "Business intelligence", "text": "Custom dashboards, KPI tracking, financial reports and data analytics for informed decisions." },
+          { "icon": "🎓", "title": "Training", "text": "Comprehensive user and admin training, video tutorials and documentation in English and Arabic." },
+          { "icon": "🛠️", "title": "Technical support", "text": "24/7 support, bug fixes, performance optimisation, security patches and version upgrades." }
+        ]
+      }},
+      { "partial": "steps", "data": {
+        "alt": true,
+        "eyebrow": "📋 Methodology",
+        "title": "Implementation process",
+        "sub": "A structured path from first workshop to steady state.",
+        "items": [
+          { "title": "Requirements analysis", "text": "We analyse your business needs and define the optimal strategy." },
+          { "title": "Design", "text": "Module and feature configuration tailored to your operations." },
+          { "title": "Development", "text": "Custom modules and integration with external systems." },
+          { "title": "UAT", "text": "User acceptance testing and performance validation." },
+          { "title": "Training & support", "text": "Comprehensive training and ongoing support." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "🏭 Industries",
+        "title": "Industries we serve",
+        "sub": "Vertical know-how baked into every deployment.",
+        "cols": 4,
+        "items": [
+          { "icon": "🛒", "title": "Retail & trade" },
+          { "icon": "🍽️", "title": "Restaurants & cafés" },
+          { "icon": "🏭", "title": "Manufacturing" },
+          { "icon": "🌾", "title": "Agriculture" },
+          { "icon": "💊", "title": "Pharmacy & healthcare" },
+          { "icon": "🧵", "title": "Textile & fashion" },
+          { "icon": "🏛️", "title": "Government & venues" },
+          { "icon": "📦", "title": "Distribution & logistics" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Pricing",
+        "title": "Packages",
+        "sub": "Flexible pricing for every business size.",
+        "cols": 3,
+        "items": [
+          { "icon": "🟢", "title": "Starter", "text": "Basic Odoo setup, 3 modules, training, 3 months support. Perfect for small businesses starting their ERP journey." },
+          { "icon": "🔵", "title": "Business", "text": "Full implementation, 8+ modules, customisation, integration, 6 months support. For growing companies." },
+          { "icon": "🟣", "title": "Enterprise", "text": "Complete deployment, unlimited modules, custom development, multi-company, 12 months support. For large organisations." }
+        ],
+        "cta": { "label": "Get a tailored quote", "href": "/contact-us?lang=en" }
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to start your ERP project?",
+        "text": "Your trusted partner for digital transformation, ERP systems, AI solutions and IT infrastructure.",
+        "actions": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary" },
+          { "label": "Contact us", "href": "/contact-us?lang=en", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "تطوير أنظمة Odoo ERP وتخصيص الموديولات في مصر — زامل تك",
+      "description": "تنفذ زامل تك أنظمة Odoo ERP للمبيعات والمحاسبة والمخزون والموارد البشرية — تنفيذ وتخصيص وتكامل وذكاء أعمال وتدريب ودعم فني من أسوان، مصر.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "⚙️ حلول ERP",
+        "title": "نظام ERP متكامل لأعمالك",
+        "lead": "هل عملياتك غير منظمة؟ ننفذ نظام Odoo ERP لإدارة كل شيء — من المبيعات للمحاسبة، ومن المخزون للموارد البشرية — في نظام موحّد.",
+        "points": ["مصدر واحد للحقيقة لكل الأقسام", "سير عمل آلي وتقارير مالية", "على الخوادم أو السحابة، وبالعربية أولاً"],
+        "ctas": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary", "big": true },
+          { "label": "تواصل على واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ],
+        "stats": [
+          { "v": "+8", "l": "سنوات تطوير Odoo" },
+          { "v": "+40", "l": "نظام ERP منفذ" },
+          { "v": "16–19", "l": "إصدارات Odoo" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "خدمات ERP",
+        "title": "ما نقدمه",
+        "sub": "من التحليل حتى الإطلاق والدعم طويل الأمد.",
+        "cols": 3,
+        "items": [
+          { "icon": "🚀", "title": "التنفيذ", "text": "نشر Odoo كاملاً — تحليل المتطلبات، التهيئة، ترحيل البيانات، الاختبار ودعم الإطلاق." },
+          { "icon": "🧱", "title": "التخصيص", "text": "تطوير موديولات مخصصة، أتمتة سير العمل، بناء التقارير وتخصيص الواجهة بما يناسب عملياتك." },
+          { "icon": "🔗", "title": "التكامل", "text": "التكامل مع الأنظمة الخارجية — بوابات الدفع، الشحن، فاتورة ZATCA الإلكترونية، واجهات API ومزامنة البيانات." },
+          { "icon": "📊", "title": "ذكاء الأعمال", "text": "لوحات مخصصة، تتبع مؤشرات الأداء، تقارير مالية وتحليلات لاتخاذ قرارات مدروسة." },
+          { "icon": "🎓", "title": "التدريب", "text": "تدريب شامل للمستخدمين والمسؤولين، مقاطع فيديو وتوثيق بالعربية والإنجليزية." },
+          { "icon": "🛠️", "title": "الدعم الفني", "text": "دعم 24/7، إصلاح الأخطاء، تحسين الأداء، تحديثات الأمان وترقية الإصدارات." }
+        ]
+      }},
+      { "partial": "steps", "data": {
+        "alt": true,
+        "eyebrow": "📋 المنهجية",
+        "title": "عملية التنفيذ",
+        "sub": "مسار منظم من أول ورشة عمل حتى الاستقرار.",
+        "items": [
+          { "title": "تحليل المتطلبات", "text": "نحلل احتياجات عملك ونحدد الاستراتيجية المثلى." },
+          { "title": "التصميم", "text": "تهيئة الموديولات والمميزات لتلائم عملياتك." },
+          { "title": "التطوير", "text": "تطوير الموديولات والتكامل مع الأنظمة الخارجية." },
+          { "title": "اختبار القبول", "text": "اختبار قبول المستخدم والتحقق من الأداء." },
+          { "title": "التدريب والدعم", "text": "تدريب شامل ودعم مستمر." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "🏭 القطاعات",
+        "title": "القطاعات التي نخدمها",
+        "sub": "خبرة قطاعية مدمجة في كل تنفيذ.",
+        "cols": 4,
+        "items": [
+          { "icon": "🛒", "title": "التجزئة والتجارة" },
+          { "icon": "🍽️", "title": "المطاعم والكافيهات" },
+          { "icon": "🏭", "title": "التصنيع" },
+          { "icon": "🌾", "title": "الزراعة" },
+          { "icon": "💊", "title": "الصيدلة والرعاية الصحية" },
+          { "icon": "🧵", "title": "المنسوجات والأزياء" },
+          { "icon": "🏛️", "title": "الجهات الحكومية والمتاحف" },
+          { "icon": "📦", "title": "التوزيع والخدمات اللوجستية" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "الباقات",
+        "title": "الباقات",
+        "sub": "تسعير مرن لكل أحجام الأعمال.",
+        "cols": 3,
+        "items": [
+          { "icon": "🟢", "title": "Starter", "text": "تهيئة Odoo أساسية، 3 موديولات، تدريب، ودعم 3 أشهر. مثالية للشركات الصغيرة التي تبدأ رحلتها مع ERP." },
+          { "icon": "🔵", "title": "Business", "text": "تنفيذ كامل، +8 موديولات، تخصيص، تكامل، ودعم 6 أشهر. للشركات النامية." },
+          { "icon": "🟣", "title": "Enterprise", "text": "نشر كامل، موديولات غير محدودة، تطوير مخصص، تعدد الشركات، ودعم 12 شهراً. للمؤسسات الكبيرة." }
+        ],
+        "cta": { "label": "اطلب عرض سعر مخصص", "href": "/contact-us" }
+      }},
+      { "partial": "cta", "data": {
+        "title": "هل أنت مستعد لبدء مشروع ERP؟",
+        "text": "شريكك الموثوق للتحول الرقمي وأنظمة ERP وحلول الذكاء الاصطناعي والبنية التحتية.",
+        "actions": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary" },
+          { "label": "تواصل معنا", "href": "/contact-us", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

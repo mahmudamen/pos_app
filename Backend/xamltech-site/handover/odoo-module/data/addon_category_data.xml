@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="category_pos" model="xamltech.addon.category">
+            <field name="name">Point of Sale</field>
+            <field name="icon_emoji">🖥️</field>
+            <field name="sequence">1</field>
+            <field name="description">Advanced POS modules for retail, fabric, and service operations</field>
+        </record>
+        <record id="category_accounting" model="xamltech.addon.category">
+            <field name="name">Accounting</field>
+            <field name="icon_emoji">💰</field>
+            <field name="sequence">2</field>
+            <field name="description">Financial compliance, reporting, and EDI integration modules</field>
+        </record>
+        <record id="category_agriculture" model="xamltech.addon.category">
+            <field name="name">Agriculture</field>
+            <field name="icon_emoji">🌿</field>
+            <field name="sequence">3</field>
+            <field name="description">Farm management, crop tracking, and agricultural operations</field>
+        </record>
+        <record id="category_technical" model="xamltech.addon.category">
+            <field name="name">Technical</field>
+            <field name="icon_emoji">⚙️</field>
+            <field name="sequence">4</field>
+            <field name="description">Database sync, infrastructure, and developer tools</field>
+        </record>
+        <record id="category_inventory" model="xamltech.addon.category">
+            <field name="name">Inventory</field>
+            <field name="icon_emoji">📦</field>
+            <field name="sequence">5</field>
+            <field name="description">Stock management, warehouse operations, and logistics</field>
+        </record>
+        <record id="category_ai" model="xamltech.addon.category">
+            <field name="name">AI &amp; Intelligence</field>
+            <field name="icon_emoji">🤖</field>
+            <field name="sequence">2</field>
+            <field name="description">AI-powered solutions for marketing automation, smart suggestions, and intelligent decision-making</field>
+        </record>
+    </data>
+</odoo>

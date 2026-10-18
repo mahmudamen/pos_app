@@ -1,0 +1,174 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://xamltech.com/#organization",
+      "name": "XamlTech",
+      "alternateName": "زامل تك",
+      "url": "https://xamltech.com",
+      "logo": "https://xamltech.com/xamltech_addons_store/static/img/logo.png",
+      "image": "https://xamltech.com/xamltech_addons_store/static/img/logo.png",
+      "description": "Full-service IT company specializing in Odoo ERP, networking, CCTV, web development, and digital transformation. Based in Aswan, Egypt.",
+      "foundingDate": "2018",
+      "founder": [
+        {
+          "@type": "Person",
+          "name": "Mahmoud Amen",
+          "alternateName": "محمود أمين",
+          "jobTitle": "Founder & Lead Developer",
+          "email": "mahmudamen@gmail.com",
+          "telephone": "+201007982468"
+        },
+        {
+          "@type": "Person",
+          "name": "Osama M Salah",
+          "alternateName": "أسامة م. صلاح",
+          "telephone": "+201201410140"
+        }
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Sahary",
+        "addressLocality": "Aswan",
+        "addressRegion": "Aswan Governorate",
+        "addressCountry": "EG"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "24.0889",
+        "longitude": "32.8998"
+      },
+      "telephone": "+201007982468",
+      "email": "mahmudamen@gmail.com",
+      "sameAs": [
+        "https://wa.me/201007982468",
+        "https://apps.odoo.com/apps/modules/browse?search=ma_pos",
+        "https://demo.xamltech.com",
+        "https://apps.odoo.com/apps/modules/19.0/agricultural_management"
+      ],
+      "areaServed": [
+        {
+          "@type": "Country",
+          "name": "Egypt"
+        },
+        {
+          "@type": "City",
+          "name": "Aswan"
+        }
+      ],
+      "knowsAbout": [
+        "Odoo ERP",
+        "Point of Sale Systems",
+        "Network Infrastructure",
+        "CCTV Surveillance",
+        "Web Development",
+        "Software Development",
+        "Digital Transformation",
+        "Information Security",
+        "ZATCA E-Invoicing",
+        "Agricultural Management",
+        "Farm Management ERP",
+        "Crop Management",
+        "Harvest Scheduling",
+        "Agricultural Cost Tracking"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "XamlTech Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "SoftwareApplication",
+              "name": "Advanced Agricultural Management System",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Odoo 19",
+              "url": "https://apps.odoo.com/apps/modules/19.0/agricultural_management",
+              "description": "Complete farm-to-warehouse ERP module for Odoo 19 with OWL Dashboard, 4-level farm hierarchy, real-time costing, harvest scheduling with quality sorting, full accounting integration, and 12-section operations dashboard.",
+              "offers": {
+                "@type": "Offer",
+                "url": "https://apps.odoo.com/apps/modules/19.0/agricultural_management"
+              },
+              "featureList": [
+                "OWL Dashboard with Chart.js analytics",
+                "4-level farm hierarchy (Farm, Sector, Unit, House)",
+                "Real-time costing engine with analytic accounts",
+                "7-step production request approval workflow",
+                "Harvest scheduling with Grade A/B/C sorting",
+                "Multi-warehouse stock management with lot traceability",
+                "Full accounting integration with budget tracking",
+                "12-section operations dashboard",
+                "Role-based security in user settings",
+                "Dark and light mode support",
+                "Arabic RTL support"
+              ]
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Odoo ERP Implementation",
+              "description": "Full Odoo deployment: POS, Accounting, Inventory, HR, custom modules"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Network & Server Management",
+              "description": "LAN/WAN design, Wi-Fi, firewall, VPN, server deployment"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "CCTV & Surveillance",
+              "description": "IP cameras, DVR/NVR, remote monitoring, hospital & commercial"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Web Development",
+              "description": "Responsive websites, web apps, e-commerce, SEO optimization"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://xamltech.com/#website",
+      "url": "https://xamltech.com",
+      "name": "XamlTech",
+      "publisher": {
+        "@id": "https://xamltech.com/#organization"
+      },
+      "inLanguage": [
+        "ar",
+        "en"
+      ]
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://xamltech.com/#webpage",
+      "url": "https://xamltech.com",
+      "name": "XamlTech — IT Solutions & Digital Transformation | Aswan, Egypt",
+      "description": "Full-service IT company: Odoo ERP, networking, CCTV, web development, software, digital transformation. Aswan, Egypt.",
+      "isPartOf": {
+        "@id": "https://xamltech.com/#website"
+      },
+      "about": {
+        "@id": "https://xamltech.com/#organization"
+      },
+      "inLanguage": [
+        "ar",
+        "en"
+      ]
+    }
+  ]
+}

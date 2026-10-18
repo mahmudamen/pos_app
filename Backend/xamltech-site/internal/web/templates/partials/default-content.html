@@ -1,0 +1,19 @@
+{{define "content"}}
+{{range .C.sections}}
+  {{if eq .partial "hero"}}{{template "hero" .data}}
+  {{else if eq .partial "chips"}}{{template "chips" .data}}
+  {{else if eq .partial "features"}}{{template "features" .data}}
+  {{else if eq .partial "logos"}}{{template "logos" .data}}
+  {{else if eq .partial "steps"}}{{template "steps" .data}}
+  {{else if eq .partial "stats"}}{{template "stats" .data}}
+  {{else if eq .partial "testimonials"}}{{template "testimonials" .data}}
+  {{else if eq .partial "faq"}}{{template "faq" .data}}
+  {{else if eq .partial "split"}}{{template "split" .data}}
+  {{else if eq .partial "richtext"}}{{template "richtext" .data}}
+  {{else if eq .partial "pricing"}}{{template "pricing" .data}}
+  {{else if eq .partial "roi"}}{{template "roi" .data}}
+  {{else if eq .partial "articles"}}{{template "articles" .data}}
+  {{else if eq .partial "cta"}}{{template "cta" .data}}
+  {{end}}
+{{end}}
+{{end}}

@@ -1,0 +1,30 @@
+{{define "form"}}
+<section class="sec">
+  <div class="wrap panel reveal">
+    <div class="panel__head">
+      <h2 class="sec__title">{{.title}}</h2>
+      {{if .sub}}<p class="sec__sub">{{.sub}}</p>{{end}}
+    </div>
+    {{if eq .sent "1"}}<div class="notice notice--ok">{{.form.sent}}</div>{{end}}
+    {{if eq .sent "error"}}<div class="notice notice--err">{{.form.error}}</div>{{end}}
+    <form class="form" method="post" action="{{.action}}">
+      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input type="hidden" name="lang" value="{{.lang}}">
+      <div class="form__grid">
+        <div class="field"><label class="field__label" for="f-name">{{.form.name}}</label><input class="input" id="f-name" name="name" required maxlength="120" autocomplete="name"></div>
+        <div class="field"><label class="field__label" for="f-email">{{.form.email}}</label><input class="input" id="f-email" name="email" type="email" required maxlength="160" autocomplete="email"></div>
+        <div class="field"><label class="field__label" for="f-phone">{{.form.phone}}</label><input class="input" id="f-phone" name="phone" dir="ltr" maxlength="40" autocomplete="tel"></div>
+        <div class="field"><label class="field__label" for="f-company">{{.form.company}}</label><input class="input" id="f-company" name="company" maxlength="160" autocomplete="organization"></div>
+      </div>
+      {{if .products}}
+      <div class="field"><label class="field__label" for="f-product">{{.form.product}}</label>
+        <select class="input" id="f-product" name="product"><option value="">{{.form.select}}</option>{{range .products}}<option value="{{.}}">{{.}}</option>{{end}}</select>
+      </div>
+      {{end}}
+      <div class="field"><label class="field__label" for="f-msg">{{.form.message}}</label><textarea class="input" id="f-msg" name="message" rows="5" required maxlength="4000"></textarea></div>
+      <button class="btn btn--primary btn--lg" type="submit">{{.submit}}</button>
+      <p class="form__note">{{.form.privacyNote}} <a href="{{.privacyHref}}">{{.privacyLabel}}</a></p>
+    </form>
+  </div>
+</section>
+{{end}}

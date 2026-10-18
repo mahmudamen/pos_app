@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="action_eg_trade_dashboard" model="ir.actions.client">
+    <field name="name">Trade Control</field>
+    <field name="tag">trade_control_dashboard</field>
+  </record>
+</odoo>

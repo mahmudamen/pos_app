@@ -1,0 +1,120 @@
+{
+  "en": {
+    "meta": {
+      "title": "Network Infrastructure & CCTV Surveillance Installation in Aswan, Egypt — XamlTech",
+      "description": "Design and implementation of LAN/WAN, enterprise Wi-Fi, firewalls, servers, virtualisation and IP CCTV systems across Aswan and Egypt. Free site survey.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🖧 IT Infrastructure",
+        "title": "Secure & reliable infrastructure",
+        "lead": "Slow network? Weak security? We design and implement professional network infrastructure, server systems and surveillance solutions for your business.",
+        "points": ["Structured cabling, switching and routing", "Enterprise Wi-Fi and firewalls", "Servers, virtualisation and IP CCTV"],
+        "ctas": [
+          { "label": "Request a site survey", "href": "/contact-us?lang=en", "style": "primary", "big": true },
+          { "label": "Talk to us on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ],
+        "stats": [
+          { "v": "99.9%", "l": "Uptime target" },
+          { "v": "128", "l": "Camera channels" },
+          { "v": "24/7", "l": "Monitoring" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "What we build",
+        "title": "Network & security solutions",
+        "sub": "One partner for cabling, connectivity, servers and surveillance.",
+        "cols": 3,
+        "items": [
+          { "icon": "🔌", "title": "LAN / WAN", "text": "Complete network design — structured cabling, VLANs, routing and switching for offices and data centres." },
+          { "icon": "📶", "title": "Wireless", "text": "Enterprise Wi-Fi — seamless roaming, load balancing, captive portals and centralised management." },
+          { "icon": "🛡️", "title": "Firewall & VPN", "text": "Advanced firewall, site-to-site VPN, remote access and intrusion detection/prevention." },
+          { "icon": "🖥️", "title": "Servers", "text": "Linux/Windows servers, virtualisation (Proxmox, VMware), Docker and high-availability clustering." },
+          { "icon": "📹", "title": "CCTV & surveillance", "text": "IP cameras (2–8MP), DVR/NVR, remote monitoring, mobile apps, up to 128 channels." },
+          { "icon": "📈", "title": "Monitoring", "text": "24/7 network monitoring, uptime tracking, alerting, bandwidth analysis and performance optimisation." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Why our infrastructure",
+        "title": "Built to last",
+        "cols": 4,
+        "items": [
+          { "icon": "🔐", "title": "Security", "text": "Enterprise-grade cybersecurity and data protection." },
+          { "icon": "⚡", "title": "Speed", "text": "Optimised for maximum throughput and low latency." },
+          { "icon": "🧱", "title": "Stability", "text": "Redundant systems with a 99.9% uptime target." },
+          { "icon": "📈", "title": "Scalable", "text": "Grows with your business without major overhauls." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Need a quote for networks or cameras?",
+        "text": "Free site surveys across Aswan and Egypt.",
+        "actions": [
+          { "label": "Request a site survey", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "تصميم الشبكات وأنظمة كاميرات المراقبة في أسوان ومصر — زامل تك",
+      "description": "تصميم وتنفيذ شبكات LAN/WAN والواي فاي المؤسسي والجدران النارية والسيرفرات والافتراضية وأنظمة كاميرات IP في أسوان ومصر. زيارة موقع مجانية.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🖧 البنية التحتية",
+        "title": "بنية تحتية آمنة وموثوقة",
+        "lead": "شبكة بطيئة؟ أمن ضعيف؟ نصمم وننفذ بنية تحتية احترافية للشبكات وأنظمة السيرفرات وحلول المراقبة لعملك.",
+        "points": ["تمديدات منظمة وسويتشات وراوتر", "واي فاي مؤسسي وجدران نارية", "سيرفرات وافتراضية وكاميرات IP"],
+        "ctas": [
+          { "label": "اطلب زيارة موقع", "href": "/contact-us", "style": "primary", "big": true },
+          { "label": "تواصل على واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ],
+        "stats": [
+          { "v": "99.9%", "l": "هدف وقت التشغيل" },
+          { "v": "128", "l": "قناة كاميرا" },
+          { "v": "24/7", "l": "مراقبة" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "ما نبنيه",
+        "title": "حلول الشبكات والأمن",
+        "sub": "شريك واحد للتمديدات والاتصال والسيرفرات والمراقبة.",
+        "cols": 3,
+        "items": [
+          { "icon": "🔌", "title": "LAN / WAN", "text": "تصميم شبكة كامل — تمديدات منظمة، VLANs، راوتر وسويتش للمكاتب ومراكز البيانات." },
+          { "icon": "📶", "title": "الشبكات اللاسلكية", "text": "واي فاي مؤسسي — تجوال سلس، موازنة حمل، بوابات دخول وإدارة مركزية." },
+          { "icon": "🛡️", "title": "جدار الحماية و VPN", "text": "جدار حماية متقدم، VPN بين المواقع، وصول عن بُعد وكشف/منع الاختراق." },
+          { "icon": "🖥️", "title": "السيرفرات", "text": "سيرفرات Linux/Windows، افتراضية (Proxmox، VMware)، Docker وتجميع عالي التوفر." },
+          { "icon": "📹", "title": "كاميرات المراقبة والأمن", "text": "كاميرات IP (2–8 ميجا)، DVR/NVR، مراقبة عن بُعد، تطبيقات موبايل حتى 128 قناة." },
+          { "icon": "📈", "title": "المراقبة", "text": "مراقبة شبكة 24/7، تتبع التشغيل، تنبيهات، تحليل النطاق وتحسين الأداء." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "لماذا بنيتنا التحتية",
+        "title": "مبنية لتدوم",
+        "cols": 4,
+        "items": [
+          { "icon": "🔐", "title": "الأمان", "text": "أمن سيبراني بمستوى المؤسسات وحماية البيانات." },
+          { "icon": "⚡", "title": "السرعة", "text": "مُحسّنة لأقصى إنتاجية وأقل زمن استجابة." },
+          { "icon": "🧱", "title": "الاستقرار", "text": "أنظمة احتياطية بهدف 99.9% وقت تشغيل." },
+          { "icon": "📈", "title": "قابلية التوسع", "text": "تنمو مع عملك دون إعادة بناء كبيرة." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "تحتاج عرض سعر لشبكات أو كاميرات؟",
+        "text": "زيارات موقع مجانية في أسوان ومصر.",
+        "actions": [
+          { "label": "اطلب زيارة موقع", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

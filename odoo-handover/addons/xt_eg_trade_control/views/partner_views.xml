@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="view_partner_form_eg_trade" model="ir.ui.view">
+    <field name="name">res.partner.form.eg.trade</field>
+    <field name="model">res.partner</field>
+    <field name="inherit_id" ref="base.view_partner_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//notebook" position="inside">
+        <page string="Egypt Trade">
+          <group string="Simple Customer Compliance">
+            <group>
+              <field name="eg_trade_customer_type"/>
+              <field name="eg_trade_tax_registration"/>
+              <field name="eg_trade_national_id"/>
+              <field name="eg_trade_branch"/>
+            </group>
+            <group>
+              <field name="eg_trade_e_invoice_enabled"/>
+              <field name="eg_trade_credit_limit"/>
+              <field name="eg_trade_compliance_ready" readonly="1"/>
+            </group>
+          </group>
+          <group string="Legal Address">
+            <field name="eg_trade_legal_address" nolabel="1"/>
+          </group>
+        </page>
+      </xpath>
+    </field>
+  </record>
+
+  <record id="action_eg_trade_customers" model="ir.actions.act_window">
+    <field name="name">Customers</field>
+    <field name="res_model">res.partner</field>
+    <field name="view_mode">list,form</field>
+    <field name="domain">[('customer_rank','&gt;',0)]</field>
+    <field name="context">{'default_customer_rank': 1}</field>
+  </record>
+</odoo>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="agri_page" name="XamlTech Agriculture ERP">
+        <t t-call="website.layout"><t t-set="title">Odoo ERP for Agriculture &amp; Farm Management in Upper Egypt — XamlTech Aswan</t>
+            <t t-set="meta_description">Odoo ERP for agriculture and farm management in Upper Egypt. Hierarchical farm locations, crop management, harvest analytics, work orders.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Odoo ERP for Agriculture and Farm Management in Upper Egypt",
+  "provider": {"@id": "https://xamltech.com/#organization"},
+  "serviceType": ["Farm Management Software", "Agriculture ERP", "Crop Management System"],
+  "areaServed": {"@type": "AdministrativeArea", "name": "Upper Egypt", "containedIn": {"@type": "Country", "name": "Egypt"}},
+  "description": "XamlTech builds custom Odoo ERP systems for agriculture operations in Upper Egypt. Our agricultural_management module for Odoo 19 (published on Odoo Apps Store) covers hierarchical farm locations (Farm, Sector, Unite, House), crop lifecycle tracking, agriculture work orders modeled after mrp.production, stock movement wizards for harvest, analytic accounting per farm location, payroll for farm workers, and kanban management. Published on Odoo Apps Store, deployed for real farming operations. Based in Aswan — we understand Upper Egypt agriculture."
+}</script>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Is there an Odoo ERP system for agriculture in Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. XamlTech, based in Aswan, developed a comprehensive farm_management module for Odoo 17. It covers hierarchical farm locations (Farm → Sector → Unite → House), crop lifecycle tracking, agriculture work orders, harvest management with stock movements, analytic accounting per location, and payroll integration for farm workers. Published on Odoo Apps Store, deployed for real farming operations's real farming operations in Upper Egypt."}},
+    {"@type": "Question", "name": "How does Odoo manage farm operations?", "acceptedAnswer": {"@type": "Answer", "text": "Our Odoo farm management module uses a 4-level hierarchy: Farm (the property), Sector (area within farm), Unite (plot/greenhouse), House (specific building). Each level links to analytic accounts for cost tracking. Work orders follow mrp.production patterns — planting, irrigation, fertilizing, harvesting. Stock wizards auto-create warehouse receipts on harvest. Analytics dashboards show yield per location and cost per crop."}},
+    {"@type": "Question", "name": "Who is the best Odoo developer for agriculture in Upper Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "XamlTech, founded by Mahmoud Amen and based in Aswan, specializes in Odoo ERP for agriculture. We built a production-ready farm management module for Qatf Company covering crop tracking, work orders, harvest analytics, and worker payroll. Being based in Upper Egypt, we understand local agricultural needs — from sugarcane to date palms to vegetable farming."}},
+    {"@type": "Question", "name": "What crops can Odoo ERP track?", "acceptedAnswer": {"@type": "Answer", "text": "Our crop.crop model tracks any crop type: sugarcane, dates, vegetables, cotton, wheat, fruits. It manages varieties, planting dates, expected vs actual yields, growth stages, input costs (fertilizer, water, labor), and harvest quantities. The system supports multiple seasons and crop rotation planning per farm location."}},
+    {"@type": "Question", "name": "Does the agriculture module integrate with Odoo Accounting?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, fully. Each farm location maps to an analytic account. All costs (seeds, fertilizer, labor, equipment) are tracked per location. Harvest values flow into inventory and accounting. You get real P&amp;L per farm, per crop, per season. Worker payroll integrates with Odoo HR for automatic salary calculations based on work orders completed."}},
+    {"@type": "Question", "name": "How much does agriculture ERP cost in Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "Implementation depends on farm size and complexity. A single-farm setup with basic crop tracking starts from our Starter package. Multi-farm operations with work orders, analytics, and payroll integration require our Business or Enterprise packages. We offer free consultations and site visits in Upper Egypt. Contact us on WhatsApp for a custom quote."}}
+  ]
+}</script>
+
+            <main>
+            <!-- Hero -->
+            <section class="xt-hero"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/><div class="xt-orb xt-orb--2"/></div>
+                <div class="xt-c">
+                    <div class="xt-hero__grid">
+                        <div style="position:relative;z-index:1;">
+                            <p class="xt-tag">🌾 Agriculture ERP Specialist</p>
+                            <p style="font-size:22px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:8px;">نظام ERP للزراعة وإدارة المزارع — صعيد مصر</p>
+                            <h1 class="xt-hero__h1" style="font-size:36px;">Odoo ERP for Agriculture &amp; Farm Management in Upper Egypt</h1>
+                            <p class="xt-hero__sub">We build custom Odoo systems for farms, greenhouses, and agricultural operations. Crop tracking, work orders, harvest management, cost analytics — all integrated with accounting and payroll. Built by a team that understands Upper Egypt agriculture.</p>
+                            <p class="xt-hero__sub" style="direction:rtl;margin-top:12px;">نبني أنظمة Odoo مخصصة للمزارع والصوبات والعمليات الزراعية. تتبع المحاصيل، أوامر العمل، إدارة الحصاد، وتحليل التكاليف — متكامل مع المحاسبة والرواتب.</p>
+                            <div class="xt-btns" style="margin-top:24px;">
+                                <a href="https://wa.me/201007982468?text=أريد%20استشارة%20عن%20نظام%20ERP%20للزراعة" target="_blank" class="xt-btn xt-btn--wa">💬 استشارة مجانية — Free Consultation</a>
+                                <a href="https://demo.xamltech.com/web/database/manager" target="_blank" class="xt-btn xt-btn--outline">🖥️ Live Demo (demo/demo)</a>
+                                <a href="https://apps.odoo.com/apps/modules/19.0/agricultural_management" target="_blank" class="xt-btn xt-btn--primary">📦 Get on Odoo Apps Store</a>
+                            </div>
+                        </div>
+                        <div class="xt-hero__cards">
+                            <div class="xt-hcard"><span>🌱</span><div><strong>Crop Lifecycle</strong><p>من الزراعة للحصاد — تتبع كامل</p></div></div>
+                            <div class="xt-hcard"><span>📍</span><div><strong>Farm Hierarchy</strong><p>مزرعة → قطاع → وحدة → بيت</p></div></div>
+                            <div class="xt-hcard"><span>📋</span><div><strong>Work Orders</strong><p>ري، تسميد، رش، حصاد — أوامر عمل</p></div></div>
+                            <div class="xt-hcard"><span>📊</span><div><strong>Cost Analytics</strong><p>تكلفة لكل محصول، موقع، موسم</p></div></div>
+                            <div class="xt-hcard"><span>💰</span><div><strong>Full Accounting</strong><p>محاسبة + رواتب + مخزون متكامل</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Why Agriculture Needs ERP -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">ليه المزرعة محتاجة نظام ERP؟</p>
+                    <h2 class="xt-h2">Why Your Farm Needs ERP</h2>
+                    <div class="xt-grid3" style="text-align:left;margin-top:40px;">
+                        <div class="xt-card"><span>❌</span><h3 style="direction:rtl;">بدون ERP</h3><p style="direction:rtl;">سجلات ورقية ضايعة. مش عارف تكلفة كل محصول. مفيش تتبع للعمال. الحصاد بالتخمين. محاسبة يدوية بتضيع فلوس.</p></div>
+                        <div class="xt-card" style="border-color:rgba(0,173,238,0.3);"><span>✅</span><h3 style="direction:rtl;">مع Odoo ERP</h3><p style="direction:rtl;">كل حاجة رقمية. تعرف تكلفة كل متر مربع. تتبع العمال والرواتب تلقائي. الحصاد موثق بالكميات. تقارير ربحية لكل محصول.</p></div>
+                        <div class="xt-card"><span>🏆</span><h3 style="direction:rtl;">النتيجة</h3><p style="direction:rtl;">قرارات مبنية على بيانات. تخفيض تكاليف 20-30%. إنتاجية أعلى. تخطيط مواسم أفضل. تقارير جاهزة للبنوك والمستثمرين.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Farm Module Features -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">مميزات النظام</p>
+                    <h2 class="xt-h2">Farm Management Module Features</h2>
+                    <div class="xt-grid3" style="text-align:left;margin-top:40px;">
+                        <div class="xt-card"><span>📍</span><h3>Hierarchical Locations</h3><p style="direction:rtl;margin-bottom:8px;"><strong>مواقع هرمية</strong></p><p>4-level hierarchy: Farm → Sector → Unite → House. Each level maps to analytic accounts. Assign workers and costs per location. Kanban view for visual management.</p></div>
+                        <div class="xt-card"><span>🌱</span><h3>Crop Management</h3><p style="direction:rtl;margin-bottom:8px;"><strong>إدارة المحاصيل</strong></p><p>Track crop varieties, planting dates, growth stages, expected yields. Support for sugarcane, dates, vegetables, cotton, wheat. Crop rotation planning across seasons.</p></div>
+                        <div class="xt-card"><span>📋</span><h3>Agriculture Work Orders</h3><p style="direction:rtl;margin-bottom:8px;"><strong>أوامر العمل الزراعية</strong></p><p>Modeled after mrp.production. Create orders for planting, irrigation, fertilizing, spraying, harvesting. Track labor hours, materials used, equipment allocated per order.</p></div>
+                        <div class="xt-card"><span>📦</span><h3>Harvest &amp; Inventory</h3><p style="direction:rtl;margin-bottom:8px;"><strong>الحصاد والمخزون</strong></p><p>Stock movement wizards auto-create warehouse receipts on harvest. Track produce from field to storage to sale. Lot tracking for quality control. Waste recording.</p></div>
+                        <div class="xt-card"><span>💰</span><h3>Cost Analytics</h3><p style="direction:rtl;margin-bottom:8px;"><strong>تحليل التكاليف</strong></p><p>Real P&amp;L per farm, per crop, per season. Track all inputs: seeds, fertilizer, water, labor, equipment. Compare expected vs actual costs. Seasonal trends dashboard.</p></div>
+                        <div class="xt-card"><span>👨‍🌾</span><h3>Worker Payroll</h3><p style="direction:rtl;margin-bottom:8px;"><strong>رواتب العمال</strong></p><p>Assign workers to locations. Track attendance via work orders. Auto-calculate wages (daily, task-based, seasonal). Integrates with Odoo HR and Payroll modules.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Crops We Support -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">المحاصيل اللي بندعمها</p>
+                    <h2 class="xt-h2">Crops We Support in Upper Egypt</h2>
+                    <p class="xt-sub" style="margin:0 auto 40px;">Our system handles all major Upper Egypt crops with specialized configurations</p>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🌿</span><h3 style="font-size:16px;">Sugarcane</h3><p style="direction:rtl;font-size:13px;">قصب السكر — المحصول الرئيسي في الصعيد</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🌴</span><h3 style="font-size:16px;">Date Palms</h3><p style="direction:rtl;font-size:13px;">نخيل التمور — أسوان والوادي الجديد</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🥬</span><h3 style="font-size:16px;">Vegetables</h3><p style="direction:rtl;font-size:13px;">خضروات — طماطم، فلفل، باذنجان</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🌾</span><h3 style="font-size:16px;">Wheat &amp; Grains</h3><p style="direction:rtl;font-size:13px;">قمح وحبوب — المواسم الشتوية</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🍊</span><h3 style="font-size:16px;">Citrus Fruits</h3><p style="direction:rtl;font-size:13px;">حمضيات — برتقال، ليمون، يوسفي</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🫘</span><h3 style="font-size:16px;">Legumes</h3><p style="direction:rtl;font-size:13px;">بقوليات — فول، عدس، حمص</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🌻</span><h3 style="font-size:16px;">Cotton</h3><p style="direction:rtl;font-size:13px;">قطن — المحافظات الجنوبية</p></div>
+                        <div class="xt-card" style="text-align:center;"><span style="font-size:36px;">🌿</span><h3 style="font-size:16px;">Herbs &amp; Medicinal</h3><p style="direction:rtl;font-size:13px;">أعشاب ونباتات طبية — النعناع، البابونج</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Real Client: Qatf -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="text-align:center;">
+                    <p class="xt-tag">🏆 Real Deployment — Client: Qatf Company</p>
+                    <h2 class="xt-h2">Agriculture ERP in Production</h2>
+                    <p class="xt-sub" style="margin:0 auto 32px;">Built and deployed for real farming operations. Not a demo — a working system.</p>
+                    <div class="xt-grid3" style="text-align:left;">
+                        <div class="xt-card"><h3 style="direction:rtl;">المشكلة</h3><p>Qatf Company manages multiple farm locations with different crops. Manual paper records made it impossible to track costs per location, manage worker assignments, or plan seasonal rotations. No visibility into which crops were profitable.</p></div>
+                        <div class="xt-card"><h3 style="direction:rtl;">الحل</h3><p>We built farm_management for Odoo 17: 4-level farm hierarchy, crop.crop model for lifecycle tracking, work orders for all farming operations, stock wizards for harvest, analytic accounts per location, payroll integration for seasonal workers.</p></div>
+                        <div class="xt-card"><h3 style="direction:rtl;">النتيجة</h3><p>Complete visibility into per-crop profitability. Worker payroll automated (saved 2 days/month). Harvest tracking eliminated discrepancies. Management now plans seasons based on data, not guesswork. Cost reduction estimated at 25%.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Why XamlTech for Agriculture -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">ليه زامل تك للزراعة؟</p>
+                    <h2 class="xt-h2">Why XamlTech for Agriculture ERP?</h2>
+                    <div class="xt-grid3" style="text-align:left;margin-top:40px;">
+                        <div class="xt-card"><span>📍</span><h3>Based in Upper Egypt</h3><p>We're in Aswan — we understand Upper Egypt agriculture. Sugarcane seasons, Nile irrigation, date palm cultivation. We do on-site visits and local support.</p></div>
+                        <div class="xt-card"><span>🌾</span><h3>Agriculture Specialist</h3><p>Not a generic ERP company. We built a complete farm management module from scratch for real farming operations. Crop tracking, work orders, harvest — production-tested.</p></div>
+                        <div class="xt-card"><span>🔧</span><h3>Full-Stack Odoo</h3><p>8+ years Odoo development (v12-v19). Published modules on Odoo Apps Store. We handle Python, OWL, PostgreSQL, and infrastructure. Not just configuration — real development.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <section class="xt-sec xt-sec--grad" style="padding:60px 0;">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:28px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:8px;">جاهز تحول مزرعتك لنظام رقمي؟</p>
+                    <h2 class="xt-h2">Ready to Digitize Your Farm?</h2>
+                    <p class="xt-sub" style="margin:0 auto 32px;direction:rtl;">استشارة مجانية + زيارة موقع في صعيد مصر. تواصل معنا الآن.</p>
+                    <p class="xt-sub" style="margin:0 auto 32px;">Free consultation + site visits in Upper Egypt. Contact us now.</p>
+                    <div class="xt-btns" style="justify-content:center;">
+                        <a href="https://wa.me/201007982468?text=أريد%20نظام%20ERP%20لإدارة%20المزرعة%20—%20Agriculture%20ERP" target="_blank" class="xt-btn xt-btn--wa">💬 WhatsApp — استشارة مجانية</a>
+                        <a href="/contact-us" class="xt-btn xt-btn--primary">✉️ Contact Us</a>
+                        <a href="https://demo.xamltech.com/web/database/manager" target="_blank" class="xt-btn xt-btn--outline">🖥️ Live Demo (demo/demo)</a>
+                                <a href="https://apps.odoo.com/apps/modules/19.0/agricultural_management" target="_blank" class="xt-btn xt-btn--primary">📦 Get on Odoo Apps Store</a>
+                    </div>
+                </div>
+            </section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+</odoo>

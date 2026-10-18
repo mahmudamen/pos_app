@@ -1,0 +1,220 @@
+# -*- coding: utf-8 -*-
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
+import json
+import re
+
+
+class XamlTechAddon(models.Model):
+    _name = 'xamltech.addon'
+    _description = 'XamlTech Odoo Addon'
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'website.published.mixin']
+    _order = 'sequence, downloads_count desc, id desc'
+
+    name = fields.Char(
+        string='Addon Name',
+        required=True,
+        tracking=True,
+        translate=True,
+    )
+    slug = fields.Char(
+        string='Technical Name',
+        required=True,
+        index=True,
+    )
+    category_id = fields.Many2one(
+        'xamltech.addon.category',
+        string='Category',
+        required=True,
+        tracking=True,
+    )
+    description = fields.Text(
+        string='Short Description',
+        required=True,
+        translate=True,
+    )
+    full_description = fields.Html(
+        string='Full Description',
+        translate=True,
+        sanitize_attributes=False,
+    )
+    icon_emoji = fields.Char(
+        string='Icon Emoji',
+        default='📦',
+    )
+    accent_color = fields.Char(
+        string='Accent Color',
+        default='#714CF9',
+    )
+    price = fields.Float(
+        string='Price (EUR)',
+        digits=(10, 2),
+        tracking=True,
+    )
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Currency',
+        default=lambda self: self.env.company.currency_id,
+    )
+    version = fields.Char(
+        string='Current Version',
+        required=True,
+        default='19.0.1.0.0',
+    )
+    compatible_versions = fields.Char(
+        string='Compatible Odoo Versions',
+        default='["19"]',
+        help='JSON array e.g. ["16","17","18","19"]',
+    )
+    rating = fields.Float(
+        string='Average Rating',
+        digits=(2, 1),
+        default=0.0,
+    )
+    reviews_count = fields.Integer(string='Number of Reviews', default=0)
+    downloads_count = fields.Integer(string='Downloads', default=0)
+    badge = fields.Selection([
+        ('best_seller', 'Best Seller'),
+        ('popular', 'Popular'),
+        ('essential', 'Essential'),
+        ('top_rated', 'Top Rated'),
+        ('new', 'New'),
+        ('advanced', 'Advanced'),
+    ], string='Badge', tracking=True)
+    tag_ids = fields.Many2many('xamltech.addon.tag', string='Tags')
+    image_ids = fields.One2many(
+        'xamltech.addon.image', 'addon_id', string='Screenshots',
+    )
+    odoo_store_url = fields.Char(string='Odoo Apps Store URL')
+    github_url = fields.Char(string='GitHub Repository')
+    documentation_url = fields.Char(string='Documentation URL')
+    seo_meta_description = fields.Char(
+        string='SEO Meta Description',
+        size=160,
+        translate=True,
+        help='Brief description for search engine results (max 160 chars)'
+    )
+    seo_keywords = fields.Char(
+        string='SEO Keywords',
+        translate=True,
+        help='Comma-separated keywords for SEO'
+    )
+    seo_og_image = fields.Char(
+        string='OG Image URL',
+        help='Image URL for social media sharing (OpenGraph)'
+    )
+    sequence = fields.Integer(string='Sequence', default=10)
+    is_featured = fields.Boolean(string='Featured', default=False, tracking=True)
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('archived', 'Archived'),
+    ], string='Status', default='draft', tracking=True)
+
+    compatible_versions_display = fields.Char(
+        compute='_compute_compatible_versions_display',
+    )
+    badge_label = fields.Char(compute='_compute_badge_label')
+
+    _slug_unique = models.Constraint(
+        'UNIQUE(slug)',
+        'Technical name must be unique!',
+    )
+    _rating_range = models.Constraint(
+        'CHECK(rating >= 0 AND rating <= 5)',
+        'Rating must be between 0 and 5!',
+    )
+
+    @api.depends('compatible_versions')
+    def _compute_compatible_versions_display(self):
+        for rec in self:
+            try:
+                versions = json.loads(rec.compatible_versions or '[]')
+                rec.compatible_versions_display = ', '.join(
+                    f'v{v}' for v in versions
+                )
+            except (json.JSONDecodeError, TypeError):
+                rec.compatible_versions_display = ''
+
+    @api.depends('badge')
+    def _compute_badge_label(self):
+        labels = dict(self._fields['badge'].selection)
+        for rec in self:
+            rec.badge_label = labels.get(rec.badge, '')
+
+    @api.constrains('accent_color')
+    def _check_accent_color(self):
+        for rec in self:
+            if rec.accent_color and not re.match(
+                r'^#[0-9A-Fa-f]{6}$', rec.accent_color
+            ):
+                raise ValidationError(
+                    _('Accent color must be a valid HEX (e.g. #714CF9)')
+                )
+
+    def action_publish(self):
+        self.write({'state': 'published', 'website_published': True})
+
+    def action_archive(self):
+        self.write({'state': 'archived', 'website_published': False})
+
+    def action_increment_download(self):
+        self.sudo().write({'downloads_count': self.downloads_count + 1})
+        return True
+
+    def _get_store_data(self):
+        """Serialize addon data for the OWL frontend"""
+        self.ensure_one()
+        try:
+            compat = json.loads(self.compatible_versions or '[]')
+        except (json.JSONDecodeError, TypeError):
+            compat = []
+        return {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'category': self.category_id.name,
+            'categoryIcon': self.category_id.icon_emoji or '📁',
+            'description': self.description,
+            'fullDescription': self.full_description or '',
+            'iconEmoji': self.icon_emoji,
+            'accentColor': self.accent_color,
+            'price': self.price,
+            'version': self.version,
+            'compatibleVersions': compat,
+            'rating': self.rating,
+            'reviewsCount': self.reviews_count,
+            'downloadsCount': self.downloads_count,
+            'badge': self.badge_label or '',
+            'badgeType': self.badge or '',
+            'isFeatured': self.is_featured,
+            'odooStoreUrl': self.odoo_store_url or '',
+            'githubUrl': self.github_url or '',
+            'docUrl': self.documentation_url or '',
+            'tags': self.tag_ids.mapped('name'),
+            'seoMetaDescription': self.seo_meta_description or '',
+            'seoKeywords': self.seo_keywords or '',
+            'seoOgImage': self.seo_og_image or '',
+        }
+
+
+class XamlTechAddonTag(models.Model):
+    _name = 'xamltech.addon.tag'
+    _description = 'Addon Tag'
+    _order = 'name'
+
+    name = fields.Char(required=True, translate=True)
+    color = fields.Integer(string='Color Index')
+
+
+class XamlTechAddonImage(models.Model):
+    _name = 'xamltech.addon.image'
+    _description = 'Addon Screenshot'
+    _order = 'sequence, id'
+
+    addon_id = fields.Many2one(
+        'xamltech.addon', required=True, ondelete='cascade',
+    )
+    name = fields.Char(string='Caption', translate=True)
+    image = fields.Binary(string='Image', required=True, attachment=True)
+    sequence = fields.Integer(default=10)

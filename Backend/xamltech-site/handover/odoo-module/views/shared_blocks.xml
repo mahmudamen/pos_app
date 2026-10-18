@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!-- Add dark theme class to Odoo's header -->
+    <template id="xt_fonts" inherit_id="website.layout" priority="90">
+        <xpath expr="//head" position="inside">
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+        </xpath>
+    </template>
+
+    <template id="xt_header_class" inherit_id="website.layout" priority="99">
+        <xpath expr="//header" position="attributes">
+            <attribute name="class" add="xt-header" separator=" "/>
+        </xpath>
+        <xpath expr="//footer" position="attributes">
+            <attribute name="class" add="xt-dark-footer" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="xt_footer_block" name="XamlTech Footer Block">
+        <footer class="xt-ft">
+            <!-- Newsletter / CTA strip -->
+            <div class="xt-ft__cta">
+                <div class="xt-c xt-ft__cta-inner">
+                    <div class="xt-ft__cta-text">
+                        <strong>Ready to transform your business?</strong>
+                        <span>Get started with XamlTech solutions today.</span>
+                    </div>
+                    <div class="xt-ft__cta-actions">
+                        <a href="/contact-us" class="xt-btn xt-btn--primary xt-ft__cta-btn">Get in Touch</a>
+                        <a href="/request-demo" class="xt-btn xt-btn--outline xt-ft__cta-btn">Request Demo</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="xt-c">
+                <div class="xt-ft__grid">
+                    <!-- Brand Column -->
+                    <div class="xt-ft__brand">
+                        <a href="/"><img src="/xamltech_addons_store/static/img/logo.png" alt="XamlTech" class="xt-ft__logo"/></a>
+                        <p class="xt-ft__desc">Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.</p>
+                        <!-- Social Links -->
+                        <div class="xt-ft__social">
+                            <a href="https://github.com/XamlTech" target="_blank" title="GitHub" class="xt-ft__social-link">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                            </a>
+                            <a href="https://www.linkedin.com/company/xamltech" target="_blank" title="LinkedIn" class="xt-ft__social-link">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                            </a>
+                            <a href="https://wa.me/201007982468" target="_blank" title="WhatsApp" class="xt-ft__social-link xt-ft__social-link--wa">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Solutions Column -->
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">Solutions</h4>
+                        <a href="/solutions/erp">ERP &amp; Odoo</a>
+                        <a href="/solutions/it-infrastructure">IT Infrastructure</a>
+                        <a href="/solutions/web">Web Development</a>
+                        <a href="/ai-solutions">AI Copilots</a>
+                        <a href="/addons-store">Addons Store</a>
+                        <a href="/pricing">Pricing</a>
+                    </div>
+
+                    <!-- Resources Column -->
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">Resources</h4>
+                        <a href="/insights">Blog &amp; Guides</a>
+                        <a href="/insights/ai-marketing-copilot">AI Marketing Guide</a>
+                        <a href="/insights/ai-pos-copilot">AI POS Guide</a>
+                        <a href="/knowledge">Knowledge Base</a>
+                        <a href="/testimonials">Testimonials</a>
+                        <a href="/request-demo">Request Demo</a>
+                    </div>
+
+                    <!-- Company Column -->
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">Company</h4>
+                        <a href="/portfolio">Portfolio</a>
+                        <a href="/contact-us">Contact Us</a>
+                        <a href="/privacy-policy">Privacy Policy</a>
+                        <a href="/terms">Terms of Service</a>
+                        <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank">Odoo Apps Store &#8599;</a>
+                        <a href="https://github.com/XamlTech" target="_blank">GitHub &#8599;</a>
+                    </div>
+
+                    <!-- Contact Column -->
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">Get in Touch</h4>
+                        <a href="mailto:info@xamltech.com" class="xt-ft__contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                            <span>info@xamltech.com</span>
+                        </a>
+                        <a href="tel:+201007982468" class="xt-ft__contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                            <span>+20 100 798 2468</span>
+                        </a>
+                        <a href="tel:+201201410140" class="xt-ft__contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                            <span>+20 120 141 0140</span>
+                        </a>
+                        <a href="https://wa.me/201007982468" target="_blank" class="xt-ft__contact-item xt-ft__contact-item--wa">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            <span>WhatsApp Chat</span>
+                        </a>
+                        <div class="xt-ft__location">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+                            <span>Sahary, Aswan, Egypt</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Bar -->
+                <div class="xt-ft__bottom">
+                    <span>&#169; 2026 XamlTech. All rights reserved.</span>
+                    <div class="xt-ft__bottom-links">
+                        <a href="https://xamltech.com">xamltech.com</a>
+                        <span class="xt-ft__dot">&#183;</span>
+                        <a href="/contact-us">Contact</a>
+                        <span class="xt-ft__dot">&#183;</span>
+                        <a href="/insights">Blog</a>
+                        <span class="xt-ft__dot">&#183;</span>
+                        <a href="/privacy-policy">Privacy Policy</a>
+                        <span class="xt-ft__dot">&#183;</span>
+                        <a href="/terms">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- WhatsApp float -->
+        <a href="https://wa.me/201007982468" target="_blank" class="xt-wa" title="WhatsApp"><svg viewBox="0 0 32 32" width="28" height="28" fill="#fff"><path d="M16.004 0h-.008C7.174 0 0 7.176 0 16.004c0 3.5 1.128 6.744 3.046 9.378L1.054 31.29l6.118-1.958A15.918 15.918 0 0016.004 32C24.826 32 32 24.826 32 16.004S24.826 0 16.004 0zm9.31 22.606c-.39 1.1-1.932 2.014-3.164 2.28-.846.18-1.948.324-5.662-1.218-4.754-1.972-7.808-6.8-8.044-7.114-.228-.314-1.9-2.53-1.9-4.826s1.2-3.426 1.628-3.894c.428-.468.936-.586 1.248-.586.312 0 .624.002.898.016.288.014.674-.11 1.054.804.39.936 1.326 3.23 1.442 3.464.116.234.194.508.038.82-.156.312-.234.508-.468.782-.234.274-.492.612-.702.82-.234.234-.478.488-.206.958.274.468 1.218 2.008 2.614 3.254 1.794 1.602 3.306 2.098 3.774 2.332.468.234.742.196 1.016-.118.274-.312 1.17-1.364 1.482-1.832.312-.468.624-.39 1.054-.234.43.156 2.724 1.286 3.192 1.52.468.234.78.352.898.546.116.196.116 1.132-.274 2.226z"/></svg></a>
+    </template>
+</odoo>

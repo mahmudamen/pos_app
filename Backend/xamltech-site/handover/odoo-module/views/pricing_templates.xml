@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="pricing_page" name="Pricing &amp; ROI Calculator">
+        <!-- PRICING &amp; ROI CALCULATOR PAGE -->
+        <t t-call="website.layout">
+            <t t-set="title">Transparent Pricing &amp; ROI Calculator — XamlTech Solutions</t>
+            <t t-set="meta_description">Transparent pricing for XamlTech Odoo modules and services. ROI calculator included. Starter, Business, and Enterprise ERP packages.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+
+            <!-- HERO -->
+            <section class="xt-hero" style="padding:80px 0 60px;">
+                <div class="xt-hero__bg">
+                    <div class="xt-orb xt-orb--1"/>
+                </div>
+                <div class="xt-c" style="text-align:center;position:relative;z-index:1;">
+                    <p class="xt-tag" style="background:rgba(59,130,246,0.2);color:#3B82F6;">💰 Transparent Pricing</p>
+                    <h1 class="xt-hero__h1" style="font-size:48px;">Simple, Scalable Pricing</h1>
+                    <p class="xt-hero__sub" style="max-width:800px;margin:0 auto;font-size:18px;">
+                        No hidden fees. No surprise charges. One-time purchase — lifetime use. Calculate your ROI in minutes.
+                    </p>
+                </div>
+            </section>
+
+            <!-- PRICING CARDS -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c">
+                    <h2 class="xt-h2" style="text-align:center;margin-bottom:12px;">Choose Your Solution</h2>
+                    <p class="xt-sub" style="text-align:center;margin:0 auto 40px;color:rgba(255,255,255,0.6);">All modules include lifetime updates and 24/7 support email.</p>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:40px;">
+                        <!-- POS Security Framework -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);transition:all 0.3s;">
+                            <div style="font-size:20px;margin-bottom:8px;color:#10B981;">🔐 Security</div>
+                            <h3 style="font-size:24px;font-weight:700;color:#fff;margin:8px 0;">POS Security Framework</h3>
+                            <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:12px 0;">Manager PIN, discount limits, role-based access</p>
+                            <div style="background:linear-gradient(135deg,#10B981,#34D399);border-radius:8px;padding:24px;text-align:center;margin:24px 0;">
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">Starting price</p>
+                                <div style="font-size:42px;font-weight:700;color:#fff;margin:8px 0;">$99</div>
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">EUR €89</p>
+                            </div>
+                            <ul style="color:rgba(255,255,255,0.7);font-size:14px;line-height:2;list-style:none;padding:0;margin:24px 0;">
+                                <li>✅ Odoo 18/19 compatible</li>
+                                <li>✅ 12,924 lines of code</li>
+                                <li>✅ 80+ Python &amp; JS tests</li>
+                                <li>✅ Lifetime updates</li>
+                            </ul>
+                            <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_base" target="_blank" class="xt-btn xt-btn--primary" style="width:100%;text-align:center;">View on Odoo Store</a>
+                        </div>
+
+                        <!-- POS Customization Kit -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);transition:all 0.3s;">
+                            <div style="font-size:20px;margin-bottom:8px;color:#F97316;">🎨 Customization</div>
+                            <h3 style="font-size:24px;font-weight:700;color:#fff;margin:8px 0;">POS Customization Kit</h3>
+                            <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:12px 0;">Theme builder, dark mode, custom layouts</p>
+                            <div style="background:linear-gradient(135deg,#F97316,#FB923C);border-radius:8px;padding:24px;text-align:center;margin:24px 0;">
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">Starting price</p>
+                                <div style="font-size:42px;font-weight:700;color:#fff;margin:8px 0;">$89</div>
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">EUR €79</p>
+                            </div>
+                            <ul style="color:rgba(255,255,255,0.7);font-size:14px;line-height:2;list-style:none;padding:0;margin:24px 0;">
+                                <li>✅ Odoo 18/19 compatible</li>
+                                <li>✅ 43,297 lines of code</li>
+                                <li>✅ 50+ Python &amp; JS tests</li>
+                                <li>✅ CSS variables included</li>
+                            </ul>
+                            <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_customization" target="_blank" class="xt-btn xt-btn--primary" style="width:100%;text-align:center;">View on Odoo Store</a>
+                        </div>
+
+                        <!-- POS Cutting Orders (Featured) -->
+                        <div style="background:linear-gradient(135deg,rgba(14,165,233,0.15),rgba(59,130,246,0.15));border:2px solid rgba(0,173,238,0.4);border-radius:12px;padding:32px;backdrop-filter:blur(10px);position:relative;overflow:hidden;">
+                            <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(0,173,238,0.2);border-radius:50%;"></div>
+                            <div style="position:relative;z-index:1;">
+                                <div style="background:#EC4899;color:#fff;padding:4px 12px;border-radius:20px;width:fit-content;font-size:12px;font-weight:600;margin-bottom:12px;">⭐ BEST SELLER</div>
+                                <div style="font-size:20px;margin-bottom:8px;color:#3B82F6;">✂️ Cutting Orders</div>
+                                <h3 style="font-size:24px;font-weight:700;color:#fff;margin:8px 0;">POS Cutting Orders</h3>
+                                <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:12px 0;">Fabric/textile, real-time tracking, cutting UI</p>
+                                <div style="background:linear-gradient(135deg,#3B82F6,#60A5FA);border-radius:8px;padding:24px;text-align:center;margin:24px 0;">
+                                    <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">Starting price</p>
+                                    <div style="font-size:42px;font-weight:700;color:#fff;margin:8px 0;">$149</div>
+                                    <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">EUR €129</p>
+                                </div>
+                                <ul style="color:rgba(255,255,255,0.8);font-size:14px;line-height:2;list-style:none;padding:0;margin:24px 0;">
+                                    <li>✅ Odoo 18/19 compatible</li>
+                                    <li>✅ 39,729 lines of code</li>
+                                    <li>✅ 165+ Python &amp; JS tests</li>
+                                    <li>✅ Textile-specific features</li>
+                                </ul>
+                                <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting" target="_blank" class="xt-btn xt-btn--primary" style="width:100%;text-align:center;background:#EC4899;border-color:#EC4899;">View on Odoo Store</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Modules Section -->
+                    <h2 class="xt-h2" style="text-align:center;margin-top:60px;margin-bottom:40px;">AI-Powered Solutions (Odoo 19)</h2>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;">
+                        <!-- AI Marketing Copilot -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                            <div style="font-size:20px;margin-bottom:8px;color:#6366F1;">📊 Marketing</div>
+                            <h3 style="font-size:24px;font-weight:700;color:#fff;margin:8px 0;">AI Marketing Copilot</h3>
+                            <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:12px 0;">Budget optimization, campaign scoring, real-time analytics</p>
+                            <div style="background:linear-gradient(135deg,#6366F1,#818CF8);border-radius:8px;padding:24px;text-align:center;margin:24px 0;">
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">Starting price</p>
+                                <div style="font-size:42px;font-weight:700;color:#fff;margin:8px 0;">$79</div>
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">EUR €69</p>
+                            </div>
+                            <ul style="color:rgba(255,255,255,0.7);font-size:14px;line-height:2;list-style:none;padding:0;margin:24px 0;">
+                                <li>✅ Odoo 19 native</li>
+                                <li>✅ 8,410 lines of code</li>
+                                <li>✅ Thompson Sampling algorithm</li>
+                                <li>✅ Dashboard analytics</li>
+                            </ul>
+                            <a href="/insights/ai-marketing-copilot" class="xt-btn xt-btn--primary" style="width:100%;text-align:center;">Learn More</a>
+                        </div>
+
+                        <!-- AI POS Copilot -->
+                        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                            <div style="font-size:20px;margin-bottom:8px;color:#8B5CF6;">🤖 POS Intelligence</div>
+                            <h3 style="font-size:24px;font-weight:700;color:#fff;margin:8px 0;">AI POS Copilot</h3>
+                            <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:12px 0;">Real-time upsell, smart suggestions, Arabic-first UX</p>
+                            <div style="background:linear-gradient(135deg,#8B5CF6,#A855F7);border-radius:8px;padding:24px;text-align:center;margin:24px 0;">
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">Starting price</p>
+                                <div style="font-size:42px;font-weight:700;color:#fff;margin:8px 0;">$59</div>
+                                <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;">EUR €49</p>
+                            </div>
+                            <ul style="color:rgba(255,255,255,0.7);font-size:14px;line-height:2;list-style:none;padding:0;margin:24px 0;">
+                                <li>✅ Odoo 19 native</li>
+                                <li>✅ 2,623 lines of code</li>
+                                <li>✅ Multi-LLM support</li>
+                                <li>✅ Graceful degradation</li>
+                            </ul>
+                            <a href="/insights/ai-pos-copilot" class="xt-btn xt-btn--primary" style="width:100%;text-align:center;">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ROI CALCULATOR -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="max-width:800px;margin:0 auto;">
+                    <h2 class="xt-h2" style="text-align:center;margin-bottom:12px;">ROI Calculator</h2>
+                    <p class="xt-sub" style="text-align:center;margin:0 auto 32px;color:rgba(255,255,255,0.7);">Calculate your potential return on investment with any XamlTech solution.</p>
+
+                    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(0,173,238,0.2);border-radius:12px;padding:32px;backdrop-filter:blur(10px);">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+                            <div>
+                                <label style="display:block;color:rgba(255,255,255,0.8);font-size:14px;font-weight:600;margin-bottom:8px;">Monthly Users</label>
+                                <input type="number" placeholder="e.g., 50" value="50" style="width:100%;padding:12px;border:1px solid rgba(0,173,238,0.2);border-radius:8px;background:rgba(0,0,0,0.2);color:#fff;font-size:14px;" id="users_input"/>
+                            </div>
+                            <div>
+                                <label style="display:block;color:rgba(255,255,255,0.8);font-size:14px;font-weight:600;margin-bottom:8px;">Hours Saved/Month</label>
+                                <input type="number" placeholder="e.g., 40" value="40" style="width:100%;padding:12px;border:1px solid rgba(0,173,238,0.2);border-radius:8px;background:rgba(0,0,0,0.2);color:#fff;font-size:14px;" id="hours_input"/>
+                            </div>
+                            <div>
+                                <label style="display:block;color:rgba(255,255,255,0.8);font-size:14px;font-weight:600;margin-bottom:8px;">Hourly Rate ($)</label>
+                                <input type="number" placeholder="e.g., 25" value="25" style="width:100%;padding:12px;border:1px solid rgba(0,173,238,0.2);border-radius:8px;background:rgba(0,0,0,0.2);color:#fff;font-size:14px;" id="rate_input"/>
+                            </div>
+                            <div>
+                                <label style="display:block;color:rgba(255,255,255,0.8);font-size:14px;font-weight:600;margin-bottom:8px;">License Price ($)</label>
+                                <input type="number" placeholder="e.g., 99" value="99" style="width:100%;padding:12px;border:1px solid rgba(0,173,238,0.2);border-radius:8px;background:rgba(0,0,0,0.2);color:#fff;font-size:14px;" id="price_input"/>
+                            </div>
+                        </div>
+
+                        <button onclick="calculateROI()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3B82F6,#60A5FA);border:none;color:#fff;font-weight:600;border-radius:8px;cursor:pointer;font-size:16px;margin-bottom:24px;">Calculate ROI</button>
+
+                        <div id="roi_results" style="display:none;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:24px;">
+                            <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:0 0 12px;">Monthly Savings</p>
+                            <div style="font-size:36px;font-weight:700;color:#22C55E;margin-bottom:24px;"><span id="monthly_savings">$0</span></div>
+
+                            <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:0 0 12px;">Payback Period</p>
+                            <div style="font-size:24px;font-weight:600;color:#fff;margin-bottom:24px;"><span id="payback">0</span> months</div>
+
+                            <p style="color:rgba(255,255,255,0.6);font-size:13px;margin:0 0 12px;">Annual ROI (Year 1)</p>
+                            <div style="font-size:32px;font-weight:700;color:#22C55E;"><span id="annual_roi">0%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <section class="xt-sec xt-sec--dark" style="padding:60px 0;text-align:center;">
+                <div class="xt-c">
+                    <h2 class="xt-h2">Ready to Invest in Your Growth?</h2>
+                    <p style="color:rgba(255,255,255,0.7);max-width:600px;margin:16px auto 32px;">
+                        All modules include lifetime updates and priority support. No long-term contracts. Cancel anytime (though you probably won't want to).
+                    </p>
+                    <div class="xt-btns" style="justify-content:center;gap:16px;flex-wrap:wrap;">
+                        <a href="/contact-us" class="xt-btn xt-btn--primary">Request Custom Quote</a>
+                        <a href="/addons-store" class="xt-btn" style="border:2px solid var(--xt-accent);">Browse All Addons</a>
+                    </div>
+                </div>
+            </section>
+
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+        </template>
+</odoo>

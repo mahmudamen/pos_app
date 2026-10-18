@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_addon_public,xamltech.addon.public,model_xamltech_addon,base.group_public,1,0,0,0
+access_addon_user,xamltech.addon.user,model_xamltech_addon,base.group_user,1,1,1,0
+access_addon_manager,xamltech.addon.manager,model_xamltech_addon,website.group_website_designer,1,1,1,1
+access_addon_category_public,xamltech.addon.category.public,model_xamltech_addon_category,base.group_public,1,0,0,0
+access_addon_category_user,xamltech.addon.category.user,model_xamltech_addon_category,base.group_user,1,1,1,0
+access_addon_category_manager,xamltech.addon.category.manager,model_xamltech_addon_category,website.group_website_designer,1,1,1,1
+access_addon_tag_public,xamltech.addon.tag.public,model_xamltech_addon_tag,base.group_public,1,0,0,0
+access_addon_tag_user,xamltech.addon.tag.user,model_xamltech_addon_tag,base.group_user,1,1,1,1
+access_addon_image_public,xamltech.addon.image.public,model_xamltech_addon_image,base.group_public,1,0,0,0
+access_addon_image_user,xamltech.addon.image.user,model_xamltech_addon_image,base.group_user,1,1,1,1
+access_apk_user,xamltech.apk.user,model_xamltech_apk,base.group_user,1,0,0,0
+access_apk_manager,xamltech.apk.manager,model_xamltech_apk,website.group_website_designer,1,1,1,1
+access_app_request_user,xamltech.app.request.user,model_xamltech_app_request,base.group_user,1,0,0,0
+access_app_request_manager,xamltech.app.request.manager,model_xamltech_app_request,website.group_website_designer,1,1,1,1

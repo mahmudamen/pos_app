@@ -1,0 +1,160 @@
+{
+  "en": {
+    "meta": {
+      "title": "AI Marketing & POS Copilots | XamlTech Odoo Modules",
+      "description": "AI Copilots for Odoo 19 — Marketing Copilot for budget optimisation and POS Copilot for real-time upsell suggestions. Bilingual, self-hosted and privacy-first.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "✨ AI-Powered Intelligence",
+        "title": "AI Copilots for Odoo 19",
+        "lead": "Transform your marketing and POS operations with AI-driven intelligence. Real-time suggestions, predictive analytics and automated optimisation — all within Odoo.",
+        "points": ["Marketing Copilot — budget optimisation", "POS Copilot — real-time upsell", "Self-hosted, bilingual, GDPR-conscious"],
+        "ctas": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary", "big": true },
+          { "label": "Talk to us on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "🎯 Marketing Intelligence",
+        "title": "AI Marketing Copilot",
+        "sub": "Optimise your marketing spend with machine-learning insights, campaign ROI forecasts and predictive scoring.",
+        "cols": 3,
+        "items": [
+          { "icon": "📊", "title": "Smart campaign analytics", "text": "Track performance metrics and ROI in real time." },
+          { "icon": "🎯", "title": "Predictive scoring", "text": "ML-powered lead and opportunity scoring." },
+          { "icon": "💸", "title": "Budget allocation", "text": "AI-recommended budget distribution across campaigns." },
+          { "icon": "🎁", "title": "Incentive assignment", "text": "Automated incentive rules based on customer segments." },
+          { "icon": "📈", "title": "Performance dashboard", "text": "Visual analytics with drill-down reports." },
+          { "icon": "🧾", "title": "Decision logging", "text": "A full audit trail of AI recommendations." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "🛍️ POS Intelligence",
+        "title": "AI POS Copilot",
+        "sub": "Boost average transaction value with real-time AI upsell suggestions based on cart context, history and stock.",
+        "cols": 3,
+        "items": [
+          { "icon": "💡", "title": "Smart upsell widget", "text": "Real-time suggestions in an OWL sidebar panel." },
+          { "icon": "🌐", "title": "Multi-language", "text": "Full Arabic and English bilingual interface." },
+          { "icon": "📦", "title": "Stock optimisation", "text": "Suggest slow-moving items to reduce inventory." },
+          { "icon": "🧠", "title": "Customer history", "text": "ML-powered recommendations per customer." },
+          { "icon": "📈", "title": "Conversion tracking", "text": "Log all suggestions and acceptance rates." },
+          { "icon": "✍️", "title": "Custom prompt templates", "text": "Fine-tune AI behaviour per business." }
+        ]
+      }},
+      { "partial": "stats", "data": {
+        "eyebrow": "Proven impact",
+        "title": "How AI transforms your business",
+        "items": [
+          { "v": "+35%", "l": "Marketing ROI" },
+          { "v": "+24%", "l": "Basket size" },
+          { "v": "42%", "l": "Suggestion acceptance" },
+          { "v": "+52%", "l": "Combined revenue growth" }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "eyebrow": "FAQ",
+        "title": "Frequently asked questions",
+        "items": [
+          { "q": "Is there a free trial?", "a": "Both AI Copilots are free to install from the Odoo Apps Store, with demo data included. No credit card required." },
+          { "q": "Do they work with Arabic/RTL?", "a": "Yes. AI POS Copilot is fully bilingual (Arabic and English) with RTL support, and prompts are customisable per language." },
+          { "q": "What Odoo versions are supported?", "a": "Both modules target Odoo 19, with Odoo 18 compatibility in progress." },
+          { "q": "Can I customise the AI behaviour?", "a": "Absolutely. Both modules include prompt templates, scoring rules and decision logs, with full API access." },
+          { "q": "What about data privacy?", "a": "All data stays within your Odoo instance — no external API calls for AI processing — and is GDPR-conscious." },
+          { "q": "How is this better than other POS apps?", "a": "Real-time processing, a bilingual UI, a clean architecture codebase, support and production deployments." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to transform your business?",
+        "text": "Install from the Odoo Apps Store today — no setup required, demo data included.",
+        "actions": [
+          { "label": "Visit the addons store", "href": "/addons-store?lang=en", "style": "primary" },
+          { "label": "Email us", "href": "mailto:info@xamltech.com", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "مساعدو الذكاء الاصطناعي للتسويق ونقاط البيع | موديولات Odoo من زامل تك",
+      "description": "مساعدو ذكاء اصطناعي لـ Odoo 19 — مساعد التسويق لتحسين الميزانيات ومساعد نقاط البيع لاقتراحات البيع الإضافي الفورية. ثنائي اللغة ومستضاف ذاتياً ويحترم الخصوصية.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "✨ ذكاء اصطناعي",
+        "title": "مساعدو ذكاء اصطناعي لـ Odoo 19",
+        "lead": "حوّل عمليات التسويق ونقاط البيع بذكاء مدعوم بالذكاء الاصطناعي. اقتراحات فورية وتحليلات تنبؤية وتحسين آلي — كل ذلك داخل Odoo.",
+        "points": ["مساعد التسويق — تحسين الميزانية", "مساعد نقاط البيع — بيع إضافي فوري", "مستضاف ذاتياً وثنائي اللغة ويراعي الخصوصية"],
+        "ctas": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary", "big": true },
+          { "label": "تواصل على واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "🎯 ذكاء التسويق",
+        "title": "مساعد التسويق الذكي",
+        "sub": "حسّن إنفاقك التسويقي برؤى تعلّم الآلة وتوقعات عائد الحملات والتصنيف التنبؤي.",
+        "cols": 3,
+        "items": [
+          { "icon": "📊", "title": "تحليلات حملات ذكية", "text": "تتبع مؤشرات الأداء والعائد لحظياً." },
+          { "icon": "🎯", "title": "تصنيف تنبؤي", "text": "تصنيف العملاء والفرص بتعلّم الآلة." },
+          { "icon": "💸", "title": "توزيع الميزانية", "text": "توزيع موصى به من الذكاء الاصطناعي عبر الحملات." },
+          { "icon": "🎁", "title": "إسناد الحوافز", "text": "قواعد حوافز آلية حسب شرائح العملاء." },
+          { "icon": "📈", "title": "لوحة الأداء", "text": "تحليلات مرئية مع تقارير تفصيلية." },
+          { "icon": "🧾", "title": "توثيق القرارات", "text": "سجل تدقيق كامل لتوصيات الذكاء الاصطناعي." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "🛍️ ذكاء نقاط البيع",
+        "title": "مساعد نقاط البيع الذكي",
+        "sub": "ارفع متوسط قيمة الفاتورة باقتراحات بيع إضافي فورية حسب السلة والسجل والمخزون.",
+        "cols": 3,
+        "items": [
+          { "icon": "💡", "title": "أداة البيع الإضافي", "text": "اقتراحات فورية في لوحة OWL الجانبية." },
+          { "icon": "🌐", "title": "متعدد اللغات", "text": "واجهة ثنائية اللغة عربي وإنجليزي." },
+          { "icon": "📦", "title": "تحسين المخزون", "text": "اقتراح الأصناف بطيئة الحركة لتصريف المخزون." },
+          { "icon": "🧠", "title": "سجل العميل", "text": "توصيات مدرّبة لكل عميل." },
+          { "icon": "📈", "title": "تتبع التحويل", "text": "تسجيل كل الاقتراحات ونسب القبول." },
+          { "icon": "✍️", "title": "قوالب أوامر مخصصة", "text": "ضبط سلوك الذكاء الاصطناعي لكل نشاط." }
+        ]
+      }},
+      { "partial": "stats", "data": {
+        "eyebrow": "أثر مثبت",
+        "title": "كيف يغيّر الذكاء الاصطناعي أعمالك",
+        "items": [
+          { "v": "+35%", "l": "عائد التسويق" },
+          { "v": "+24%", "l": "حجم السلة" },
+          { "v": "42%", "l": "نسبة قبول الاقتراحات" },
+          { "v": "+52%", "l": "نمو الإيرادات المشترك" }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "eyebrow": "الأسئلة الشائعة",
+        "title": "أسئلة شائعة",
+        "items": [
+          { "q": "هل هناك تجربة مجانية؟", "a": "كلا المساعدين مجانيان للتركيب من متجر Odoo، مع بيانات تجريبية مدمجة. لا حاجة لبطاقة ائتمان." },
+          { "q": "هل يعملان مع العربية RTL؟", "a": "نعم. مساعد نقاط البيع ثنائي اللغة (عربي وإنجليزي) بدعم RTL، والقوالب قابلة للتخصيص لكل لغة." },
+          { "q": "ما إصدارات Odoo المدعومة؟", "a": "كلا الموديولين يستهدفان Odoo 19، ونعمل على توافق Odoo 18." },
+          { "q": "هل أستطيع تخصيص سلوك الذكاء الاصطناعي؟", "a": "بالتأكيد. الموديولان يتضمنان قوالب وقواعد تصنيف وسجلات قرارات، مع وصول كامل لـ API." },
+          { "q": "ماذا عن خصوصية البيانات؟", "a": "كل البيانات تبقى داخل نسخة Odoo الخاصة بك — بدون استدعاءات خارجية لمعالجة الذكاء الاصطناعي — وتراعي الخصوصية." },
+          { "q": "كيف هذا أفضل من تطبيقات أخرى؟", "a": "معالجة فورية وواجهة ثنائية اللغة وكود بنية نظيفة ودعم وتنفيذات إنتاجية." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "مستعد لتحويل أعمالك؟",
+        "text": "ثبّت من متجر Odoo اليوم — بلا إعداد، مع بيانات تجريبية.",
+        "actions": [
+          { "label": "زيارة متجر الإضافات", "href": "/addons-store", "style": "primary" },
+          { "label": "راسلنا", "href": "mailto:info@xamltech.com", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "y1l8d34cyq");
+    </script>
+    <meta charset="UTF-8" />
+    <style>
+      /* ── Reset & Base ───────────────────────────────────────── */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f5f7fc;
+        color: #1a1f35;
+        line-height: 1.6;
+      }
+      a {
+        color: #00adee;
+        text-decoration: none;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      /* ── Tokens ─────────────────────────────────────────────── */
+      :root {
+        --accent: #00adee;
+        --accent2: #0072bc;
+        --dark: #050810;
+        --card: #fff;
+        --border: #e2e6f0;
+        --radius: 14px;
+        --wa: #25d366;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      }
+
+      /* ── Layout ─────────────────────────────────────────────── */
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* ── HERO ────────────────────────────────────────────────── */
+      .hero {
+        background: linear-gradient(135deg, #050810, #001433);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin-bottom: 32px;
+        padding: 0;
+      }
+      .hero img {
+        width: 100%;
+        border-radius: var(--radius);
+      }
+      .hero-text {
+        padding: 40px 40px 36px;
+        text-align: center;
+      }
+      .hero-text h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 10px;
+      }
+      .hero-text p {
+        font-size: 1.05rem;
+        color: rgba(255, 255, 255, 0.65);
+        max-width: 640px;
+        margin: 0 auto 24px;
+      }
+      .tag {
+        display: inline-block;
+        background: rgba(0, 173, 238, 0.18);
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 5px 16px;
+        border-radius: 40px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(0, 173, 238, 0.3);
+      }
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 16px;
+      }
+      .badge {
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.78rem;
+        padding: 4px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      /* ── PREVIEW GIF ─────────────────────────────────────────── */
+      .gif-wrap {
+        background: var(--dark);
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin-bottom: 32px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(0, 173, 238, 0.2);
+      }
+      .gif-wrap img {
+        width: 100%;
+      }
+      .gif-caption {
+        background: #0b0e1a;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.78rem;
+        padding: 8px 20px;
+        text-align: center;
+      }
+
+      /* ── SECTION HEADINGS ────────────────────────────────────── */
+      .section {
+        margin-bottom: 40px;
+      }
+      .section-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #1a1f35;
+        margin-bottom: 4px;
+        padding-bottom: 8px;
+        border-bottom: 3px solid var(--accent);
+        display: inline-block;
+      }
+      .section-sub {
+        font-size: 0.92rem;
+        color: #5a6480;
+        margin-bottom: 20px;
+        margin-top: 6px;
+      }
+
+      /* ── FEATURE GRID ────────────────────────────────────────── */
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 700px) {
+        .grid-3,
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .feat-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 18px;
+        box-shadow: var(--shadow);
+        transition: 0.2s;
+      }
+      .feat-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 6px 28px rgba(0, 173, 238, 0.12);
+      }
+      .feat-icon {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+      }
+      .feat-card h3 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1a1f35;
+        margin-bottom: 6px;
+      }
+      .feat-card p {
+        font-size: 0.83rem;
+        color: #5a6480;
+        line-height: 1.55;
+      }
+
+      /* ── SCREENSHOT STRIP ────────────────────────────────────── */
+      .ss-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .ss-grid img {
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .ss-full img {
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        width: 100%;
+      }
+      .ss-caption {
+        font-size: 0.77rem;
+        color: #8a93ad;
+        text-align: center;
+        margin-top: 5px;
+        font-style: italic;
+      }
+
+      /* ── COMPARE DARK/LIGHT ──────────────────────────────────── */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 600px) {
+        .compare {
+          grid-template-columns: 1fr;
+        }
+      }
+      .compare-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .compare-card img {
+        width: 100%;
+      }
+      .compare-label {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+      .label-dark {
+        background: #0b0e1a;
+        color: var(--accent);
+      }
+      .label-light {
+        background: #f0f4fc;
+        color: var(--accent2);
+      }
+
+      /* ── COMPONENT SHOWCASE ──────────────────────────────────── */
+      .comp-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .btn-demo {
+        display: inline-block;
+        padding: 8px 22px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #050810;
+      }
+      .btn-outline {
+        background: #fff;
+        color: #1a1f35;
+        border: 1px solid #d0d5e8;
+      }
+      .btn-wa {
+        background: var(--wa);
+        color: #fff;
+      }
+      .btn-dark {
+        background: #0b0e1a;
+        color: #fff;
+      }
+
+      /* ── COLOUR PALETTE ──────────────────────────────────────── */
+      .palette {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .swatch {
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .swatch-label {
+        font-size: 0.68rem;
+        color: #5a6480;
+        text-align: center;
+        margin-top: 3px;
+        font-family: monospace;
+      }
+
+      /* ── SPEC TABLE ──────────────────────────────────────────── */
+      .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+      }
+      .spec-table th {
+        background: #f0f4fc;
+        color: #1a1f35;
+        font-weight: 700;
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 2px solid var(--border);
+      }
+      .spec-table td {
+        padding: 9px 14px;
+        border-bottom: 1px solid var(--border);
+        color: #3a4260;
+      }
+      .spec-table tr:hover td {
+        background: #f8faff;
+      }
+      .check {
+        color: var(--wa);
+        font-weight: 700;
+      }
+
+      /* ── HIGHLIGHT BOX ───────────────────────────────────────── */
+      .highlight {
+        background: linear-gradient(135deg, #050810, #001433);
+        border-radius: var(--radius);
+        padding: 28px 32px;
+        border-left: 4px solid var(--accent);
+        margin-bottom: 32px;
+      }
+      .highlight h2 {
+        color: #fff;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .highlight ul {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.88rem;
+        padding-left: 18px;
+      }
+      .highlight li {
+        margin-bottom: 6px;
+      }
+      .highlight li strong {
+        color: var(--accent);
+      }
+
+      /* ── FOOTER ──────────────────────────────────────────────── */
+      .store-footer {
+        background: linear-gradient(135deg, #050810, #001433);
+        border-radius: var(--radius);
+        padding: 28px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .store-footer p {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.88rem;
+      }
+      .store-footer strong {
+        color: #fff;
+      }
+      .support-btn {
+        background: var(--wa);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 10px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- ── HERO ──────────────────────────────────────────────── -->
+      <div class="hero">
+        <div class="hero-text">
+          <span class="tag">🎨 Odoo 19 Website Theme</span>
+          <h1>XamlTech Theme</h1>
+          <p>
+            A production-grade dark/light website theme with full RTL Arabic
+            support. Built for technology companies, ERP consultancies, and
+            digital agencies who need a bilingual Arabic–English presence.
+          </p>
+          <div class="badge-row">
+            <span class="badge">🌙 Dark Mode Default</span>
+            <span class="badge">☀️ One-click Light Mode</span>
+            <span class="badge">🌐 RTL Arabic</span>
+            <span class="badge">📱 Mobile Responsive</span>
+            <span class="badge">⚡ PWA Ready</span>
+            <span class="badge">🎨 CSS Design Tokens</span>
+            <span class="badge">🔠 Cairo Font</span>
+            <span class="badge">Odoo 19 Enterprise + Community</span>
+          </div>
+        </div>
+        <img src="banner.png" alt="XamlTech Theme Banner" />
+      </div>
+
+      <!-- ── ANIMATED PREVIEW GIF ──────────────────────────────── -->
+      <div class="section">
+        <div class="gif-wrap">
+          <img
+            src="theme_preview.gif"
+            alt="XamlTech Theme — animated feature preview"
+          />
+          <div class="gif-caption">
+            🎬 Live preview: Dark Mode · Light Mode · RTL Arabic · Addons Store
+            · Design System
+          </div>
+        </div>
+      </div>
+
+      <!-- ── WHAT YOU GET ───────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">What You Get</div>
+        <p class="section-sub">
+          A complete Odoo 19 website theme — every component you need, zero
+          configuration required.
+        </p>
+        <div class="grid-3">
+          <div class="feat-card">
+            <div class="feat-icon">🌙</div>
+            <h3>Dark Mode by Default</h3>
+            <p>
+              Deep-space dark background with luminous accent blue. Reduces eye
+              strain and looks stunning on modern displays.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">☀️</div>
+            <h3>One-Click Light Mode</h3>
+            <p>
+              Seamless toggle persisted in localStorage. Also follows the user's
+              OS colour scheme preference automatically.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🌐</div>
+            <h3>Full RTL Arabic Layout</h3>
+            <p>
+              Every component flips for right-to-left reading. Cairo font
+              supports both Arabic and Latin scripts in a single weight stack.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🎨</div>
+            <h3>CSS Design Tokens</h3>
+            <p>
+              Zero hardcoded colours. All brand values live in
+              <code>:root</code> CSS variables — change one line to rebrand the
+              entire theme.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">📱</div>
+            <h3>Fluid Responsive Grid</h3>
+            <p>
+              CSS <code>clamp()</code> everywhere. Fluid font sizes, paddings,
+              and grid columns. Looks pixel-perfect from 320px to 4K.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">⚡</div>
+            <h3>PWA + Service Worker</h3>
+            <p>
+              Offline-first with a pre-configured Service Worker and Web App
+              Manifest. Installable on mobile home screens.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🛒</div>
+            <h3>Addons Store Page</h3>
+            <p>
+              Live search, category filter, sort, and animated card grid.
+              Integrates with the <code>xamltech.addon</code> model out of the
+              box.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">💬</div>
+            <h3>WhatsApp Deep-Link</h3>
+            <p>
+              Floating WhatsApp button and contact form that opens a pre-filled
+              WhatsApp message — no external plugin needed.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🔍</div>
+            <h3>SEO + JSON-LD Schema</h3>
+            <p>
+              Organization, Service, FAQPage, and ItemList structured data
+              injected per page. AI and search engines understand every page.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DARK / LIGHT COMPARE ───────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Dark &amp; Light Mode</div>
+        <p class="section-sub">
+          Both modes ship fully styled — no half-finished light theme.
+        </p>
+        <div class="compare">
+          <div class="compare-card">
+            <img src="ss_dark.png" alt="Dark mode homepage" />
+            <div class="compare-label label-dark">🌙 Dark Mode — default</div>
+          </div>
+          <div class="compare-card">
+            <img src="ss_light.png" alt="Light mode homepage" />
+            <div class="compare-label label-light">
+              ☀️ Light Mode — one toggle
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RTL SCREENSHOT ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">RTL Arabic Support</div>
+        <p class="section-sub">
+          Designed Arabic-first. Every layout direction, text alignment, and
+          icon flip is handled in SCSS with
+          <code>[dir="rtl"] &amp;</code> selectors.
+        </p>
+        <div class="ss-full">
+          <img src="ss_rtl.png" alt="RTL Arabic layout" />
+          <div class="ss-caption">
+            Right-to-left layout — bilingual Arabic/English hero section
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STORE SCREENSHOT ───────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Addons Store Page</div>
+        <p class="section-sub">
+          Live client-side search, category tabs, sort controls, and staggered
+          card animations — all in vanilla JS, no jQuery.
+        </p>
+        <div class="ss-full">
+          <img src="ss_store.png" alt="Addons store page" />
+          <div class="ss-caption">
+            Dynamic addons store — filter by category, sort by
+            price/rating/popularity
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MOBILE ─────────────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Mobile Responsive</div>
+        <p class="section-sub">
+          Every breakpoint tested. Fluid grids collapse gracefully; hero cards
+          stack; navigation goes hamburger.
+        </p>
+        <div class="ss-full">
+          <img src="ss_mobile.png" alt="Mobile responsive view" />
+          <div class="ss-caption">
+            iPhone-class mobile view — touch-friendly tap targets, full dark
+            mode
+          </div>
+        </div>
+      </div>
+
+      <!-- ── COMPONENT LIBRARY ──────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Component Library</div>
+        <p class="section-sub">
+          Every component ships as a reusable SCSS class. Override a single CSS
+          variable to rebrand.
+        </p>
+        <div class="grid-2">
+          <div class="feat-card">
+            <h3 style="margin-bottom: 12px">Buttons</h3>
+            <div class="comp-row">
+              <span class="btn-demo btn-primary">Primary →</span>
+              <span class="btn-demo btn-outline">Outline</span>
+              <span class="btn-demo btn-wa">💬 WhatsApp</span>
+              <span class="btn-demo btn-dark">Dark</span>
+            </div>
+            <p>
+              <code>.xt-btn</code>, <code>.xt-btn--primary</code>,
+              <code>.xt-btn--outline</code>, <code>.xt-btn--wa</code>
+            </p>
+          </div>
+          <div class="feat-card">
+            <h3 style="margin-bottom: 12px">Colour Palette</h3>
+            <div class="palette">
+              <div>
+                <div class="swatch" style="background: #00adee"></div>
+                <div class="swatch-label">--xt-accent</div>
+              </div>
+              <div>
+                <div class="swatch" style="background: #0072bc"></div>
+                <div class="swatch-label">--xt-accent2</div>
+              </div>
+              <div>
+                <div class="swatch" style="background: #25d366"></div>
+                <div class="swatch-label">--xt-wa</div>
+              </div>
+              <div>
+                <div class="swatch" style="background: #e8364f"></div>
+                <div class="swatch-label">danger</div>
+              </div>
+              <div>
+                <div
+                  class="swatch"
+                  style="background: #050810; border: 1px solid #333"
+                ></div>
+                <div class="swatch-label">--xt-bg</div>
+              </div>
+              <div>
+                <div
+                  class="swatch"
+                  style="background: #0b0e1a; border: 1px solid #333"
+                ></div>
+                <div class="swatch-label">--xt-surface</div>
+              </div>
+              <div>
+                <div class="swatch" style="background: #f5f7fc"></div>
+                <div class="swatch-label">light-bg</div>
+              </div>
+            </div>
+          </div>
+          <div class="feat-card">
+            <h3 style="margin-bottom: 10px">Page Sections</h3>
+            <p style="font-size: 0.83rem; color: #5a6480">
+              <code>.xt-sec--dark</code> · <code>.xt-sec--grad</code> ·
+              <code>.xt-hero</code> · <code>.xt-stats</code> ·
+              <code>.xt-grid3</code> · <code>.xt-steps</code> ·
+              <code>.xt-pillars</code> · <code>.xt-why-grid</code> ·
+              <code>.xt-ft</code> (footer)
+            </p>
+          </div>
+          <div class="feat-card">
+            <h3 style="margin-bottom: 10px">Cards &amp; UI</h3>
+            <p style="font-size: 0.83rem; color: #5a6480">
+              <code>.xt-card</code> · <code>.xt-acard</code> (addon card) ·
+              <code>.xt-hcard</code> · <code>.xt-stat</code> ·
+              <code>.xt-step</code> · <code>.xt-info</code> ·
+              <code>.xt-tag</code> · <code>.xt-inp</code> ·
+              <code>.xt-modal</code> · <code>.xt-wa</code>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HIGHLIGHT BOX ──────────────────────────────────────── -->
+      <div class="highlight">
+        <h2>🏗️ Built for Odoo 19 Enterprise &amp; Community</h2>
+        <ul>
+          <li>
+            <strong>Inherits</strong> <code>website.layout</code> — fully
+            compatible with Odoo's website editor
+          </li>
+          <li>
+            <strong>Assets</strong> declared in
+            <code>web.assets_frontend</code> via the manifest — no deprecated
+            <code>qweb</code> key
+          </li>
+          <li>
+            <strong>No jQuery</strong> — all JS is vanilla ES5 compatible, safe
+            for Odoo 19's stripped frontend
+          </li>
+          <li>
+            <strong>SCSS</strong> uses only standard CSS features — no @import,
+            no @use (Odoo SCSS compiler safe)
+          </li>
+          <li>
+            <strong>RTL</strong> handled via
+            <code>[dir="rtl"] &amp;</code> nested selectors — no JavaScript
+            direction flip
+          </li>
+          <li>
+            <strong>PWA</strong> scope fixed to <code>/</code> so the Service
+            Worker intercepts all page navigations
+          </li>
+        </ul>
+      </div>
+
+      <!-- ── TECH SPEC TABLE ────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Technical Specifications</div>
+        <table class="spec-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Odoo Version</td>
+              <td>19.0 (Enterprise + Community)</td>
+            </tr>
+            <tr>
+              <td>License</td>
+              <td>OPL-1 (Odoo Proprietary)</td>
+            </tr>
+            <tr>
+              <td>Languages</td>
+              <td>English, Arabic (ar.po included)</td>
+            </tr>
+            <tr>
+              <td>Dependencies</td>
+              <td>website, web, website_sale, crm</td>
+            </tr>
+            <tr>
+              <td>Frontend JS</td>
+              <td>Vanilla ES5 — no jQuery, no OWL needed</td>
+            </tr>
+            <tr>
+              <td>Styling</td>
+              <td>SCSS with CSS custom properties (design tokens)</td>
+            </tr>
+            <tr>
+              <td>Typography</td>
+              <td>Cairo (Google Fonts) — Arabic + Latin</td>
+            </tr>
+            <tr>
+              <td>Dark Mode</td>
+              <td>
+                <span class="check">✓</span> Default dark, toggle → light, OS
+                preference sync
+              </td>
+            </tr>
+            <tr>
+              <td>RTL Support</td>
+              <td>
+                <span class="check">✓</span> Full right-to-left with bilingual
+                hero text
+              </td>
+            </tr>
+            <tr>
+              <td>Mobile</td>
+              <td>
+                <span class="check">✓</span> Fluid responsive, clamp()
+                everywhere
+              </td>
+            </tr>
+            <tr>
+              <td>PWA</td>
+              <td>
+                <span class="check">✓</span> manifest.json + Service Worker +
+                offline.html
+              </td>
+            </tr>
+            <tr>
+              <td>SEO</td>
+              <td>
+                <span class="check">✓</span> JSON-LD (Organization, Service,
+                FAQPage, ItemList)
+              </td>
+            </tr>
+            <tr>
+              <td>Animations</td>
+              <td>CSS transitions + IntersectionObserver scroll reveal</td>
+            </tr>
+            <tr>
+              <td>WhatsApp</td>
+              <td>Floating button + contact form deep-link</td>
+            </tr>
+            <tr>
+              <td>Forms</td>
+              <td>Contact form + Demo request → CRM leads</td>
+            </tr>
+            <tr>
+              <td>Addons Store</td>
+              <td>Live search, filter, sort — client-side, zero reload</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── INCLUDED PAGES ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-title">Included Pages</div>
+        <p class="section-sub">
+          11 fully built pages — install and launch in minutes.
+        </p>
+        <div class="grid-3">
+          <div class="feat-card">
+            <div class="feat-icon">🏠</div>
+            <h3>Homepage</h3>
+            <p>
+              Hero, stats, services grid, ERP methodology steps, live demo form,
+              addons showcase, CTA strip.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🛒</div>
+            <h3>Addons Store</h3>
+            <p>
+              Category filter, live search, sort controls, addon detail pages
+              with sticky buy panel.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">📊</div>
+            <h3>ERP Solutions</h3>
+            <p>
+              Service packages, implementation timeline, ZATCA compliance,
+              published modules showcase.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🔌</div>
+            <h3>IT Infrastructure</h3>
+            <p>
+              Networking services, CCTV systems, server management — with client
+              case studies.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🌐</div>
+            <h3>Web Development</h3>
+            <p>
+              Service offerings, tech stack, PWA and e-commerce capabilities.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🏆</div>
+            <h3>Portfolio</h3>
+            <p>
+              Project timeline, client logos, measurable impact stats, industry
+              breakdown.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">✉️</div>
+            <h3>Contact Us</h3>
+            <p>
+              Contact form → CRM lead, WhatsApp deep-link, team info, office
+              location.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🖥️</div>
+            <h3>Request Demo</h3>
+            <p>
+              Demo access form with instant modal credential reveal and WhatsApp
+              fallback.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">📚</div>
+            <h3>Knowledge Base</h3>
+            <p>
+              Technical articles, FAQ section, JSON-LD FAQ schema — great for
+              SEO.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🌾</div>
+            <h3>Agriculture ERP</h3>
+            <p>
+              Dedicated landing page for Odoo agriculture module — hierarchical
+              farm management.
+            </p>
+          </div>
+          <div class="feat-card">
+            <div class="feat-icon">🖥️</div>
+            <h3>Odoo POS Egypt</h3>
+            <p>
+              POS-specific landing page with module comparison table and demo
+              CTA.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SUPPORT / FOOTER ───────────────────────────────────── -->
+      <div class="store-footer">
+        <div>
+          <strong>👨‍💻 Mahmoud Amen — XamlTech</strong>
+          <p>Aswan, Egypt · Odoo Developer since v10 · 180+ GitHub repos</p>
+          <p style="margin-top: 4px">
+            📧 mahmudamen@gmail.com · 📞 +20 100 798 2468
+          </p>
+        </div>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+          "
+        >
+          <a href="https://wa.me/201007982468" class="support-btn"
+            >💬 WhatsApp Support</a
+          >
+          <a
+            href="https://xamltech.com"
+            style="color: rgba(255, 255, 255, 0.5); font-size: 0.82rem"
+            >xamltech.com ↗</a
+          >
+        </div>
+      </div>
+    </div>
+    <!-- /wrap -->
+  </body>
+</html>

@@ -1,0 +1,110 @@
+{
+  "en": {
+    "meta": {
+      "title": "AI Copilots for Odoo: Blog, Guides & Case Studies | XamlTech",
+      "description": "AI Marketing Copilot and AI POS Copilot — guides, case studies and the ROI math behind AI copilots for Odoo. From the XamlTech engineering team, Aswan, Egypt.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📰 Insights",
+        "title": "AI Copilots for Odoo:",
+        "accent": "Blog, Guides & Case Studies",
+        "lead": "Practical guides and real numbers from the AI Marketing Copilot and AI POS Copilot — written by the engineers who built them.",
+        "ctas": [
+          { "label": "Explore AI solutions", "href": "/ai-solutions?lang=en", "style": "primary", "big": true },
+          { "label": "Browse the addons store", "href": "/addons-store?lang=en", "style": "ghost" }
+        ]
+      }},
+      { "partial": "articles", "data": {
+        "eyebrow": "Featured guides",
+        "title": "Read the AI copilot guides",
+        "sub": "Deep dives with the ROI math, the pipeline and the rollout steps.",
+        "more": "Read guide →",
+        "items": [
+          { "tag": "AI Marketing", "title": "AI Marketing Copilot: Stop Wasting Marketing Budget", "text": "Why teams see 35% ROI improvements, 18% lower cost and half their marketing decisions automated.", "href": "/insights/ai-marketing-copilot?lang=en" },
+          { "tag": "AI POS", "title": "AI POS Copilot: Sell More at Every Transaction", "text": "Real-time upsell suggestions in under 100ms — how the retail chain case study reached +24% basket size.", "href": "/insights/ai-pos-copilot?lang=en" },
+          { "tag": "Setup", "title": "AI Copilots Installation Guide", "text": "Step-by-step installation, demo data and first recommendations. From install to first AI suggestion in 5 minutes.", "href": "/ai-solutions?lang=en" },
+          { "tag": "Engineering", "title": "Vibe Coding: Building AI-Native Odoo Modules", "text": "How XamlTech uses AI-assisted development to ship production Odoo modules faster.", "href": "/knowledge?lang=en" },
+          { "tag": "Public Sector", "title": "Government ERP: Odoo 19 for Public Sector", "text": "A full HR, payroll and medical claims system for an Egyptian government authority, compliant with Civil Service Law 81/2016.", "href": "/solutions/erp?lang=en" },
+          { "tag": "Agriculture", "title": "Smart Agriculture: IoT Meets Odoo ERP", "text": "Precision farming with sensor data, automated irrigation scheduling and crop yield prediction.", "href": "/erp-agriculture-egypt?lang=en" }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "alt": true,
+        "eyebrow": "FAQ",
+        "title": "Common questions about AI copilots",
+        "items": [
+          { "q": "What's the difference between the two copilots?", "a": "AI Marketing Copilot optimizes how you acquire customers — campaign ROI, budget allocation and lead scoring. AI POS Copilot optimizes what you sell at the register — real-time complementary-product suggestions." },
+          { "q": "Are the copilots free?", "a": "Yes, both AI Marketing Copilot and AI POS Copilot are free to install from the Odoo Apps Store — no licensing fees, no per-user charges." },
+          { "q": "Where does my data go?", "a": "All data stays within your Odoo instance. No cloud APIs, no external processing, no third-party data storage — the AI runs locally on your server." },
+          { "q": "Do they integrate with other tools?", "a": "Yes. Both modules provide Python APIs and JSON webhooks, so you can send recommendations to HubSpot, Klaviyo, email platforms, ad networks or your CRM." },
+          { "q": "Is configuration required?", "a": "No. Both copilots work out of the box with zero configuration. Install, load demo data and start getting AI-powered recommendations immediately." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to transform your business?",
+        "text": "Install the AI Copilots from the Odoo Apps Store today — no credit card, demo data included, zero configuration.",
+        "actions": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary" },
+          { "label": "WhatsApp support", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "مساعدو الذكاء الاصطناعي لـ Odoo: مدونة وأدلة ودراسات حالة | زامل تك",
+      "description": "مساعد التسويق الذكي ومساعد نقاط البيع الذكي — أدلة ودراسات حالة وحسابات العائد. من فريق هندسة زامل تك، أسوان، مصر.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📰 رؤى",
+        "title": "مساعدو الذكاء الاصطناعي لـ Odoo:",
+        "accent": "مدونة وأدلة ودراسات حالة",
+        "lead": "أدلة عملية وأرقام حقيقية من مساعد التسويق الذكي ومساعد نقاط البيع الذكي — بقلم المهندسين الذين بنوهم.",
+        "ctas": [
+          { "label": "استكشف حلول الذكاء", "href": "/ai-solutions", "style": "primary", "big": true },
+          { "label": "تصفّح متجر الإضافات", "href": "/addons-store", "style": "ghost" }
+        ]
+      }},
+      { "partial": "articles", "data": {
+        "eyebrow": "أدلة مميزة",
+        "title": "اقرأ أدلة مساعدي الذكاء",
+        "sub": "تعمّق في حسابات العائد وخط الأنابيب وخطوات الإطلاق.",
+        "more": "اقرأ الدليل ←",
+        "items": [
+          { "tag": "التسويق الذكي", "title": "مساعد التسويق الذكي: أوقف إهدار ميزانية التسويق", "text": "لماذا يحقق الفريق تحسناً بنسبة 35% في العائد و18% خفضاً في التكلفة ونصف قرارات التسويق آلياً.", "href": "/insights/ai-marketing-copilot" },
+          { "tag": "نقاط البيع الذكية", "title": "مساعد نقاط البيع الذكي: بِع أكثر في كل عملية", "text": "اقتراحات بيع إضافي فورية في أقل من 100ms — كيف حققت دراسة سلسلة التجزئة زيادة 24% في سلة الشراء.", "href": "/insights/ai-pos-copilot" },
+          { "tag": "التثبيت", "title": "دليل تثبيت مساعدي الذكاء", "text": "تثبيت خطوة بخطوة وبيانات تجريبية وأول التوصيات. من التثبيت لأول اقتراح في 5 دقائق.", "href": "/ai-solutions" },
+          { "tag": "الهندسة", "title": "Vibe Coding: بناء موديولات Odoo الذكية", "text": "كيف تستخدم زامل تك التطوير بمساعدة الذكاء الاصطناعي لإصدار موديولات Odoo أسرع.", "href": "/knowledge" },
+          { "tag": "القطاع الحكومي", "title": "ERP حكومي: Odoo 19 للقطاع العام", "text": "نظام موارد بشرية ومرتبات ومطالبات طبية كامل لهيئة حكومية مصرية بتوافق قانون الخدمة المدنية 81/2016.", "href": "/solutions/erp" },
+          { "tag": "الزراعة", "title": "الزراعة الذكية: إنترنت الأشياء مع Odoo ERP", "text": "زراعة دقيقة ببيانات المستشعرات وجدولة ري آلية والتنبؤ بمحصول.", "href": "/erp-agriculture-egypt" }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "alt": true,
+        "eyebrow": "الأسئلة الشائعة",
+        "title": "أسئلة شائعة عن مساعدي الذكاء",
+        "items": [
+          { "q": "ما الفرق بين المساعدين؟", "a": "مساعد التسويق الذكي يحسّن كيفية اكتساب العملاء — عائد الحملات وتوزيع الميزانية وتقييم العملاء المحتملين. ومساعد نقاط البيع يحسّن ما تبيعه عند الكاشير — اقتراحات فورية للمنتجات المكمّلة." },
+          { "q": "هل المساعدان مجانيان؟", "a": "نعم، مساعد التسويق الذكي ومساعد نقاط البيع الذكي مجانيان للتثبيت من متجر Odoo — بلا رسوم ترخيص أو رسوم لكل مستخدم." },
+          { "q": "إلى أين تذهب بياناتي؟", "a": "تبقى كل البيانات داخل نسخة Odoo لديك. بلا واجهات سحابية أو معالجة خارجية أو تخزين لدى طرف ثالث — يعمل الذكاء محلياً على سيرفرك." },
+          { "q": "هل يتكاملان مع أدوات أخرى؟", "a": "نعم. يوفر الموديولان واجهات Python وwebhooks بصيغة JSON، فترسل التوصيات إلى HubSpot وKlaviyo ومنصات البريد وشبكات الإعلان أو نظام CRM." },
+          { "q": "هل يلزم إعداد؟", "a": "لا. يعمل المساعدان فوراً بلا إعداد. ثبّت، وحمّل البيانات التجريبية، وابدأ بالتوصيات الذكية مباشرة." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "جاهز لتحويل أعمالك؟",
+        "text": "ثبّت مساعدي الذكاء من متجر Odoo اليوم — بلا بطاقة ائتمانية، ببيانات تجريبية، وبلا إعداد.",
+        "actions": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary" },
+          { "label": "دعم واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

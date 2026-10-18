@@ -1,0 +1,162 @@
+{
+  "en": {
+    "meta": {
+      "title": "Network Copilot — 40+ Android Network Diagnostic Tools | XamlTech",
+      "description": "Network Copilot: 40+ network diagnostics, an explanation engine and built-in AI — offline-first on Android 10-16. Ping, DNS, Wi-Fi analyzer, LAN lab, no-root firewall.",
+      "og_image": "https://xamltech.com/static/img/networktool-dashboard.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📡 Network Copilot · Android 10+ · Offline-First",
+        "title": "Diagnose Like a Network Engineer —",
+        "accent": "Right From Your Phone",
+        "lead": "Meet Network Copilot — a professional network diagnostics and operations toolkit that runs offline-first on your device. 40+ tools, an explainable engine and built-in AI.",
+        "points": ["40+ tools in one app", "Evidence → Inference → Action engine", "Privacy by default — no cloud required"],
+        "ctas": [
+          { "label": "Request download", "href": "/apk-download?lang=en", "style": "primary", "big": true },
+          { "label": "Chat on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "external": true }
+        ],
+        "stats": [
+          { "v": "40+", "l": "Diagnostic tools" },
+          { "v": "0", "l": "Cloud required" },
+          { "v": "10–16", "l": "Android versions" },
+          { "v": "AES-256", "l": "On-device key storage" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Toolkit",
+        "title": "Everything a field engineer needs",
+        "sub": "A command-center of diagnostics and controls, offline-first by design.",
+        "items": [
+          { "icon": "🧭", "title": "Command-Center Dashboard", "text": "Live connectivity (Wi-Fi, cellular, VPN, Ethernet, metered), interface details — IPv4/IPv6, gateway, MTU — quick-launch tool tiles and an explanation engine." },
+          { "icon": "🛠️", "title": "Core Diagnostics", "text": "Ping with jitter & loss, DNS lookups (A/AAAA/MX/NS/TXT/CNAME + PTR), an HTTP/HTTPS builder with DNS→TLS→first-byte timing breakdown, speed tests." },
+          { "icon": "📶", "title": "WiFi & Signal Analyzer", "text": "Live band, link speed, BSSID and security, nearby network scans, and a precise room-by-room signal mapper." },
+          { "icon": "🧪", "title": "LAN, IP & Protocol Lab", "text": "Subnet / IPv4 CIDR and IPv6 calculators, advanced IPv6 analysis (multicast scope, embedded v4, NAT64), mDNS/UPnP discovery and Wake-on-LAN." },
+          { "icon": "🧠", "title": "Intelligent Engine", "text": "Rule-based diagnostics on an Evidence → Inference → Action model with confidence levels, custom JSON rules and professional reports (Markdown, JSON, HTML)." },
+          { "icon": "🔐", "title": "Privacy by Default", "text": "Masked IPs, MACs and SSIDs with one-tap reveal, encrypted on-device key storage (AES-256-GCM), no cloud required, and reports you fully control." },
+          { "icon": "📈", "title": "Monitor & Control", "text": "Live system monitor with a foreground-service notification and home-screen widget, plus Quick Settings tiles (Scan, Monitor, Speed, Port, Firewall)." },
+          { "icon": "🛡️", "title": "App Firewall (No-Root)", "text": "A local VPN-based firewall that blocks selected apps entirely by dropping their traffic on-device — no byte ever leaves your phone." },
+          { "icon": "👥", "title": "Accounts & Sync", "text": "Google Sign-In, history synced under your own user scope, projects shared with teams — while anonymous, fully offline use needs no account." }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "reverse": true,
+        "eyebrow": "🤖 Built-in AI",
+        "title": "The AI Network Analyst",
+        "lead": "Turns raw scan results into plain-language answers, root-cause analysis and professional reports — your keys, stored on your device.",
+        "points": ["Analyze — break a scan or result into a clear, structured diagnosis", "Explain — plain-language meaning of every number and field", "Troubleshoot — step-by-step fix guidance based on detected symptoms", "Report — a complete diagnostic report as Markdown, JSON or HTML"],
+        "media": { "src": "/static/img/networktool-tools.png", "alt": "Network Copilot AI Copilot screen" }
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Screenshots",
+        "title": "See it in action",
+        "cols": "3",
+        "items": [
+          { "img": "/static/img/networktool-dashboard.png", "alt": "Network Copilot dashboard", "title": "Command-Center Dashboard", "text": "Live connectivity, interface details and tool tiles." },
+          { "img": "/static/img/networktool-dashboard.png", "alt": "Network Copilot tools grid", "title": "Tools Grid — 40+ Diagnostics", "text": "Every tool one tap away." },
+          { "img": "/static/img/networktool-internet-health.png", "alt": "Network Copilot AI copilot", "title": "AI Copilot & Local Ollama", "text": "Cloud or a local model on your LAN." }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "eyebrow": "🧪 Early Access",
+        "title": "Become a tester",
+        "sub": "Network Copilot v5.0.4 is in closed tester release across Android 10–16 (API 29–36), from narrow phones to tablets.",
+        "items": [
+          { "q": "Which devices are covered?", "a": "Android 10–16 (API 29–36), from narrow phones to tablets. Testers report crashes automatically via Firebase Crashlytics." },
+          { "q": "What's next on the roadmap?", "a": "Public launch (production ad units, FCM push, scoped settings), tester-loop hardening, engineering v4 (deeper SNMP/UPnP, on-device AI inference) and team analytics." },
+          { "q": "Is my data uploaded?", "a": "No. Diagnostics run on your device; nothing leaves it unless you explicitly export or share a report." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Want early access?",
+        "text": "Request a download link and join the tester program.",
+        "actions": [
+          { "label": "Request download", "href": "/apk-download?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "Network Copilot — أكثر من 40 أداة تشخيص شبكات لأندرويد | زامل تك",
+      "description": "Network Copilot: أكثر من 40 أداة تشخيص ومحرك شرح وذكاء اصطناعي مدمج — يعمل دون اتصال على أندرويد 10-16. بينغ وDNS ومحلل واي فاي ومختبر الشبكة وجدار حماية بلا روت.",
+      "og_image": "https://xamltech.com/static/img/networktool-dashboard.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "📡 Network Copilot · أندرويد 10+ · يعمل دون اتصال",
+        "title": "شخّص كخبير شبكات —",
+        "accent": "من هاتفك مباشرة",
+        "lead": "تعرّف على Network Copilot — مجموعة احترافية لتشخيص الشبكات والعمليات تعمل دون اتصال على جهازك. أكثر من 40 أداة ومحرك قابل للشرح وذكاء اصطناعي مدمج.",
+        "points": ["أكثر من 40 أداة في تطبيق واحد", "محرك Evidence → Inference → Action", "خصوصية افتراضية — بلا حاجة لسحابة"],
+        "ctas": [
+          { "label": "اطلب التحميل", "href": "/apk-download", "style": "primary", "big": true },
+          { "label": "محادثة واتساب", "href": "https://wa.me/201007982468", "style": "wa", "external": true }
+        ],
+        "stats": [
+          { "v": "+40", "l": "أداة تشخيص" },
+          { "v": "0", "l": "حاجة لسحابة" },
+          { "v": "10–16", "l": "إصدارات أندرويد" },
+          { "v": "AES-256", "l": "تخزين مفاتيح على الجهاز" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "العدة",
+        "title": "كل ما يحتاجه مهندس الميدان",
+        "sub": "مركز قيادة للتشخيص والتحكم، مصمم ليعمل دون اتصال.",
+        "items": [
+          { "icon": "🧭", "title": "لوحة مركز القيادة", "text": "حالة الاتصال (واي فاي، خلوي، VPN، إيثرنت)، تفاصيل الواجهة — IPv4/IPv6 والبوابة وMTU — وبلاطات أدوات سريعة ومحرك شرح." },
+          { "icon": "🛠️", "title": "أدوات التشخيص الأساسية", "text": "بينغ مع التذبذب والفقد، استعلامات DNS (A/AAAA/MX/NS/TXT/CNAME + PTR)، وبناء HTTP/HTTPS مع تفصيل توقيت DNS→TLS→أول بايت." },
+          { "icon": "📶", "title": "محلل الواي فاي والإشارة", "text": "النطاق الحي وسرعة الرابط وBSSID والأمان وفحص الشبكات القريبة ومخطط إشارة دقيق غرفة بغرفة." },
+          { "icon": "🧪", "title": "مختبر LAN وIP والبروتوكولات", "text": "حاسبات الشبكة الفرعية وIPv4 CIDR وIPv6، وتحليل IPv6 المتقدم (نطاق البث المتعدد، v4 المضمّن، NAT64)، واكتشاف mDNS/UPnP وWake-on-LAN." },
+          { "icon": "🧠", "title": "المحرك الذكي", "text": "تشخيص قائم على القواعد بنموذج Evidence → Inference → Action مع مستويات ثقة وقواعد JSON مخصصة وتقارير احترافية (Markdown وJSON وHTML)." },
+          { "icon": "🔐", "title": "خصوصية افتراضية", "text": "إخفاء عناوين IP وMAC وSSID بلمسة، وتخزين مفاتيح مشفّر (AES-256-GCM)، وبلا سحابة، وتقارير تتحكم بها بالكامل." },
+          { "icon": "📈", "title": "المراقبة والتحكم", "text": "مراقب نظام حي مع إشعار خدمة أمامية وويدجت الشاشة، وبلاطات الإعدادات السريعة (فحص، مراقبة، سرعة، منفذ، جدار ناري)." },
+          { "icon": "🛡️", "title": "جدار حماية بلا روت", "text": "جدار حماية محلي قائم على VPN يحجب تطبيقات مختارة بإسقاط حركتها على الجهاز — لا يغادر أي بايت هاتفك." },
+          { "icon": "👥", "title": "الحسابات والمزامنة", "text": "تسجيل دخول Google ومزامنة السجل تحت نطاقك، ومشاريع تشاركها مع الفريق — بينما يعمل الاستخدام المجهول دون اتصال بلا حساب." }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "reverse": true,
+        "eyebrow": "🤖 ذكاء اصطناعي مدمج",
+        "title": "محلل الشبكة الذكي",
+        "lead": "يحوّل نتائج الفحص الخام إلى إجابات بلغة واضحة وتحليل للسبب الجذري وتقارير احترافية — بمفاتيحك المخزنة على جهازك.",
+        "points": ["تحليل — تفكيك فحص أو نتيجة إلى تشخيص واضح ومنظم", "شرح — معنى كل رقم وحقل بلغة مبسطة", "حل — إرشاد إصلاح خطوة بخطوة حسب الأعراض", "تقرير — تقرير تشخيص كامل بصيغة Markdown أو JSON أو HTML"],
+        "media": { "src": "/static/img/networktool-tools.png", "alt": "شاشة مساعد الذكاء الاصطناعي في Network Copilot" }
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "لقطات الشاشة",
+        "title": "شاهده أثناء العمل",
+        "cols": "3",
+        "items": [
+          { "img": "/static/img/networktool-dashboard.png", "alt": "لوحة Network Copilot", "title": "لوحة مركز القيادة", "text": "حالة الاتصال وتفاصيل الواجهة وبلاطات الأدوات." },
+          { "img": "/static/img/networktool-dashboard.png", "alt": "شبكة أدوات Network Copilot", "title": "شبكة الأدوات — أكثر من 40", "text": "كل أداة على بعد لمسة." },
+          { "img": "/static/img/networktool-internet-health.png", "alt": "مساعد Network Copilot", "title": "المساعد الذكي وOllama المحلي", "text": "سحابة أو نموذج محلي على شبكتك." }
+        ]
+      }},
+      { "partial": "faq", "data": {
+        "eyebrow": "🧪 وصول مبكر",
+        "title": "كن مختبِراً",
+        "sub": "Network Copilot v5.0.4 متاح بنسخة مختبرين مغلقة لأندرويد 10–16 (API 29–36)، من الهواتف الضيقة إلى الأجهزة اللوحية.",
+        "items": [
+          { "q": "ما الأجهزة المدعومة؟", "a": "أندرويد 10–16 (API 29–36)، من الهواتف الضيقة إلى الأجهزة اللوحية. يرفع المختبِرون تقارير الأعطال تلقائياً عبر Firebase Crashlytics." },
+          { "q": "ما التالي في خطة التطوير؟", "a": "الإطلاق العام (وحدات إعلانية إنتاجية، إشعارات FCM، إعدادات محددة)، وتقوية حلقة المختبرين، والهندسة v4 (SNMP/UPnP أعمق، استدلال ذكاء على الجهاز)، وتحليلات الفريق." },
+          { "q": "هل تُرفع بياناتي؟", "a": "لا. يعمل التشخيص على جهازك ولا يغادره شيء إلا إذا صدّرت أو شاركت تقريراً بنفسك." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "تريد وصولاً مبكراً؟",
+        "text": "اطلب رابط تحميل وانضم إلى برنامج المختبرين.",
+        "actions": [
+          { "label": "اطلب التحميل", "href": "/apk-download", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

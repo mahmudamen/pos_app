@@ -1,0 +1,16 @@
+{{define "content"}}
+{{template "hero" .C.hero}}
+{{template "form" (dict
+  "action" "/api/demo"
+  "lang" .Lang
+  "sent" .Query
+  "form" .Strings.form
+  "title" .C.formTitle
+  "sub" .C.formSub
+  "submit" .C.submit
+  "products" .C.products
+  "privacyHref" (href .Lang "/privacy-policy")
+  "privacyLabel" .C.privacyLabel
+)}}
+{{template "cta" .C.cta}}
+{{end}}

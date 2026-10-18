@@ -1,0 +1,156 @@
+Odoo Development Knowledge Base — Custom ERP Solutions | XamlTech Egypt
+Skip to Content
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
+0
+0
++201201410140
+English (US)
+الْعَرَبيّة
+English (US)
+Sign in
+Contact Us
+0
+0
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
++201201410140
+English (US)
+الْعَرَبيّة
+English (US)
+Sign in
+Contact Us
+📚 Technical Knowledge Base
+Odoo Development & IT Solutions Knowledge Base
+Real technical solutions from our production deployments — Odoo ERP customization, POS module development, network infrastructure, and CCTV systems. Written by developers, for developers.
+How We Build Custom Odoo POS Modules for Textile Businesses
+When Al-Ghazl Al-Arabi Trading Company needed a way to manage fabric cutting orders directly from their Point of Sale, we built a custom Odoo 18 module that handles the entire workflow. Here's the technical architecture behind ma_pos_cutting — now published on the Odoo Apps Store.
+Architecture
+The module extends PosOrder and PosOrderline with custom cutting fields (dimensions, fabric type, urgency level). We use OWL v3 components with a dedicated CuttingOrderScreen that renders inside the POS UI. Backend models connect to stock.picking for real-time warehouse updates when cuts are completed.
+Key Challenge: OWL v3 Migration
+Moving from Odoo 16 to 18/19 required migrating from the old pos.db access pattern to pos.models['product.product']. The deprecated t-att-* directives on OWL components caused silent failures. We fixed IndexedDB serialization errors by overriding _load_pos_data_fields in Python to exclude mail.thread fields.
+Real-Time Stock
+Our POS Stock Real-Time module (ma_rs_pos_stock) syncs inventory across all POS sessions using reactive badge updates via pos-stock-refreshed custom events. Batch loading handles catalogs with 10,000+ products. A navbar refresh button gives cashiers manual control.
+Implementing ZATCA E-Invoicing Compliance in Odoo
+Saudi Arabia's ZATCA Phase 2 requires cryptographic signing and real-time API submission. We built a dual-system architecture to handle this while keeping POS operations on Odoo.sh for reliability.
+Dual-System Architecture
+Odoo.sh handles POS operations (uptime guaranteed), while a dedicated VPS handles ZATCA EDI compliance (XML generation, signing, API submission). A bidirectional sync module bridges 18 data models between the two systems with SAVEPOINT transaction protection.
+Sync Module Security
+The sync_src_database module was refactored from eval() to json.loads() for security. We added cycle detection for circular FK relationships, thread safety locks for concurrent operations, and batch processing to prevent timeout errors on large invoice payloads.
+ZATCA Technical Stack
+UBL 2.1 XML invoice generation, X.509 certificate management, SHA-256 hash computation, QR code embedding (seller, VAT, totals, hash), and REST API integration with the government portal. All validated against ZATCA's sandbox before production deployment.
+Building Agriculture ERP with Odoo: Farm Management for Qatf Company
+Agricultural operations have unique requirements that standard ERP modules don't address. We built a comprehensive farm_management addon for Odoo 17 that handles hierarchical farm locations, crop management, and harvest tracking.
+Hierarchical Locations
+The farms.locations model supports 4 levels: Farm → Sector → Unite → House. Each level links to analytic accounts for cost tracking. Workers are assigned per location with payroll integration. Kanban views enable drag-and-drop farm management.
+Agriculture Work Orders
+Work orders are modeled after mrp.production but adapted for farming operations (planting, irrigation, fertilizing, harvesting). Each work order links to specific farm locations and crops, tracks labor hours, material usage, and produces inventory movements.
+Crop & Harvest
+The crop.crop model manages varieties, planting dates, expected yields, and actual harvests. Stock movement wizards automatically create warehouse receipts when harvests are recorded. Analytics dashboards show yield per location, cost per crop, and seasonal comparisons.
+Hospital IT Infrastructure: Furkan Surgical Center Case Study
+Deploying complete IT infrastructure for a surgical center requires careful planning across networking, surveillance, servers, and software. Here's what we delivered for Furkan Surgical Center in Aswan.
+Network Design
+Structured Cat6 cabling across 3 floors. VLANs per department (surgery, pharmacy, admin, guest). Dedicated server room with rack-mount servers, UPS, and environmental monitoring. Redundant internet links (fiber + 4G failover) for 99.9% uptime.
+128-Channel CCTV
+IP cameras in operating rooms (2MP dome), corridors (4MP bullet), pharmacy (PTZ), parking (8MP). NVR with RAID5 storage for 30-day retention. Mobile app for remote viewing. Motion detection alerts for restricted areas. Integration with access control system.
+Software Stack
+Ubuntu 22.04 servers, PostgreSQL 16 database, Nginx reverse proxy, Odoo 17 for hospital management (patients, appointments, pharmacy, billing). Docker containers for isolated services. Proxmox for VM management. Automated daily backups to offsite storage.
+Frequently Asked Questions
+What Odoo versions do you support?
+We develop for Odoo 16, 17, 18, and 19 — both Enterprise and Community editions. Our published addons on Odoo Apps Store target Odoo 18 and 19.
+Can you customize Odoo POS for my specific business?
+Yes. We've built POS customizations for textile (cutting orders), agriculture (harvest tracking), and retail (multi-store sync). Our POS Security Framework handles manager PIN validation, discount limits, and session security.
+Do you work outside Aswan?
+Yes. While based in Aswan, we serve clients across Egypt and Saudi Arabia. ERP projects are handled remotely with on-site visits for infrastructure (network/CCTV) deployments.
+What makes your Odoo modules different?
+Our modules are built from real production deployments — not theoretical. Each addon solves a specific problem we encountered with real clients (Al-Ghazl Al-Arabi for textile, Qatf for agriculture, Furkan/Al Helal for healthcare). They're published on the official Odoo Apps Store with proper testing and documentation.
+How long does an Odoo ERP implementation take?
+Starter implementations (3 modules): 2-4 weeks. Business implementations (8+ modules): 2-3 months. Enterprise deployments (unlimited modules, custom dev): 3-6 months. Timeline depends on complexity, data migration, and integrations required.
+Have a Technical Question?
+We share real solutions from real deployments. Contact us for technical consulting.
+Get Technical Consultation →
+💬 WhatsApp
+How to Implement AI Intelligence in Your Odoo POS and Marketing
+Machine learning is no longer just for big tech companies. We've published two production-tested AI modules on the Odoo Apps Store that bring intelligent automation to POS transactions and marketing campaigns.
+AI POS Copilot: Real-Time Upsells
+Instead of cashiers manually suggesting products, our AI analyzes the current cart, customer history, and inventory levels to recommend complementary items in real-time. The system processes recommendations in under 100ms — fast enough that cashiers don't notice the latency. One-click product addition, full Arabic/English support, and graceful degradation if the AI service is unavailable.
+AI Marketing Copilot: Predictive Optimization
+Campaign performance prediction using machine learning. The system scores leads, forecasts ROI per campaign, and recommends budget allocation. Built with Clean Architecture (DDD + TDD), the module separates business logic from infrastructure — making it easy to swap ML backends or add new scoring rules.
+Real-World Results
+A retail chain using AI POS Copilot saw average basket size increase by 24%. A marketing agency using AI Marketing Copilot reduced campaign costs by 18% while improving ROI by 35%. Both modules are free to install from the Odoo Apps Store with demo data included.
+Odoo AI Integration Architecture: Clean Design for Long-Term Maintenance
+Most Odoo AI modules are quick hacks. We built ours using Domain-Driven Design, Clean Architecture, and Test-Driven Development — so they scale with your business.
+Layered Architecture
+Domain Layer: Business entities (campaigns, products, customers), value objects, rules. Application Layer: Use cases that orchestrate domain logic. Infrastructure Layer: Database, external APIs, file storage. Controller Layer: HTTP endpoints, Odoo RPC calls. This separation means you can change storage backends or ML providers without touching business logic.
+Test-Driven Development
+Every module includes comprehensive tests: unit tests for domain rules, integration tests for database interactions, behavior tests for user workflows. Test coverage helps catch regressions early and makes refactoring safe.
+Domain-Driven Design
+We model the business domain explicitly — not just database tables. For AI Marketing Copilot: Campaign, ScoringRule, DecisionLog as domain entities with business constraints. This makes the code intent-clear and testable.
+Ready to transform your business?
+Get started with XamlTech solutions today.
+Get in Touch
+Request Demo
+Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+AI Copilots
+Addons Store
+Pricing
+Resources
+Blog & Guides
+AI Marketing Guide
+AI POS Guide
+Knowledge Base
+Testimonials
+Request Demo
+Company
+Portfolio
+Contact Us
+Privacy Policy
+Terms of Service
+Odoo Apps Store ↗
+GitHub ↗
+Get in Touch
+[email protected]
++20 100 798 2468
++20 120 141 0140
+WhatsApp Chat
+Sahary, Aswan, Egypt
+© 2026 XamlTech. All rights reserved.
+xamltech.com
+·
+Contact
+·
+Blog
+·
+Privacy Policy
+·
+Terms

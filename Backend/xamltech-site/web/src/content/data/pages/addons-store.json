@@ -1,0 +1,116 @@
+{
+  "en": {
+    "meta": {
+      "title": "Premium Odoo 19 POS Addons — Published on the Odoo Apps Store — XamlTech",
+      "description": "XamlTech's published Odoo addons: POS Security Framework, Customization Kit, Cutting Orders, Stock Real-Time, HDA Collection, Agriculture ERP and AI Copilots.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🛒 Odoo Apps Store",
+        "title": "Premium Odoo addons",
+        "lead": "Production-tested modules built from real client deployments and published on the official Odoo Apps Store. One-time purchase, lifetime updates.",
+        "ctas": [
+          { "label": "Browse on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech", "style": "primary", "big": true, "external": true },
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "ghost", "big": true }
+        ],
+        "stats": [
+          { "v": "8", "l": "Published addons" },
+          { "v": "19", "l": "Odoo 19 ready" },
+          { "v": "100%", "l": "Lifetime updates" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "POS addons",
+        "title": "Point-of-sale modules",
+        "sub": "Built for real retail, restaurant and textile operations.",
+        "cols": 3,
+        "items": [
+          { "icon": "🔐", "title": "POS Base — Security Framework", "text": "Comprehensive POS security: manager PIN validation, discount limit enforcement, multi-layer session security and backend validation.", "chips": ["Odoo 19 ready", "€99"] },
+          { "icon": "🎨", "title": "POS Customization Kit", "text": "Flexible POS UI toolkit with theme builder, layout manager, component overrides and dark/light mode — full Arabic RTL.", "chips": ["Arabic RTL", "€89"] },
+          { "icon": "✂️", "title": "POS Cutting Orders", "text": "Advanced cutting-order management for fabric and textile POS with real-time tracking, batch serial assignment and an OWL v2 UI.", "chips": ["Textile", "€129"] },
+          { "icon": "📦", "title": "POS Stock Real-Time", "text": "Real-time stock synchronisation with reactive badge updates, batch loading, a navbar refresh button and live warehouse sync.", "chips": ["Live stock", "€129"] }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Vertical & AI addons",
+        "title": "ERP and AI modules",
+        "sub": "Vertical depth and machine-learning intelligence for Odoo.",
+        "cols": 3,
+        "items": [
+          { "icon": "🏛️", "title": "HDA Collection — Revenue Management", "text": "Enterprise revenue collection for museums, tourism sites and cultural venues — multi-point operations, real-time reporting, collector POS and treasury deposits." },
+          { "icon": "🌾", "title": "Advanced Agricultural Management", "text": "Complete farm-to-warehouse ERP for Odoo 19 — OWL dashboard with Chart.js, 4-level farm hierarchy, real-time costing and a 7-step production workflow." },
+          { "icon": "🎯", "title": "AI Marketing Copilot", "text": "Smart AI-driven budget optimisation for Meta, Google Ads and TikTok — real-time campaign scoring and automated decision logging.", "chips": ["Odoo 19", "€69"] },
+          { "icon": "💡", "title": "AI POS Copilot", "text": "Real-time AI upsell suggestions in Point of Sale, based on cart context, customer history and seasonal trends, with a bilingual Arabic-first UX.", "chips": ["Odoo 19", "€49"] }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Find the right addon for your business",
+        "text": "Browse all published modules on the Odoo Apps Store, or ask us for a guided demo.",
+        "actions": [
+          { "label": "Browse on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech", "style": "primary" },
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "إضافات Odoo 19 المميزة — منشورة على متجر Odoo — زامل تك",
+      "description": "إضافات زامل تك المنشورة على متجر Odoo: إطار الأمان، عدة التخصيص، أوامر القص، المخزون الفوري، إدارة الإيرادات، ERP الزراعة ومساعدو الذكاء الاصطناعي.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🛒 متجر Odoo",
+        "title": "إضافات Odoo المميزة",
+        "lead": "موديولات مُختبرة في الإنتاج بُنيت من تنفيذات عملاء حقيقيين ومنشورة على متجر Odoo الرسمي. دفعة واحدة وتحديثات مدى الحياة.",
+        "ctas": [
+          { "label": "تصفّح على Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech", "style": "primary", "big": true, "external": true },
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "ghost", "big": true }
+        ],
+        "stats": [
+          { "v": "8", "l": "إضافات منشورة" },
+          { "v": "19", "l": "جاهزة لـ Odoo 19" },
+          { "v": "100%", "l": "تحديثات مدى الحياة" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "إضافات نقاط البيع",
+        "title": "موديولات نقاط البيع",
+        "sub": "مبنية لعمليات تجزئة ومطاعم ومنسوجات حقيقية.",
+        "cols": 3,
+        "items": [
+          { "icon": "🔐", "title": "إطار الأمان الأساسي", "text": "أمان شامل لنقاط البيع: رقم PIN للمدير، فرض حدود الخصم، أمان جلسات متعدد الطبقات وتحقق خلفي.", "chips": ["جاهز Odoo 19", "€99"] },
+          { "icon": "🎨", "title": "عدة تخصيص نقاط البيع", "text": "عدة مرنة لواجهة نقاط البيع مع بانٍ للثيمات ومدير تخطيط وتجاوز المكوّنات ونمط داكن/فاتح — بعربية RTL كاملة.", "chips": ["عربي RTL", "€89"] },
+          { "icon": "✂️", "title": "أوامر القص", "text": "إدارة متقدمة لأوامر القص للأقمشة والمنسوجات مع تتبع فوري وتعيين أرقام تسلسلية وواجهة OWL v2.", "chips": ["منسوجات", "€129"] },
+          { "icon": "📦", "title": "مخزون نقاط البيع الفوري", "text": "مزامنة فورية للمخزون مع شارات تفاعلية وتحميل دفعي وزر تحديث في الشريط ومزامنة حية للمخازن.", "chips": ["مخزون حي", "€129"] }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "إضافات قطاعية وذكاء اصطناعي",
+        "title": "موديولات ERP والذكاء الاصطناعي",
+        "sub": "عمق قطاعي وذكاء تعلّم الآلة لـ Odoo.",
+        "cols": 3,
+        "items": [
+          { "icon": "🏛️", "title": "إدارة الإيرادات — HDA", "text": "نظام تحصيل إيرادات للمتاحف والمواقع السياحية والمنشآت الثقافية — عمليات متعددة النقاط وتقارير فورية وتكامل مع نقاط التحصيل وخزائن الإيداع." },
+          { "icon": "🌾", "title": "الإدارة الزراعية المتقدمة", "text": "ERP كامل من المزرعة للمخزن لـ Odoo 19 — لوحة OWL مع Chart.js وهرمية مزرعة من 4 مستويات وتكاليف فورية وسير إنتاج من 7 خطوات." },
+          { "icon": "🎯", "title": "مساعد التسويق الذكي", "text": "تحسين ذكي للميزانية لـ Meta وGoogle Ads وTikTok — تصنيف فوري للحملات وتوثيق آلي للقرارات.", "chips": ["Odoo 19", "€69"] },
+          { "icon": "💡", "title": "مساعد نقاط البيع الذكي", "text": "اقتراحات بيع إضافي فورية داخل نقطة البيع حسب السلة وسجل العميل والاتجاهات الموسمية، بواجهة عربية أولاً.", "chips": ["Odoo 19", "€49"] }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "اعثر على الإضافة المناسبة لعملك",
+        "text": "تصفّح كل الموديولات المنشورة على متجر Odoo، أو اطلب منا عرضاً موجهاً.",
+        "actions": [
+          { "label": "تصفّح على Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech", "style": "primary" },
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

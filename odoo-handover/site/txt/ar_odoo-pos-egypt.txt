@@ -1,0 +1,248 @@
+Odoo POS System for Retail, Restaurants & Textile in Egypt — XamlTech
+تخطي للذهاب إلى المحتوى
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
+0
+0
++201201410140
+الْعَرَبيّة
+الْعَرَبيّة
+English (US)
+تسجيل الدخول
+تواصل معنا
+0
+0
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
++201201410140
+الْعَرَبيّة
+الْعَرَبيّة
+English (US)
+تسجيل الدخول
+تواصل معنا
+🖥️ Odoo POS Solutions
+Odoo POS System for Retail, Restaurants & Textile in Egypt
+Complete Point of Sale deployment — software, hardware, training, and support. Works offline, syncs across stores, prints receipts, scans barcodes. From single-store to multi-branch chains.
+نظام نقاط بيع Odoo متكامل — برمجيات، أجهزة، تدريب، ودعم فني. يعمل بدون إنترنت، مزامنة فورية بين الفروع، طباعة فواتير، وقراءة باركود.
+🖥️ Try Live POS Demo Free
+💬 اطلب عرض سعر
+✅
+Works Offline
+يعمل بدون إنترنت — مزامنة تلقائية
+🏪
+Multi-Store
+فروع متعددة بإدارة مركزية
+🖨️
+Receipt Printing
+طباعة فواتير — Epson, Star, أي طابعة
+📱
+Any Device
+تابلت، لابتوب، كمبيوتر — أي متصفح
+🔗
+Fully Integrated
+مخزون + محاسبة + CRM تلقائي
+مين بيستخدم Odoo POS؟
+Built for Your Business Type
+Every business has different POS needs. Here's how Odoo POS adapts to yours.
+🛒
+Supermarket & Grocery
+سوبر ماركت ومحلات بقالة
+Barcode scanning, weight-based products, loyalty cards, daily cash reconciliation. Multi-cashier with shift management. Integration with inventory for automatic reorder.
+☕
+Cafe & Restaurant
+كافيهات ومطاعم
+Floor plans, table management, kitchen display (KDS), split bills, tips. Kitchen printing for food orders. Ingredient tracking through inventory. Takeaway and dine-in modes.
+🧵
+Textile & Fabric
+أقمشة ومنسوجات
+Our specialty. POS Cutting Orders module manages fabric cutting directly from POS — dimensions, quantities, fabric type. Real-time stock tracking per roll. Manager PIN for discounts.
+💊
+Pharmacy
+صيدليات
+Expiry date tracking, lot/serial numbers, prescription management, insurance integration. Barcode scanning for medications. Daily sales reports for regulatory compliance.
+👗
+Fashion & Clothing
+ملابس وأزياء
+Size and color variants, RFID tagging, customer profiles with purchase history, loyalty programs. Multi-location stock visibility. Season-based pricing and promotions.
+🏬
+Multi-Store Chain
+سلاسل فروع
+Centralized management for unlimited locations. Per-store pricelists, warehouses, payment methods. Real-time inventory sync. Consolidated reporting and analytics.
+مميزات النظام
+Odoo POS Features
+📡
+Offline Mode
+Internet drops? No problem. POS continues working. All orders sync automatically when connection returns. Zero lost sales.
+📊
+Real-Time Inventory
+Every sale updates stock instantly across all locations. Our POS Stock Real-Time module adds reactive badges showing current quantities on product cards.
+🏷️
+Barcode & Scanning
+USB HID barcode scanners work plug-and-play. Scan products, customer cards, coupons. Generate and print barcodes for your products.
+🔐
+Security Controls
+Our POS Security Framework: manager PIN for refunds and discounts, discount limits per user, session locking. Backend validation prevents frontend bypasses.
+💳
+Payment Methods
+Cash, card, bank transfer, mobile payments. Split payments across methods. Customer accounts with credit limits. Partial payments with balance tracking.
+🎁
+Loyalty & Promotions
+Points-based loyalty programs, automatic discounts, buy-X-get-Y promotions, coupon codes, gift cards. All configurable from backend.
+🖨️
+Receipt Printing
+ESC/POS thermal printers (Epson, Star). Custom receipt layout with logo, Arabic text, QR codes. Kitchen printing for restaurants. IoT Box or direct network printing.
+📱
+Any Device
+Runs on any device with a browser: iPad, Android tablet, laptop, desktop, touchscreen monitor. No special hardware required. Responsive UI.
+📈
+Reports & Analytics
+Daily sales summary, per-product analysis, cashier performance, payment method breakdown. Export to Excel. Integrated with Odoo's full BI engine.
+🛒 Published on Odoo Apps Store
+Our Custom POS Modules
+Built from real client needs. Published on the official Odoo Apps Store.
+✂️Best Seller
+Textile POS
+POS Cutting Orders
+Manage fabric cutting directly from POS. Track dimensions, quantities, fabric type. Dedicated cutting screen with dark/light mode. Manager PIN for approvals.
+€149⭐ 4.9
+📦Top Rated
+All POS
+POS Stock Real-Time
+Live inventory badges on product cards. Batch loading for large catalogs. Navbar refresh button. Reactive updates via custom events. Zero lag on 10K+ products.
+€129⭐ 4.8
+🔐Essential
+All POS
+POS Security Framework
+Manager PIN for session close, refunds, and critical ops. Discount limit enforcement at 3 levels. Role-based access. Backend validation layer.
+€99⭐ 4.7
+الأجهزة المطلوبة
+POS Hardware Setup
+We handle complete hardware procurement, configuration, and installation.
+🖨️
+Receipt Printer
+Epson TM-T20III or Star TSP143 — ESC/POS thermal printer. USB or network (Ethernet/Wi-Fi). Supports Arabic text, logos, QR codes. Connected via Odoo IoT Box or direct network.
+📷
+Barcode Scanner
+USB HID scanner — plug and play, no drivers needed. Reads 1D and 2D barcodes. Wireless Bluetooth options available. Works instantly with Odoo POS.
+💰
+Cash Drawer
+RJ11 cash drawer — connects to receipt printer. Opens automatically on cash payment. Manual key override. Standard 5-bill 8-coin tray.
+📺
+Customer Display
+LCD/LED display — shows order items and total to customer. Connected via IoT Box or secondary screen. Supports Arabic and English.
+📱
+POS Terminal
+Any device with a browser — iPad, Android tablet, touchscreen PC, laptop. No special hardware required. We recommend 10"+ screen for comfortable use.
+⚡
+IoT Box (Optional)
+Odoo IoT Box — connects printers, scanners, scales, and displays. Required for some printer models. Alternative: direct USB/network printing without IoT Box.
+الباقات
+POS Packages
+🟢 POS Starter
+محل واحد — نقطة بيع واحدة
+Single store setup. Basic product configuration. Receipt printer setup. Staff training (2 sessions). 3 months support.
+Get Quote
+🔵 POS Business
+فروع متعددة — تخصيص كامل
+Multi-store deployment. Custom UI/receipts. Barcode setup. Loyalty program. Inventory integration. Hardware procurement. 6 months support.
+Get Quote
+🟣 POS Enterprise
+حلول مخصصة — موديولات خاصة
+Everything in Business + custom module development (cutting orders, security, special workflows). Full ERP integration. 12 months support. Dedicated account manager.
+Get Quote
+🏆 Real Deployment
+POS in Production: Al-Ghazl Al-Arabi
+A textile trading company needed POS with fabric cutting management. Here's what we built.
+The Problem
+Al-Ghazl Al-Arabi sells fabric by the meter. Cashiers needed to create cutting orders (fabric type, dimensions, quantity) directly from the POS screen. Standard Odoo POS doesn't support this.
+Our Solution
+We built POS Cutting Orders (ma_pos_cutting) — a custom module that adds a cutting order workflow to the POS. Dedicated cutting screen, real-time tracking, manager PIN for approvals, dark/light mode. Now published on Odoo Apps Store.
+Results
+Multi-session POS across 2 locations. Real-time stock sync between stores. Manager security controls. Cutting orders processed 3x faster than paper-based system. Zero stock discrepancies.
+POS Frequently Asked Questions
+How much does Odoo POS cost in Egypt?
+Odoo Community POS is free. Enterprise requires licensing. Our implementation packages start from basic single-store setup. Custom modules on Odoo Apps Store start at €99. Contact us for a detailed quote based on your needs.
+Does Odoo POS work without internet?
+Yes. Odoo POS is a Progressive Web App that continues working when internet drops. All transactions sync automatically when connection returns. We configure offline mode as part of every deployment.
+What printers work with Odoo POS?
+ESC/POS thermal printers: Epson TM-T20III, Star TSP143, and compatible models. Connected via Odoo IoT Box (USB/Bluetooth) or direct network printing (Ethernet/Wi-Fi). We handle printer procurement and setup.
+Can I use Odoo POS for a restaurant?
+Yes. Built-in floor plans, table management, kitchen display (KDS), split bills, tips. Kitchen printing sends food orders directly to the kitchen printer. Full integration with inventory for ingredient tracking.
+How long does POS setup take?
+Single store: 3-5 days. Multi-store: 1-2 weeks. With custom modules: 2-4 weeks. Includes product import, hardware setup, receipt configuration, staff training, and testing.
+Do you serve areas outside Aswan?
+Yes. Software setup is done remotely. For hardware installation, we travel to your location. We serve all of Egypt, with focus on Upper Egypt (Aswan, Luxor, Qena, Sohag).
+جاهز تبدأ مع Odoo POS؟
+Ready to Get Started?
+Try our live demo — or get a free consultation on WhatsApp.
+🖥️ Try Live POS Demo
+💬 Free Consultation
+✉️ Contact Us
+Ready to transform your business?
+Get started with XamlTech solutions today.
+Get in Touch
+طلب تجربة
+Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.
+الحلول
+ERP & Odoo
+البنية التحتية
+تطوير المواقع
+AI Copilots
+متجر الإضافات
+Pricing
+Resources
+Blog & Guides
+AI Marketing Guide
+AI POS Guide
+Knowledge Base
+Testimonials
+طلب تجربة
+الشركة
+أعمالنا
+تواصل معنا
+Privacy Policy
+Terms of Service
+Odoo Apps Store ↗
+GitHub ↗
+Get in Touch
+[email protected]
++20 100 798 2468
++20 120 141 0140
+WhatsApp Chat
+Sahary, Aswan, Egypt
+© 2026 XamlTech. All rights reserved.
+xamltech.com
+·
+Contact
+·
+Blog
+·
+Privacy Policy
+·
+Terms

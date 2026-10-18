@@ -1,0 +1,172 @@
+// ============================================================================
+// APK Download Page
+// ============================================================================
+// Arabic-first gated APK download: hero, app cards grid, download request form.
+// Reuses theme tokens. All colours come from CSS variables — never hardcoded.
+
+.xt-apk-hero {
+    .xt-hero__h1 {
+        margin-bottom: 10px;
+    }
+}
+
+// --- App cards grid ---------------------------------------------------------
+.xt-apk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.xt-apk-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        border-color: var(--xt-border-hover, rgba(255, 255, 255, 0.18));
+    }
+}
+
+.xt-apk-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.xt-apk-card__ver {
+    font-size: 13px;
+    color: var(--xt-fg-muted, rgba(255, 255, 255, 0.55));
+
+    strong {
+        color: var(--xt-fg, #F1F1F3);
+    }
+}
+
+.xt-apk-card__name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.xt-apk-card__desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--xt-fg-muted, rgba(255, 255, 255, 0.55));
+}
+
+.xt-apk-card__meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--xt-fg-muted, rgba(255, 255, 255, 0.5));
+    border-top: 1px solid var(--xt-border, rgba(255, 255, 255, 0.08));
+    padding-top: 12px;
+    margin-top: auto;
+}
+
+// --- Alerts -----------------------------------------------------------------
+.xt-apk-alert {
+    padding: 16px 18px;
+    border-radius: var(--xt-radius-sm, 12px);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.xt-apk-alert--ok {
+    background: rgba(46, 204, 113, 0.12);
+    border: 1px solid rgba(46, 204, 113, 0.4);
+    color: #2ECC71;
+}
+
+.xt-apk-alert--err {
+    background: rgba(231, 76, 60, 0.12);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    color: #E74C3C;
+}
+
+// --- Form -------------------------------------------------------------------
+.xt-apk-form {
+    padding: 32px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 28px;
+}
+
+.xt-apk-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.xt-apk-field--full {
+    grid-column: 1 / -1;
+}
+
+.xt-apk-submit {
+    margin-top: 6px;
+}
+
+.xt-apk-privacy {
+    font-size: 13px;
+    color: var(--xt-fg-muted, rgba(255, 255, 255, 0.4));
+    margin: 0;
+}
+
+// --- Responsive -------------------------------------------------------------
+@media (max-width: 1024px) {
+    .xt-apk-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .xt-apk-form {
+        padding: 26px;
+    }
+}
+
+@media (max-width: 768px) {
+    .xt-apk-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .xt-apk-form {
+        grid-template-columns: 1fr;
+        padding: 24px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .xt-apk-form {
+        padding: 16px;
+        gap: 14px;
+    }
+
+    .xt-apk-card {
+        padding: 18px;
+    }
+
+    .xt-btn--primary {
+        width: 100%;
+    }
+}
+
+// --- Touch targets (coarse pointers) ----------------------------------------
+@media (pointer: coarse) {
+    .xt-apk-form .xt-inp,
+    .xt-apk-form .xt-sel,
+    .xt-apk-form .xt-btn {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .xt-apk-card__meta {
+        gap: 16px;
+    }
+}

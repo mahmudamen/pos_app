@@ -1,0 +1,80 @@
+{
+  "en": {
+    "meta": {
+      "title": "Try Odoo POS Live Demo Free — XamlTech Cutting Orders & Stock Modules",
+      "description": "Enter your details and get instant access to the live Odoo 19 POS demo with cutting orders, real-time stock and the security framework.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "🖥️ Live Odoo 19 Demo",
+      "title": "Try our POS addons live",
+      "lead": "Enter your details and get access to the live demo environment. Explore cutting orders, real-time stock, the security framework and the AI copilot.",
+      "points": ["Instant access after review", "No setup required", "Demo data included"],
+      "ctas": [
+        { "label": "Chat on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+      ]
+    },
+    "formTitle": "Demo access",
+    "formSub": "Fill in your details and we'll send you the demo credentials.",
+    "submit": "Request free demo",
+    "privacyLabel": "Privacy Policy",
+    "products": [
+      "POS Cutting Orders",
+      "POS Stock Real-Time",
+      "POS Security Framework",
+      "POS Customization Kit",
+      "AI POS Copilot",
+      "AI Marketing Copilot",
+      "Full Odoo ERP",
+      "IT Infrastructure / CCTV"
+    ],
+    "cta": {
+      "title": "Want to see it with your own data?",
+      "text": "We can run a guided walkthrough focused on your business type.",
+      "actions": [
+        { "label": "Contact us", "href": "/contact-us?lang=en", "style": "primary" },
+        { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+      ]
+    }
+  },
+  "ar": {
+    "meta": {
+      "title": "جرّب عرض Odoo POS المباشر مجاناً — أوامر القص والمخزون من زامل تك",
+      "description": "أدخل بياناتك واحصل على وصول فوري لعرض Odoo 19 المباشر مع أوامر القص والمخزون الفوري وإطار الأمان.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "hero": {
+      "eyebrow": "🖥️ عرض Odoo 19 مباشر",
+      "title": "جرّب إضافات نقاط البيع مباشرة",
+      "lead": "أدخل بياناتك واحصل على وصول لبيئة العرض المباشر. استكشف أوامر القص والمخزون الفوري وإطار الأمان ومساعد الذكاء الاصطناعي.",
+      "points": ["وصول فوري بعد المراجعة", "بلا إعداد مطلوب", "بيانات تجريبية مدمجة"],
+      "ctas": [
+        { "label": "محادثة واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+      ]
+    },
+    "formTitle": "وصول العرض",
+    "formSub": "املأ بياناتك وسنرسل لك بيانات دخول العرض.",
+    "submit": "اطلب تجربة مجانية",
+    "privacyLabel": "سياسة الخصوصية",
+    "products": [
+      "أوامر القص",
+      "مخزون نقاط البيع الفوري",
+      "إطار أمان نقاط البيع",
+      "عدة تخصيص نقاط البيع",
+      "مساعد نقاط البيع الذكي",
+      "مساعد التسويق الذكي",
+      "نظام Odoo ERP كامل",
+      "البنية التحتية / الكاميرات"
+    ],
+    "cta": {
+      "title": "تريد رؤيته ببياناتك؟",
+      "text": "يمكننا تنفيذ جلسة موجّهة مخصصة لنوع نشاطك.",
+      "actions": [
+        { "label": "تواصل معنا", "href": "/contact-us", "style": "primary" },
+        { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+      ]
+    }
+  }
+}

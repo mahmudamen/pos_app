@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="view_picking_form_eg_trade" model="ir.ui.view">
+    <field name="name">stock.picking.form.eg.trade</field>
+    <field name="model">stock.picking</field>
+    <field name="inherit_id" ref="stock.view_picking_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//sheet/group" position="inside">
+        <group string="Simple Trade Info">
+          <field name="eg_trade_simple_operation"/>
+          <field name="eg_trade_branch"/>
+          <field name="eg_trade_operator_note"/>
+        </group>
+      </xpath>
+    </field>
+  </record>
+
+  <record id="action_eg_trade_deliveries" model="ir.actions.act_window">
+    <field name="name">Deliveries</field>
+    <field name="res_model">stock.picking</field>
+    <field name="view_mode">list,form</field>
+    <field name="domain">[('picking_type_id.code','=','outgoing')]</field>
+  </record>
+
+  <record id="action_eg_trade_stock_moves" model="ir.actions.act_window">
+    <field name="name">Warehouse Operations</field>
+    <field name="res_model">stock.picking</field>
+    <field name="view_mode">list,form</field>
+    <field name="domain">[]</field>
+  </record>
+</odoo>

@@ -1,0 +1,23 @@
+{
+  "name": "XamlTech - IT Solutions",
+  "short_name": "XamlTech",
+  "description": "XamlTech — IT Solutions, Odoo ERP, Networking & CCTV. Aswan, Egypt.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070A14",
+  "theme_color": "#0072BC",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/xamltech_addons_store/static/img/favicon.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/xamltech_addons_store/static/img/logo.png",
+      "sizes": "250x80",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

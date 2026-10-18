@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="blog_post_list_override" inherit_id="website_blog.blog_post_list" name="XamlTech Blog Listing">
+        <xpath expr="//div[@class='o_blog_cover_container']" position="attributes">
+            <attribute name="class">o_blog_cover_container xt-dark-gradient xt-blog-mesh</attribute>
+        </xpath>
+    </template>
+
+    <template id="blog_post_card_override" inherit_id="website_blog.blog_post" name="XamlTech Blog Post Card">
+        <xpath expr="//article" position="attributes">
+            <attribute name="class">xt-blog-card card h-100 xt-reveal</attribute>
+        </xpath>
+    </template>
+
+    <template id="blog_post_detail_override" inherit_id="website_blog.blog_post_complete" name="XamlTech Blog Article">
+        <xpath expr="//div[@class='container']" position="attributes">
+            <attribute name="class">container xt-blog-container</attribute>
+        </xpath>
+    </template>
+</odoo>

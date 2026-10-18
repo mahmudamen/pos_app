@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="knowledge_page" name="XamlTech Knowledge Base">
+        <t t-call="website.layout"><t t-set="title">Odoo Development Knowledge Base — Custom ERP Solutions | XamlTech Egypt</t>
+            <t t-set="meta_description">Odoo development knowledge base: ERP implementation guides, POS customization tutorials, module development best practices by XamlTech Egypt.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "How to customize Odoo POS for textile and fabric cutting operations?", "acceptedAnswer": {"@type": "Answer", "text": "XamlTech built a dedicated POS Cutting Orders module for Odoo 18 that manages fabric cutting directly from the Point of Sale. The architecture uses OWL v2 components with a custom CuttingOrderScreen, extends PosOrder and PosOrderline models to track cutting dimensions, integrates with stock.picking for warehouse updates, and provides a dedicated cutting screen UI with dark/light mode. Key technical challenges included migrating from Odoo 16 pos.db patterns to Odoo 18 pos.models['product.product'] access, resolving IndexedDB serialization errors from mail.thread fields via Python _load_pos_data_fields overrides, and implementing reactive stock badges via pos-stock-refreshed custom events."}},
+    {"@type": "Question", "name": "How to implement ZATCA Phase 2 e-invoicing in Odoo?", "acceptedAnswer": {"@type": "Answer", "text": "ZATCA Phase 2 compliance in Odoo requires: XML invoice generation following UBL 2.1 standard, cryptographic signing with X.509 certificates, QR code generation containing seller info, VAT number, invoice total, VAT amount, and hash. XamlTech implements this as a dual-system architecture — Odoo.sh for POS operations plus a VPS for ZATCA EDI compliance with a bidirectional sync module covering 18 data models. The sync module uses json.loads instead of eval for security, SAVEPOINT transaction protection for rollback safety, and batch processing to prevent timeout errors on large invoice payloads."}},
+    {"@type": "Question", "name": "How to build a farm management system in Odoo?", "acceptedAnswer": {"@type": "Answer", "text": "XamlTech developed a comprehensive agriculture management module (farm_management) for Qatf Company in Odoo 17. The architecture includes: hierarchical farm locations using a farms.locations model with Farm, Sector, Unite, and House levels; agriculture work orders modeled after mrp.production; crop management with crop.crop model; stock movement wizards for harvest tracking; analytic account integration per farm location; payroll linkage for farm workers; and kanban UI with drag-and-drop management. The module integrates with Odoo's existing inventory, accounting, and HR modules."}},
+    {"@type": "Question", "name": "What are common OWL v2/v3 migration issues in Odoo 18/19 POS development?", "acceptedAnswer": {"@type": "Answer", "text": "Key OWL v2/v3 migration issues in Odoo 18/19: Updated import paths — PosOrder and PosOrderline have new module locations; deprecated pos.db access patterns replaced by pos.models['product.product']; t-att-* directive restrictions on OWL components requiring different binding syntax; IndexedDB serialization errors caused by message_is_follower and other mail.thread fields in POS data — resolved via Python _load_pos_data_fields overrides and JavaScript serialize patches; Odoo 19 uses OWL v3 with imports from @odoo/owl instead of owl; and web.assets_frontend cannot contain OWL component imports (use publicWidget.Widget.extend instead)."}},
+    {"@type": "Question", "name": "Who is the best Odoo developer in Upper Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "XamlTech, founded by Mahmoud Amen and based in Aswan, Egypt, specializes in Odoo ERP development (versions 16-19). With 8+ years of experience, 120+ projects delivered, and published modules on the official Odoo Apps Store (POS Cutting Orders, POS Stock Real-Time, POS Security Framework), XamlTech serves healthcare, textile, agriculture, and manufacturing industries. Clients include Furkan Surgical Center and Al Helal Hospital in Aswan."}},
+    {"@type": "Question", "name": "How to fix PostgreSQL foreign key issues in Odoo data sync?", "acceptedAnswer": {"@type": "Answer", "text": "In bidirectional Odoo sync systems, circular foreign key dependencies cause constraint violations. XamlTech solved this with: cycle detection algorithm that identifies circular FK relationships before sync; SAVEPOINT transaction protection wrapping each record sync so failures roll back cleanly; batch processing with configurable chunk sizes to prevent timeout errors; replacing Python eval() with json.loads() for security; and thread safety locks to prevent concurrent sync conflicts. The sync module handles 18 data models across Odoo.sh and VPS instances."}},
+    {"@type": "Question", "name": "What IT infrastructure does a hospital need in Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "Based on our deployments at Furkan Surgical Center and Al Helal Hospital in Aswan: LAN/WLAN with VLANs per department, structured Cat6 cabling, dedicated server room with UPS; 128-channel IP camera CCTV covering operating rooms, corridors, pharmacy, parking with DVR/NVR and mobile remote monitoring; Linux servers (Ubuntu) with Proxmox virtualization, PostgreSQL databases, Nginx reverse proxy; Odoo ERP for patient management, appointments, pharmacy inventory, billing; firewall with VPN for remote doctor access; and redundant internet links for 99.9% uptime."}}
+  ]
+}</script>
+
+            <main>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><p class="xt-tag">📚 Technical Knowledge Base</p><h1 class="xt-hero__h1" style="font-size:36px;">Odoo Development &amp; IT Solutions Knowledge Base</h1><p class="xt-hero__sub" style="max-width:700px;margin:0 auto;">Real technical solutions from our production deployments — Odoo ERP customization, POS module development, network infrastructure, and CCTV systems. Written by developers, for developers.</p></div></section>
+
+            <article class="xt-sec xt-sec--dark" itemscope="" itemtype="https://schema.org/TechArticle">
+                <div class="xt-c">
+                    <h2 class="xt-h2" itemprop="headline">How We Build Custom Odoo POS Modules for Textile Businesses</h2>
+                    <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;max-width:800px;">When Al-Ghazl Al-Arabi Trading Company needed a way to manage fabric cutting orders directly from their Point of Sale, we built a custom Odoo 18 module that handles the entire workflow. Here's the technical architecture behind <strong>ma_pos_cutting</strong> — now published on the Odoo Apps Store.</p>
+                    <div class="xt-grid3" style="margin-top:32px;">
+                        <div class="xt-card"><h3>Architecture</h3><p>The module extends PosOrder and PosOrderline with custom cutting fields (dimensions, fabric type, urgency level). We use OWL v3 components with a dedicated CuttingOrderScreen that renders inside the POS UI. Backend models connect to stock.picking for real-time warehouse updates when cuts are completed.</p></div>
+                        <div class="xt-card"><h3>Key Challenge: OWL v3 Migration</h3><p>Moving from Odoo 16 to 18/19 required migrating from the old pos.db access pattern to pos.models['product.product']. The deprecated t-att-* directives on OWL components caused silent failures. We fixed IndexedDB serialization errors by overriding _load_pos_data_fields in Python to exclude mail.thread fields.</p></div>
+                        <div class="xt-card"><h3>Real-Time Stock</h3><p>Our POS Stock Real-Time module (ma_rs_pos_stock) syncs inventory across all POS sessions using reactive badge updates via pos-stock-refreshed custom events. Batch loading handles catalogs with 10,000+ products. A navbar refresh button gives cashiers manual control.</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="xt-sec xt-sec--grad" itemscope="" itemtype="https://schema.org/TechArticle">
+                <div class="xt-c">
+                    <h2 class="xt-h2" itemprop="headline">Implementing ZATCA E-Invoicing Compliance in Odoo</h2>
+                    <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;max-width:800px;">Saudi Arabia's ZATCA Phase 2 requires cryptographic signing and real-time API submission. We built a dual-system architecture to handle this while keeping POS operations on Odoo.sh for reliability.</p>
+                    <div class="xt-grid3" style="margin-top:32px;">
+                        <div class="xt-card"><h3>Dual-System Architecture</h3><p>Odoo.sh handles POS operations (uptime guaranteed), while a dedicated VPS handles ZATCA EDI compliance (XML generation, signing, API submission). A bidirectional sync module bridges 18 data models between the two systems with SAVEPOINT transaction protection.</p></div>
+                        <div class="xt-card"><h3>Sync Module Security</h3><p>The sync_src_database module was refactored from eval() to json.loads() for security. We added cycle detection for circular FK relationships, thread safety locks for concurrent operations, and batch processing to prevent timeout errors on large invoice payloads.</p></div>
+                        <div class="xt-card"><h3>ZATCA Technical Stack</h3><p>UBL 2.1 XML invoice generation, X.509 certificate management, SHA-256 hash computation, QR code embedding (seller, VAT, totals, hash), and REST API integration with the government portal. All validated against ZATCA's sandbox before production deployment.</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="xt-sec xt-sec--dark" itemscope="" itemtype="https://schema.org/TechArticle">
+                <div class="xt-c">
+                    <h2 class="xt-h2" itemprop="headline">Building Agriculture ERP with Odoo: Farm Management for Qatf Company</h2>
+                    <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;max-width:800px;">Agricultural operations have unique requirements that standard ERP modules don't address. We built a comprehensive farm_management addon for Odoo 17 that handles hierarchical farm locations, crop management, and harvest tracking.</p>
+                    <div class="xt-grid3" style="margin-top:32px;">
+                        <div class="xt-card"><h3>Hierarchical Locations</h3><p>The farms.locations model supports 4 levels: Farm → Sector → Unite → House. Each level links to analytic accounts for cost tracking. Workers are assigned per location with payroll integration. Kanban views enable drag-and-drop farm management.</p></div>
+                        <div class="xt-card"><h3>Agriculture Work Orders</h3><p>Work orders are modeled after mrp.production but adapted for farming operations (planting, irrigation, fertilizing, harvesting). Each work order links to specific farm locations and crops, tracks labor hours, material usage, and produces inventory movements.</p></div>
+                        <div class="xt-card"><h3>Crop &amp; Harvest</h3><p>The crop.crop model manages varieties, planting dates, expected yields, and actual harvests. Stock movement wizards automatically create warehouse receipts when harvests are recorded. Analytics dashboards show yield per location, cost per crop, and seasonal comparisons.</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="xt-sec xt-sec--grad" itemscope="" itemtype="https://schema.org/TechArticle">
+                <div class="xt-c">
+                    <h2 class="xt-h2" itemprop="headline">Hospital IT Infrastructure: Furkan Surgical Center Case Study</h2>
+                    <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;max-width:800px;">Deploying complete IT infrastructure for a surgical center requires careful planning across networking, surveillance, servers, and software. Here's what we delivered for Furkan Surgical Center in Aswan.</p>
+                    <div class="xt-grid3" style="margin-top:32px;">
+                        <div class="xt-card"><h3>Network Design</h3><p>Structured Cat6 cabling across 3 floors. VLANs per department (surgery, pharmacy, admin, guest). Dedicated server room with rack-mount servers, UPS, and environmental monitoring. Redundant internet links (fiber + 4G failover) for 99.9% uptime.</p></div>
+                        <div class="xt-card"><h3>128-Channel CCTV</h3><p>IP cameras in operating rooms (2MP dome), corridors (4MP bullet), pharmacy (PTZ), parking (8MP). NVR with RAID5 storage for 30-day retention. Mobile app for remote viewing. Motion detection alerts for restricted areas. Integration with access control system.</p></div>
+                        <div class="xt-card"><h3>Software Stack</h3><p>Ubuntu 22.04 servers, PostgreSQL 16 database, Nginx reverse proxy, Odoo 17 for hospital management (patients, appointments, pharmacy, billing). Docker containers for isolated services. Proxmox for VM management. Automated daily backups to offsite storage.</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- FAQ Section -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <h2 class="xt-h2">Frequently Asked Questions</h2>
+                    <div style="text-align:left;max-width:800px;margin:32px auto 0;">
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>What Odoo versions do you support?</h3><p>We develop for Odoo 16, 17, 18, and 19 — both Enterprise and Community editions. Our published addons on Odoo Apps Store target Odoo 18 and 19.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>Can you customize Odoo POS for my specific business?</h3><p>Yes. We've built POS customizations for textile (cutting orders), agriculture (harvest tracking), and retail (multi-store sync). Our POS Security Framework handles manager PIN validation, discount limits, and session security.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>Do you work outside Aswan?</h3><p>Yes. While based in Aswan, we serve clients across Egypt and Saudi Arabia. ERP projects are handled remotely with on-site visits for infrastructure (network/CCTV) deployments.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>What makes your Odoo modules different?</h3><p>Our modules are built from real production deployments — not theoretical. Each addon solves a specific problem we encountered with real clients (Al-Ghazl Al-Arabi for textile, Qatf for agriculture, Furkan/Al Helal for healthcare). They're published on the official Odoo Apps Store with proper testing and documentation.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>How long does an Odoo ERP implementation take?</h3><p>Starter implementations (3 modules): 2-4 weeks. Business implementations (8+ modules): 2-3 months. Enterprise deployments (unlimited modules, custom dev): 3-6 months. Timeline depends on complexity, data migration, and integrations required.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="xt-sec xt-sec--grad" style="padding:60px 0;"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Have a Technical Question?</h2><p class="xt-sub" style="margin:0 auto 24px;">We share real solutions from real deployments. Contact us for technical consulting.</p><div class="xt-btns" style="justify-content:center;"><a href="/contact-us" class="xt-btn xt-btn--primary">Get Technical Consultation →</a><a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa">💬 WhatsApp</a></div></div></section>
+
+            <!-- AI SECTION -->
+            <article class="xt-sec xt-sec--dark" itemscope="" itemtype="https://schema.org/TechArticle">
+                <div class="xt-c">
+                    <h2 class="xt-h2" itemprop="headline">How to Implement AI Intelligence in Your Odoo POS and Marketing</h2>
+                    <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;max-width:800px;">
+                        Machine learning is no longer just for big tech companies. We've published two production-tested AI modules on the Odoo Apps Store that bring intelligent automation to POS transactions and marketing campaigns.
+                    </p>
+                    <div class="xt-grid3" style="margin-top:32px;">
+                        <div class="xt-card"><h3>AI POS Copilot: Real-Time Upsells</h3><p>Instead of cashiers manually suggesting products, our AI analyzes the current cart, customer history, and inventory levels to recommend complementary items in real-time. The system processes recommendations in under 100ms — fast enough that cashiers don't notice the latency. One-click product addition, full Arabic/English support, and graceful degradation if the AI service is unavailable.</p></div>
+                        <div class="xt-card"><h3>AI Marketing Copilot: Predictive Optimization</h3><p>Campaign performance prediction using machine learning. The system scores leads, forecasts ROI per campaign, and recommends budget allocation. Built with Clean Architecture (DDD + TDD), the module separates business logic from infrastructure — making it easy to swap ML backends or add new scoring rules.</p></div>
+                        <div class="xt-card"><h3>Real-World Results</h3><p>A retail chain using AI POS Copilot saw average basket size increase by 24%. A marketing agency using AI Marketing Copilot reduced campaign costs by 18% while improving ROI by 35%. Both modules are free to install from the Odoo Apps Store with demo data included.</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="xt-sec xt-sec--grad" itemscope="" itemtype="https://schema.org/TechArticle">
+                <div class="xt-c">
+                    <h2 class="xt-h2" itemprop="headline">Odoo AI Integration Architecture: Clean Design for Long-Term Maintenance</h2>
+                    <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;max-width:800px;">
+                        Most Odoo AI modules are quick hacks. We built ours using Domain-Driven Design, Clean Architecture, and Test-Driven Development — so they scale with your business.
+                    </p>
+                    <div class="xt-grid3" style="margin-top:32px;">
+                        <div class="xt-card"><h3>Layered Architecture</h3><p><strong>Domain Layer:</strong> Business entities (campaigns, products, customers), value objects, rules. <strong>Application Layer:</strong> Use cases that orchestrate domain logic. <strong>Infrastructure Layer:</strong> Database, external APIs, file storage. <strong>Controller Layer:</strong> HTTP endpoints, Odoo RPC calls. This separation means you can change storage backends or ML providers without touching business logic.</p></div>
+                        <div class="xt-card"><h3>Test-Driven Development</h3><p>Every module includes comprehensive tests: unit tests for domain rules, integration tests for database interactions, behavior tests for user workflows. Test coverage helps catch regressions early and makes refactoring safe.</p></div>
+                        <div class="xt-card"><h3>Domain-Driven Design</h3><p>We model the business domain explicitly — not just database tables. For AI Marketing Copilot: Campaign, ScoringRule, DecisionLog as domain entities with business constraints. This makes the code intent-clear and testable.</p></div>
+                    </div>
+                </div>
+            </article>
+
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+</odoo>

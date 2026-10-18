@@ -1,0 +1,188 @@
+AI Marketing & POS Copilots | XamlTech Odoo Modules
+Skip to Content
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
+0
+0
++201201410140
+English (US)
+الْعَرَبيّة
+English (US)
+Sign in
+Contact Us
+0
+0
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
++201201410140
+English (US)
+الْعَرَبيّة
+English (US)
+Sign in
+Contact Us
+✨ AI-Powered Intelligence
+AI Copilots for Odoo 19
+Transform your marketing and POS operations with AI-driven intelligence. Real-time suggestions, predictive analytics, and automated optimization — all within Odoo.
+📊 Marketing Copilot
+🤖 POS Copilot
+Browse All Apps →
+🎯 Marketing Intelligence
+AI Marketing Copilot
+Automatically optimize your marketing strategy with machine learning-powered insights. Forecast campaign ROI, assign targeted incentives, and predict customer behavior.
+⚡ Key Features
+Smart Campaign Analytics — Track performance metrics and ROI in real-time
+Predictive Scoring — ML-powered lead and opportunity scoring
+Budget Allocation — AI-recommended budget distribution across campaigns
+Incentive Assignment — Automated incentive rules based on customer segments
+Performance Dashboard — Visual analytics with drill-down reports
+Decision Logging — Full audit trail of AI recommendations
+🏗️ Built With Best Practices
+Clean Architecture + SOLID Principles
+Test-Driven Development (TDD)
+Domain-Driven Design (DDD)
+Behavior-Driven Development (BDD)
+View on Odoo Store →
+Request Demo
+📊
+19.0.2.0.0
+Latest Release
+⭐⭐⭐⭐⭐ 4.9/5.0
+8,410 lines of code
+🤖
+19.0.1.0.1
+Latest Release
+⭐⭐⭐⭐⭐ 4.8/5.0
+2,623 lines of code
+🛍️ POS Intelligence
+AI POS Copilot
+Boost average transaction value instantly with real-time AI upsell suggestions. Analyzes customer cart, purchase history, and inventory status to recommend complementary products.
+⚡ Key Features
+Smart Upsell Widget — Real-time suggestions in OWL sidebar panel
+Multi-Language Support — Full Arabic + English bilingual interface
+Stock Optimization — Suggest slow-moving items to reduce inventory
+Customer History Analysis — ML-powered recommendations per customer
+Conversion Tracking — Log all suggestions and acceptance rates
+Custom Prompt Templates — Fine-tune AI behavior per business
+💡 Works With
+Odoo POS, point_of_sale, stock, web modules — seamless integration without breaking changes.
+View on Odoo Store →
+Request Demo
+How AI Transforms Your Business
+Marketing Copilot: 35% ROI Increase
+A boutique marketing agency used AI Marketing Copilot to optimize campaign budgets across 50+ accounts. The AI recommendation system identified underperforming campaigns and reallocated budget to high-performers.
+Result: 35% average ROI increase, 18% cost reduction
+POS Copilot: 24% Basket Size Growth
+A multi-store retail chain deployed AI POS Copilot across 15 branches. The real-time upsell suggestions appeared while cashiers processed transactions, leading to higher acceptance rates.
+Result: 24% avg. basket size increase, 42% suggestion acceptance
+Combined Strategy: 52% Revenue Growth
+An e-commerce company combined AI Marketing Copilot (customer targeting) with AI POS Copilot (transaction optimization) for a unified growth strategy.
+Result: 52% revenue growth, improved customer lifetime value
+Want the full story? Read our in-depth guides:
+📊 Read Marketing Copilot Guide
+🤖 Read POS Copilot Guide
+📚 Visit Blog Hub
+AI Architecture Behind the Scenes
+📐 Marketing Copilot Architecture
+Built on Clean Architecture principles with separated layers: domain models (entities, value objects, business rules), application services (use cases with TDD), infrastructure (database, external APIs), and controllers (web endpoints).
+Pipeline Stages
+Data Ingestion — Collect campaign metrics, customer data, conversions
+Feature Engineering — Compute CTR, conversion rates, customer lifetime value
+Model Prediction — Forecast ROI, score leads, recommend budgets
+Decision Engine — Convert predictions to actionable rules
+Audit Trail — Log all decisions for compliance and analysis
+⚙️ POS Copilot Architecture
+Real-time suggestion engine using OWL v2 frontend components, Python backend services, and PostgreSQL for fast querying. Processes customer cart contents, purchase history, and current inventory in
+Pipeline Stages
+Cart Context — Analyze current order items, customer profile
+Matching Algorithm — Find complementary products via tagging
+Ranking — Score candidates by relevance and margin
+Filtering — Exclude already-in-cart, out-of-stock items
+Rendering — Display in Arabic/English with instant feedback
+Frequently Asked Questions
+Is there a free trial?
+Both AI Copilots are free to install from the Odoo Apps Store. Demo data is included to explore features immediately. No credit card required.
+Do they work with Arabic/RTL?
+Yes! AI POS Copilot is fully bilingual (Arabic + English) with RTL support. Prompts and templates are customizable per language.
+What Odoo versions are supported?
+AI Marketing Copilot and AI POS Copilot target Odoo 19. We're actively working on Odoo 18 compatibility.
+Can I customize the AI behavior?
+Absolutely. Both modules include prompt templates, scoring rules, and decision logs. Full API access for advanced customization.
+What about data privacy?
+All data stays within your Odoo instance. No external API calls for AI processing — fully self-hosted and compliant with GDPR/Egyptian data regulations.
+How is this better than other POS apps?
+Real-time processing, bilingual UI, clean architecture codebase, published on Odoo Apps Store with customer support, and built from actual production deployments.
+Ready to Transform Your Business?
+Get started with AI Marketing and POS Copilots. Install from Odoo Apps Store today — no setup required, demo data included.
+Browse All XamlTech Apps →
+Schedule Live Demo
+💬 WhatsApp Support
+Questions? Email:
+[email protected]
+Ready to transform your business?
+Get started with XamlTech solutions today.
+Get in Touch
+Request Demo
+Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+AI Copilots
+Addons Store
+Pricing
+Resources
+Blog & Guides
+AI Marketing Guide
+AI POS Guide
+Knowledge Base
+Testimonials
+Request Demo
+Company
+Portfolio
+Contact Us
+Privacy Policy
+Terms of Service
+Odoo Apps Store ↗
+GitHub ↗
+Get in Touch
+[email protected]
++20 100 798 2468
++20 120 141 0140
+WhatsApp Chat
+Sahary, Aswan, Egypt
+© 2026 XamlTech. All rights reserved.
+xamltech.com
+·
+Contact
+·
+Blog
+·
+Privacy Policy
+·
+Terms

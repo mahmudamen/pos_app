@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="pos_page" name="XamlTech Odoo POS">
+        <t t-call="website.layout"><t t-set="title">Odoo POS System for Retail, Restaurants &amp; Textile in Egypt — XamlTech</t>
+            <t t-set="meta_description">Odoo POS system for retail, restaurants, and textile businesses in Egypt. Cutting orders, real-time stock, manager security controls. Arabic RTL support.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": ["Service", "SoftwareApplication"],
+  "name": "Odoo POS System — Installation, Customization &amp; Support in Egypt",
+  "provider": {"@id": "https://xamltech.com/#organization"},
+  "applicationCategory": "Point of Sale Software",
+  "operatingSystem": "Web-based (any device)",
+  "serviceType": "POS System Implementation",
+  "areaServed": [{"@type": "Country", "name": "Egypt"}, {"@type": "Country", "name": "Saudi Arabia"}],
+  "description": "Complete Odoo POS deployment for supermarkets, cafes, restaurants, pharmacies, and textile shops in Egypt. Offline mode, multi-store sync, barcode scanning, receipt printing, loyalty programs, and custom modules like fabric cutting orders. Hardware setup included: receipt printers, barcode scanners, cash drawers, customer displays.",
+  "offers": [
+    {"@type": "Offer", "name": "POS Starter", "description": "Single store POS setup with basic configuration"},
+    {"@type": "Offer", "name": "POS Business", "description": "Multi-store POS with customization and integrations"},
+    {"@type": "Offer", "name": "POS Enterprise", "description": "Full deployment with custom modules and hardware"}
+  ]
+}</script>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "How much does Odoo POS cost in Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "Odoo POS implementation in Egypt starts from basic single-store setup. Multi-store deployments with customization range depending on features needed. XamlTech provides free consultation and custom quotes. The Odoo Community edition POS is free, Enterprise requires licensing. Our custom POS modules (cutting orders, real-time stock, security) are available on the Odoo Apps Store starting from €99."}},
+    {"@type": "Question", "name": "Does Odoo POS work offline?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Odoo POS is a Progressive Web App that works offline. When internet is lost, cashiers continue processing orders. All transactions sync automatically when connection returns. XamlTech configures offline mode as part of every POS deployment."}},
+    {"@type": "Question", "name": "What hardware do I need for Odoo POS?", "acceptedAnswer": {"@type": "Answer", "text": "Minimum: a tablet or computer with a web browser. For full setup: receipt printer (Epson TM-T20III or Star TSP143), barcode scanner (USB HID), cash drawer (RJ11 connected to printer), and optionally a customer display. Odoo uses IoT Box for printer/device connectivity or direct USB/network printing. XamlTech handles complete hardware procurement and setup."}},
+    {"@type": "Question", "name": "Can Odoo POS manage multiple stores?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Odoo POS supports unlimited store locations with centralized management. Each store can have its own pricelist, warehouse, receipt format, and payment methods. Real-time inventory sync across all locations is available with our POS Stock Real-Time module. XamlTech deployed multi-store POS for Al-Ghazl Al-Arabi textile chain."}},
+    {"@type": "Question", "name": "Is Odoo POS good for restaurants and cafes?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Odoo POS has built-in restaurant features: floor plans, table management, split bills, kitchen display, tip management. It integrates with Odoo Inventory for ingredient tracking and Accounting for automated daily reconciliation. XamlTech customizes the POS UI, adds loyalty programs, and configures kitchen printing."}},
+    {"@type": "Question", "name": "Who installs Odoo POS in Upper Egypt?", "acceptedAnswer": {"@type": "Answer", "text": "XamlTech, based in Aswan, provides complete Odoo POS installation across Upper Egypt. Services include: software configuration, hardware setup (printers, scanners, cash drawers), staff training, and ongoing support. We have published POS modules on the official Odoo Apps Store."}}
+  ]
+}</script>
+
+            <main>
+            <!-- Hero -->
+            <section class="xt-hero"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/><div class="xt-orb xt-orb--2"/></div>
+                <div class="xt-c">
+                    <div class="xt-hero__grid">
+                        <div style="position:relative;z-index:1;">
+                            <p class="xt-tag">🖥️ Odoo POS Solutions</p>
+                            <h1 class="xt-hero__h1" style="font-size:40px;">Odoo POS System for Retail, Restaurants &amp; Textile in Egypt</h1>
+                            <p class="xt-hero__sub">Complete Point of Sale deployment — software, hardware, training, and support. Works offline, syncs across stores, prints receipts, scans barcodes. From single-store to multi-branch chains.</p>
+                            <p class="xt-hero__sub" style="direction:rtl;margin-top:12px;">نظام نقاط بيع Odoo متكامل — برمجيات، أجهزة، تدريب، ودعم فني. يعمل بدون إنترنت، مزامنة فورية بين الفروع، طباعة فواتير، وقراءة باركود.</p>
+                            <div class="xt-btns" style="margin-top:24px;">
+                                <a href="/request-demo" class="xt-btn xt-btn--primary">🖥️ Try Live POS Demo Free</a>
+                                <a href="https://wa.me/201007982468?text=أريد%20عرض%20سعر%20لنظام%20نقاط%20البيع%20Odoo%20POS" target="_blank" class="xt-btn xt-btn--wa">💬 اطلب عرض سعر</a>
+                            </div>
+                        </div>
+                        <div class="xt-hero__cards">
+                            <div class="xt-hcard"><span>✅</span><div><strong>Works Offline</strong><p>يعمل بدون إنترنت — مزامنة تلقائية</p></div></div>
+                            <div class="xt-hcard"><span>🏪</span><div><strong>Multi-Store</strong><p>فروع متعددة بإدارة مركزية</p></div></div>
+                            <div class="xt-hcard"><span>🖨️</span><div><strong>Receipt Printing</strong><p>طباعة فواتير — Epson, Star, أي طابعة</p></div></div>
+                            <div class="xt-hcard"><span>📱</span><div><strong>Any Device</strong><p>تابلت، لابتوب، كمبيوتر — أي متصفح</p></div></div>
+                            <div class="xt-hcard"><span>🔗</span><div><strong>Fully Integrated</strong><p>مخزون + محاسبة + CRM تلقائي</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Who Uses It -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">مين بيستخدم Odoo POS؟</p>
+                    <h2 class="xt-h2">Built for Your Business Type</h2>
+                    <p class="xt-sub" style="margin:0 auto 40px;">Every business has different POS needs. Here's how Odoo POS adapts to yours.</p>
+                    <div class="xt-grid3" style="text-align:left;">
+                        <div class="xt-card">
+                            <span>🛒</span>
+                            <h3>Supermarket &amp; Grocery</h3>
+                            <p style="direction:rtl;margin-bottom:8px;"><strong>سوبر ماركت ومحلات بقالة</strong></p>
+                            <p>Barcode scanning, weight-based products, loyalty cards, daily cash reconciliation. Multi-cashier with shift management. Integration with inventory for automatic reorder.</p>
+                        </div>
+                        <div class="xt-card">
+                            <span>☕</span>
+                            <h3>Cafe &amp; Restaurant</h3>
+                            <p style="direction:rtl;margin-bottom:8px;"><strong>كافيهات ومطاعم</strong></p>
+                            <p>Floor plans, table management, kitchen display (KDS), split bills, tips. Kitchen printing for food orders. Ingredient tracking through inventory. Takeaway and dine-in modes.</p>
+                        </div>
+                        <div class="xt-card">
+                            <span>🧵</span>
+                            <h3>Textile &amp; Fabric</h3>
+                            <p style="direction:rtl;margin-bottom:8px;"><strong>أقمشة ومنسوجات</strong></p>
+                            <p>Our specialty. POS Cutting Orders module manages fabric cutting directly from POS — dimensions, quantities, fabric type. Real-time stock tracking per roll. Manager PIN for discounts.</p>
+                        </div>
+                        <div class="xt-card">
+                            <span>💊</span>
+                            <h3>Pharmacy</h3>
+                            <p style="direction:rtl;margin-bottom:8px;"><strong>صيدليات</strong></p>
+                            <p>Expiry date tracking, lot/serial numbers, prescription management, insurance integration. Barcode scanning for medications. Daily sales reports for regulatory compliance.</p>
+                        </div>
+                        <div class="xt-card">
+                            <span>👗</span>
+                            <h3>Fashion &amp; Clothing</h3>
+                            <p style="direction:rtl;margin-bottom:8px;"><strong>ملابس وأزياء</strong></p>
+                            <p>Size and color variants, RFID tagging, customer profiles with purchase history, loyalty programs. Multi-location stock visibility. Season-based pricing and promotions.</p>
+                        </div>
+                        <div class="xt-card">
+                            <span>🏬</span>
+                            <h3>Multi-Store Chain</h3>
+                            <p style="direction:rtl;margin-bottom:8px;"><strong>سلاسل فروع</strong></p>
+                            <p>Centralized management for unlimited locations. Per-store pricelists, warehouses, payment methods. Real-time inventory sync. Consolidated reporting and analytics.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- POS Features -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">مميزات النظام</p>
+                    <h2 class="xt-h2">Odoo POS Features</h2>
+                    <div class="xt-grid3" style="text-align:left;margin-top:40px;">
+                        <div class="xt-card"><span>📡</span><h3>Offline Mode</h3><p>Internet drops? No problem. POS continues working. All orders sync automatically when connection returns. Zero lost sales.</p></div>
+                        <div class="xt-card"><span>📊</span><h3>Real-Time Inventory</h3><p>Every sale updates stock instantly across all locations. Our POS Stock Real-Time module adds reactive badges showing current quantities on product cards.</p></div>
+                        <div class="xt-card"><span>🏷️</span><h3>Barcode &amp; Scanning</h3><p>USB HID barcode scanners work plug-and-play. Scan products, customer cards, coupons. Generate and print barcodes for your products.</p></div>
+                        <div class="xt-card"><span>🔐</span><h3>Security Controls</h3><p>Our POS Security Framework: manager PIN for refunds and discounts, discount limits per user, session locking. Backend validation prevents frontend bypasses.</p></div>
+                        <div class="xt-card"><span>💳</span><h3>Payment Methods</h3><p>Cash, card, bank transfer, mobile payments. Split payments across methods. Customer accounts with credit limits. Partial payments with balance tracking.</p></div>
+                        <div class="xt-card"><span>🎁</span><h3>Loyalty &amp; Promotions</h3><p>Points-based loyalty programs, automatic discounts, buy-X-get-Y promotions, coupon codes, gift cards. All configurable from backend.</p></div>
+                        <div class="xt-card"><span>🖨️</span><h3>Receipt Printing</h3><p>ESC/POS thermal printers (Epson, Star). Custom receipt layout with logo, Arabic text, QR codes. Kitchen printing for restaurants. IoT Box or direct network printing.</p></div>
+                        <div class="xt-card"><span>📱</span><h3>Any Device</h3><p>Runs on any device with a browser: iPad, Android tablet, laptop, desktop, touchscreen monitor. No special hardware required. Responsive UI.</p></div>
+                        <div class="xt-card"><span>📈</span><h3>Reports &amp; Analytics</h3><p>Daily sales summary, per-product analysis, cashier performance, payment method breakdown. Export to Excel. Integrated with Odoo's full BI engine.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Our Custom Modules -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <p class="xt-tag">🛒 Published on Odoo Apps Store</p>
+                    <h2 class="xt-h2">Our Custom POS Modules</h2>
+                    <p class="xt-sub" style="margin:0 auto 40px;">Built from real client needs. Published on the official Odoo Apps Store.</p>
+                    <div class="xt-grid3" style="text-align:left;">
+                        <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting" target="_blank" class="xt-acard"><div class="xt-acard__head" style="background:linear-gradient(135deg,rgba(232,54,79,0.1),rgba(232,54,79,0.02));"><span class="xt-acard__icon">✂️</span><span class="xt-acard__badge" style="background:#E8364F;">Best Seller</span></div><div class="xt-acard__body"><span class="xt-acard__cat" style="color:#E8364F;">Textile POS</span><h3 class="xt-acard__name">POS Cutting Orders</h3><p class="xt-acard__desc">Manage fabric cutting directly from POS. Track dimensions, quantities, fabric type. Dedicated cutting screen with dark/light mode. Manager PIN for approvals.</p></div><div class="xt-acard__foot"><span class="xt-acard__price">€149</span><span>⭐ 4.9</span></div></a>
+                        <a href="https://apps.odoo.com/apps/modules/18.0/ma_rs_pos_stock" target="_blank" class="xt-acard"><div class="xt-acard__head" style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(59,130,246,0.02));"><span class="xt-acard__icon">📦</span><span class="xt-acard__badge" style="background:#3B82F6;">Top Rated</span></div><div class="xt-acard__body"><span class="xt-acard__cat" style="color:#3B82F6;">All POS</span><h3 class="xt-acard__name">POS Stock Real-Time</h3><p class="xt-acard__desc">Live inventory badges on product cards. Batch loading for large catalogs. Navbar refresh button. Reactive updates via custom events. Zero lag on 10K+ products.</p></div><div class="xt-acard__foot"><span class="xt-acard__price">€129</span><span>⭐ 4.8</span></div></a>
+                        <a href="https://apps.odoo.com/apps/modules/18.0/ma_pos_base" target="_blank" class="xt-acard"><div class="xt-acard__head" style="background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.02));"><span class="xt-acard__icon">🔐</span><span class="xt-acard__badge" style="background:#10B981;">Essential</span></div><div class="xt-acard__body"><span class="xt-acard__cat" style="color:#10B981;">All POS</span><h3 class="xt-acard__name">POS Security Framework</h3><p class="xt-acard__desc">Manager PIN for session close, refunds, and critical ops. Discount limit enforcement at 3 levels. Role-based access. Backend validation layer.</p></div><div class="xt-acard__foot"><span class="xt-acard__price">€99</span><span>⭐ 4.7</span></div></a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hardware -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">الأجهزة المطلوبة</p>
+                    <h2 class="xt-h2">POS Hardware Setup</h2>
+                    <p class="xt-sub" style="margin:0 auto 40px;">We handle complete hardware procurement, configuration, and installation.</p>
+                    <div class="xt-grid3" style="text-align:left;">
+                        <div class="xt-card"><span>🖨️</span><h3>Receipt Printer</h3><p><strong>Epson TM-T20III</strong> or <strong>Star TSP143</strong> — ESC/POS thermal printer. USB or network (Ethernet/Wi-Fi). Supports Arabic text, logos, QR codes. Connected via Odoo IoT Box or direct network.</p></div>
+                        <div class="xt-card"><span>📷</span><h3>Barcode Scanner</h3><p><strong>USB HID scanner</strong> — plug and play, no drivers needed. Reads 1D and 2D barcodes. Wireless Bluetooth options available. Works instantly with Odoo POS.</p></div>
+                        <div class="xt-card"><span>💰</span><h3>Cash Drawer</h3><p><strong>RJ11 cash drawer</strong> — connects to receipt printer. Opens automatically on cash payment. Manual key override. Standard 5-bill 8-coin tray.</p></div>
+                        <div class="xt-card"><span>📺</span><h3>Customer Display</h3><p><strong>LCD/LED display</strong> — shows order items and total to customer. Connected via IoT Box or secondary screen. Supports Arabic and English.</p></div>
+                        <div class="xt-card"><span>📱</span><h3>POS Terminal</h3><p><strong>Any device with a browser</strong> — iPad, Android tablet, touchscreen PC, laptop. No special hardware required. We recommend 10"+ screen for comfortable use.</p></div>
+                        <div class="xt-card"><span>⚡</span><h3>IoT Box (Optional)</h3><p><strong>Odoo IoT Box</strong> — connects printers, scanners, scales, and displays. Required for some printer models. Alternative: direct USB/network printing without IoT Box.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pricing -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:24px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:4px;">الباقات</p>
+                    <h2 class="xt-h2">POS Packages</h2>
+                    <div class="xt-grid3" style="margin-top:40px;text-align:left;">
+                        <div class="xt-card" style="text-align:center;">
+                            <h3>🟢 POS Starter</h3>
+                            <p style="direction:rtl;color:#00ADEE;font-weight:700;margin-bottom:12px;">محل واحد — نقطة بيع واحدة</p>
+                            <p>Single store setup. Basic product configuration. Receipt printer setup. Staff training (2 sessions). 3 months support.</p>
+                            <a href="https://wa.me/201007982468?text=أريد%20عرض%20سعر%20باقة%20POS%20Starter" target="_blank" class="xt-btn xt-btn--outline" style="margin-top:16px;">Get Quote</a>
+                        </div>
+                        <div class="xt-card" style="text-align:center;border-color:rgba(0,173,238,0.3);">
+                            <h3>🔵 POS Business</h3>
+                            <p style="direction:rtl;color:#00ADEE;font-weight:700;margin-bottom:12px;">فروع متعددة — تخصيص كامل</p>
+                            <p>Multi-store deployment. Custom UI/receipts. Barcode setup. Loyalty program. Inventory integration. Hardware procurement. 6 months support.</p>
+                            <a href="https://wa.me/201007982468?text=أريد%20عرض%20سعر%20باقة%20POS%20Business" target="_blank" class="xt-btn xt-btn--primary" style="margin-top:16px;">Get Quote</a>
+                        </div>
+                        <div class="xt-card" style="text-align:center;">
+                            <h3>🟣 POS Enterprise</h3>
+                            <p style="direction:rtl;color:#00ADEE;font-weight:700;margin-bottom:12px;">حلول مخصصة — موديولات خاصة</p>
+                            <p>Everything in Business + custom module development (cutting orders, security, special workflows). Full ERP integration. 12 months support. Dedicated account manager.</p>
+                            <a href="https://wa.me/201007982468?text=أريد%20عرض%20سعر%20باقة%20POS%20Enterprise" target="_blank" class="xt-btn xt-btn--outline" style="margin-top:16px;">Get Quote</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Real Client -->
+            <section class="xt-sec xt-sec--grad">
+                <div class="xt-c" style="text-align:center;">
+                    <p class="xt-tag">🏆 Real Deployment</p>
+                    <h2 class="xt-h2">POS in Production: Al-Ghazl Al-Arabi</h2>
+                    <p class="xt-sub" style="margin:0 auto 32px;">A textile trading company needed POS with fabric cutting management. Here's what we built.</p>
+                    <div class="xt-grid3" style="text-align:left;">
+                        <div class="xt-card"><h3>The Problem</h3><p>Al-Ghazl Al-Arabi sells fabric by the meter. Cashiers needed to create cutting orders (fabric type, dimensions, quantity) directly from the POS screen. Standard Odoo POS doesn't support this.</p></div>
+                        <div class="xt-card"><h3>Our Solution</h3><p>We built POS Cutting Orders (ma_pos_cutting) — a custom module that adds a cutting order workflow to the POS. Dedicated cutting screen, real-time tracking, manager PIN for approvals, dark/light mode. Now published on Odoo Apps Store.</p></div>
+                        <div class="xt-card"><h3>Results</h3><p>Multi-session POS across 2 locations. Real-time stock sync between stores. Manager security controls. Cutting orders processed 3x faster than paper-based system. Zero stock discrepancies.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c" style="text-align:center;">
+                    <h2 class="xt-h2">POS Frequently Asked Questions</h2>
+                    <div style="text-align:left;max-width:800px;margin:32px auto 0;">
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>How much does Odoo POS cost in Egypt?</h3><p>Odoo Community POS is free. Enterprise requires licensing. Our implementation packages start from basic single-store setup. Custom modules on Odoo Apps Store start at €99. Contact us for a detailed quote based on your needs.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>Does Odoo POS work without internet?</h3><p>Yes. Odoo POS is a Progressive Web App that continues working when internet drops. All transactions sync automatically when connection returns. We configure offline mode as part of every deployment.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>What printers work with Odoo POS?</h3><p>ESC/POS thermal printers: Epson TM-T20III, Star TSP143, and compatible models. Connected via Odoo IoT Box (USB/Bluetooth) or direct network printing (Ethernet/Wi-Fi). We handle printer procurement and setup.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>Can I use Odoo POS for a restaurant?</h3><p>Yes. Built-in floor plans, table management, kitchen display (KDS), split bills, tips. Kitchen printing sends food orders directly to the kitchen printer. Full integration with inventory for ingredient tracking.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>How long does POS setup take?</h3><p>Single store: 3-5 days. Multi-store: 1-2 weeks. With custom modules: 2-4 weeks. Includes product import, hardware setup, receipt configuration, staff training, and testing.</p></div>
+                        <div class="xt-card" style="margin-bottom:16px;"><h3>Do you serve areas outside Aswan?</h3><p>Yes. Software setup is done remotely. For hardware installation, we travel to your location. We serve all of Egypt, with focus on Upper Egypt (Aswan, Luxor, Qena, Sohag).</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <section class="xt-sec xt-sec--grad" style="padding:60px 0;">
+                <div class="xt-c" style="text-align:center;">
+                    <p style="font-size:28px;font-weight:800;color:#00ADEE;direction:rtl;margin-bottom:8px;">جاهز تبدأ مع Odoo POS؟</p>
+                    <h2 class="xt-h2">Ready to Get Started?</h2>
+                    <p class="xt-sub" style="margin:0 auto 32px;">Try our live demo — or get a free consultation on WhatsApp.</p>
+                    <div class="xt-btns" style="justify-content:center;">
+                        <a href="/request-demo" class="xt-btn xt-btn--primary">🖥️ Try Live POS Demo</a>
+                        <a href="https://wa.me/201007982468?text=أريد%20استشارة%20مجانية%20عن%20نظام%20نقاط%20البيع%20Odoo%20POS" target="_blank" class="xt-btn xt-btn--wa">💬 Free Consultation</a>
+                        <a href="/contact-us" class="xt-btn xt-btn--outline">✉️ Contact Us</a>
+                    </div>
+                </div>
+            </section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+</odoo>

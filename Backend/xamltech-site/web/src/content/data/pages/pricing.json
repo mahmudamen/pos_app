@@ -1,0 +1,124 @@
+{
+  "en": {
+    "meta": {
+      "title": "Transparent Pricing & ROI Calculator — XamlTech Solutions",
+      "description": "Odoo POS and AI addon pricing — one-time purchase, lifetime updates and 24/7 support. Calculate your ROI in minutes.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "💰 Transparent Pricing",
+        "title": "Simple, scalable pricing",
+        "lead": "No hidden fees, no surprise charges. One-time purchase — lifetime use. Calculate your ROI in minutes.",
+        "ctas": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary", "big": true },
+          { "label": "Visit the addons store", "href": "/addons-store?lang=en", "style": "ghost", "big": true }
+        ]
+      }},
+      { "partial": "pricing", "data": {
+        "eyebrow": "Odoo POS addons",
+        "title": "Choose your solution",
+        "sub": "All modules include lifetime updates and 24/7 support email.",
+        "cols": 3,
+        "items": [
+          { "title": "POS Security Framework", "text": "Manager PIN, discount limits, role-based access.", "currency": "EUR", "price": "€89", "features": ["Odoo 18/19 compatible", "12,924 lines of code", "80+ Python & JS tests", "Lifetime updates"], "cta": { "label": "Buy on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } },
+          { "tag": "Best value", "featured": true, "title": "POS Customization Kit", "text": "Theme builder, dark mode, custom layouts.", "currency": "EUR", "price": "€79", "features": ["Odoo 18/19 compatible", "43,297 lines of code", "50+ Python & JS tests", "CSS variables included"], "cta": { "label": "Buy on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } },
+          { "title": "POS Cutting Orders", "text": "Fabric/textile, real-time tracking, cutting UI.", "currency": "EUR", "price": "€129", "features": ["Odoo 18/19 compatible", "39,729 lines of code", "165+ Python & JS tests", "Textile-specific features"], "cta": { "label": "Buy on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } }
+        ]
+      }},
+      { "partial": "pricing", "data": {
+        "alt": true,
+        "eyebrow": "AI-powered solutions",
+        "title": "AI Copilots (Odoo 19)",
+        "cols": 2,
+        "items": [
+          { "title": "AI Marketing Copilot", "text": "Budget optimisation, campaign scoring, real-time analytics.", "currency": "EUR", "price": "€69", "features": ["Odoo 19 native", "8,410 lines of code", "Thompson Sampling algorithm", "Dashboard analytics"], "cta": { "label": "Buy on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } },
+          { "title": "AI POS Copilot", "text": "Real-time upsell, smart suggestions, Arabic-first UX.", "currency": "EUR", "price": "€49", "features": ["Odoo 19 native", "2,623 lines of code", "Multi-LLM support", "Graceful degradation"], "cta": { "label": "Buy on Odoo Apps", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } }
+        ]
+      }},
+      { "partial": "roi", "data": {
+        "eyebrow": "ROI calculator",
+        "title": "Calculate your return on investment",
+        "sub": "Estimate your payback period and first-year return with any XamlTech solution.",
+        "currency": "EUR",
+        "monthlyLabel": "Estimated monthly savings",
+        "investmentLabel": "One-time investment",
+        "monthlyDefault": 500,
+        "investment": 129,
+        "savingsLabel": "Monthly savings",
+        "paybackLabel": "Payback period",
+        "annualLabel": "Annual ROI (year 1)"
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to invest in your growth?",
+        "text": "All modules include lifetime updates and priority support. No long-term contracts.",
+        "actions": [
+          { "label": "Visit the addons store", "href": "/addons-store?lang=en", "style": "primary" },
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "تسعير شفاف وحاسبة العائد على الاستثمار — حلول زامل تك",
+      "description": "أسعار إضافات Odoo لنقاط البيع والذكاء الاصطناعي — دفعة واحدة، تحديثات مدى الحياة ودعم 24/7. احسب عائدك في دقائق.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "💰 تسعير شفاف",
+        "title": "تسعير بسيط وقابل للتوسع",
+        "lead": "بدون رسوم خفية أو مفاجآت. دفعة واحدة — استخدام مدى الحياة. احسب عائدك في دقائق.",
+        "ctas": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary", "big": true },
+          { "label": "تصفّح متجر الإضافات", "href": "/addons-store", "style": "ghost", "big": true }
+        ]
+      }},
+      { "partial": "pricing", "data": {
+        "eyebrow": "إضافات نقاط البيع",
+        "title": "اختر الحل المناسب",
+        "sub": "كل الموديولات تشمل تحديثات مدى الحياة ودعم بريد 24/7.",
+        "cols": 3,
+        "items": [
+          { "title": "POS Security Framework", "text": "رقم PIN للمدير، حدود الخصم، صلاحيات حسب الدور.", "currency": "EUR", "price": "€89", "features": ["متوافق مع Odoo 18/19", "12,924 سطر كود", "+80 اختبار Python و JS", "تحديثات مدى الحياة"], "cta": { "label": "اشترِ من Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } },
+          { "tag": "أفضل قيمة", "featured": true, "title": "POS Customization Kit", "text": "بانٍ للثيمات، الوضع الداكن، تخطيطات مخصصة.", "currency": "EUR", "price": "€79", "features": ["متوافق مع Odoo 18/19", "43,297 سطر كود", "+50 اختبار Python و JS", "متغيرات CSS مدمجة"], "cta": { "label": "اشترِ من Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } },
+          { "title": "POS Cutting Orders", "text": "أقمشة ومنسوجات، تتبع فوري، واجهة قص.", "currency": "EUR", "price": "€129", "features": ["متوافق مع Odoo 18/19", "39,729 سطر كود", "+165 اختبار Python و JS", "ميزات خاصة بالمنسوجات"], "cta": { "label": "اشترِ من Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } }
+        ]
+      }},
+      { "partial": "pricing", "data": {
+        "alt": true,
+        "eyebrow": "حلول الذكاء الاصطناعي",
+        "title": "مساعدو الذكاء الاصطناعي (Odoo 19)",
+        "cols": 2,
+        "items": [
+          { "title": "AI Marketing Copilot", "text": "تحسين الميزانية، تصنيف الحملات، تحليلات فورية.", "currency": "EUR", "price": "€69", "features": ["أصلي على Odoo 19", "8,410 سطر كود", "خوارزمية Thompson Sampling", "تحليلات لوحة المعلومات"], "cta": { "label": "اشترِ من Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } },
+          { "title": "AI POS Copilot", "text": "بيع إضافي فوري، اقتراحات ذكية، تجربة عربية أولاً.", "currency": "EUR", "price": "€49", "features": ["أصلي على Odoo 19", "2,623 سطر كود", "دعم عدة نماذج LLM", "تدرّج آمن عند التعطل"], "cta": { "label": "اشترِ من Odoo", "href": "https://apps.odoo.com/apps/modules/browse?search=xamltech" } }
+        ]
+      }},
+      { "partial": "roi", "data": {
+        "eyebrow": "حاسبة العائد",
+        "title": "احسب عائد استثمارك",
+        "sub": "قدّر فترة الاسترداد والعائد للسنة الأولى مع أي حل من زامل تك.",
+        "currency": "EUR",
+        "monthlyLabel": "التوفير الشهري المتوقع",
+        "investmentLabel": "الاستثمار لمرة واحدة",
+        "monthlyDefault": 500,
+        "investment": 129,
+        "savingsLabel": "التوفير الشهري",
+        "paybackLabel": "فترة الاسترداد",
+        "annualLabel": "عائد السنة الأولى"
+      }},
+      { "partial": "cta", "data": {
+        "title": "مستعد للاستثمار في نموك؟",
+        "text": "كل الموديولات تشمل تحديثات مدى الحياة ودعماً مميزاً. بلا عقود طويلة.",
+        "actions": [
+          { "label": "تصفّح متجر الإضافات", "href": "/addons-store", "style": "primary" },
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

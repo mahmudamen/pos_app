@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <t t-name="xt_eg_trade_control.TradeControlDashboard">
+    <div class="o_trade_control_dashboard" t-att-dir="this.dir()">
+      <t t-if="state.loading">
+        <div class="std-loading">
+          <i class="fa fa-spinner fa-spin"/>
+          <span><t t-out="this.ui('Loading...', 'جاري التحميل...')"/></span>
+        </div>
+      </t>
+      <t t-else="">
+        <div class="std-topbar">
+          <div>
+            <span><t t-out="state.data.company_name"/></span>
+            <h1><t t-out="this.ui('Trade Control', 'Trade Control')"/></h1>
+          </div>
+          <button type="button" t-on-click="load" title="Refresh">
+            <i class="fa fa-refresh"/>
+          </button>
+        </div>
+
+        <div class="std-error" t-if="state.error">
+          <i class="fa fa-exclamation-triangle"/>
+          <t t-out="state.error"/>
+        </div>
+
+        <div class="std-cards">
+          <t t-foreach="cards()" t-as="card" t-key="card.key">
+            <button t-attf-class="std-card {{card.tone}}" t-on-click="() => this.openAction(card.action)">
+              <span class="std-icon"><i t-attf-class="fa {{card.icon}}"/></span>
+              <span class="std-title"><t t-out="card.title"/></span>
+              <strong><t t-out="card.value"/></strong>
+              <small><t t-out="card.hint"/></small>
+            </button>
+          </t>
+        </div>
+
+        <div class="std-workbench">
+          <section>
+            <div class="std-section-head">
+              <h2><t t-out="this.ui('Daily Buttons', 'أزرار اليوم')"/></h2>
+              <span><t t-out="this.ui('Short paths for busy staff.', 'مسارات قصيرة للموظف المشغول.')"/></span>
+            </div>
+            <div class="std-actions">
+              <t t-foreach="quickActions()" t-as="item" t-key="item.key">
+                <button t-on-click="() => this.openAction(item.action)">
+                  <i t-attf-class="fa {{item.icon}}"/>
+                  <span><t t-out="item.title"/></span>
+                </button>
+              </t>
+            </div>
+          </section>
+
+          <section>
+            <div class="std-section-head">
+              <h2><t t-out="this.ui('Tax Queue', 'طابور الضريبة')"/></h2>
+              <span><t t-out="this.ui('Clear document states.', 'حالات واضحة للمستندات.')"/></span>
+            </div>
+            <div class="std-status-grid">
+              <div><strong><t t-out="this.count(this.etaCount('ready'))"/></strong><span><t t-out="this.ui('Ready', 'جاهز')"/></span></div>
+              <div><strong><t t-out="this.count(this.etaCount('sent'))"/></strong><span><t t-out="this.ui('Sent', 'مرسل')"/></span></div>
+              <div><strong><t t-out="this.count(this.etaCount('accepted'))"/></strong><span><t t-out="this.ui('Accepted', 'مقبول')"/></span></div>
+              <div><strong><t t-out="this.count(this.etaCount('retry'))"/></strong><span><t t-out="this.ui('Retry', 'إعادة')"/></span></div>
+            </div>
+          </section>
+
+          <section class="std-wide">
+            <div class="std-section-head">
+              <h2><t t-out="this.ui('Sales Pulse', 'نبض المبيعات')"/></h2>
+              <span><t t-out="this.ui('Month split into simple checkpoints.', 'الشهر مقسم لنقاط سهلة.')"/></span>
+            </div>
+            <div class="std-chart">
+              <t t-set="maxSales" t-value="this.maxSales()"/>
+              <t t-foreach="state.data.sales_series || []" t-as="point" t-key="point.period">
+                <div class="std-bar-wrap">
+                  <i t-attf-style="height: {{this.ratio(point.sales, maxSales)}}%"/>
+                  <span><t t-out="point.period"/></span>
+                </div>
+              </t>
+            </div>
+          </section>
+        </div>
+      </t>
+    </div>
+  </t>
+</templates>

@@ -1,0 +1,244 @@
+.o_trade_control_dashboard {
+  min-height: 100%;
+  padding: 20px;
+  background: #f7f8fa;
+  color: #202124;
+  font-family: "Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+
+  .std-loading,
+  .std-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 120px;
+    color: #5f6368;
+  }
+
+  .std-error {
+    min-height: auto;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    color: #8a1f1f;
+    background: #fff3f3;
+    border: 1px solid #f2c8c8;
+  }
+
+  .std-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e0e3e7;
+
+    span {
+      display: block;
+      margin-bottom: 4px;
+      color: #5f6368;
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 0;
+      color: #1f6f78;
+      font-size: 26px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #d6dadd;
+      background: #ffffff;
+      color: #1f6f78;
+    }
+  }
+
+  .std-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .std-card,
+  .std-actions button {
+    text-align: start;
+    border: 1px solid #e0e3e7;
+    background: #ffffff;
+    color: #202124;
+    transition: border-color 0.16s ease, transform 0.16s ease;
+
+    &:hover {
+      border-color: #1f6f78;
+      transform: translateY(-1px);
+    }
+  }
+
+  .std-card {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 4px 10px;
+    min-height: 128px;
+    padding: 14px;
+
+    .std-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      grid-row: span 3;
+      color: #ffffff;
+      background: #1f6f78;
+    }
+
+    &.green .std-icon { background: #2e7d32; }
+    &.blue .std-icon { background: #2f4858; }
+    &.amber .std-icon { background: #b47f00; }
+    &.red .std-icon { background: #c62828; }
+
+    .std-title,
+    small {
+      color: #5f6368;
+      font-size: 13px;
+    }
+
+    strong {
+      display: block;
+      color: #202124;
+      font-size: 24px;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .std-workbench {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+    gap: 14px;
+
+    section {
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid #e0e3e7;
+    }
+
+    .std-wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .std-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+
+    h2 {
+      margin: 0 0 3px;
+      font-size: 17px;
+      font-weight: 720;
+      letter-spacing: 0;
+    }
+
+    span {
+      color: #5f6368;
+      font-size: 13px;
+    }
+  }
+
+  .std-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 10px 12px;
+      font-weight: 650;
+
+      i {
+        width: 18px;
+        color: #1f6f78;
+      }
+    }
+  }
+
+  .std-status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+
+    div {
+      padding: 12px;
+      background: #f7f8fa;
+      border: 1px solid #e0e3e7;
+    }
+
+    strong {
+      display: block;
+      color: #1f6f78;
+      font-size: 22px;
+    }
+
+    span {
+      color: #5f6368;
+      font-size: 12px;
+    }
+  }
+
+  .std-chart {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(34px, 1fr));
+    align-items: end;
+    gap: 12px;
+    height: 180px;
+    padding-top: 10px;
+  }
+
+  .std-bar-wrap {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: end;
+    height: 100%;
+    gap: 8px;
+    text-align: center;
+
+    i {
+      display: block;
+      width: 100%;
+      min-height: 6px;
+      background: #1f6f78;
+    }
+
+    span {
+      color: #5f6368;
+      font-size: 12px;
+    }
+  }
+
+  [dir="rtl"] &,
+  &[dir="rtl"] {
+    text-align: right;
+  }
+}
+
+@media (max-width: 720px) {
+  .o_trade_control_dashboard {
+    padding: 12px;
+
+    .std-workbench {
+      grid-template-columns: 1fr;
+    }
+
+    .std-status-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}

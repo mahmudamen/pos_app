@@ -1,0 +1,86 @@
+{
+  "en": {
+    "meta": {
+      "title": "Professional Web Development & Design Services in Egypt — XamlTech",
+      "description": "Modern, SEO-optimised websites, e-commerce stores, UI/UX design and web apps built by XamlTech in Aswan, Egypt.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🌐 Web Development",
+        "title": "A professional website that delivers results",
+        "lead": "Your website isn't generating results? We build modern, SEO-optimised websites that convert visitors into customers.",
+        "points": ["Responsive, fast and accessible", "SEO and schema markup baked in", "Arabic RTL and English"],
+        "ctas": [
+          { "label": "Request a quote", "href": "/contact-us?lang=en", "style": "primary", "big": true },
+          { "label": "Talk to us on WhatsApp", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "What we build",
+        "title": "Web services",
+        "sub": "From a company site to a full web platform.",
+        "cols": 3,
+        "items": [
+          { "icon": "🏢", "title": "Company websites", "text": "Professional company websites with modern design, responsive layout and clear brand messaging." },
+          { "icon": "🛒", "title": "E-commerce", "text": "Online stores with payment integration, inventory sync, product catalogues and order management." },
+          { "icon": "🎨", "title": "UI/UX design", "text": "Beautiful, intuitive interfaces designed for engagement, accessibility and conversion." },
+          { "icon": "⚙️", "title": "Web applications", "text": "Custom web apps, dashboards, portals and SaaS platforms built with modern frameworks." },
+          { "icon": "🔍", "title": "SEO", "text": "Search engine optimisation, content strategy, meta tags, schema markup and performance tuning." },
+          { "icon": "🔧", "title": "Maintenance", "text": "Ongoing updates, security patches, content management, hosting and performance monitoring." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready for a website that performs?",
+        "text": "Tell us about your goals and we'll propose the right approach.",
+        "actions": [
+          { "label": "Request a quote", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "خدمات تطوير وتصميم المواقع الاحترافية في مصر — زامل تك",
+      "description": "مواقع حديثة محسّنة لمحركات البحث ومتاجر إلكترونية وتصميم واجهات وتطبيقات ويب من زامل تك في أسوان، مصر.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🌐 تطوير الويب",
+        "title": "موقع احترافي يحقق نتائج",
+        "lead": "موقعك لا يحقق نتائج؟ نبني مواقع حديثة محسّنة لمحركات البحث تحوّل الزوار إلى عملاء.",
+        "points": ["متجاوب وسريع ومتاح للجميع", "SEO وبيانات منظمة مدمجة", "عربي RTL وإنجليزي"],
+        "ctas": [
+          { "label": "اطلب عرض سعر", "href": "/contact-us", "style": "primary", "big": true },
+          { "label": "تواصل على واتساب", "href": "https://wa.me/201007982468", "style": "wa", "big": true, "external": true }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "ما نبنيه",
+        "title": "خدمات الويب",
+        "sub": "من موقع شركة إلى منصة ويب متكاملة.",
+        "cols": 3,
+        "items": [
+          { "icon": "🏢", "title": "مواقع الشركات", "text": "مواقع شركات احترافية بتصميم حديث وتخطيط متجاوب ورسالة علامة واضحة." },
+          { "icon": "🛒", "title": "التجارة الإلكترونية", "text": "متاجر إلكترونية مع تكامل الدفع ومزامنة المخزون وكتالوج المنتجات وإدارة الطلبات." },
+          { "icon": "🎨", "title": "تصميم واجهات المستخدم", "text": "واجهات جميلة وبديهية مصممة للتفاعل وسهولة الوصول والتحويل." },
+          { "icon": "⚙️", "title": "تطبيقات الويب", "text": "تطبيقات ويب مخصصة ولوحات تحكم وبوابات ومنصات SaaS بأطر حديثة." },
+          { "icon": "🔍", "title": "تحسين محركات البحث", "text": "تحسين محركات البحث، استراتيجية المحتوى، الوسوم الوصفية، البيانات المنظمة وتحسين الأداء." },
+          { "icon": "🔧", "title": "الصيانة", "text": "تحديثات مستمرة، تصحيحات أمنية، إدارة محتوى، استضافة ومراقبة أداء." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "مستعد لموقع يعمل بكفاءة؟",
+        "text": "أخبرنا بأهدافك ونقترح لك النهج الأمثل.",
+        "actions": [
+          { "label": "اطلب عرض سعر", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="web_dev_page" name="XamlTech Web Development">
+        <t t-call="website.layout"><t t-set="title">Professional Web Development &amp; Design Services in Egypt — XamlTech</t>
+            <t t-set="meta_description">Responsive web development, Odoo website themes, e-commerce, PWA applications, and SEO services in Egypt. Python, JavaScript, Arabic RTL-first design.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--2"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><p class="xt-tag">🌐 Web Development</p><h1 class="xt-hero__h1" style="font-size:40px;">A Professional Website That Delivers Results</h1><p class="xt-hero__sub" style="max-width:600px;margin:0 auto;">Your website isn't generating results? We build modern, SEO-optimized websites that convert visitors into customers.</p><div class="xt-btns" style="justify-content:center;margin-top:24px;"><a href="/contact-us" class="xt-btn xt-btn--primary">Get Your Website</a><a href="/portfolio" class="xt-btn xt-btn--outline">View Portfolio</a></div></div></section>
+            <section class="xt-sec xt-sec--dark"><div class="xt-c"><div class="xt-grid3">
+                <div class="xt-card"><span>🏢</span><h3>Corporate Sites</h3><p>Professional company websites with modern design, responsive layout, and clear brand messaging.</p></div>
+                <div class="xt-card"><span>🛒</span><h3>E-Commerce</h3><p>Online stores with payment integration, inventory sync, product catalogs, and order management.</p></div>
+                <div class="xt-card"><span>🎨</span><h3>UI/UX Design</h3><p>Beautiful, intuitive interfaces designed for engagement, accessibility, and conversion optimization.</p></div>
+                <div class="xt-card"><span>📱</span><h3>Web Applications</h3><p>Custom web apps, dashboards, portals, and SaaS platforms built with modern frameworks.</p></div>
+                <div class="xt-card"><span>🔍</span><h3>SEO</h3><p>Search engine optimization, content strategy, meta tags, schema markup, and performance tuning.</p></div>
+                <div class="xt-card"><span>🔧</span><h3>Maintenance</h3><p>Ongoing updates, security patches, content management, hosting, and performance monitoring.</p></div>
+            </div></div></section>
+            <section class="xt-sec xt-sec--grad" style="padding:60px 0;"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Ready for a Website That Works?</h2><div class="xt-btns" style="justify-content:center;margin-top:24px;"><a href="/contact-us" class="xt-btn xt-btn--primary">Start Your Project →</a></div></div></section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

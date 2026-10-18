@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_eg_trade_dashboard_user,eg.trade.dashboard user,model_eg_trade_dashboard,xt_eg_trade_control.group_trade_user,1,0,0,0
+access_eg_trade_dashboard_manager,eg.trade.dashboard manager,model_eg_trade_dashboard,xt_eg_trade_control.group_trade_manager,1,1,1,1
+access_eg_trade_eta_sales,eg.trade.eta.document sales,model_eg_trade_eta_document,xt_eg_trade_control.group_trade_sales,1,1,1,0
+access_eg_trade_eta_accountant,eg.trade.eta.document accountant,model_eg_trade_eta_document,xt_eg_trade_control.group_trade_accountant,1,1,1,0
+access_eg_trade_eta_manager,eg.trade.eta.document manager,model_eg_trade_eta_document,xt_eg_trade_control.group_trade_manager,1,1,1,1

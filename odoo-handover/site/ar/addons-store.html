@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ar-001" data-website-id="1" data-main-object="ir.ui.view(11814,)">
+    <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="generator" content="Odoo"/>
+            
+            
+        
+        <link rel="canonical" href="https://xamltech.com/addons-store"/>
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""/>
+        <title>Premium Odoo 19 POS Addons — Published on Odoo Apps Store — XamlTech</title>
+        <link type="image/x-icon" rel="shortcut icon" href="/web/image/website/1/favicon?unique=2ea6da4"/>
+        <link rel="preload" href="/web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0" as="font" crossorigin=""/>
+        <link type="text/css" rel="stylesheet" href="/web/assets/1/bd56ae5/web.assets_frontend.rtl.min.css"/>
+        <script id="web.layout.odooscript" type="text/javascript">
+            var odoo = {
+                csrf_token: "0d9636b112dd55fbb95ff09d43746e2cd01deb3ao1823134672",
+                debug: "",
+            };
+        </script>
+        <script type="text/javascript">
+            odoo.__session_info__ = {"is_admin": false, "is_system": false, "is_public": true, "is_internal_user": false, "is_website_user": true, "uid": null, "registry_hash": "255cb55fea562590cfa8dfa5d9a1d8bdcc9307c528c55bd0d91522ad13559e68", "is_frontend": true, "profile_session": null, "profile_collectors": null, "profile_params": null, "show_effect": true, "currencies": {"75": {"name": "EGP", "symbol": "LE", "position": "after", "digits": [69, 2]}, "1": {"name": "USD", "symbol": "$", "position": "before", "digits": [69, 2]}}, "quick_login": true, "bundle_params": {"lang": "ar_001", "website_id": 1}, "test_mode": false, "websocket_worker_version": "19.0-2", "translationURL": "/website/translations", "geoip_country_code": null, "geoip_phone_code": null, "lang_url_code": "ar", "add_to_cart_action": "stay"};
+            if (!/(^|;\s)tz=/.test(document.cookie)) {
+                const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                document.cookie = `tz=${userTZ}; path=/`;
+            }
+        </script>
+        <script type="text/javascript" defer="defer" src="/web/assets/1/15cd023/web.assets_frontend_minimal.min.js" onerror="__odooAssetError=1"></script>
+        <script type="text/javascript" data-src="/web/assets/1/a12af84/web.assets_frontend_lazy.min.js" onerror="__odooAssetError=1"></script>
+        
+            <script type="text/javascript">
+                var session_info = {"uid": null, "is_system": false, "is_admin": false, "is_public": true, "is_internal_user": false, "user_context": {}, "db": "xamltech", "registry_hash": "255cb55fea562590cfa8dfa5d9a1d8bdcc9307c528c55bd0d91522ad13559e68", "user_settings": {"id": 3, "embedded_actions_config_ids": {}, "homemenu_config": false, "color_scheme": "system", "is_discuss_sidebar_category_channel_open": true, "is_discuss_sidebar_category_chat_open": true, "push_to_talk_key": false, "use_push_to_talk": false, "voice_active_duration": 200, "channel_notifications": false, "livechat_username": false, "livechat_lang_ids": [], "livechat_expertise_ids": [], "user_id": {"id": 3}, "volumes": [["ADD", []]]}, "server_version": "19.0+e", "server_version_info": [19, 0, 0, "final", 0, "e"], "support_url": "https://www.odoo.com/help", "name": "Public user", "username": "public", "quick_login": true, "partner_write_date": "2026-09-21 14:53:40", "partner_display_name": "Public user", "partner_id": null, "web.base.url": "http://xamltech.com", "active_ids_limit": 20000, "profile_session": null, "profile_collectors": null, "profile_params": null, "max_file_upload_size": 134217728, "home_action_id": false, "currencies": {"75": {"name": "EGP", "symbol": "LE", "position": "after", "digits": [69, 2]}, "1": {"name": "USD", "symbol": "$", "position": "before", "digits": [69, 2]}}, "bundle_params": {"lang": "ar_SY"}, "test_mode": false, "view_info": {"list": {"display_name": "\u0627\u0644\u0642\u0627\u0626\u0645\u0629", "icon": "oi oi-view-list", "multi_record": true}, "form": {"display_name": "\u0627\u0644\u0627\u0633\u062a\u0645\u0627\u0631\u0629", "icon": "fa fa-address-card", "multi_record": false}, "graph": {"display_name": "\u0627\u0644\u0631\u0633\u0645 \u0627\u0644\u0628\u064a\u0627\u0646\u064a", "icon": "fa fa-area-chart", "multi_record": true}, "pivot": {"display_name": "\u0645\u062d\u0648\u0631", "icon": "oi oi-view-pivot", "multi_record": true}, "calendar": {"display_name": "\u0627\u0644\u062a\u0642\u0648\u064a\u0645", "icon": "fa fa-calendar", "multi_record": true}, "kanban": {"display_name": "\u0643\u0627\u0646\u0628\u0627\u0646", "icon": "oi oi-view-kanban", "multi_record": true}, "search": {"display_name": "\u0628\u062d\u062b", "icon": "oi oi-search", "multi_record": true}, "cohort": {"display_name": "\u062c\u0645\u0627\u0639\u064a ", "icon": "oi oi-view-cohort", "multi_record": true}, "gantt": {"display_name": "\u062c\u0627\u0646\u062a", "icon": "fa fa-tasks", "multi_record": true}, "grid": {"display_name": "\u0627\u0644\u0634\u0628\u0643\u0629", "icon": "fa fa-th", "multi_record": true}, "map": {"display_name": "\u0627\u0644\u062e\u0631\u064a\u0637\u0629 ", "icon": "fa fa-map-marker", "multi_record": true}, "activity": {"display_name": "\u0627\u0644\u0646\u0634\u0627\u0637", "icon": "fa fa-clock-o", "multi_record": true}}, "groups": {"base.group_allow_export": false}, "websocket_worker_version": "19.0-2", "tour_enabled": false, "current_tour": null, "odoo_clarity_tracking_code": "y1l8d34cyq", "storeData": {"Store": {"action_discuss_id": 122, "channel_types_with_seen_infos": ["chat", "group", "livechat"], "hasCannedResponses": false, "hasGifPickerFeature": false, "hasLinkPreviewFeature": true, "hasMessageTranslationFeature": false, "has_access_create_lead": false, "has_access_livechat": false, "internalUserGroupId": 1, "mt_comment": 1, "mt_note": 2, "odoobot": 2}, "res.partner": [{"active": false, "avatar_128_access_token": "a0598d19efe6a10abfff34066fcec0db3c9dc287347326cfd9f1d23953caa7d7o0x6af7d051", "id": 2, "im_status": "bot", "im_status_access_token": "7338a36eee27fe1b6255394a69bd16d622db6b6c17658ed2e15a8c23d7782195o0x6af74575", "is_company": false, "main_user_id": 1, "name": "OdooBot", "write_date": "2026-09-21 14:53:40"}], "res.users": [{"id": 1, "share": false}]}, "ai_session_identifier": "aa779fb4d5b84114985d6a1ac41e8f0a", "ua_type": "web", "app_system_name": "xamltech", "app_documentation_url": "https://www.xamltech.com", "app_documentation_dev_url": "https://www.xamltech.com", "app_support_url": "https://www.xamltech.com", "app_account_title": "Accountant", "app_account_url": "https://www.xamltech.com", "app_show_lang": "True", "app_show_debug": "True", "app_show_documentation": "True", "app_show_documentation_dev": "True", "app_show_support": "True", "app_show_account": "True", "app_show_poweredby": "True", "app_lang_list": [{"id": 3, "code": "ar_001", "name": "Arabic / \u0627\u0644\u0652\u0639\u064e\u0631\u064e\u0628\u064a\u0651\u0629"}, {"id": 1, "code": "en_US", "name": "English (US)"}], "is_erp_manager": false, "app_navbar_pos_pc": "top", "app_navbar_pos_mobile": "bottom", "app_debug_only_admin": "True", "app_stop_subscribe": "True", "can_insert_in_spreadsheet": false};
+                odoo_clarity_tracking_code = session_info.odoo_clarity_tracking_code || 'iqzpfnsz2v';
+                (function(c,l,a,r,i,t,y){
+                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                })(window, document, "clarity", "script", odoo_clarity_tracking_code);
+            </script>
+            
+            <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Organization",
+    "name": "XamlTech",
+    "logo": "https://xamltech.com/logo.png?company=1",
+    "url": "https://xamltech.com"
+}
+            </script>
+
+             
+                    <script>
+            
+                if (!window.odoo) {
+                    window.odoo = {};
+                }
+                odoo.__session_info__ = odoo.__session_info__ || {
+                    websocket_worker_version: "19.0-2"
+                }
+                odoo.__session_info__ = Object.assign(odoo.__session_info__, {
+                    livechatData: {
+                        can_load_livechat: true,
+                        serverUrl: "http://xamltech.com",
+                        options: {"header_background_color": "#875A7B", "button_background_color": "#875A7B", "title_color": "#FFFFFF", "button_text_color": "#FFFFFF", "button_text": "Need help? Chat with us.", "default_message": "\u0645\u0631\u062d\u0628\u0627\u064b\u060c \u0643\u064a\u0641 \u064a\u0645\u0643\u0646\u0646\u064a \u0645\u0633\u0627\u0639\u062f\u062a\u0643\u061f", "channel_name": "YourWebsite.com", "channel_id": 1, "review_link": false, "default_username": "\u0632\u0627\u0626\u0631"},
+                    },
+                    test_mode: false,
+                });
+            
+                    </script>
+            <script type="text/javascript">
+                (function(c,l,a,r,i,t,y){
+                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                })(window, document, "clarity", "script", "y1l8d34cyq");
+            </script>
+        
+        <meta name="google-site-verification" content="googlea7b16c2b9c88eee4.html"/>
+        
+        <meta name="msvalidate.01" content="F81D3DF31605DF065183DAFCB3AE4CF2"/>
+        
+        
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+            
+            <link rel="canonical" href="https://xamltech.com/addons-store"/>
+
+            
+            <meta property="og:title" content="Premium Odoo 19 POS Addons — Published on Odoo Apps Store — XamlTech"/>
+            <meta property="og:description" content="XamlTech: Odoo ERP development, custom POS modules, AI copilots, networking &amp; CCTV. Aswan, Egypt."/>
+            <meta property="og:url" content="https://xamltech.com/addons-store"/>
+            <meta property="og:image" content="https://xamltech.com/xamltech_addons_store/static/description/banner.png"/>
+            <meta property="og:image:width" content="1200"/>
+            <meta property="og:image:height" content="630"/>
+
+            
+            <meta name="twitter:card" content="summary_large_image"/>
+            <meta name="twitter:title" content="Premium Odoo 19 POS Addons — Published on Odoo Apps Store — XamlTech"/>
+            <meta name="twitter:description" content="XamlTech: Odoo ERP development, custom POS modules, AI copilots, networking &amp; CCTV. Aswan, Egypt."/>
+            <meta name="twitter:image" content="https://xamltech.com/xamltech_addons_store/static/description/banner.png"/>
+
+            
+            <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+
+            
+            <link rel="alternate" hreflang="ar" href="https://xamltech.com/addons-store"/>
+            <link rel="alternate" hreflang="en" href="https://xamltech.com/addons-store"/>
+            <link rel="alternate" hreflang="x-default" href="https://xamltech.com/addons-store"/>
+            <meta name="theme-color" content="#0072BC"/>
+            <meta name="mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-capable" content="yes"/>
+            <meta name="apple-mobile-web-app-title" content="XamlTech"/>
+            <link rel="manifest" href="/xamltech_addons_store/static/manifest.json"/>
+            <link rel="apple-touch-icon" href="/xamltech_addons_store/static/img/logo.png"/>
+
+            
+            <meta name="description" content="XamlTech — Odoo ERP development, custom modules, networking, CCTV, web development. Aswan, Egypt. Published addons on Odoo Apps Store."/>
+            <meta name="keywords" content="Odoo development, ERP Egypt, Odoo POS modules, CCTV Aswan, networking Egypt, web development, XamlTech, تطوير Odoo, أنظمة ERP"/>
+            <meta name="author" content="Mahmoud Amen - XamlTech"/>
+            <meta name="geo.region" content="EG-ASN"/>
+            <meta name="geo.placename" content="Aswan, Egypt"/>
+            <meta name="geo.position" content="24.0889;32.8998"/>
+            <meta name="ICBM" content="24.0889, 32.8998"/>
+            <meta property="og:type" content="website"/>
+            <meta property="og:site_name" content="XamlTech"/>
+            <meta property="og:locale" content="ar_EG"/>
+            <meta property="og:locale:alternate" content="en_US"/>
+
+            
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["Organization", "ProfessionalService"],
+      "@id": "https://xamltech.com/#organization",
+      "name": "XamlTech",
+      "alternateName": "زامل تك",
+      "url": "https://xamltech.com",
+      "logo": "https://xamltech.com/xamltech_addons_store/static/img/logo.png",
+      "description": "XamlTech is a full-service IT company specializing in Odoo ERP development (v16-v19), custom module development, POS customization, networking infrastructure, CCTV surveillance systems, web development, and digital transformation consulting. Based in Aswan, Egypt, we serve healthcare, textile, agriculture, and manufacturing industries with published addons on the official Odoo Apps Store.",
+      "foundingDate": "2018",
+      "founder": [
+        {"@type": "Person", "name": "Mahmoud Amen", "alternateName": "محمود أمين", "jobTitle": "Founder and Lead Odoo Developer", "email": "mahmudamen@gmail.com", "telephone": "+201007982468"},
+        {"@type": "Person", "name": "Osama M Salah", "alternateName": "أسامة م. صلاح", "telephone": "+201201410140"}
+      ],
+      "address": {"@type": "PostalAddress", "streetAddress": "Sahary", "addressLocality": "Aswan", "addressRegion": "Aswan Governorate", "postalCode": "81511", "addressCountry": "EG"},
+      "geo": {"@type": "GeoCoordinates", "latitude": "24.0889", "longitude": "32.8998"},
+      "telephone": "+201007982468",
+      "email": "mahmudamen@gmail.com",
+      "areaServed": [{"@type": "Country", "name": "Egypt"}, {"@type": "Country", "name": "Saudi Arabia"}],
+      "knowsAbout": ["Odoo ERP", "Odoo 16", "Odoo 17", "Odoo 18", "Odoo 19", "Point of Sale Development", "POS Customization", "OWL Framework", "Python", "PostgreSQL", "ZATCA E-Invoicing", "Network Infrastructure", "CCTV Surveillance", "Farm Management ERP", "Textile POS"],
+      "sameAs": ["https://wa.me/201007982468", "https://apps.odoo.com/apps/modules/browse?search=ma_pos", "https://github.com/mahmudamen"],
+      "hasOfferCatalog": {"@type": "OfferCatalog", "name": "XamlTech Services", "itemListElement": [
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Odoo ERP Implementation", "description": "Full Odoo deployment including requirements analysis, custom module development, data migration, ZATCA compliance, and training for versions 16-19"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "POS Custom Module Development", "description": "Published Odoo POS addons: cutting order management for textile, real-time stock sync, security framework with manager PIN and discount limits"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Network and Server Infrastructure", "description": "Enterprise LAN/WAN design, Wi-Fi deployment, Linux server administration, Docker, Proxmox virtualization, firewall and VPN configuration"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "CCTV Surveillance Systems", "description": "IP camera installation, DVR/NVR solutions up to 128 channels, remote monitoring via mobile, hospital and commercial surveillance"}},
+        {"@type": "Offer", "itemOffered": {"@type": "Service", "name": "Web Design and Development", "description": "Responsive websites, Odoo website development, e-commerce, PWA offline-first applications, SEO optimization"}}
+      ]}
+    },
+    {"@type": "WebSite", "@id": "https://xamltech.com/#website", "url": "https://xamltech.com", "name": "XamlTech", "publisher": {"@id": "https://xamltech.com/#organization"}, "inLanguage": ["ar", "en"]}
+  ]
+}</script>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "SiteNavigationElement",
+  "name": "Main Navigation",
+  "hasPart": [
+    {"@type": "SiteNavigationElement", "name": "Home", "url": "https://xamltech.com/"},
+    {"@type": "SiteNavigationElement", "name": "ERP Solutions", "url": "https://xamltech.com/solutions/erp"},
+    {"@type": "SiteNavigationElement", "name": "IT Infrastructure", "url": "https://xamltech.com/solutions/it-infrastructure"},
+    {"@type": "SiteNavigationElement", "name": "Web Development", "url": "https://xamltech.com/solutions/web"},
+    {"@type": "SiteNavigationElement", "name": "AI Copilots", "url": "https://xamltech.com/ai-solutions"},
+    {"@type": "SiteNavigationElement", "name": "Addons Store", "url": "https://xamltech.com/addons-store"},
+    {"@type": "SiteNavigationElement", "name": "Portfolio", "url": "https://xamltech.com/portfolio"},
+    {"@type": "SiteNavigationElement", "name": "Insights", "url": "https://xamltech.com/insights"},
+    {"@type": "SiteNavigationElement", "name": "Pricing", "url": "https://xamltech.com/pricing"},
+    {"@type": "SiteNavigationElement", "name": "Contact", "url": "https://xamltech.com/contact-us"}
+  ]
+}</script>
+    </head>
+    <body>
+        
+
+
+
+        <div id="wrapwrap" class=" o_rtl  ">
+            <a class="o_skip_to_content btn btn-primary rounded-0 visually-hidden-focusable position-absolute start-0" href="#wrap">تخطي للذهاب إلى المحتوى</a>
+                <header id="top" data-anchor="true" data-name="Header" class="   o_header_standard" data-extra-items-toggle-aria-label="زر العناصر الإضافية" style=" ">
+    <nav data-name="Navbar" aria-label="Main" class="navbar navbar-expand-lg navbar-light o_colored_level o_cc d-none d-lg-block shadow-sm ">
+        
+
+            <div id="o_main_nav" class="o_main_nav container">
+                
+    <a data-name="Navbar Logo" href="/" class="navbar-brand logo me-4">
+            
+            <span role="img" aria-label="Logo of XamlTech" title="XamlTech"><img src="/web/image/website/1/logo/XamlTech?unique=2ea6da4" class="img img-fluid" width="95" height="40" alt="XamlTech" loading="lazy"/></span>
+        </a>
+    
+                
+    <ul role="menu" id="top_menu" class="nav navbar-nav top_menu o_menu_loading  me-auto ">
+        
+                    
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/" class="nav-link ">
+            <span>Home</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item   dropdown">
+        <a href="#" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="menuitem" class="dropdown-toggle nav-link   ">
+            <span>Solutions</span>
+        </a>
+        
+        
+        <ul role="menu" class="dropdown-menu ">
+
+    <li role="presentation" class=" ">
+        <a role="menuitem" href="/solutions/erp" class="dropdown-item ">
+            <span>ERP &amp; Odoo</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" ">
+        <a role="menuitem" href="/solutions/it-infrastructure" class="dropdown-item ">
+            <span>IT Infrastructure</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" ">
+        <a role="menuitem" href="/solutions/web" class="dropdown-item ">
+            <span>Web Development</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" ">
+        <a role="menuitem" href="/odoo-pos-egypt" class="dropdown-item ">
+            <span>Odoo POS</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" ">
+        <a role="menuitem" href="/erp-agriculture-egypt" class="dropdown-item ">
+            <span>Agriculture ERP</span>
+        </a>
+    </li>
+        </ul>
+        
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/addons-store" class="nav-link active">
+            <span>Addons Store</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/apk-download" class="nav-link ">
+            <span>Download Apps</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/portfolio" class="nav-link ">
+            <span>Portfolio</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/knowledge" class="nav-link ">
+            <span>Knowledge</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/request-demo" class="nav-link ">
+            <span>Request Demo</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/contact-us" class="nav-link ">
+            <span>Contact Us</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/insights" class="nav-link ">
+            <span>Blog</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item ">
+        <a role="menuitem" href="/networktool" class="nav-link ">
+            <span>NetworkTool</span>
+        </a>
+    </li>
+                
+    </ul>
+                
+                <ul class="navbar-nav align-items-center gap-2 flex-shrink-0 justify-content-end ps-3">
+                    
+        <li class=" divider d-none"></li> 
+        <li class="o_wsale_my_cart d-none ">
+            <a href="/shop/cart" aria-label="عربة التسويق في المتجر الإلكتروني" class="o_navlink_background btn position-relative rounded-circle p-1 text-center text-reset">
+                <div class="">
+                    <i class="fa fa-shopping-cart fa-stack"></i>
+                    <sup class="my_cart_quantity badge bg-primary position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill d-none">0</sup>
+                </div>
+            </a>
+        </li>
+        <li class="o_wsale_my_wish d-none  o_wsale_my_wish_hide_empty">
+            <a href="/shop/wishlist" class="o_navlink_background btn position-relative rounded-circle p-1 text-center text-reset">
+                <div class="">
+                    <i class="fa fa-1x fa-heart fa-stack"></i>
+                    <sup class="my_wish_quantity o_animate_blink badge bg-primary position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill d-none">0</sup>
+                </div>
+            </a>
+        </li>
+        <li class="">
+                <div class="modal fade css_editable_mode_hidden" id="o_search_modal" aria-hidden="true" tabindex="-1">
+                    <div class="modal-dialog modal-lg pt-5">
+                        <div class="modal-content mt-5">
+    <form method="get" class="o_searchbar_form s_searchbar_input " action="/website/search" data-snippet="s_searchbar_input">
+            <div role="search" class="input-group input-group-lg">
+        <input type="search" name="search" class="search-query form-control oe_search_box border border-end-0 p-3 border-0 bg-light" placeholder="بحث..." data-search-type="all" data-limit="5" data-display-image="true" data-display-description="true" data-display-extra-link="true" data-display-detail="true" data-order-by="name asc"/>
+        <button type="submit" aria-label="بحث" title="بحث" class="btn oe_search_button border border-start-0 px-4 bg-o-color-4">
+            <i class="oi oi-search"></i>
+        </button>
+    </div>
+
+            <input name="order" type="hidden" class="o_search_order_by oe_unremovable" value="name asc"/>
+            
+        </form>
+                        </div>
+                    </div>
+                </div>
+                <a data-bs-target="#o_search_modal" data-bs-toggle="modal" role="button" title="بحث" href="#" class="btn rounded-circle p-1 lh-1 o_navlink_background text-reset o_not_editable">
+                    <i class="oi oi-search fa-stack lh-lg"></i>
+                </a>
+        </li>
+                    
+        <li class="">
+                <div data-name="Text" class="s_text_block ">
+                    <a href="tel:+201201410140" class="nav-link o_nav-link_secondary p-2">
+                        <i class="fa fa-1x fa-fw fa-phone me-1"></i>
+                        <span class="o_force_ltr"><small>+201201410140</small></span></a>
+                </div>
+        </li>
+                    
+                    
+        <li data-name="Language Selector" class="o_header_language_selector ">
+        <div class="js_language_selector  dropdown d-print-none">
+            <button type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true" class="border-0 dropdown-toggle nav-link">
+                <span class=""> الْعَرَبيّة</span>
+            </button>
+            <div role="menu" class="dropdown-menu dropdown-menu-end">
+                    <a class="dropdown-item js_change_lang active" role="menuitem" href="/addons-store" data-url_code="ar" title=" الْعَرَبيّة">
+                        <span class=""> الْعَرَبيّة</span>
+                    </a>
+                    <a class="dropdown-item js_change_lang " role="menuitem" href="/en/addons-store" data-url_code="en" title="English (US)">
+                        <span class="">English (US)</span>
+                    </a>
+            </div>
+        </div>
+        </li>
+                    
+            <li class=" o_no_autohide_item">
+                <a href="/web/login" class="o_nav_link_btn nav-link border px-3">تسجيل الدخول</a>
+            </li>
+                    
+                    
+        <li class="">
+            <div class="oe_structure oe_structure_solo ">
+                <section class="oe_unremovable oe_unmovable s_text_block" data-snippet="s_text_block" data-name="Text">
+                    <div class="container">
+                        <a href="/contactus" class="oe_unremovable btn btn-primary btn_cta">تواصل معنا</a>
+                    </div>
+                </section>
+            </div>
+        </li>
+                </ul>
+            </div>
+        
+    </nav>
+
+    <nav data-name="Navbar" aria-label="Mobile" class="navbar  navbar-light o_colored_level o_cc o_header_mobile d-block d-lg-none shadow-sm ">
+        
+
+        <div class="o_main_nav container flex-wrap justify-content-between">
+            <div class="d-flex flex-grow-1">
+                
+    <a data-name="Navbar Logo" href="/" class="navbar-brand logo ">
+            
+            <span role="img" aria-label="Logo of XamlTech" title="XamlTech"><img src="/web/image/website/1/logo/XamlTech?unique=2ea6da4" class="img img-fluid" width="95" height="40" alt="XamlTech" loading="lazy"/></span>
+        </a>
+    
+                <ul class="o_header_mobile_buttons_wrap navbar-nav d-flex flex-row align-items-center gap-2 mb-0 ms-auto">
+        <li class=" divider d-none"></li> 
+        <li class="o_wsale_my_cart d-none ">
+            <a href="/shop/cart" aria-label="عربة التسويق في المتجر الإلكتروني" class="o_navlink_background_hover btn position-relative rounded-circle border-0 p-1 text-reset">
+                <div class="">
+                    <i class="fa fa-shopping-cart fa-stack"></i>
+                    <sup class="my_cart_quantity badge bg-primary position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill d-none">0</sup>
+                </div>
+            </a>
+        </li>
+        <li class="o_wsale_my_wish d-none  o_wsale_my_wish_hide_empty">
+            <a href="/shop/wishlist" class="o_navlink_background_hover btn position-relative rounded-circle border-0 p-1 text-reset">
+                <div class="">
+                    <i class="fa fa-1x fa-heart fa-stack"></i>
+                    <sup class="my_wish_quantity o_animate_blink badge bg-primary position-absolute top-0 end-0 mt-n1 me-n1 d-none">0</sup>
+                </div>
+            </a>
+        </li></ul>
+            </div>
+            <button class="nav-link btn p-2 o_not_editable" type="button" data-bs-toggle="offcanvas" data-bs-target="#top_menu_collapse_mobile" aria-controls="top_menu_collapse_mobile" aria-expanded="false" aria-label="تنقل التبديل">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div id="top_menu_collapse_mobile" class="offcanvas offcanvas-end o_navbar_mobile">
+                <div class="offcanvas-header justify-content-end o_not_editable">
+                    <button type="button" class="nav-link btn-close" data-bs-dismiss="offcanvas" aria-label="إغلاق"></button>
+                </div>
+                <div class="offcanvas-body d-flex flex-column justify-content-between h-100 w-100 pt-0">
+                    <ul class="navbar-nav">
+                        
+        <li class="">
+    <form method="get" class="o_searchbar_form s_searchbar_input " action="/website/search" data-snippet="s_searchbar_input">
+            <div role="search" class="input-group mb-3">
+        <input type="search" name="search" class="search-query form-control oe_search_box rounded-start-pill text-bg-light ps-3 border-0 bg-light" placeholder="بحث..." data-search-type="all" data-limit="0" data-display-image="true" data-display-description="true" data-display-extra-link="true" data-display-detail="true" data-order-by="name asc"/>
+        <button type="submit" aria-label="بحث" title="بحث" class="btn oe_search_button rounded-end-pill bg-o-color-3 pe-3">
+            <i class="oi oi-search"></i>
+        </button>
+    </div>
+
+            <input name="order" type="hidden" class="o_search_order_by oe_unremovable" value="name asc"/>
+            
+        </form>
+        </li>
+                        
+                        <li>
+    <ul role="menu" class="nav navbar-nav top_menu  o_mega_menu_is_offcanvas mx-n3  ">
+        
+                                
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/" class="nav-link p-3 text-wrap ">
+            <span>Home</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top    accordion accordion-flush">
+        
+        
+        <div class="accordion-item">
+            <a href="#" data-bs-toggle="collapse" aria-expanded="false" class="nav-link p-3 text-wrap accordion-button collapsed" data-bs-target=".o_accordion_target_62" aria-controls="o_accordion_target_62">
+                <span>Solutions</span>
+            </a>
+            <div class="o_accordion_target_62 accordion-collapse collapse" aria-labelledby="o_accordion_target_62" data-bs-parent="#top_menu_collapse_mobile">
+                <ul class="show list-group list-unstyled py-0" role="menu">
+
+    <li role="presentation" class=" px-0">
+        <a role="menuitem" href="/solutions/erp" class="nav-link list-group-item list-group-item-action border-0 rounded-0 px-4 text-wrap ">
+            <span>ERP &amp; Odoo</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" px-0">
+        <a role="menuitem" href="/solutions/it-infrastructure" class="nav-link list-group-item list-group-item-action border-0 rounded-0 px-4 text-wrap ">
+            <span>IT Infrastructure</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" px-0">
+        <a role="menuitem" href="/solutions/web" class="nav-link list-group-item list-group-item-action border-0 rounded-0 px-4 text-wrap ">
+            <span>Web Development</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" px-0">
+        <a role="menuitem" href="/odoo-pos-egypt" class="nav-link list-group-item list-group-item-action border-0 rounded-0 px-4 text-wrap ">
+            <span>Odoo POS</span>
+        </a>
+    </li>
+
+    <li role="presentation" class=" px-0">
+        <a role="menuitem" href="/erp-agriculture-egypt" class="nav-link list-group-item list-group-item-action border-0 rounded-0 px-4 text-wrap ">
+            <span>Agriculture ERP</span>
+        </a>
+    </li>
+                </ul>
+            </div>
+        </div>
+        
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/addons-store" class="nav-link p-3 text-wrap active">
+            <span>Addons Store</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/apk-download" class="nav-link p-3 text-wrap ">
+            <span>Download Apps</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/portfolio" class="nav-link p-3 text-wrap ">
+            <span>Portfolio</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/knowledge" class="nav-link p-3 text-wrap ">
+            <span>Knowledge</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/request-demo" class="nav-link p-3 text-wrap ">
+            <span>Request Demo</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/contact-us" class="nav-link p-3 text-wrap ">
+            <span>Contact Us</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top  px-0">
+        <a role="menuitem" href="/insights" class="nav-link p-3 text-wrap ">
+            <span>Blog</span>
+        </a>
+    </li>
+
+    <li role="presentation" class="nav-item border-top border-bottom px-0">
+        <a role="menuitem" href="/networktool" class="nav-link p-3 text-wrap ">
+            <span>NetworkTool</span>
+        </a>
+    </li>
+                            
+    </ul>
+                        </li>
+                        
+        <li class="">
+                <div data-name="Text" class="s_text_block mt-2">
+                    <a href="tel:+201201410140" class="nav-link o_nav-link_secondary p-2">
+                        <i class="fa fa-1x fa-fw fa-phone me-1"></i>
+                        <span class="o_force_ltr"><small>+201201410140</small></span></a>
+                </div>
+        </li>
+                        
+                    </ul>
+                    <ul class="navbar-nav gap-2 mt-3 w-100">
+                        
+        <li data-name="Language Selector" class="o_header_language_selector ">
+        <div class="js_language_selector dropup dropdown d-print-none">
+            <button type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true" class="border-0 dropdown-toggle nav-link d-flex align-items-center w-100">
+                <span class="me-auto small"> الْعَرَبيّة</span>
+            </button>
+            <div role="menu" class="dropdown-menu w-100">
+                    <a class="dropdown-item js_change_lang active" role="menuitem" href="/addons-store" data-url_code="ar" title=" الْعَرَبيّة">
+                        <span class="me-auto small"> الْعَرَبيّة</span>
+                    </a>
+                    <a class="dropdown-item js_change_lang " role="menuitem" href="/en/addons-store" data-url_code="en" title="English (US)">
+                        <span class="me-auto small">English (US)</span>
+                    </a>
+            </div>
+        </div>
+        </li>
+                        
+            <li class=" o_no_autohide_item">
+                <a href="/web/login" class="nav-link o_nav_link_btn w-100 border text-center">تسجيل الدخول</a>
+            </li>
+                        
+                        
+        <li class="">
+            <div class="oe_structure oe_structure_solo ">
+                <section class="oe_unremovable oe_unmovable s_text_block" data-snippet="s_text_block" data-name="Text">
+                    <div class="container">
+                        <a href="/contactus" class="oe_unremovable btn btn-primary btn_cta w-100">تواصل معنا</a>
+                    </div>
+                </section>
+            </div>
+        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    
+    </nav>
+    </header>
+                <main>
+                    
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "XamlTech Odoo Addons Store",
+  "description": "Production-grade Odoo 18/19 POS modules published on the official Odoo Apps Store. Cutting orders for textile, real-time stock sync, security framework with manager PIN.",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "item": {"@type": "SoftwareApplication", "name": "POS Cutting Orders", "applicationCategory": "BusinessApplication", "operatingSystem": "Odoo 18", "url": "https://apps.odoo.com/apps/modules/18.0/ma_pos_cutting", "offers": {"@type": "Offer", "price": "456.67", "priceCurrency": "USD"}}},
+    {"@type": "ListItem", "position": 2, "item": {"@type": "SoftwareApplication", "name": "POS Stock Real-Time", "applicationCategory": "BusinessApplication", "operatingSystem": "Odoo 18", "url": "https://apps.odoo.com/apps/modules/18.0/ma_rs_pos_stock", "offers": {"@type": "Offer", "price": "404.81", "priceCurrency": "USD"}}},
+    {"@type": "ListItem", "position": 3, "item": {"@type": "SoftwareApplication", "name": "POS Security Framework", "applicationCategory": "BusinessApplication", "operatingSystem": "Odoo 18", "url": "https://apps.odoo.com/apps/modules/18.0/ma_pos_base", "offers": {"@type": "Offer", "price": "253.71", "priceCurrency": "USD"}}}
+  ]
+}</script>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"></div></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><img src="/xamltech_addons_store/static/img/logo.png" alt="XamlTech" style="max-width:160px;margin-bottom:16px;" loading="lazy"/><p class="xt-tag">🛒 Odoo Apps Store</p><h1 class="xt-hero__h1" style="font-size:40px;">إضافات Odoo المميزة</h1><div class="xt-btns" style="justify-content:center;margin-top:20px;"><a href="https://apps.odoo.com/apps/modules/browse?search=ma_pos" target="_blank" class="xt-btn xt-btn--outline">Odoo Apps ↗</a><a href="/request-demo" class="xt-btn xt-btn--primary">🖥️ Try Demo</a></div></div></section>
+            <section class="xt-sec xt-sec--dark" id="rs-addons-store" data-addons="[{&#34;id&#34;: 1, &#34;name&#34;: &#34;POS Base - Security Framework&#34;, &#34;slug&#34;: &#34;ma_pos_base&#34;, &#34;category&#34;: &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;categoryIcon&#34;: &#34;\ud83d\udda5\ufe0f&#34;, &#34;description&#34;: &#34;Comprehensive POS security framework with manager PIN validation, discount limit enforcement, multi-layer session security, and backend validation. Odoo 19 Ready.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;POS Base - Security Framework (Odoo 19)&lt;/h2&gt;&lt;p&gt;A powerful security foundation for Odoo 19 POS:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Manager PIN Validation&lt;/strong&gt; \u2014 Require PIN for session close, refunds, and critical operations&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Discount Limit Enforcement&lt;/strong&gt; \u2014 Multi-layer at NumberPopup, Orderline, and Security Service levels&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Session Security&lt;/strong&gt; \u2014 Backend validation complementing frontend checks&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Role-Based Access&lt;/strong&gt; \u2014 Granular permissions for POS users (Basic, Advanced, Manager, Admin)&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Audit Logging&lt;/strong&gt; \u2014 Immutable transaction logs for compliance&lt;/li&gt;&lt;li&gt;&lt;strong&gt;5 Failed Login Lockout&lt;/strong&gt; \u2014 15-minute account lock after failed attempts&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83d\udd10&#34;, &#34;accentColor&#34;: &#34;#10B981&#34;, &#34;price&#34;: 99.0, &#34;version&#34;: &#34;19.0.1.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;Essential&#34;, &#34;badgeType&#34;: &#34;essential&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/ma_pos_base&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;\u0627\u0644\u0623\u0645\u0627\u0646&#34;, &#34;\u0627\u0644\u062a\u062d\u0643\u0645 \u0641\u064a \u0627\u0644\u0648\u0635\u0648\u0644&#34;, &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;], &#34;seoMetaDescription&#34;: &#34;POS security framework for Odoo 19 with PIN validation, discount limits, role-based access, and immutable audit logs. Enterprise-grade.&#34;, &#34;seoKeywords&#34;: &#34;Odoo POS security, PIN validation, discount limits, access control, Odoo 19 POS module&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/ma_pos_base.png&#34;}, {&#34;id&#34;: 2, &#34;name&#34;: &#34;POS Customization Kit&#34;, &#34;slug&#34;: &#34;ma_pos_customization&#34;, &#34;category&#34;: &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;categoryIcon&#34;: &#34;\ud83d\udda5\ufe0f&#34;, &#34;description&#34;: &#34;Flexible POS UI customization toolkit with theme builder, layout manager, component overrides, and dark/light mode support. Full Arabic RTL.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;POS Customization Kit (Odoo 19)&lt;/h2&gt;&lt;p&gt;Empower your POS with deep UI customization:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Arabic-First Design&lt;/strong&gt; \u2014 Full RTL support with Cairo &amp;amp; Tajawal fonts&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Theme Builder&lt;/strong&gt; \u2014 Custom color schemes and branding with CSS variables&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Dark/Light Mode&lt;/strong&gt; \u2014 Toggle theme support with smooth transitions&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Component Overrides&lt;/strong&gt; \u2014 Extend or replace any OWL v2 component&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Layout Manager&lt;/strong&gt; \u2014 Rearrange POS screen components via drag-drop&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Responsive Design&lt;/strong&gt; \u2014 Mobile, tablet, and desktop optimized&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83c\udfa8&#34;, &#34;accentColor&#34;: &#34;#F97316&#34;, &#34;price&#34;: 89.0, &#34;version&#34;: &#34;19.0.1.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/ma_pos_customization&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;\u0627\u0644\u062a\u062e\u0635\u064a\u0635&#34;, &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;\u0648\u0627\u062c\u0647\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645&#34;], &#34;seoMetaDescription&#34;: &#34;POS UI customization toolkit with theme builder, dark/light mode, Arabic RTL support, and OWL v2 component overrides for Odoo 19.&#34;, &#34;seoKeywords&#34;: &#34;Odoo POS customization, POS theme, dark mode, Arabic RTL, Odoo 19 UI customization&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/ma_pos_customization.png&#34;}, {&#34;id&#34;: 3, &#34;name&#34;: &#34;POS Cutting Orders&#34;, &#34;slug&#34;: &#34;ma_pos_cutting&#34;, &#34;category&#34;: &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;categoryIcon&#34;: &#34;\ud83d\udda5\ufe0f&#34;, &#34;description&#34;: &#34;Advanced cutting order management for fabric and textile POS operations with real-time tracking, batch serial assignment, and OWL v2 UI.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;POS Cutting Orders (Odoo 19)&lt;/h2&gt;&lt;p&gt;Purpose-built for fabric, textile, and material businesses:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Batch Order Management&lt;/strong&gt; \u2014 Create and manage cutting orders for groups with automatic serial number assignment&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Dedicated Cutting Screen&lt;/strong&gt; \u2014 Full OWL v2 UI with dark/light mode support&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Real-Time Tracking&lt;/strong&gt; \u2014 Live status updates, quantity tracking, and completion workflows&lt;/li&gt;&lt;li&gt;&lt;strong&gt;State Machine&lt;/strong&gt; \u2014 Draft \u2192 Confirmed \u2192 Cutting \u2192 Done \u2192 Cancelled&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Manager PIN Security&lt;/strong&gt; \u2014 PIN-protected critical operations&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Serial Generation&lt;/strong&gt; \u2014 Automatic batch serial numbering with prefix/suffix&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\u2702\ufe0f&#34;, &#34;accentColor&#34;: &#34;#E8364F&#34;, &#34;price&#34;: 149.0, &#34;version&#34;: &#34;19.0.1.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/ma_pos_cutting&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;\u0627\u0644\u062a\u0635\u0646\u064a\u0639&#34;, &#34;\u0627\u0644\u0642\u0635&#34;, &#34;\u0627\u0644\u0646\u0633\u064a\u062c&#34;, &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;], &#34;seoMetaDescription&#34;: &#34;Textile POS cutting orders for Odoo 19 with batch serial assignment, real-time tracking, and state machine workflow. Manufacturing-ready.&#34;, &#34;seoKeywords&#34;: &#34;Odoo POS cutting, textile POS, fabric management, batch orders, manufacturing POS&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/ma_pos_cutting.png&#34;}, {&#34;id&#34;: 4, &#34;name&#34;: &#34;POS Stock Real-Time&#34;, &#34;slug&#34;: &#34;ma_rs_pos_stock&#34;, &#34;category&#34;: &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;categoryIcon&#34;: &#34;\ud83d\udda5\ufe0f&#34;, &#34;description&#34;: &#34;Real-time stock synchronization for POS with reactive badge updates, batch loading, navbar refresh button, and live warehouse sync.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;POS Stock Real-Time (Odoo 19)&lt;/h2&gt;&lt;p&gt;Keep your POS inventory always up to date:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Real-Time Stock Sync&lt;/strong&gt; \u2014 Instant updates across all POS sessions via WebSocket&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Reactive Badge Updates&lt;/strong&gt; \u2014 Stock badges update via pos-stock-refreshed OWL events&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Batch Stock Loading&lt;/strong&gt; \u2014 Efficient loading for catalogs with 1000+ products&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Navbar Refresh Button&lt;/strong&gt; \u2014 Manual stock refresh from POS toolbar&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Multi-Warehouse Support&lt;/strong&gt; \u2014 Track stock across all warehouses&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Color-Coded Indicators&lt;/strong&gt; \u2014 Green (10+), Amber (1-10), Red (0 stock)&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Cutting Reservation Tracking&lt;/strong&gt; \u2014 Integrates with ma_pos_cutting for reserved stock&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83d\udce6&#34;, &#34;accentColor&#34;: &#34;#3B82F6&#34;, &#34;price&#34;: 129.0, &#34;version&#34;: &#34;19.0.1.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/ma_rs_pos_stock&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;Inventory&#34;, &#34;\u0641\u0648\u0631\u064a&#34;, &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;], &#34;seoMetaDescription&#34;: &#34;Real-time stock synchronization for Odoo 19 POS with WebSocket sync, batch loading, and multi-warehouse support. Live inventory updates.&#34;, &#34;seoKeywords&#34;: &#34;Odoo POS stock sync, real-time inventory, warehouse sync, Odoo 19 stock management&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/ma_rs_pos_stock.png&#34;}, {&#34;id&#34;: 5, &#34;name&#34;: &#34;HDA Collection - Revenue Management&#34;, &#34;slug&#34;: &#34;hda_collection&#34;, &#34;category&#34;: &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;categoryIcon&#34;: &#34;\ud83d\udda5\ufe0f&#34;, &#34;description&#34;: &#34;Enterprise revenue collection system for museums, tourism sites, and cultural venues. Multi-point operations, real-time reporting, collector POS integration, treasury deposits, and compliance accounting.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;HDA Collection \u2014 Enterprise Revenue Management (Odoo 19)&lt;/h2&gt;&lt;p&gt;Complete revenue collection solution for \u0627\u0644\u0647\u064a\u0626\u0629 \u0627\u0644\u0639\u0627\u0645\u0629, museums, and tourism destinations.&lt;/p&gt;\n&lt;h3&gt;Multi-Point Operations&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Collection Points&lt;/strong&gt; \u2014 NILE_MUSEUM, SADDAM, HOUSING, KIOSK with independent configurations&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Shift Management&lt;/strong&gt; \u2014 Template-based shifts with supervisor approval workflows&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Collector POS&lt;/strong&gt; \u2014 Dedicated POS interface for ticket collectors with PIN security&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Session Gates&lt;/strong&gt; \u2014 PIN-protected session start/end within \u00b115 min shift window&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h3&gt;Ticket &amp;amp; Pricing&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;26+ Ticket Categories&lt;/strong&gt; \u2014 Foreign Single/Group, Egyptian Complex/Single, Student, Playground, Camera, Wedding, Transportation&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Dynamic Pricing&lt;/strong&gt; \u2014 Per-category pricing with seasonal variants&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Group Validation&lt;/strong&gt; \u2014 Automatic min/max attendee validation for group tickets&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Cutting Orders&lt;/strong&gt; \u2014 Batch ticket serial generation via ma_pos_cutting integration&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h3&gt;Real-Time Reporting&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Session Dashboard&lt;/strong&gt; \u2014 Live collector counts, revenue, variances&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Treasury Deposits&lt;/strong&gt; \u2014 Automated receipt generation with signature lines&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Daily Reports&lt;/strong&gt; \u2014 Shift summaries, category breakdowns, anomaly detection&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;SQL Views&lt;/strong&gt; \u2014 hda.sales.report for analytics on 8+ dimensions&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h3&gt;Accounting Integration&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Auto Journal Entries&lt;/strong&gt; \u2014 Per-category revenue accounts (710x series)&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Egypt COA Ready&lt;/strong&gt; \u2014 Pre-configured GL accounts for Egyptian compliance&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Budget Tracking&lt;/strong&gt; \u2014 Revenue budgets with variance analysis&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Incentive Automation&lt;/strong&gt; \u2014 Rules-based distributor bonuses &amp;amp; collector commissions&lt;/li&gt;\n&lt;/ul&gt;\n&lt;h3&gt;Arabic-First, RTL-Ready&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Full Bilingual UI&lt;/strong&gt; \u2014 Arabic (primary) + English translations&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;RTL Forms &amp;amp; Reports&lt;/strong&gt; \u2014 All documents rendered in RTL for proper Arabic display&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Cairo Font&lt;/strong&gt; \u2014 Professional Arabic typography&lt;/li&gt;\n&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83c\udfdb\ufe0f&#34;, &#34;accentColor&#34;: &#34;#0B5D3F&#34;, &#34;price&#34;: 249.0, &#34;version&#34;: &#34;19.0.2.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/hda_collection&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;Museums &amp; Tourism&#34;, &#34;Revenue Management&#34;, &#34;Ticketing&#34;, &#34;\u0627\u0644\u062a\u062e\u0635\u064a\u0635&#34;, &#34;\u0641\u0648\u0631\u064a&#34;, &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;], &#34;seoMetaDescription&#34;: &#34;Enterprise revenue collection for museums &amp; tourism. Multi-point ticketing, real-time reporting, treasury deposits, and Egypt COA accounting integration.&#34;, &#34;seoKeywords&#34;: &#34;museum ticketing system, revenue collection Odoo, tourism POS, real-time reporting, Egypt accounting&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/hda_collection.png&#34;}, {&#34;id&#34;: 6, &#34;name&#34;: &#34;Advanced Agricultural Management&#34;, &#34;slug&#34;: &#34;agricultural_management&#34;, &#34;category&#34;: &#34;\u0627\u0644\u0632\u0631\u0627\u0639\u0629&#34;, &#34;categoryIcon&#34;: &#34;\ud83c\udf3f&#34;, &#34;description&#34;: &#34;Complete farm-to-warehouse ERP for Odoo 19 \u2014 OWL Dashboard with Chart.js, 4-level farm hierarchy, real-time costing, 7-step production workflow, harvest scheduling with quality sorting, full accounting integration, and 12-section operations dashboard.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;\n&lt;h2&gt;Advanced Agricultural Management System \u2014 Odoo 19&lt;/h2&gt;\n&lt;p&gt;The most comprehensive agricultural management module for Odoo. Manage your entire farming operation from a single dashboard.&lt;/p&gt;\n\n&lt;h3&gt;Interactive OWL Dashboard&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;8 Live KPI Cards&lt;/strong&gt; \u2014 Total Farms, Area, Revenue, Cost, Net Profit, Margin, Projects, Requests&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Chart.js Analytics&lt;/strong&gt; \u2014 Revenue vs Cost bar chart, Cost Breakdown doughnut, Yield Efficiency line chart&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Dark &amp;amp; Light Mode&lt;/strong&gt; \u2014 Full CSS variable theme system with responsive design&lt;/li&gt;\n&lt;/ul&gt;\n\n&lt;h3&gt;4-Level Farm Hierarchy&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Farm \u2192 Sector \u2192 Unit \u2192 House&lt;/strong&gt; \u2014 Dynamic area calculation including all children&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Auto-Setup&lt;/strong&gt; \u2014 Stock locations, analytic accounts, and warehouses created per farm&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Total Area Including Children&lt;/strong&gt; \u2014 Supports Meter and Feddan measurements&lt;/li&gt;\n&lt;/ul&gt;\n\n&lt;h3&gt;Real-Time Costing Engine&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Material, Labor, Equipment&lt;/strong&gt; \u2014 All costs flow through analytic accounts per farm&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Cost Allocation&lt;/strong&gt; \u2014 Percentage-based distribution across farm hierarchy&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;P&amp;amp;L Analysis&lt;/strong&gt; \u2014 Per farm, per crop, per season with budget variance tracking&lt;/li&gt;\n&lt;/ul&gt;\n\n&lt;h3&gt;Production &amp;amp; Harvest&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;7-Step Approval Workflow&lt;/strong&gt; \u2014 Draft \u2192 Submitted \u2192 Dr. Approved \u2192 Inventory Review \u2192 Transfer \u2192 RFQ \u2192 Completed&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Harvest Scheduling&lt;/strong&gt; \u2014 Manual, seasonal, recurring schedules with worker assignment&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Quality Sorting&lt;/strong&gt; \u2014 Grade A/B/C classification with automatic lot generation and waste tracking&lt;/li&gt;\n&lt;/ul&gt;\n\n&lt;h3&gt;Full ERP Integration&lt;/h3&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;Accounting&lt;/strong&gt; \u2014 Automated journal entries, multi-journal, budget tracking&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Inventory&lt;/strong&gt; \u2014 Multi-warehouse, lot traceability, internal transfers&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;Purchase&lt;/strong&gt; \u2014 Auto-RFQ from production, vendor evaluation&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;HR&lt;/strong&gt; \u2014 Worker assignment, 7 product types, section-based tasks&lt;/li&gt;\n&lt;/ul&gt;\n\n&lt;p&gt;&lt;strong&gt;Try the live demo:&lt;/strong&gt; &lt;a href=\&#34;https://demo.xamltech.com/web/database/manager\&#34;&gt;demo.xamltech.com&lt;/a&gt; (Database: demo, User: demo, Password: demo)&lt;/p&gt;\n&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83c\udf3e&#34;, &#34;accentColor&#34;: &#34;#0B5D3F&#34;, &#34;price&#34;: 0.0, &#34;version&#34;: &#34;19.0.1.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/agricultural_management&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;Agriculture&#34;, &#34;Costing&#34;, &#34;Dashboard&#34;, &#34;Harvest&#34;, &#34;Inventory&#34;, &#34;OWL&#34;], &#34;seoMetaDescription&#34;: &#34;Farm-to-warehouse ERP for Odoo 19 with OWL dashboard, 4-level hierarchy, real-time costing, harvest workflows, and full accounting integration.&#34;, &#34;seoKeywords&#34;: &#34;farm management ERP, agricultural POS, harvest scheduling, farm accounting, Odoo 19 agriculture&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/agricultural_management.png&#34;}, {&#34;id&#34;: 7, &#34;name&#34;: &#34;AI Marketing Copilot&#34;, &#34;slug&#34;: &#34;ai_marketing_copilot&#34;, &#34;category&#34;: &#34;AI &amp; Intelligence&#34;, &#34;categoryIcon&#34;: &#34;\ud83e\udd16&#34;, &#34;description&#34;: &#34;Smart AI-Driven Budget Optimization for Meta, Google Ads &amp; TikTok. Real-time campaign scoring, intelligent budget reallocation, and automated decision logging.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;AI Marketing Copilot&lt;/h2&gt;&lt;p&gt;Transform your marketing campaigns with AI-powered budget optimization:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Real-Time Campaign Scoring&lt;/strong&gt; \u2014 Automatic scoring (0-100%) based on ROI, CTR, CVR, and CPA metrics&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Smart Budget Allocation&lt;/strong&gt; \u2014 Intelligent reallocation scales up winners and cuts losers&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Multi-Platform Support&lt;/strong&gt; \u2014 Integrate with Meta, Google Ads, and TikTok campaigns&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Decision Logging&lt;/strong&gt; \u2014 Complete audit trail of all AI recommendations and actions&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Thompson Sampling&lt;/strong&gt; \u2014 Advanced multi-armed bandit algorithm for optimal exploration/exploitation&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Dashboard Analytics&lt;/strong&gt; \u2014 Real-time dashboards with KPIs, ROI, CPA, CTR, and conversion rates&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Clean Architecture&lt;/strong&gt; \u2014 Domain-Driven Design with comprehensive 83+ test suite&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83d\udcca&#34;, &#34;accentColor&#34;: &#34;#6366F1&#34;, &#34;price&#34;: 79.0, &#34;version&#34;: &#34;19.0.2.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;AI-Powered&#34;, &#34;Automation&#34;, &#34;Marketing&#34;, &#34;\u0641\u0648\u0631\u064a&#34;], &#34;seoMetaDescription&#34;: &#34;AI-powered budget optimization for Meta, Google Ads, TikTok. Real-time campaign scoring, smart reallocation, and Thompson sampling algorithm.&#34;, &#34;seoKeywords&#34;: &#34;AI marketing automation, budget optimization, Meta Ads Odoo, Google Ads integration, marketing AI&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/ai_marketing_copilot.png&#34;}, {&#34;id&#34;: 8, &#34;name&#34;: &#34;AI POS Copilot&#34;, &#34;slug&#34;: &#34;ai_pos_copilot&#34;, &#34;category&#34;: &#34;AI &amp; Intelligence&#34;, &#34;categoryIcon&#34;: &#34;\ud83e\udd16&#34;, &#34;description&#34;: &#34;Real-time AI upsell suggestions in Point of Sale. Smart product recommendations based on cart context, customer history, and seasonal trends with Arabic-first UX.&#34;, &#34;fullDescription&#34;: &#34;&lt;div&gt;&lt;h2&gt;AI POS Copilot&lt;/h2&gt;&lt;p&gt;Boost sales with intelligent product recommendations at checkout:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Real-Time Suggestions&lt;/strong&gt; \u2014 AI recommends 1-3 products as cashier scans items (debounced 800ms)&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Smart Context&lt;/strong&gt; \u2014 Considers cart contents, customer purchase history, and seasonal promotions&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Instant Addition&lt;/strong&gt; \u2014 One-click product addition with no POS workflow disruption&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Arabic-First UX&lt;/strong&gt; \u2014 Full RTL support with bilingual names and descriptions&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Graceful Degradation&lt;/strong&gt; \u2014 Silent fail if AI service unavailable \u2014 cashier workflow unaffected&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Complete Logging&lt;/strong&gt; \u2014 Audit trail of all suggestions and acceptances for analytics&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Shift Summaries&lt;/strong&gt; \u2014 AI-generated Arabic shift summaries at session close&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Multi-LLM Support&lt;/strong&gt; \u2014 Works with OpenAI, Google Gemini, or on-premise Ollama&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&#34;, &#34;iconEmoji&#34;: &#34;\ud83e\udd16&#34;, &#34;accentColor&#34;: &#34;#8B5CF6&#34;, &#34;price&#34;: 59.0, &#34;version&#34;: &#34;19.0.1.0.0&#34;, &#34;compatibleVersions&#34;: [&#34;19&#34;], &#34;rating&#34;: 0.0, &#34;reviewsCount&#34;: 0, &#34;downloadsCount&#34;: 0, &#34;badge&#34;: &#34;New&#34;, &#34;badgeType&#34;: &#34;new&#34;, &#34;isFeatured&#34;: true, &#34;odooStoreUrl&#34;: &#34;https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot&#34;, &#34;githubUrl&#34;: &#34;&#34;, &#34;docUrl&#34;: &#34;&#34;, &#34;tags&#34;: [&#34;AI-Powered&#34;, &#34;Smart Suggestions&#34;, &#34;\u0641\u0648\u0631\u064a&#34;, &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;], &#34;seoMetaDescription&#34;: &#34;AI-powered POS upsell suggestions with real-time recommendations, Arabic RTL UX, and multi-LLM support (OpenAI, Gemini, Ollama).&#34;, &#34;seoKeywords&#34;: &#34;POS AI recommendations, upsell suggestions, AI retail, smart suggestions Odoo, Arabic POS&#34;, &#34;seoOgImage&#34;: &#34;https://xamltech.com/xamltech_addons_store/static/img/addons/ai_pos_copilot.png&#34;}]" data-categories="[{&#34;id&#34;: 1, &#34;name&#34;: &#34;\u0646\u0642\u0627\u0637 \u0627\u0644\u0628\u064a\u0639&#34;, &#34;icon&#34;: &#34;\ud83d\udda5\ufe0f&#34;, &#34;count&#34;: 5}, {&#34;id&#34;: 6, &#34;name&#34;: &#34;AI &amp; Intelligence&#34;, &#34;icon&#34;: &#34;\ud83e\udd16&#34;, &#34;count&#34;: 2}, {&#34;id&#34;: 2, &#34;name&#34;: &#34;\u0627\u0644\u0645\u062d\u0627\u0633\u0628\u0629&#34;, &#34;icon&#34;: &#34;\ud83d\udcb0&#34;, &#34;count&#34;: 0}, {&#34;id&#34;: 3, &#34;name&#34;: &#34;\u0627\u0644\u0632\u0631\u0627\u0639\u0629&#34;, &#34;icon&#34;: &#34;\ud83c\udf3f&#34;, &#34;count&#34;: 1}, {&#34;id&#34;: 4, &#34;name&#34;: &#34;\u062a\u0642\u0646\u064a&#34;, &#34;icon&#34;: &#34;\u2699\ufe0f&#34;, &#34;count&#34;: 0}, {&#34;id&#34;: 5, &#34;name&#34;: &#34;\u0627\u0644\u0645\u062e\u0632\u0648\u0646&#34;, &#34;icon&#34;: &#34;\ud83d\udce6&#34;, &#34;count&#34;: 0}]">
+                <div class="xt-c"><div class="xt-stats" style="padding:0 0 40px;"><div class="xt-stat"><span class="xt-stat__i">📦</span><span class="xt-stat__v">8+</span><span class="xt-stat__l">Addons</span></div><div class="xt-stat"><span class="xt-stat__i">⬇️</span><span class="xt-stat__v">0</span><span class="xt-stat__l">Downloads</span></div><div class="xt-stat"><span class="xt-stat__i">⭐</span><span class="xt-stat__v">0.0</span><span class="xt-stat__l">Rating</span></div><div class="xt-stat"><span class="xt-stat__i">💬</span><span class="xt-stat__v">0</span><span class="xt-stat__l">Reviews</span></div></div>
+                <div class="xt-cats"><button class="xt-cat xt-cat--on" data-category="All">🏪 All <span class="xt-cat__c">8</span></button><button class="xt-cat" data-category="نقاط البيع">🖥️ نقاط البيع <span class="xt-cat__c">5</span></button><button class="xt-cat" data-category="AI &amp; Intelligence">🤖 AI &amp; Intelligence <span class="xt-cat__c">2</span></button><button class="xt-cat" data-category="المحاسبة">💰 المحاسبة <span class="xt-cat__c">0</span></button><button class="xt-cat" data-category="الزراعة">🌿 الزراعة <span class="xt-cat__c">1</span></button><button class="xt-cat" data-category="تقني">⚙️ تقني <span class="xt-cat__c">0</span></button><button class="xt-cat" data-category="المخزون">📦 المخزون <span class="xt-cat__c">0</span></button></div>
+                <div class="xt-toolbar"><div class="xt-toolbar__s"><span class="xt-toolbar__si">🔍</span><input type="text" id="rs-search-input" class="xt-inp xt-toolbar__inp" placeholder="Search addons…"/></div><select id="rs-sort-select" class="xt-inp xt-sel" style="max-width:200px;"><option value="popular">Popular</option><option value="rating">Rating</option><option value="newest">Newest</option><option value="price_low">Price ↑</option><option value="price_high">Price ↓</option></select><div class="xt-toolbar__cnt" id="rs-addon-count">8 إضافة</div></div>
+                <div class="xt-grid3" id="rs-addons-grid">
+                    <div class="xt-acard" data-addon-id="1" data-name="POS Base - Security Framework" data-slug="ma_pos_base" data-category="نقاط البيع" data-tags="الأمان,التحكم في الوصول,نقاط البيع" data-description="Comprehensive POS security framework with manager PIN validation, discount limit enforcement, multi-layer session security, and backend validation. Odoo 19 Ready." data-price="99.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/ma_pos_base">
+                        <span class="xt-acard__badge" style="background:#10B981">Essential</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#10B98112,#10B98104)"><span class="xt-acard__icon">🔐</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#10B981">نقاط البيع · v19.0.1.0.0</span><h3 class="xt-acard__name">POS Base - Security Framework</h3><p class="xt-acard__desc">Comprehensive POS security framework with manager PIN validation, discount limit enforcement, multi-layer session security, and backend validation. Odoo 19 Ready.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€99</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="2" data-name="POS Customization Kit" data-slug="ma_pos_customization" data-category="نقاط البيع" data-tags="التخصيص,نقاط البيع,واجهة المستخدم" data-description="Flexible POS UI customization toolkit with theme builder, layout manager, component overrides, and dark/light mode support. Full Arabic RTL." data-price="89.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/ma_pos_customization">
+                        <span class="xt-acard__badge" style="background:#F97316">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#F9731612,#F9731604)"><span class="xt-acard__icon">🎨</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#F97316">نقاط البيع · v19.0.1.0.0</span><h3 class="xt-acard__name">POS Customization Kit</h3><p class="xt-acard__desc">Flexible POS UI customization toolkit with theme builder, layout manager, component overrides, and dark/light mode support. Full Arabic RTL.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€89</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="3" data-name="POS Cutting Orders" data-slug="ma_pos_cutting" data-category="نقاط البيع" data-tags="التصنيع,القص,النسيج,نقاط البيع" data-description="Advanced cutting order management for fabric and textile POS operations with real-time tracking, batch serial assignment, and OWL v2 UI." data-price="149.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/ma_pos_cutting">
+                        <span class="xt-acard__badge" style="background:#E8364F">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#E8364F12,#E8364F04)"><span class="xt-acard__icon">✂️</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#E8364F">نقاط البيع · v19.0.1.0.0</span><h3 class="xt-acard__name">POS Cutting Orders</h3><p class="xt-acard__desc">Advanced cutting order management for fabric and textile POS operations with real-time tracking, batch serial assignment, and OWL v2 UI.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€149</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="4" data-name="POS Stock Real-Time" data-slug="ma_rs_pos_stock" data-category="نقاط البيع" data-tags="Inventory,فوري,نقاط البيع" data-description="Real-time stock synchronization for POS with reactive badge updates, batch loading, navbar refresh button, and live warehouse sync." data-price="129.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/ma_rs_pos_stock">
+                        <span class="xt-acard__badge" style="background:#3B82F6">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#3B82F612,#3B82F604)"><span class="xt-acard__icon">📦</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#3B82F6">نقاط البيع · v19.0.1.0.0</span><h3 class="xt-acard__name">POS Stock Real-Time</h3><p class="xt-acard__desc">Real-time stock synchronization for POS with reactive badge updates, batch loading, navbar refresh button, and live warehouse sync.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€129</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="5" data-name="HDA Collection - Revenue Management" data-slug="hda_collection" data-category="نقاط البيع" data-tags="Museums &amp; Tourism,Revenue Management,Ticketing,التخصيص,فوري,نقاط البيع" data-description="Enterprise revenue collection system for museums, tourism sites, and cultural venues. Multi-point operations, real-time reporting, collector POS integration, treasury deposits, and compliance accounting." data-price="249.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/hda_collection">
+                        <span class="xt-acard__badge" style="background:#0B5D3F">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#0B5D3F12,#0B5D3F04)"><span class="xt-acard__icon">🏛️</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#0B5D3F">نقاط البيع · v19.0.2.0.0</span><h3 class="xt-acard__name">HDA Collection - Revenue Management</h3><p class="xt-acard__desc">Enterprise revenue collection system for museums, tourism sites, and cultural venues. Multi-point operations, real-time reporting, collector POS integration, treasury deposits, and compliance accounting.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€249</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="6" data-name="Advanced Agricultural Management" data-slug="agricultural_management" data-category="الزراعة" data-tags="Agriculture,Costing,Dashboard,Harvest,Inventory,OWL" data-description="Complete farm-to-warehouse ERP for Odoo 19 — OWL Dashboard with Chart.js, 4-level farm hierarchy, real-time costing, 7-step production workflow, harvest scheduling with quality sorting, full accounting integration, and 12-section operations dashboard." data-store-url="https://apps.odoo.com/apps/modules/19.0/agricultural_management">
+                        <span class="xt-acard__badge" style="background:#0B5D3F">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#0B5D3F12,#0B5D3F04)"><span class="xt-acard__icon">🌾</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#0B5D3F">الزراعة · v19.0.1.0.0</span><h3 class="xt-acard__name">Advanced Agricultural Management</h3><p class="xt-acard__desc">Complete farm-to-warehouse ERP for Odoo 19 — OWL Dashboard with Chart.js, 4-level farm hierarchy, real-time costing, 7-step production workflow, harvest scheduling with quality sorting, full accounting integration, and 12-section operations dashboard.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€0</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="7" data-name="AI Marketing Copilot" data-slug="ai_marketing_copilot" data-category="AI &amp; Intelligence" data-tags="AI-Powered,Automation,Marketing,فوري" data-description="Smart AI-Driven Budget Optimization for Meta, Google Ads &amp; TikTok. Real-time campaign scoring, intelligent budget reallocation, and automated decision logging." data-price="79.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot">
+                        <span class="xt-acard__badge" style="background:#6366F1">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#6366F112,#6366F104)"><span class="xt-acard__icon">📊</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#6366F1">AI &amp; Intelligence · v19.0.2.0.0</span><h3 class="xt-acard__name">AI Marketing Copilot</h3><p class="xt-acard__desc">Smart AI-Driven Budget Optimization for Meta, Google Ads &amp; TikTok. Real-time campaign scoring, intelligent budget reallocation, and automated decision logging.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€79</span><span>⭐ 0.0</span></div>
+                    </div>
+                    <div class="xt-acard" data-addon-id="8" data-name="AI POS Copilot" data-slug="ai_pos_copilot" data-category="AI &amp; Intelligence" data-tags="AI-Powered,Smart Suggestions,فوري,نقاط البيع" data-description="Real-time AI upsell suggestions in Point of Sale. Smart product recommendations based on cart context, customer history, and seasonal trends with Arabic-first UX." data-price="59.0" data-store-url="https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot">
+                        <span class="xt-acard__badge" style="background:#8B5CF6">New</span>
+                        <div class="xt-acard__head" style="background:linear-gradient(135deg,#8B5CF612,#8B5CF604)"><span class="xt-acard__icon">🤖</span></div>
+                        <div class="xt-acard__body"><span class="xt-acard__cat" style="color:#8B5CF6">AI &amp; Intelligence · v19.0.1.0.0</span><h3 class="xt-acard__name">AI POS Copilot</h3><p class="xt-acard__desc">Real-time AI upsell suggestions in Point of Sale. Smart product recommendations based on cart context, customer history, and seasonal trends with Arabic-first UX.</p></div>
+                        <div class="xt-acard__foot"><span class="xt-acard__price">€59</span><span>⭐ 0.0</span></div>
+                    </div></div></div>
+            </section>
+        <footer class="xt-ft">
+            
+            <div class="xt-ft__cta">
+                <div class="xt-c xt-ft__cta-inner">
+                    <div class="xt-ft__cta-text">
+                        <strong>Ready to transform your business?</strong>
+                        <span>Get started with XamlTech solutions today.</span>
+                    </div>
+                    <div class="xt-ft__cta-actions">
+                        <a href="/contact-us" class="xt-btn xt-btn--primary xt-ft__cta-btn">Get in Touch</a>
+                        <a href="/request-demo" class="xt-btn xt-btn--outline xt-ft__cta-btn">طلب تجربة</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="xt-c">
+                <div class="xt-ft__grid">
+                    
+                    <div class="xt-ft__brand">
+                        <a href="/"><img src="/xamltech_addons_store/static/img/logo.png" alt="XamlTech" class="xt-ft__logo" loading="lazy"/></a>
+                        <p class="xt-ft__desc">Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.</p>
+                        
+                        <div class="xt-ft__social">
+                            <a href="https://github.com/XamlTech" target="_blank" title="GitHub" class="xt-ft__social-link">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"></path></svg>
+                            </a>
+                            <a href="https://www.linkedin.com/company/xamltech" target="_blank" title="LinkedIn" class="xt-ft__social-link">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>
+                            </a>
+                            <a href="https://wa.me/201007982468" target="_blank" title="واتساب" class="xt-ft__social-link xt-ft__social-link--wa">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">الحلول</h4>
+                        <a href="/solutions/erp">ERP & Odoo</a>
+                        <a href="/solutions/it-infrastructure">البنية التحتية</a>
+                        <a href="/solutions/web">تطوير المواقع</a>
+                        <a href="/ai-solutions">AI Copilots</a>
+                        <a href="/addons-store">متجر الإضافات</a>
+                        <a href="/pricing">Pricing</a>
+                    </div>
+
+                    
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">Resources</h4>
+                        <a href="/insights">Blog & Guides</a>
+                        <a href="/insights/ai-marketing-copilot">AI Marketing Guide</a>
+                        <a href="/insights/ai-pos-copilot">AI POS Guide</a>
+                        <a href="/knowledge">Knowledge Base</a>
+                        <a href="/testimonials">Testimonials</a>
+                        <a href="/request-demo">طلب تجربة</a>
+                    </div>
+
+                    
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">الشركة</h4>
+                        <a href="/portfolio">أعمالنا</a>
+                        <a href="/contact-us">تواصل معنا</a>
+                        <a href="/privacy-policy">Privacy Policy</a>
+                        <a href="/terms">Terms of Service</a>
+                        <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank">Odoo Apps Store ↗</a>
+                        <a href="https://github.com/XamlTech" target="_blank">GitHub ↗</a>
+                    </div>
+
+                    
+                    <div class="xt-ft__col">
+                        <h4 class="xt-ft__title">Get in Touch</h4>
+                        <a href="/cdn-cgi/l/email-protection#e68f888089a69e878b8a9283858ec885898b" class="xt-ft__contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path></svg>
+                            <span><span class="__cf_email__" data-cfemail="472e292128073f262a2b3322242f6924282a">[email&#160;protected]</span></span>
+                        </a>
+                        <a href="tel:+201007982468" class="xt-ft__contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"></path></svg>
+                            <span>+20 100 798 2468</span>
+                        </a>
+                        <a href="tel:+201201410140" class="xt-ft__contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"></path></svg>
+                            <span>+20 120 141 0140</span>
+                        </a>
+                        <a href="https://wa.me/201007982468" target="_blank" class="xt-ft__contact-item xt-ft__contact-item--wa">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
+                            <span>WhatsApp Chat</span>
+                        </a>
+                        <div class="xt-ft__location">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="flex-shrink:0;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"></path></svg>
+                            <span>Sahary, Aswan, Egypt</span>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="xt-ft__bottom">
+                    <span>© 2026 XamlTech. All rights reserved.</span>
+                    <div class="xt-ft__bottom-links">
+                        <a href="https://xamltech.com">xamltech.com</a>
+                        <span class="xt-ft__dot">·</span>
+                        <a href="/contact-us">Contact</a>
+                        <span class="xt-ft__dot">·</span>
+                        <a href="/insights">Blog</a>
+                        <span class="xt-ft__dot">·</span>
+                        <a href="/privacy-policy">Privacy Policy</a>
+                        <span class="xt-ft__dot">·</span>
+                        <a href="/terms">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        
+        <a href="https://wa.me/201007982468" target="_blank" class="xt-wa" title="واتساب"><svg viewBox="0 0 32 32" width="28" height="28" fill="#fff"><path d="M16.004 0h-.008C7.174 0 0 7.176 0 16.004c0 3.5 1.128 6.744 3.046 9.378L1.054 31.29l6.118-1.958A15.918 15.918 0 0016.004 32C24.826 32 32 24.826 32 16.004S24.826 0 16.004 0zm9.31 22.606c-.39 1.1-1.932 2.014-3.164 2.28-.846.18-1.948.324-5.662-1.218-4.754-1.972-7.808-6.8-8.044-7.114-.228-.314-1.9-2.53-1.9-4.826s1.2-3.426 1.628-3.894c.428-.468.936-.586 1.248-.586.312 0 .624.002.898.016.288.014.674-.11 1.054.804.39.936 1.326 3.23 1.442 3.464.116.234.194.508.038.82-.156.312-.234.508-.468.782-.234.274-.492.612-.702.82-.234.234-.478.488-.206.958.274.468 1.218 2.008 2.614 3.254 1.794 1.602 3.306 2.098 3.774 2.332.468.234.742.196 1.016-.118.274-.312 1.17-1.364 1.482-1.832.312-.468.624-.39 1.054-.234.43.156 2.724 1.286 3.192 1.52.468.234.78.352.898.546.116.196.116 1.132-.274 2.226z"></path></svg></a>
+        
+        <div id="o_shared_blocks" class="oe_unremovable"></div>
+                </main>
+                <footer id="bottom" data-anchor="true" data-name="Footer" class="o_footer o_colored_level o_cc ">
+                    <div id="footer" class="oe_structure oe_structure_solo border text-break" style="--box-border-left-width: 0px; --box-border-right-width: 0px;">
+            
+        </div>
+                </footer>
+            </div>
+        
+            <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>if('serviceWorker' in navigator){window.addEventListener('load',function(){try{navigator.serviceWorker.register('/xamltech_addons_store/static/sw.js',{scope:'/xamltech_addons_store/static/'}).catch(function(){});}catch(e){}});}</script>
+        </body>
+</html>

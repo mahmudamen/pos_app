@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="infra_page" name="XamlTech IT Infrastructure">
+        <t t-call="website.layout"><t t-set="title">Network Infrastructure &amp; CCTV Surveillance Installation in Aswan, Egypt — XamlTech</t>
+            <t t-set="meta_description">Professional network infrastructure, CCTV surveillance installation, server deployment in Aswan and Upper Egypt. LAN/WAN, 128-channel IP cameras, Proxmox, Docker.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <section class="xt-hero" style="padding:60px 0 40px;"><div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div><div class="xt-c" style="text-align:center;position:relative;z-index:1;"><p class="xt-tag">🖧 IT Infrastructure</p><h1 class="xt-hero__h1" style="font-size:40px;">Secure &amp; Reliable Infrastructure</h1><p class="xt-hero__sub" style="max-width:600px;margin:0 auto;">Slow network? Weak security? We design and implement professional network infrastructure, server systems, and surveillance solutions for your business.</p><div class="xt-btns" style="justify-content:center;margin-top:24px;"><a href="/contact-us" class="xt-btn xt-btn--primary">Book a Site Visit</a><a href="https://wa.me/201007982468" target="_blank" class="xt-btn xt-btn--wa">💬 WhatsApp</a></div></div></section>
+            <section class="xt-sec xt-sec--dark"><div class="xt-c"><div class="xt-grid3">
+                <div class="xt-card"><span>🔌</span><h3>LAN / WAN</h3><p>Complete network design — structured cabling, VLANs, routing, switching for offices and data centers.</p></div>
+                <div class="xt-card"><span>📡</span><h3>Wireless</h3><p>Enterprise Wi-Fi — seamless roaming, load balancing, captive portals, centralized management.</p></div>
+                <div class="xt-card"><span>🔒</span><h3>Firewall &amp; VPN</h3><p>Advanced firewall, site-to-site VPN, remote access, intrusion detection/prevention.</p></div>
+                <div class="xt-card"><span>🖥️</span><h3>Servers</h3><p>Linux/Windows servers, virtualization (Proxmox, VMware), Docker, high-availability clustering.</p></div>
+                <div class="xt-card"><span>📹</span><h3>CCTV &amp; Security</h3><p>IP cameras (2-8MP), DVR/NVR, remote monitoring, mobile apps, up to 128 channels.</p></div>
+                <div class="xt-card"><span>📊</span><h3>Monitoring</h3><p>24/7 network monitoring, uptime tracking, alerting, bandwidth analysis, performance optimization.</p></div>
+            </div></div></section>
+            <section class="xt-sec xt-sec--grad"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Why Our Infrastructure?</h2><div class="xt-why-grid"><div class="xt-why"><span>🛡️</span><h4>Security</h4><p>Enterprise-grade cybersecurity and data protection</p></div><div class="xt-why"><span>⚡</span><h4>Speed</h4><p>Optimized for maximum throughput and low latency</p></div><div class="xt-why"><span>🔄</span><h4>Stability</h4><p>Redundant systems with 99.9% uptime guarantee</p></div><div class="xt-why"><span>📈</span><h4>Scalable</h4><p>Grows with your business without major overhauls</p></div></div></div></section>
+            <section class="xt-sec xt-sec--dark" style="padding:60px 0;"><div class="xt-c" style="text-align:center;"><h2 class="xt-h2">Need a Network or CCTV Quote?</h2><p class="xt-sub" style="margin:0 auto 24px;">Free site surveys across Aswan and Egypt</p><div class="xt-btns" style="justify-content:center;"><a href="/contact-us" class="xt-btn xt-btn--primary">Request a Quote →</a></div></div></section>
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

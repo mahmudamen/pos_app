@@ -1,0 +1,192 @@
+{
+  "en": {
+    "meta": {
+      "title": "AI POS Copilot: Sell More at Every Transaction | XamlTech",
+      "description": "Real-time AI upsell suggestions at the register in under 100ms. The retail case study, the pipeline and how AI POS Copilot raised basket size by 24%.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🤖 Real-Time AI Recommendations",
+        "title": "AI POS Copilot:",
+        "accent": "Sell More at Every Transaction",
+        "lead": "Every second counts at the register. AI POS Copilot analyzes the customer's cart in real time and suggests complementary products before the sale is done.",
+        "ctas": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary", "big": true },
+          { "label": "See AI solutions", "href": "/ai-solutions?lang=en", "style": "ghost" }
+        ],
+        "stats": [
+          { "v": "+24%", "l": "Basket size increase" },
+          { "v": "42%", "l": "Suggestion acceptance" },
+          { "v": "4.9★", "l": "Odoo Store rating" },
+          { "v": "<100ms", "l": "Response time" }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "eyebrow": "The problem",
+        "title": "You're leaving money on the register",
+        "lead": "A customer walks up with 3 items. The cashier scans, collects payment and they leave. Thirty seconds later you realize they were about to buy one more product — but nothing suggested it.",
+        "points": ["The average retail transaction could be 15–30% larger with the right complementary suggestion", "Recommendation engines drive 35% of Amazon's revenue", "Real-time suggestions at the point of purchase are the highest-intent moment you have"],
+        "media": { "src": "/static/img/ai-copilot.png", "alt": "AI POS Copilot in the register" }
+      }},
+      { "partial": "split", "data": {
+        "reverse": true,
+        "eyebrow": "The solution",
+        "title": "AI that knows your customer's intent",
+        "lead": "AI POS Copilot sits beside every cashier like an expert sales assistant. It watches the cart, analyzes the customer's purchase history and surfaces the right product at the right moment — in under 100ms.",
+        "points": ["One-tap add, no disruption", "Bilingual Arabic/English with full RTL", "Only suggests in-stock items", "Learns from accept/reject feedback"]
+      }},
+      { "partial": "stats", "data": {
+        "title": "Case study: a 15-store retail chain",
+        "items": [
+          { "v": "145 → 180 EGP", "l": "Average transaction" },
+          { "v": "5% → 85%", "l": "Suggestion rate" },
+          { "v": "10% → 42%", "l": "Acceptance rate" },
+          { "v": "3.15M EGP", "l": "Extra monthly revenue" }
+        ]
+      }},
+      { "partial": "steps", "data": {
+        "eyebrow": "How it works",
+        "title": "Real-time processing pipeline",
+        "sub": "Six stages run the moment a cashier scans an item.",
+        "items": [
+          { "title": "1. Cart Analysis", "text": "Analyze items in the current cart, total value and customer category." },
+          { "title": "2. Customer History", "text": "Check past purchases — what this customer usually buys together." },
+          { "title": "3. Product Matching", "text": "Find complementary products using category and tagging rules." },
+          { "title": "4. Inventory Check", "text": "Only suggest in-stock items to prevent frustration." },
+          { "title": "5. Ranking by Relevance", "text": "Score candidates by margin, stock level and customer preference." },
+          { "title": "6. Display", "text": "Show the top 1–3 suggestions in Arabic/English in the sidebar." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "Key features",
+        "title": "Built for the register",
+        "items": [
+          { "icon": "🌐", "title": "Bilingual (Arabic + English)", "text": "Full RTL support. Prompts, product names and UI adapt to language settings." },
+          { "icon": "⚡", "title": "Ultra-Fast Response", "text": "Suggestions appear in under 100ms — no lag, no slowdown in the checkout flow." },
+          { "icon": "📊", "title": "Conversion Tracking", "text": "Log every suggestion: shown, accepted, rejected. Measure the impact on revenue." },
+          { "icon": "🎯", "title": "Zero Setup Needed", "text": "Install and it works immediately. Demo data included, no ML training required." },
+          { "icon": "⚙️", "title": "Customizable Rules", "text": "Configure which product combinations make sense for your store." },
+          { "icon": "🚀", "title": "All POS Screens", "text": "Works on touchscreen, tablet and traditional POS terminals on modern Odoo 19 setups." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Use cases by industry",
+        "title": "Relevant suggestions in every aisle",
+        "items": [
+          { "icon": "🛒", "title": "Retail & Fashion", "text": "Shoes + socks, shirt + belt, dress + accessories." },
+          { "icon": "☕", "title": "Cafe & Food Service", "text": "Coffee + pastry, sandwich + drink, dessert after a meal." },
+          { "icon": "💊", "title": "Pharmacy", "text": "Medicine + pain relief, vitamins + supplements." },
+          { "icon": "📱", "title": "Electronics", "text": "Phone + case, laptop + charger, screen + protector." },
+          { "icon": "💄", "title": "Beauty & Cosmetics", "text": "Foundation + concealer, lipstick + primer, skincare combos." },
+          { "icon": "🏠", "title": "Home & Hardware", "text": "Paint + brush, nails + hammer, cables + adapters." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Ready to boost your sales?",
+        "text": "Install AI POS Copilot today. Free, zero setup, and a 42% acceptance rate when suggestions are relevant.",
+        "actions": [
+          { "label": "Request a demo", "href": "/request-demo?lang=en", "style": "primary" },
+          { "label": "WhatsApp support", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "مساعد نقاط البيع الذكي: بِع أكثر في كل عملية | زامل تك",
+      "description": "اقتراحات بيع إضافي ذكية وفورية عند الكاشير في أقل من 100ms. دراسة سلسلة تجزئة وخط الأنابيب وكيف رفع مساعد نقاط البيع حجم السلة 24%.",
+      "og_image": "https://xamltech.com/static/img/ai-copilot.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🤖 توصيات ذكاء فورية",
+        "title": "مساعد نقاط البيع الذكي:",
+        "accent": "بِع أكثر في كل عملية",
+        "lead": "كل ثانية تُحسب عند الكاشير. يحلل مساعد نقاط البيع الذكي سلة العميل فورياً ويقترح منتجات مكمّلة قبل إتمام البيع.",
+        "ctas": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary", "big": true },
+          { "label": "حلول الذكاء", "href": "/ai-solutions", "style": "ghost" }
+        ],
+        "stats": [
+          { "v": "+24%", "l": "زيادة حجم السلة" },
+          { "v": "42%", "l": "قبول الاقتراحات" },
+          { "v": "★4.9", "l": "تقييم متجر Odoo" },
+          { "v": "<100ms", "l": "زمن الاستجابة" }
+        ]
+      }},
+      { "partial": "split", "data": {
+        "eyebrow": "المشكلة",
+        "title": "تترك أموالاً على الكاشير",
+        "lead": "يأتي عميل بثلاثة منتجات. يمسحها الكاشير ويحصّل الدفع ويرحل. وبعد ثلاثين ثانية تدرك أنه كان سيشتري منتجاً آخر — لكن شيئاً لم يقترحه.",
+        "points": ["متوسط عملية التجزئة قد يزيد 15–30% بالاقتراح المكمّل الصحيح", "محركات التوصية تولّد 35% من إيراد Amazon", "الاقتراح الفوري عند نقطة الشراء أعلى لحظة نية تملكها"],
+        "media": { "src": "/static/img/ai-copilot.png", "alt": "مساعد نقاط البيع الذكي عند الكاشير" }
+      }},
+      { "partial": "split", "data": {
+        "reverse": true,
+        "eyebrow": "الحل",
+        "title": "ذكاء يعرف نية عميلك",
+        "lead": "يجلس مساعد نقاط البيع الذكي بجانب كل كاشير كمساعد بيع خبير. يراقب السلة ويحلل سجل الشراء ويرفع المنتج الصحيح في اللحظة الصحيحة — في أقل من 100ms.",
+        "points": ["إضافة بلمسة، بلا مقاطعة", "ثنائي اللغة عربي/إنجليزي بدعم RTL كامل", "يقترح المنتجات المتوفرة فقط", "يتعلم من قبول أو رفض الاقتراح"]
+      }},
+      { "partial": "stats", "data": {
+        "title": "دراسة حالة: سلسلة تجزئة بـ 15 فرعاً",
+        "items": [
+          { "v": "145 → 180 ج.م", "l": "متوسط العملية" },
+          { "v": "5% → 85%", "l": "معدل الاقتراح" },
+          { "v": "10% → 42%", "l": "معدل القبول" },
+          { "v": "3.15M ج.م", "l": "إيراد شهري إضافي" }
+        ]
+      }},
+      { "partial": "steps", "data": {
+        "eyebrow": "كيف يعمل",
+        "title": "خط المعالجة الفورية",
+        "sub": "ست مراحل تعمل لحظة مسح الكاشير لأي منتج.",
+        "items": [
+          { "title": "1. تحليل السلة", "text": "تحليل عناصر السلة الحالية وقيمتها وفئة العميل." },
+          { "title": "2. سجل العميل", "text": "فحص المشتريات السابقة — ما يشتريه العميل عادة معاً." },
+          { "title": "3. مطابقة المنتج", "text": "إيجاد المنتجات المكمّلة باستخدام قواعد الفئة والوسوم." },
+          { "title": "4. فحص المخزون", "text": "اقتراح المنتجات المتوفرة فقط لتجنب الإحباط." },
+          { "title": "5. الترتيب حسب الصلة", "text": "تقييم المرشحين بالهامش ومستوى المخزون وتفضيل العميل." },
+          { "title": "6. العرض", "text": "إظهار أفضل 1–3 اقتراحات بالعربية/الإنجليزية في الشريط الجانبي." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "alt": true,
+        "eyebrow": "المزايا الرئيسية",
+        "title": "مصمم للكاشير",
+        "items": [
+          { "icon": "🌐", "title": "ثنائي اللغة عربي/إنجليزي", "text": "دعم RTL كامل. النصوص وأسماء المنتجات والواجهة تتكيف مع اللغة." },
+          { "icon": "⚡", "title": "استجابة فائقة السرعة", "text": "تظهر الاقتراحات في أقل من 100ms — بلا تأخير في تدفق الدفع." },
+          { "icon": "📊", "title": "تتبع التحويل", "text": "تسجيل كل اقتراح: ظهر، قُبل، رُفض. وقياس الأثر على الإيراد." },
+          { "icon": "🎯", "title": "بلا إعداد", "text": "ثبّت ويعمل فوراً. ببيانات تجريبية، وبلا تدريب نموذج." },
+          { "icon": "⚙️", "title": "قواعد قابلة للتخصيص", "text": "اضبط أي توليفات منتجات تناسب متجرك." },
+          { "icon": "🚀", "title": "كل شاشات نقاط البيع", "text": "يعمل على شاشات اللمس والأجهزة اللوحية والطرفيات التقليدية في إعداد Odoo 19 الحديثة." }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "حالات الاستخدام حسب القطاع",
+        "title": "اقتراحات مناسبة في كل ممر",
+        "items": [
+          { "icon": "🛒", "title": "التجزئة والأزياء", "text": "حذاء + جوارب، قميص + حزام، فستان + إكسسوار." },
+          { "icon": "☕", "title": "المقاهي والأغذية", "text": "قهوة + معجنات، ساندويتش + مشروب، حلوى بعد الوجبة." },
+          { "icon": "💊", "title": "الصيدلية", "text": "دواء + مسكن، فيتامينات + مكمّلات." },
+          { "icon": "📱", "title": "الإلكترونيات", "text": "هاتف + كفر، لابتوب + شاحن، شاشة + واقٍ." },
+          { "icon": "💄", "title": "التجميل", "text": "كريم أساس + كونسيلر، أحمر شفاه + برايمر، توليفات عناية." },
+          { "icon": "🏠", "title": "المنزل والأدوات", "text": "دهان + فرشاة، مسامير + مطرقة، كابلات + محوّلات." }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "جاهز لمضاعفة مبيعاتك؟",
+        "text": "ثبّت مساعد نقاط البيع الذكي اليوم. مجاناً، بلا إعداد، ومعدل قبول 42% عندما تكون الاقتراحات مناسبة.",
+        "actions": [
+          { "label": "اطلب تجربة", "href": "/request-demo", "style": "primary" },
+          { "label": "دعم واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

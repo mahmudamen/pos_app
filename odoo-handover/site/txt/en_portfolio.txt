@@ -1,0 +1,150 @@
+Our Projects: Hospital IT, Textile POS, Agriculture ERP — XamlTech Egypt
+Skip to Content
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
+0
+0
++201201410140
+English (US)
+الْعَرَبيّة
+English (US)
+Sign in
+Contact Us
+0
+0
+Home
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+Odoo POS
+Agriculture ERP
+Addons Store
+Download Apps
+Portfolio
+Knowledge
+Request Demo
+Contact Us
+Blog
+NetworkTool
++201201410140
+English (US)
+الْعَرَبيّة
+English (US)
+Sign in
+Contact Us
+🏆 Our Work
+Partners & Portfolio
+Trusted by hospitals, businesses, and organizations across Egypt.
+Our Partners
+Furkan Surgical Center
+مركز الفرقان التخصصي
+IT infrastructure, CCTV, networking, and hospital software for a leading surgical center in Aswan.
+🏥 Hospital📹 CCTV🔌 Network💻 Software
+Al Helal Hospital
+مستشفى الهلال الأحمر
+Full hospital IT — patient management, network infrastructure, CCTV surveillance, and digital healthcare.
+🏥 Hospital📊 ERP🔌 Network📹 CCTV
+Project Highlights
+🏥
+Hospital Management
+Full Odoo ERP for medical facilities — patients, appointments, pharmacy, billing with Arabic workflows.
+📹
+Hospital CCTV
+128-channel IP camera system — operating rooms, corridors, pharmacy, parking, 24/7 remote monitoring.
+✂️
+Textile POS
+Custom Odoo 18 POS with cutting orders for Al-Ghazl Al-Arabi — real-time stock, multi-session sync.
+🧾
+ZATCA E-Invoice
+Saudi Arabia Phase 2 compliance — XML invoices, QR codes, API submission, government portal sync.
+🌾
+Farm Management
+Agriculture ERP for Qatf Company — farm locations, crop tracking, work orders, harvest analytics.
+🔌
+Medical Network
+Complete LAN/WLAN for hospital campus — structured cabling, VLANs, server room, redundant links.
+Open Source & GitHub
+180+ public repositories — real code, not just marketing. Verify our skills on GitHub.
+🏥
+hospital-flask-1
+Hospital Management System built with Python Flask — patient registration, appointments, pharmacy, billing. Demonstrates our healthcare domain knowledge.
+Python · ⭐ 2 · View on GitHub →
+📊
+mvc-erp
+Full ERP system built with ASP.NET MVC and C# — accounting, inventory, HR modules. Shows our ERP architecture experience across multiple stacks.
+C# · ⭐ 1 · View on GitHub →
+🐍
+Openrol
+Python-based open-source business application. Demonstrates our Python ecosystem expertise — the same language that powers Odoo backend development.
+Python · ⭐ 1 · View on GitHub →
+🗺️
+web_google_maps_drawing
+Odoo module for Google Maps integration with drawing tools — geolocation, polygon mapping, route planning. Direct Odoo addon development proof.
+Odoo Module · View on GitHub →
+🛒
+Odoo Apps Store
+3 published POS modules: Cutting Orders (€149), Stock Real-Time (€129), Security Framework (€99). Production-tested, commercially available.
+Published Addons · View on Odoo Apps →
+💻
+180+ Repositories
+Android, iOS, Python, JavaScript, C#, Java, VR — full-stack developer with Google Challenge Scholarship (Mobile Web Specialist). Explore all repos.
+All Repos · View Profile →
+Want to Be Our Next Success Story?
+Let's Talk →
+💬 WhatsApp
+Ready to transform your business?
+Get started with XamlTech solutions today.
+Get in Touch
+Request Demo
+Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.
+Solutions
+ERP & Odoo
+IT Infrastructure
+Web Development
+AI Copilots
+Addons Store
+Pricing
+Resources
+Blog & Guides
+AI Marketing Guide
+AI POS Guide
+Knowledge Base
+Testimonials
+Request Demo
+Company
+Portfolio
+Contact Us
+Privacy Policy
+Terms of Service
+Odoo Apps Store ↗
+GitHub ↗
+Get in Touch
+[email protected]
++20 100 798 2468
++20 120 141 0140
+WhatsApp Chat
+Sahary, Aswan, Egypt
+© 2026 XamlTech. All rights reserved.
+xamltech.com
+·
+Contact
+·
+Blog
+·
+Privacy Policy
+·
+Terms

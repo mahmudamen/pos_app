@@ -1,0 +1,168 @@
+{
+  "en": {
+    "brand": "XamlTech",
+    "tagline": "More Than Technology — We Build Digital Growth",
+    "skip": "Skip to content",
+    "ctaDemo": "Request a demo",
+    "ctaContact": "Contact us",
+    "ctaWhatsapp": "WhatsApp chat",
+    "login": "Sign in",
+    "langSwitch": "العربية",
+    "themeDark": "Switch to light mode",
+    "themeLight": "Switch to dark mode",
+    "menu": "Menu",
+    "footerAbout": "Your trusted partner for digital transformation, ERP systems, AI solutions, and IT infrastructure. Based in Aswan, Egypt.",
+    "rights": "All rights reserved.",
+    "madeIn": "Aswan, Egypt",
+    "getInTouch": "Get in Touch",
+    "viewsWith": "views with",
+    "nav": [
+      { "label": "Home", "href": "/" },
+      { "label": "Solutions", "href": "#", "children": [
+        { "label": "ERP & Odoo", "href": "/solutions/erp" },
+        { "label": "IT Infrastructure", "href": "/solutions/it-infrastructure" },
+        { "label": "Web Development", "href": "/solutions/web" },
+        { "label": "Odoo POS", "href": "/odoo-pos-egypt" },
+        { "label": "Agriculture ERP", "href": "/erp-agriculture-egypt" },
+        { "label": "AI Solutions", "href": "/ai-solutions" }
+      ] },
+      { "label": "Addons Store", "href": "/addons-store" },
+      { "label": "Portfolio", "href": "/portfolio" },
+      { "label": "Blog", "href": "/insights" },
+      { "label": "Pricing", "href": "/pricing" },
+      { "label": "Contact", "href": "/contact-us" }
+    ],
+    "footer": [
+      { "title": "Solutions", "links": [
+        { "label": "ERP & Odoo", "href": "/solutions/erp" },
+        { "label": "IT Infrastructure", "href": "/solutions/it-infrastructure" },
+        { "label": "Web Development", "href": "/solutions/web" },
+        { "label": "AI Copilots", "href": "/ai-solutions" },
+        { "label": "Addons Store", "href": "/addons-store" },
+        { "label": "Pricing", "href": "/pricing" }
+      ] },
+      { "title": "Resources", "links": [
+        { "label": "Blog & Guides", "href": "/insights" },
+        { "label": "AI Marketing Guide", "href": "/insights/ai-marketing-copilot" },
+        { "label": "AI POS Guide", "href": "/insights/ai-pos-copilot" },
+        { "label": "Knowledge Base", "href": "/knowledge" },
+        { "label": "Testimonials", "href": "/testimonials" }
+      ] },
+      { "title": "Company", "links": [
+        { "label": "Request a demo", "href": "/request-demo" },
+        { "label": "Portfolio", "href": "/portfolio" },
+        { "label": "Contact", "href": "/contact-us" },
+        { "label": "Privacy Policy", "href": "/privacy-policy" },
+        { "label": "Terms of Service", "href": "/terms" }
+      ] }
+    ],
+    "contact": {
+      "address": "Aswan, Egypt",
+      "phone": "+20 120 141 0140",
+      "phone2": "+20 100 798 2468",
+      "email": "info@xamltech.com",
+      "whatsapp": "201007982468",
+      "hours": "Sun–Thu, 9:00–18:00",
+      "appsStore": "Odoo Apps Store",
+      "github": "GitHub",
+      "networktool": "Network Copilot (Android)"
+    },
+    "form": {
+      "name": "Full name",
+      "email": "Email address",
+      "phone": "Phone (optional)",
+      "company": "Company (optional)",
+      "product": "Interested in",
+      "message": "How can we help?",
+      "send": "Send message",
+      "submitDemo": "Request free demo",
+      "sent": "Thank you! Your message has been received. We will get back to you shortly.",
+      "error": "Please complete the required fields with a valid email.",
+      "select": "Select a solution",
+      "privacyNote": "By submitting you agree to our privacy policy."
+    }
+  },
+  "ar": {
+    "brand": "زامل تك",
+    "tagline": "أكثر من تقنية — نبني نمواً رقمياً حقيقياً",
+    "skip": "تخطَّ إلى المحتوى",
+    "ctaDemo": "اطلب تجربة",
+    "ctaContact": "تواصل معنا",
+    "ctaWhatsapp": "محادثة واتساب",
+    "login": "تسجيل الدخول",
+    "langSwitch": "English",
+    "themeDark": "التبديل إلى النمط الفاتح",
+    "themeLight": "التبديل إلى النمط الداكن",
+    "menu": "القائمة",
+    "footerAbout": "شريكك الموثوق في التحول الرقمي وأنظمة ERP وحلول الذكاء الاصطناعي والبنية التحتية لتقنية المعلومات. مقرنا أسوان، مصر.",
+    "rights": "جميع الحقوق محفوظة.",
+    "madeIn": "أسوان، مصر",
+    "getInTouch": "ابقَ على تواصل",
+    "viewsWith": "مشاهدات مع",
+    "nav": [
+      { "label": "الرئيسية", "href": "/" },
+      { "label": "الحلول", "href": "#", "children": [
+        { "label": "ERP و Odoo", "href": "/solutions/erp" },
+        { "label": "البنية التحتية والشبكات", "href": "/solutions/it-infrastructure" },
+        { "label": "تطوير المواقع", "href": "/solutions/web" },
+        { "label": "نقاط البيع Odoo", "href": "/odoo-pos-egypt" },
+        { "label": "ERP الزراعة", "href": "/erp-agriculture-egypt" },
+        { "label": "حلول الذكاء الاصطناعي", "href": "/ai-solutions" }
+      ] },
+      { "label": "متجر الإضافات", "href": "/addons-store" },
+      { "label": "أعمالنا", "href": "/portfolio" },
+      { "label": "المدونة", "href": "/insights" },
+      { "label": "الأسعار", "href": "/pricing" },
+      { "label": "تواصل معنا", "href": "/contact-us" }
+    ],
+    "footer": [
+      { "title": "الحلول", "links": [
+        { "label": "ERP و Odoo", "href": "/solutions/erp" },
+        { "label": "البنية التحتية والشبكات", "href": "/solutions/it-infrastructure" },
+        { "label": "تطوير المواقع", "href": "/solutions/web" },
+        { "label": "مساعدو الذكاء الاصطناعي", "href": "/ai-solutions" },
+        { "label": "متجر الإضافات", "href": "/addons-store" },
+        { "label": "الأسعار", "href": "/pricing" }
+      ] },
+      { "title": "مصادر", "links": [
+        { "label": "المدونة والأدلة", "href": "/insights" },
+        { "label": "دليل مساعد التسويق", "href": "/insights/ai-marketing-copilot" },
+        { "label": "دليل مساعد نقاط البيع", "href": "/insights/ai-pos-copilot" },
+        { "label": "قاعدة المعرفة", "href": "/knowledge" },
+        { "label": "شهادات العملاء", "href": "/testimonials" }
+      ] },
+      { "title": "الشركة", "links": [
+        { "label": "اطلب تجربة", "href": "/request-demo" },
+        { "label": "أعمالنا", "href": "/portfolio" },
+        { "label": "تواصل معنا", "href": "/contact-us" },
+        { "label": "سياسة الخصوصية", "href": "/privacy-policy" },
+        { "label": "الشروط والأحكام", "href": "/terms" }
+      ] }
+    ],
+    "contact": {
+      "address": "أسوان، مصر",
+      "phone": "+20 120 141 0140",
+      "phone2": "+20 100 798 2468",
+      "email": "info@xamltech.com",
+      "whatsapp": "201007982468",
+      "hours": "الأحد–الخميس، 9:00–18:00",
+      "appsStore": "متجر Odoo للتطبيقات",
+      "github": "جيتهَب",
+      "networktool": "Network Copilot (أندروید)"
+    },
+    "form": {
+      "name": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف (اختياري)",
+      "company": "الشركة (اختياري)",
+      "product": "مهتم بـ",
+      "message": "كيف يمكننا مساعدتك؟",
+      "send": "أرسل الرسالة",
+      "submitDemo": "اطلب تجربة مجانية",
+      "sent": "شكراً لك! تم استلام رسالتك وسنتواصل معك قريباً.",
+      "error": "يرجى إكمال الحقول المطلوبة ببريد إلكتروني صحيح.",
+      "select": "اختر حلاً",
+      "privacyNote": "بإرسالك للبيانات فأنت توافق على سياسة الخصوصية."
+    }
+  }
+}

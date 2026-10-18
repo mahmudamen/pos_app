@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="apk_download_page" name="تحميل تطبيقات أندرويد">
+        <t t-call="website.layout">
+            <t t-set="title">تحميل تطبيقات أندرويد — XamlTech</t>
+            <t t-set="meta_description">طلّب تحميل تطبيقات XamlTech لأندرويد بصيغة APK. نموذج طلب بسيط واعتماد يدوي ورابط تحميل آمن منتهي الصلاحية.</t>
+
+            <section class="xt-hero xt-apk-hero" style="padding:60px 0 40px;">
+                <div class="xt-hero__bg"><div class="xt-orb xt-orb--1"/></div>
+                <div class="xt-c" style="text-align:center;position:relative;z-index:1;">
+                    <p class="xt-tag">📲 تحميل تطبيقات أندرويد</p>
+                    <h1 class="xt-hero__h1" style="font-size:38px;">اطلب النسخة، وتحمّل بأمان</h1>
+                    <p class="xt-hero__sub" style="max-width:620px;margin:0 auto;">اختر التطبيق الذي تريده واملأ النموذج. بعد مراجعة طلبك، يصلك رابط تحميل آمن صالح لمدة 30 يوماً.</p>
+                </div>
+            </section>
+
+            <section class="xt-sec xt-sec--dark">
+                <div class="xt-c">
+                    <div class="xt-apk-grid">
+                        <t t-foreach="apks" t-as="apk">
+                            <div class="xt-card xt-apk-card">
+                                <div class="xt-apk-card__head">
+                                    <span class="xt-tag">📦 التطبيق</span>
+                                    <span class="xt-apk-card__ver">الإصدار <strong t-esc="apk.version"/></span>
+                                </div>
+                                <h3 class="xt-apk-card__name" t-esc="apk.name"/>
+                                <div class="xt-apk-card__desc" t-raw="apk.description"/>
+                                <div class="xt-apk-card__meta">
+                                    <span>🔢 <t t-esc="apk.request_count"/> طلباً</span>
+                                    <span>✅ <t t-esc="apk.approved_count"/> معتمداً</span>
+                                </div>
+                            </div>
+                        </t>
+                        <t t-if="not apks">
+                            <div class="xt-apk-alert xt-apk-alert--err">
+                                لا توجد تطبيقات متاحة حالياً، عد لاحقاً.
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </section>
+
+            <section class="xt-sec">
+                <div class="xt-c" style="max-width:720px;">
+                    <p class="xt-tag" style="text-align:center;">🔐 طلب آمن</p>
+                    <h2 class="xt-h2" style="text-align:center;">اطلب رابط التحميل</h2>
+
+                    <t t-if="sent">
+                        <div class="xt-apk-alert xt-apk-alert--ok">
+                            ✅ تم استلام طلبك بنجاح! سيراجع فريقنا الطلب ويصدر رابط التحميل عند الاعتماد.
+                        </div>
+                    </t>
+                    <t t-if="error_msg">
+                        <div class="xt-apk-alert xt-apk-alert--err">
+                            ⚠️ <t t-esc="error_msg"/>
+                        </div>
+                    </t>
+
+                    <form class="xt-card xt-apk-form" action="/apk-download/request" method="post" t-att-data-dirty="True">
+                        <input type="hidden" name="csrf_token" t-value="csrf_token(request)"/>
+                        <div class="xt-apk-field xt-apk-field--full">
+                            <label class="xt-lbl">التطبيق المطلوب *</label>
+                            <select name="apk_id" class="xt-inp xt-sel" required="required">
+                                <option value="">— اختر التطبيق —</option>
+                                <t t-foreach="apks" t-as="apk">
+                                    <option t-att-value="apk.id" t-att-selected="form and str(form.get('apk_id', '')) == str(apk.id)">
+                                        <t t-esc="apk.name"/> <t t-esc="('(الإصدار ' + apk.version + ')') if apk.version else ''"/>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="xt-apk-field">
+                            <label class="xt-lbl">الاسم *</label>
+                            <input class="xt-inp" type="text" name="name" required="required"
+                                   t-att-value="form and form.get('name', '')"/>
+                        </div>
+                        <div class="xt-apk-field">
+                            <label class="xt-lbl">البريد الإلكتروني *</label>
+                            <input class="xt-inp" type="email" name="email" required="required"
+                                   t-att-value="form and form.get('email', '')"/>
+                        </div>
+                        <div class="xt-apk-field">
+                            <label class="xt-lbl">رقم الهاتف</label>
+                            <input class="xt-inp" type="tel" name="phone" dir="ltr"
+                                   t-att-value="form and form.get('phone', '')"/>
+                        </div>
+                        <div class="xt-apk-field">
+                            <label class="xt-lbl">إصدار نظام أندرويد</label>
+                            <input class="xt-inp" type="text" name="android_version" dir="ltr"
+                                   placeholder="مثال: 14"
+                                   t-att-value="form and form.get('android_version', '')"/>
+                        </div>
+                        <div class="xt-apk-field xt-apk-field--full">
+                            <label class="xt-lbl">سبب التحميل (اختياري)</label>
+                            <textarea class="xt-inp" name="reason" rows="4"><t t-esc="form and form.get('reason', '')"/></textarea>
+                        </div>
+                        <div class="xt-apk-field xt-apk-field--full xt-apk-submit">
+                            <button class="xt-btn xt-btn--primary" type="submit">📥 إرسال الطلب</button>
+                        </div>
+                        <p class="xt-apk-privacy" style="text-align:center;">
+                            بمجرد الإرسال فأنت توافق على
+                            <a href="/privacy-policy" style="color:#7C9CF5;">سياسة الخصوصية</a>.
+                        </p>
+                    </form>
+                </div>
+            </section>
+
+            <t t-call="xamltech_addons_store.xt_footer_block"/>
+        </t>
+    </template>
+</odoo>

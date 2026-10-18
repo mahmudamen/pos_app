@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Tags -->
+        <record id="tag_pos" model="xamltech.addon.tag"><field name="name">POS</field><field name="color">1</field></record>
+        <record id="tag_security" model="xamltech.addon.tag"><field name="name">Security</field><field name="color">2</field></record>
+        <record id="tag_ui" model="xamltech.addon.tag"><field name="name">UI/UX</field><field name="color">3</field></record>
+        <record id="tag_cutting" model="xamltech.addon.tag"><field name="name">Cutting</field><field name="color">4</field></record>
+        <record id="tag_textile" model="xamltech.addon.tag"><field name="name">Textile</field><field name="color">5</field></record>
+        <record id="tag_inventory" model="xamltech.addon.tag"><field name="name">Inventory</field><field name="color">6</field></record>
+        <record id="tag_realtime" model="xamltech.addon.tag"><field name="name">Real-Time</field><field name="color">7</field></record>
+        <record id="tag_customization" model="xamltech.addon.tag"><field name="name">Customization</field><field name="color">8</field></record>
+        <record id="tag_access_control" model="xamltech.addon.tag"><field name="name">Access Control</field><field name="color">9</field></record>
+        <record id="tag_manufacturing" model="xamltech.addon.tag"><field name="name">Manufacturing</field><field name="color">10</field></record>
+        <record id="tag_ai" model="xamltech.addon.tag"><field name="name">AI-Powered</field><field name="color">11</field></record>
+        <record id="tag_marketing" model="xamltech.addon.tag"><field name="name">Marketing</field><field name="color">12</field></record>
+        <record id="tag_suggestions" model="xamltech.addon.tag"><field name="name">Smart Suggestions</field><field name="color">13</field></record>
+        <record id="tag_automation" model="xamltech.addon.tag"><field name="name">Automation</field><field name="color">14</field></record>
+
+        <!-- 1. ma_pos_base - Odoo 19 -->
+        <record id="addon_ma_pos_base" model="xamltech.addon">
+            <field name="name">POS Base - Security Framework</field>
+            <field name="slug">ma_pos_base</field>
+            <field name="category_id" ref="category_pos"/>
+            <field name="description">Comprehensive POS security framework with manager PIN validation, discount limit enforcement, multi-layer session security, and backend validation. Odoo 19 Ready.</field>
+            <field name="full_description" type="html"><div><h2>POS Base - Security Framework (Odoo 19)</h2><p>A powerful security foundation for Odoo 19 POS:</p><ul><li><strong>Manager PIN Validation</strong> — Require PIN for session close, refunds, and critical operations</li><li><strong>Discount Limit Enforcement</strong> — Multi-layer at NumberPopup, Orderline, and Security Service levels</li><li><strong>Session Security</strong> — Backend validation complementing frontend checks</li><li><strong>Role-Based Access</strong> — Granular permissions for POS users (Basic, Advanced, Manager, Admin)</li><li><strong>Audit Logging</strong> — Immutable transaction logs for compliance</li><li><strong>5 Failed Login Lockout</strong> — 15-minute account lock after failed attempts</li></ul></div></field>
+            <field name="icon_emoji">🔐</field>
+            <field name="accent_color">#10B981</field>
+            <field name="price">99.00</field>
+            <field name="version">19.0.1.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">essential</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_pos'), ref('tag_security'), ref('tag_access_control')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/ma_pos_base</field>
+            <field name="seo_meta_description">POS security framework for Odoo 19 with PIN validation, discount limits, role-based access, and immutable audit logs. Enterprise-grade.</field>
+            <field name="seo_keywords">Odoo POS security, PIN validation, discount limits, access control, Odoo 19 POS module</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/ma_pos_base.png</field>
+            <field name="sequence">1</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 2. ma_pos_customization - Odoo 19 -->
+        <record id="addon_ma_pos_customization" model="xamltech.addon">
+            <field name="name">POS Customization Kit</field>
+            <field name="slug">ma_pos_customization</field>
+            <field name="category_id" ref="category_pos"/>
+            <field name="description">Flexible POS UI customization toolkit with theme builder, layout manager, component overrides, and dark/light mode support. Full Arabic RTL.</field>
+            <field name="full_description" type="html"><div><h2>POS Customization Kit (Odoo 19)</h2><p>Empower your POS with deep UI customization:</p><ul><li><strong>Arabic-First Design</strong> — Full RTL support with Cairo &amp; Tajawal fonts</li><li><strong>Theme Builder</strong> — Custom color schemes and branding with CSS variables</li><li><strong>Dark/Light Mode</strong> — Toggle theme support with smooth transitions</li><li><strong>Component Overrides</strong> — Extend or replace any OWL v2 component</li><li><strong>Layout Manager</strong> — Rearrange POS screen components via drag-drop</li><li><strong>Responsive Design</strong> — Mobile, tablet, and desktop optimized</li></ul></div></field>
+            <field name="icon_emoji">🎨</field>
+            <field name="accent_color">#F97316</field>
+            <field name="price">89.00</field>
+            <field name="version">19.0.1.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_pos'), ref('tag_ui'), ref('tag_customization')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/ma_pos_customization</field>
+            <field name="seo_meta_description">POS UI customization toolkit with theme builder, dark/light mode, Arabic RTL support, and OWL v2 component overrides for Odoo 19.</field>
+            <field name="seo_keywords">Odoo POS customization, POS theme, dark mode, Arabic RTL, Odoo 19 UI customization</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/ma_pos_customization.png</field>
+            <field name="sequence">2</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 3. ma_pos_cutting - Odoo 19 -->
+        <record id="addon_ma_pos_cutting" model="xamltech.addon">
+            <field name="name">POS Cutting Orders</field>
+            <field name="slug">ma_pos_cutting</field>
+            <field name="category_id" ref="category_pos"/>
+            <field name="description">Advanced cutting order management for fabric and textile POS operations with real-time tracking, batch serial assignment, and OWL v2 UI.</field>
+            <field name="full_description" type="html"><div><h2>POS Cutting Orders (Odoo 19)</h2><p>Purpose-built for fabric, textile, and material businesses:</p><ul><li><strong>Batch Order Management</strong> — Create and manage cutting orders for groups with automatic serial number assignment</li><li><strong>Dedicated Cutting Screen</strong> — Full OWL v2 UI with dark/light mode support</li><li><strong>Real-Time Tracking</strong> — Live status updates, quantity tracking, and completion workflows</li><li><strong>State Machine</strong> — Draft → Confirmed → Cutting → Done → Cancelled</li><li><strong>Manager PIN Security</strong> — PIN-protected critical operations</li><li><strong>Serial Generation</strong> — Automatic batch serial numbering with prefix/suffix</li></ul></div></field>
+            <field name="icon_emoji">✂️</field>
+            <field name="accent_color">#E8364F</field>
+            <field name="price">149.00</field>
+            <field name="version">19.0.1.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_pos'), ref('tag_cutting'), ref('tag_textile'), ref('tag_manufacturing')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/ma_pos_cutting</field>
+            <field name="seo_meta_description">Textile POS cutting orders for Odoo 19 with batch serial assignment, real-time tracking, and state machine workflow. Manufacturing-ready.</field>
+            <field name="seo_keywords">Odoo POS cutting, textile POS, fabric management, batch orders, manufacturing POS</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/ma_pos_cutting.png</field>
+            <field name="sequence">3</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 4. ma_rs_pos_stock - Odoo 19 -->
+        <record id="addon_ma_rs_pos_stock" model="xamltech.addon">
+            <field name="name">POS Stock Real-Time</field>
+            <field name="slug">ma_rs_pos_stock</field>
+            <field name="category_id" ref="category_pos"/>
+            <field name="description">Real-time stock synchronization for POS with reactive badge updates, batch loading, navbar refresh button, and live warehouse sync.</field>
+            <field name="full_description" type="html"><div><h2>POS Stock Real-Time (Odoo 19)</h2><p>Keep your POS inventory always up to date:</p><ul><li><strong>Real-Time Stock Sync</strong> — Instant updates across all POS sessions via WebSocket</li><li><strong>Reactive Badge Updates</strong> — Stock badges update via pos-stock-refreshed OWL events</li><li><strong>Batch Stock Loading</strong> — Efficient loading for catalogs with 1000+ products</li><li><strong>Navbar Refresh Button</strong> — Manual stock refresh from POS toolbar</li><li><strong>Multi-Warehouse Support</strong> — Track stock across all warehouses</li><li><strong>Color-Coded Indicators</strong> — Green (10+), Amber (1-10), Red (0 stock)</li><li><strong>Cutting Reservation Tracking</strong> — Integrates with ma_pos_cutting for reserved stock</li></ul></div></field>
+            <field name="icon_emoji">📦</field>
+            <field name="accent_color">#3B82F6</field>
+            <field name="price">129.00</field>
+            <field name="version">19.0.1.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_pos'), ref('tag_inventory'), ref('tag_realtime')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/ma_rs_pos_stock</field>
+            <field name="seo_meta_description">Real-time stock synchronization for Odoo 19 POS with WebSocket sync, batch loading, and multi-warehouse support. Live inventory updates.</field>
+            <field name="seo_keywords">Odoo POS stock sync, real-time inventory, warehouse sync, Odoo 19 stock management</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/ma_rs_pos_stock.png</field>
+            <field name="sequence">4</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 5. hda_collection - Odoo 19 -->
+        <record id="tag_revenue" model="xamltech.addon.tag"><field name="name">Revenue Management</field><field name="color">16</field></record>
+        <record id="tag_museum" model="xamltech.addon.tag"><field name="name">Museums &amp; Tourism</field><field name="color">17</field></record>
+        <record id="tag_ticketing" model="xamltech.addon.tag"><field name="name">Ticketing</field><field name="color">18</field></record>
+        <record id="addon_hda_collection" model="xamltech.addon">
+            <field name="name">HDA Collection - Revenue Management</field>
+            <field name="slug">hda_collection</field>
+            <field name="category_id" ref="category_pos"/>
+            <field name="description">Enterprise revenue collection system for museums, tourism sites, and cultural venues. Multi-point operations, real-time reporting, collector POS integration, treasury deposits, and compliance accounting.</field>
+            <field name="full_description" type="html"><div><h2>HDA Collection — Enterprise Revenue Management (Odoo 19)</h2><p>Complete revenue collection solution for الهيئة العامة, museums, and tourism destinations.</p>
+<h3>Multi-Point Operations</h3>
+<ul>
+<li><strong>Collection Points</strong> — NILE_MUSEUM, SADDAM, HOUSING, KIOSK with independent configurations</li>
+<li><strong>Shift Management</strong> — Template-based shifts with supervisor approval workflows</li>
+<li><strong>Collector POS</strong> — Dedicated POS interface for ticket collectors with PIN security</li>
+<li><strong>Session Gates</strong> — PIN-protected session start/end within ±15 min shift window</li>
+</ul>
+<h3>Ticket &amp; Pricing</h3>
+<ul>
+<li><strong>26+ Ticket Categories</strong> — Foreign Single/Group, Egyptian Complex/Single, Student, Playground, Camera, Wedding, Transportation</li>
+<li><strong>Dynamic Pricing</strong> — Per-category pricing with seasonal variants</li>
+<li><strong>Group Validation</strong> — Automatic min/max attendee validation for group tickets</li>
+<li><strong>Cutting Orders</strong> — Batch ticket serial generation via ma_pos_cutting integration</li>
+</ul>
+<h3>Real-Time Reporting</h3>
+<ul>
+<li><strong>Session Dashboard</strong> — Live collector counts, revenue, variances</li>
+<li><strong>Treasury Deposits</strong> — Automated receipt generation with signature lines</li>
+<li><strong>Daily Reports</strong> — Shift summaries, category breakdowns, anomaly detection</li>
+<li><strong>SQL Views</strong> — hda.sales.report for analytics on 8+ dimensions</li>
+</ul>
+<h3>Accounting Integration</h3>
+<ul>
+<li><strong>Auto Journal Entries</strong> — Per-category revenue accounts (710x series)</li>
+<li><strong>Egypt COA Ready</strong> — Pre-configured GL accounts for Egyptian compliance</li>
+<li><strong>Budget Tracking</strong> — Revenue budgets with variance analysis</li>
+<li><strong>Incentive Automation</strong> — Rules-based distributor bonuses &amp; collector commissions</li>
+</ul>
+<h3>Arabic-First, RTL-Ready</h3>
+<ul>
+<li><strong>Full Bilingual UI</strong> — Arabic (primary) + English translations</li>
+<li><strong>RTL Forms &amp; Reports</strong> — All documents rendered in RTL for proper Arabic display</li>
+<li><strong>Cairo Font</strong> — Professional Arabic typography</li>
+</ul></div></field>
+            <field name="icon_emoji">🏛️</field>
+            <field name="accent_color">#0B5D3F</field>
+            <field name="price">249.00</field>
+            <field name="version">19.0.2.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_pos'), ref('tag_revenue'), ref('tag_museum'), ref('tag_ticketing'), ref('tag_realtime'), ref('tag_customization')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/hda_collection</field>
+            <field name="seo_meta_description">Enterprise revenue collection for museums &amp; tourism. Multi-point ticketing, real-time reporting, treasury deposits, and Egypt COA accounting integration.</field>
+            <field name="seo_keywords">museum ticketing system, revenue collection Odoo, tourism POS, real-time reporting, Egypt accounting</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/hda_collection.png</field>
+            <field name="sequence">5</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 6. agricultural_management - NEW -->
+        <record id="tag_agriculture" model="xamltech.addon.tag"><field name="name">Agriculture</field><field name="color">11</field></record>
+        <record id="tag_dashboard" model="xamltech.addon.tag"><field name="name">Dashboard</field><field name="color">12</field></record>
+        <record id="tag_owl" model="xamltech.addon.tag"><field name="name">OWL</field><field name="color">13</field></record>
+        <record id="tag_costing" model="xamltech.addon.tag"><field name="name">Costing</field><field name="color">14</field></record>
+        <record id="tag_harvest" model="xamltech.addon.tag"><field name="name">Harvest</field><field name="color">15</field></record>
+
+        <record id="addon_agricultural_management" model="xamltech.addon">
+            <field name="name">Advanced Agricultural Management</field>
+            <field name="slug">agricultural_management</field>
+            <field name="category_id" ref="category_agriculture"/>
+            <field name="description">Complete farm-to-warehouse ERP for Odoo 19 — OWL Dashboard with Chart.js, 4-level farm hierarchy, real-time costing, 7-step production workflow, harvest scheduling with quality sorting, full accounting integration, and 12-section operations dashboard.</field>
+            <field name="full_description" type="html"><div>
+<h2>Advanced Agricultural Management System — Odoo 19</h2>
+<p>The most comprehensive agricultural management module for Odoo. Manage your entire farming operation from a single dashboard.</p>
+
+<h3>Interactive OWL Dashboard</h3>
+<ul>
+<li><strong>8 Live KPI Cards</strong> — Total Farms, Area, Revenue, Cost, Net Profit, Margin, Projects, Requests</li>
+<li><strong>Chart.js Analytics</strong> — Revenue vs Cost bar chart, Cost Breakdown doughnut, Yield Efficiency line chart</li>
+<li><strong>Dark &amp; Light Mode</strong> — Full CSS variable theme system with responsive design</li>
+</ul>
+
+<h3>4-Level Farm Hierarchy</h3>
+<ul>
+<li><strong>Farm → Sector → Unit → House</strong> — Dynamic area calculation including all children</li>
+<li><strong>Auto-Setup</strong> — Stock locations, analytic accounts, and warehouses created per farm</li>
+<li><strong>Total Area Including Children</strong> — Supports Meter and Feddan measurements</li>
+</ul>
+
+<h3>Real-Time Costing Engine</h3>
+<ul>
+<li><strong>Material, Labor, Equipment</strong> — All costs flow through analytic accounts per farm</li>
+<li><strong>Cost Allocation</strong> — Percentage-based distribution across farm hierarchy</li>
+<li><strong>P&amp;L Analysis</strong> — Per farm, per crop, per season with budget variance tracking</li>
+</ul>
+
+<h3>Production &amp; Harvest</h3>
+<ul>
+<li><strong>7-Step Approval Workflow</strong> — Draft → Submitted → Dr. Approved → Inventory Review → Transfer → RFQ → Completed</li>
+<li><strong>Harvest Scheduling</strong> — Manual, seasonal, recurring schedules with worker assignment</li>
+<li><strong>Quality Sorting</strong> — Grade A/B/C classification with automatic lot generation and waste tracking</li>
+</ul>
+
+<h3>Full ERP Integration</h3>
+<ul>
+<li><strong>Accounting</strong> — Automated journal entries, multi-journal, budget tracking</li>
+<li><strong>Inventory</strong> — Multi-warehouse, lot traceability, internal transfers</li>
+<li><strong>Purchase</strong> — Auto-RFQ from production, vendor evaluation</li>
+<li><strong>HR</strong> — Worker assignment, 7 product types, section-based tasks</li>
+</ul>
+
+<p><strong>Try the live demo:</strong> <a href="https://demo.xamltech.com/web/database/manager">demo.xamltech.com</a> (Database: demo, User: demo, Password: demo)</p>
+</div></field>
+            <field name="icon_emoji">🌾</field>
+            <field name="accent_color">#0B5D3F</field>
+            <field name="price">0.00</field>
+            <field name="version">19.0.1.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_agriculture'), ref('tag_dashboard'), ref('tag_owl'), ref('tag_inventory'), ref('tag_costing'), ref('tag_harvest')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/agricultural_management</field>
+            <field name="seo_meta_description">Farm-to-warehouse ERP for Odoo 19 with OWL dashboard, 4-level hierarchy, real-time costing, harvest workflows, and full accounting integration.</field>
+            <field name="seo_keywords">farm management ERP, agricultural POS, harvest scheduling, farm accounting, Odoo 19 agriculture</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/agricultural_management.png</field>
+            <field name="sequence">0</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 7. AI Marketing Copilot -->
+        <record id="addon_ai_marketing_copilot" model="xamltech.addon">
+            <field name="name">AI Marketing Copilot</field>
+            <field name="slug">ai_marketing_copilot</field>
+            <field name="category_id" ref="category_ai"/>
+            <field name="description">Smart AI-Driven Budget Optimization for Meta, Google Ads &amp; TikTok. Real-time campaign scoring, intelligent budget reallocation, and automated decision logging.</field>
+            <field name="full_description" type="html"><div><h2>AI Marketing Copilot</h2><p>Transform your marketing campaigns with AI-powered budget optimization:</p><ul><li><strong>Real-Time Campaign Scoring</strong> — Automatic scoring (0-100%) based on ROI, CTR, CVR, and CPA metrics</li><li><strong>Smart Budget Allocation</strong> — Intelligent reallocation scales up winners and cuts losers</li><li><strong>Multi-Platform Support</strong> — Integrate with Meta, Google Ads, and TikTok campaigns</li><li><strong>Decision Logging</strong> — Complete audit trail of all AI recommendations and actions</li><li><strong>Thompson Sampling</strong> — Advanced multi-armed bandit algorithm for optimal exploration/exploitation</li><li><strong>Dashboard Analytics</strong> — Real-time dashboards with KPIs, ROI, CPA, CTR, and conversion rates</li><li><strong>Clean Architecture</strong> — Domain-Driven Design with comprehensive 83+ test suite</li></ul></div></field>
+            <field name="icon_emoji">📊</field>
+            <field name="accent_color">#6366F1</field>
+            <field name="price">79.00</field>
+            <field name="version">19.0.2.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_ai'), ref('tag_marketing'), ref('tag_automation'), ref('tag_realtime')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot</field>
+            <field name="seo_meta_description">AI-powered budget optimization for Meta, Google Ads, TikTok. Real-time campaign scoring, smart reallocation, and Thompson sampling algorithm.</field>
+            <field name="seo_keywords">AI marketing automation, budget optimization, Meta Ads Odoo, Google Ads integration, marketing AI</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/ai_marketing_copilot.png</field>
+            <field name="sequence">8</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- 8. AI POS Copilot -->
+        <record id="addon_ai_pos_copilot" model="xamltech.addon">
+            <field name="name">AI POS Copilot</field>
+            <field name="slug">ai_pos_copilot</field>
+            <field name="category_id" ref="category_ai"/>
+            <field name="description">Real-time AI upsell suggestions in Point of Sale. Smart product recommendations based on cart context, customer history, and seasonal trends with Arabic-first UX.</field>
+            <field name="full_description" type="html"><div><h2>AI POS Copilot</h2><p>Boost sales with intelligent product recommendations at checkout:</p><ul><li><strong>Real-Time Suggestions</strong> — AI recommends 1-3 products as cashier scans items (debounced 800ms)</li><li><strong>Smart Context</strong> — Considers cart contents, customer purchase history, and seasonal promotions</li><li><strong>Instant Addition</strong> — One-click product addition with no POS workflow disruption</li><li><strong>Arabic-First UX</strong> — Full RTL support with bilingual names and descriptions</li><li><strong>Graceful Degradation</strong> — Silent fail if AI service unavailable — cashier workflow unaffected</li><li><strong>Complete Logging</strong> — Audit trail of all suggestions and acceptances for analytics</li><li><strong>Shift Summaries</strong> — AI-generated Arabic shift summaries at session close</li><li><strong>Multi-LLM Support</strong> — Works with OpenAI, Google Gemini, or on-premise Ollama</li></ul></div></field>
+            <field name="icon_emoji">🤖</field>
+            <field name="accent_color">#8B5CF6</field>
+            <field name="price">59.00</field>
+            <field name="version">19.0.1.0.0</field>
+            <field name="compatible_versions">["19"]</field>
+            <field name="rating">0</field>
+            <field name="reviews_count">0</field>
+            <field name="downloads_count">0</field>
+            <field name="badge">new</field>
+            <field name="tag_ids" eval="[(6, 0, [ref('tag_ai'), ref('tag_pos'), ref('tag_suggestions'), ref('tag_realtime')])]"/>
+            <field name="odoo_store_url">https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot</field>
+            <field name="seo_meta_description">AI-powered POS upsell suggestions with real-time recommendations, Arabic RTL UX, and multi-LLM support (OpenAI, Gemini, Ollama).</field>
+            <field name="seo_keywords">POS AI recommendations, upsell suggestions, AI retail, smart suggestions Odoo, Arabic POS</field>
+            <field name="seo_og_image">https://xamltech.com/xamltech_addons_store/static/img/addons/ai_pos_copilot.png</field>
+            <field name="sequence">9</field>
+            <field name="is_featured">True</field>
+            <field name="state">published</field>
+            <field name="website_published">True</field>
+        </record>
+
+        <!-- Blog Menu Item -->
+        <record id="website_menu_blog" model="website.menu">
+            <field name="name">Blog</field>
+            <field name="url">/insights</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="website_id" ref="website.default_website"/>
+            <field name="sequence">65</field>
+        </record>
+
+        <!-- NetworkTool App Menu Item -->
+        <record id="website_menu_networktool" model="website.menu">
+            <field name="name">NetworkTool</field>
+            <field name="url">/networktool</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="website_id" ref="website.default_website"/>
+            <field name="sequence">70</field>
+        </record>
+    </data>
+</odoo>

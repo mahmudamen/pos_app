@@ -1,0 +1,110 @@
+{
+  "en": {
+    "meta": {
+      "title": "XamlTech Theme — Professional Dark/Light RTL Odoo Website Theme",
+      "description": "A professional dark/light Odoo website theme with full RTL Arabic support, CSS design tokens, PWA and JSON-LD SEO. Built for technology companies and ERP consultancies.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🎨 Odoo 19 Website Theme",
+        "title": "XamlTech",
+        "accent": "Theme",
+        "lead": "Professional dark/light toggle theme with full RTL Arabic support. Built for technology companies and ERP consultancies.",
+        "points": ["Dark mode by default", "Full RTL Arabic", "CSS design tokens", "PWA + JSON-LD SEO"],
+        "ctas": [
+          { "label": "Talk to us", "href": "/contact-us?lang=en", "style": "primary", "big": true },
+          { "label": "See the addons store", "href": "/addons-store?lang=en", "style": "ghost" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "Theme Features",
+        "title": "Built for real products",
+        "items": [
+          { "icon": "🌙", "title": "Dark Mode Default", "text": "Deep-space dark theme with luminous accent blue. Reduces eye strain and looks stunning on modern displays." },
+          { "icon": "☀️", "title": "One-Click Light Mode", "text": "Seamless toggle persisted in localStorage. Follows the OS colour-scheme preference automatically." },
+          { "icon": "🌐", "title": "Full RTL Arabic", "text": "Every component supports right-to-left. Cairo font covers Arabic and Latin in one stack." },
+          { "icon": "🎨", "title": "CSS Design Tokens", "text": "Zero hardcoded colours. All values in :root CSS variables — one-line rebranding." },
+          { "icon": "📐", "title": "Fluid Responsive", "text": "CSS clamp() everywhere. Pixel-perfect from 320px to 4K. No media-query breakpoint hacks." },
+          { "icon": "📲", "title": "PWA + Service Worker", "text": "Offline-first. Web App Manifest included. Installable on mobile home screens." },
+          { "icon": "🛒", "title": "Addons Store", "text": "Live search, category filter, sort and staggered animations — all vanilla JS, no jQuery." },
+          { "icon": "💬", "title": "WhatsApp Integration", "text": "Floating button and contact form with a pre-filled WhatsApp deep-link. No plugin needed." },
+          { "icon": "🔍", "title": "SEO + JSON-LD", "text": "Organization, Service, FAQPage and ItemList structured data. AI-readable on every page." }
+        ]
+      }},
+      { "partial": "stats", "data": {
+        "title": "Screenshots",
+        "items": [
+          { "v": "🌙", "l": "Dark Mode" },
+          { "v": "☀️", "l": "Light Mode" },
+          { "v": "🌐", "l": "RTL Arabic" },
+          { "v": "🛒", "l": "Addons Store" },
+          { "v": "📱", "l": "Mobile Responsive" }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "Want this theme for your Odoo site?",
+        "text": "We can adapt the XamlTech theme to your brand and content.",
+        "actions": [
+          { "label": "Contact us", "href": "/contact-us?lang=en", "style": "primary" },
+          { "label": "WhatsApp us", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  },
+  "ar": {
+    "meta": {
+      "title": "ثيم زامل تك — ثيم موقع Odoo احترافي داكن/فاتح بدعم RTL",
+      "description": "ثيم موقع Odoo احترافي داكن/فاتح بدعم كامل للعربية RTL وCSS design tokens وPWA وSEO بـ JSON-LD. مصمم لشركات التقنية ومكاتب ERP.",
+      "og_image": "https://xamltech.com/static/img/pos-light.png",
+      "index": true
+    },
+    "sections": [
+      { "partial": "hero", "data": {
+        "eyebrow": "🎨 ثيم موقع Odoo 19",
+        "title": "ثيم",
+        "accent": "زامل تك",
+        "lead": "ثيم احترافي بنمطين داكن/فاتح مع دعم كامل للعربية RTL. مصمم لشركات التقنية ومكاتب ERP.",
+        "points": ["النمط الداكن افتراضياً", "دعم كامل للعربية RTL", "CSS design tokens", "PWA وSEO بـ JSON-LD"],
+        "ctas": [
+          { "label": "تواصل معنا", "href": "/contact-us", "style": "primary", "big": true },
+          { "label": "تصفّح متجر الإضافات", "href": "/addons-store", "style": "ghost" }
+        ]
+      }},
+      { "partial": "features", "data": {
+        "eyebrow": "مزايا الثيم",
+        "title": "مبني لمنتجات حقيقية",
+        "items": [
+          { "icon": "🌙", "title": "النمط الداكن افتراضياً", "text": "نمط داكن عميق مع لون مميز مضيء. يقلل إجهاد العين ويبدو رائعاً على الشاشات الحديثة." },
+          { "icon": "☀️", "title": "النمط الفاتح بلمسة", "text": "تبديل سلس يُحفظ في localStorage ويتابع تفضيل النظام تلقائياً." },
+          { "icon": "🌐", "title": "دعم كامل للعربية RTL", "text": "كل مكوّن يدعم الاتجاه من اليمين لليسار. خط Cairo يغطي العربية واللاتينية." },
+          { "icon": "🎨", "title": "CSS design tokens", "text": "بلا ألوان مثبّتة. كل القيم في متغيرات :root — إعادة تعريف الهوية بسطر واحد." },
+          { "icon": "📐", "title": "تجاوب مرن", "text": "CSS clamp() في كل مكان. دقة من 320px إلى 4K بلا حيل نقاط توقف." },
+          { "icon": "📲", "title": "PWA + service worker", "text": "يعمل دون اتصال. Web App Manifest مضمّن. قابل للتثبيت على شاشة الهاتف." },
+          { "icon": "🛒", "title": "متجر الإضافات", "text": "بحث حي وفلترة فئات وترتيب وحركات متدرجة — بجافاسكربت خالص بلا jQuery." },
+          { "icon": "💬", "title": "تكامل واتساب", "text": "زر عائم ونموذج تواصل برابط واتساب مُعبّأ مسبقاً. بلا إضافة خارجية." },
+          { "icon": "🔍", "title": "SEO + JSON-LD", "text": "بيانات منظمة Organization وService وFAQPage وItemList. مقروء للذكاء الاصطناعي في كل صفحة." }
+        ]
+      }},
+      { "partial": "stats", "data": {
+        "title": "لقطات الشاشة",
+        "items": [
+          { "v": "🌙", "l": "النمط الداكن" },
+          { "v": "☀️", "l": "النمط الفاتح" },
+          { "v": "🌐", "l": "العربية RTL" },
+          { "v": "🛒", "l": "متجر الإضافات" },
+          { "v": "📱", "l": "متجاوب للجوال" }
+        ]
+      }},
+      { "partial": "cta", "data": {
+        "title": "تريد هذا الثيم لموقع Odoo؟",
+        "text": "يمكننا تكييف ثيم زامل تك لهويتك ومحتواك.",
+        "actions": [
+          { "label": "تواصل معنا", "href": "/contact-us", "style": "primary" },
+          { "label": "واتساب", "href": "https://wa.me/201007982468", "style": "wa" }
+        ]
+      }}
+    ]
+  }
+}

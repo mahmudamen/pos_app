@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="view_sale_order_form_eg_trade" model="ir.ui.view">
+    <field name="name">sale.order.form.eg.trade</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//header" position="inside">
+        <button name="action_eg_trade_prepare_delivery_invoice" type="object" string="One-Step Confirm" class="btn-primary" invisible="state not in ('draft','sent','sale')"/>
+        <button name="action_eg_trade_prepare_tax_followup" type="object" string="Check Egypt Tax" invisible="state == 'cancel'"/>
+      </xpath>
+      <xpath expr="//notebook" position="inside">
+        <page string="Easy Trade">
+          <group>
+            <group>
+              <field name="eg_trade_sale_mode"/>
+              <field name="eg_trade_payment_hint"/>
+              <field name="eg_trade_branch"/>
+              <field name="eg_trade_warehouse_id"/>
+            </group>
+            <group>
+              <field name="eg_trade_eta_state"/>
+              <field name="eg_trade_eta_document_id"/>
+              <field name="eg_trade_low_stock_warning" readonly="1"/>
+              <field name="eg_trade_credit_warning" readonly="1"/>
+            </group>
+          </group>
+          <field name="eg_trade_simple_note" placeholder="Short note for sales, delivery, or collection."/>
+        </page>
+      </xpath>
+    </field>
+  </record>
+
+  <record id="view_sale_order_form_easy" model="ir.ui.view">
+    <field name="name">sale.order.form.easy.trade</field>
+    <field name="model">sale.order</field>
+    <field name="arch" type="xml">
+      <form string="Easy Sale">
+        <header>
+          <button name="action_eg_trade_prepare_delivery_invoice" type="object" string="Confirm + Invoice" class="btn-primary" invisible="state not in ('draft','sent','sale')"/>
+          <button name="action_eg_trade_prepare_tax_followup" type="object" string="Tax Check" invisible="state == 'cancel'"/>
+          <field name="state" widget="statusbar" statusbar_visible="draft,sent,sale,done"/>
+        </header>
+        <sheet class="o_eg_trade_easy_form">
+          <group>
+            <group string="Customer">
+              <field name="partner_id" required="1"/>
+              <field name="eg_trade_payment_hint"/>
+              <field name="pricelist_id"/>
+            </group>
+            <group string="Operation">
+              <field name="date_order"/>
+              <field name="warehouse_id"/>
+              <field name="eg_trade_branch"/>
+              <field name="user_id"/>
+            </group>
+          </group>
+          <group invisible="not eg_trade_low_stock_warning and not eg_trade_credit_warning">
+            <field name="eg_trade_low_stock_warning" readonly="1"/>
+            <field name="eg_trade_credit_warning" readonly="1"/>
+          </group>
+          <field name="order_line" mode="list,kanban">
+            <list editable="bottom">
+              <field name="product_id"/>
+              <field name="name"/>
+              <field name="product_uom_qty"/>
+              <field name="price_unit"/>
+              <field name="discount"/>
+              <field name="tax_ids" widget="many2many_tags"/>
+              <field name="price_subtotal"/>
+            </list>
+          </field>
+          <group>
+            <group>
+              <field name="eg_trade_simple_note"/>
+              <field name="eg_trade_eta_state" readonly="1"/>
+            </group>
+            <group class="oe_subtotal_footer">
+              <field name="amount_untaxed"/>
+              <field name="amount_tax"/>
+              <field name="amount_total" class="oe_subtotal_footer_separator"/>
+            </group>
+          </group>
+        </sheet>
+        <chatter/>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_eg_trade_easy_sale" model="ir.actions.act_window">
+    <field name="name">Easy Sale</field>
+    <field name="res_model">sale.order</field>
+    <field name="view_mode">list,form</field>
+    <field name="views" eval="[(False, 'list'), (ref('view_sale_order_form_easy'), 'form')]"/>
+    <field name="domain">[('state','in',('draft','sent','sale'))]</field>
+    <field name="context">{'default_eg_trade_sale_mode': 'quick'}</field>
+  </record>
+
+  <record id="action_eg_trade_sale_orders" model="ir.actions.act_window">
+    <field name="name">Sales Orders</field>
+    <field name="res_model">sale.order</field>
+    <field name="view_mode">list,form</field>
+    <field name="domain">[]</field>
+  </record>
+</odoo>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- POS Go — Web POS for Odoo. Arabic-first RTL page. API reference: api.xamltech.com/converge /api.xamltech.com -->
+
+    <template id="pos_go_page" name="POS Go — Web POS for Odoo | XamlTech">
+        <t t-call="website.layout">
+            <t t-set="title">POS Go — Web POS للـ Odoo | XamlTech</t>
+            <div id="wrap" class="xt-posgo" t-att-data-api-ref="'api.xamltech.com'" t-att-data-api-url="'https://api.xamltech.com'">
+                <section class="xt-sec xt-sec--hero xt-sec--dark" id="posgo-hero">
+                    <div class="xt-c" style="max-width:1160px;padding:90px 16px 60px;text-align:center;">
+                        <p class="xt-kicker">🛍️ تطبيق نقاط البيع للويب</p>
+                        <h1 style="font-size:clamp(30px,5.2vw,54px);font-weight:900;line-height:1.15;margin:16px 0 20px;">
+                            POS <span style="background:linear-gradient(90deg,#22d3ee,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent;">Go</span>
+                            <br/>نظام الكاشير على المتصفح
+                        </h1>
+                        <p class="xt-lede" style="font-size:18px;color:rgba(255,255,255,0.7);max-width:820px;margin:0 auto 28px;line-height:1.8;">
+                            كاشير ويب كامل يعمل مباشرة من أي متصفح — بيع سريع، كاميرات وطباعة، ومزامنة فورية مع خادم
+                            <strong dir="ltr">api.xamltech.com</strong> كمرجع الواجهة للـ Web POS.
+                        </p>
+                        <div class="xt-btns" style="justify-content:center;margin-bottom:14px;">
+                            <a href="https://api.xamltech.com" target="_blank" class="xt-btn xt-btn--primary">🌐 فتح Web POS — api.xamltech.com</a>
+                            <a href="/addons-store/pos-go" class="xt-btn xt-btn--outline">📦 صفحة الإضافة في المتجر</a>
+                        </div>
+                        <p class="xt-note" style="font-size:13px;color:rgba(255,255,255,0.45);">المرجع: <span dir="ltr" t-esc="'https://api.xamltech.com'"/></p>
+                    </div>
+                </section>
+
+                <section class="xt-sec" id="posgo-features">
+                    <div class="xt-c" style="max-width:1160px;padding:60px 16px;">
+                        <h2 class="xt-h2" style="text-align:center;margin-bottom:40px;">لماذا POS Go؟</h2>
+                        <div class="xt-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;">
+                            <div class="xt-card" style="padding:22px;">
+                                <div style="font-size:34px;margin-bottom:10px;">⚡</div>
+                                <h3 style="margin-bottom:8px;">بيع فائق السرعة</h3>
+                                <p style="color:rgba(255,255,255,0.65);font-size:14px;line-height:1.7;">واجهة لمسية مصممة للكاشير اليومي — إضافة المنتجات بالنقر ومفاتيح الاختصار.</p>
+                            </div>
+                            <div class="xt-card" style="padding:22px;">
+                                <div style="font-size:34px;margin-bottom:10px;">🔗</div>
+                                <h3 style="margin-bottom:8px;">مزامنة مع api.xamltech.com</h3>
+                                <p style="color:rgba(255,255,255,0.65);font-size:14px;line-height:1.7;">مزامنة فورية للطلبات والمخزون والفوترة عبر واجهة API آمنة.</p>
+                            </div>
+                            <div class="xt-card" style="padding:22px;">
+                                <div style="font-size:34px;margin-bottom:10px;">🖨️</div>
+                                <h3 style="margin-bottom:8px;">طباعة وباركود</h3>
+                                <p style="color:rgba(255,255,255,0.65);font-size:14px;line-height:1.7;">طباعة إيصالات حرارية وفواتير ضريبية مصرية مع كود الاستجابة السريع.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="xt-sec xt-sec--dark" id="posgo-api">
+                    <div class="xt-c" style="max-width:1160px;padding:60px 16px;">
+                        <h2 class="xt-h2" style="text-align:center;margin-bottom:20px;">المرجع: Web POS API</h2>
+                        <p style="text-align:center;color:rgba(255,255,255,0.65);max-width:760px;margin:0 auto 34px;line-height:1.8;">
+                            كل تطبيقات <strong>POS Go</strong> للويب تستخدم <span dir="ltr" style="font-family:monospace;color:#22d3ee;">api.xamltech.com</span>
+                            كمرجع موحّد للدخول والمزامنة والفوترة الإلكترونية.
+                        </p>
+                        <div class="xt-codeblock" style="background:#0b1220;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px;direction:ltr;text-align:left;font-family:monospace;font-size:13px;color:#93c5fd;max-width:760px;margin:0 auto;">
+                            <div>// Web POS — API Reference</div>
+                            <div>BASE_URL = <span style="color:#4ade80;">"https://api.xamltech.com"</span></div>
+                            <div>ENDPOINT = BASE_URL + <span style="color:#4ade80;">"/api/pos/session"</span></div>
+                            <div>HEADERS = { "Content-Type": "application/json", "X-API-Key": api_key }</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="xt-sec" id="posgo-cta">
+                    <div class="xt-c" style="max-width:760px;padding:60px 16px;text-align:center;">
+                        <h2 class="xt-h2" style="margin-bottom:14px;">جرّب POS Go الآن</h2>
+                        <p style="color:rgba(255,255,255,0.65);margin-bottom:24px;">وصول فوري عبر المتصفح — بدون تثبيت، ومتجانس مع إصدار الهاتف (APK).</p>
+                        <div class="xt-btns" style="justify-content:center;">
+                            <a href="https://api.xamltech.com" target="_blank" class="xt-btn xt-btn--primary">🚀 بدء الاستخدام</a>
+                            <a href="/contactus" class="xt-btn xt-btn--outline">📞 تواصل معنا</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

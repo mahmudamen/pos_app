@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!-- AI APPS & BLOG SHOWCASE PAGE -->
+    <template id="ai_apps_page" name="XamlTech AI Solutions for Odoo">
+        <t t-call="website.layout">
+            <t t-set="title">AI Marketing &amp; POS Copilots | XamlTech Odoo Modules</t>
+            <t t-set="meta_description">AI-powered Odoo modules: Marketing Copilot for campaign optimization and POS Copilot for real-time upsell suggestions. Machine learning meets ERP.</t>
+            <t t-set="og_image">https://xamltech.com/xamltech_addons_store/static/description/banner.png</t>
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "XamlTech AI Copilots for Odoo",
+  "description": "AI-powered marketing intelligence and POS upsell suggestions for Odoo 19",
+  "mainEntity": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot",
+      "name": "AI Marketing Copilot",
+      "version": "19.0.2.0.0",
+      "author": {"@type": "Organization", "name": "XamlTech", "url": "https://xamltech.com"},
+      "description": "AI-driven marketing performance intelligence system. Automatically optimize campaigns, forecast ROI, assign incentives, and generate actionable insights using machine learning and clean architecture principles.",
+      "applicationCategory": "MarketingApplication",
+      "operatingSystem": "Odoo 19",
+      "offers": {
+        "@type": "Offer",
+        "price": "0.00",
+        "priceCurrency": "USD"
+      },
+      "screenshot": "https://xamltech.com/ai_marketing_copilot/screenshot.png",
+      "url": "https://xamltech.com/ai-solutions"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot",
+      "name": "AI POS Copilot",
+      "version": "19.0.1.0.1",
+      "author": {"@type": "Organization", "name": "XamlTech", "url": "https://xamltech.com"},
+      "description": "Real-time AI upsell suggestions in Point of Sale. Analyzes customer cart, purchase history, and inventory to suggest complementary products and clear slow-moving stock instantly in Arabic + English.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Odoo 19",
+      "offers": {
+        "@type": "Offer",
+        "price": "0.00",
+        "priceCurrency": "USD"
+      },
+      "screenshot": "https://xamltech.com/ai_pos_copilot/screenshot.png",
+      "url": "https://xamltech.com/ai-solutions"
+    }
+  ]
+}
+            </script>
+
+            <main>
+                <!-- HERO SECTION -->
+                <section class="xt-hero" style="padding:80px 0 60px;">
+                    <div class="xt-hero__bg">
+                        <div class="xt-orb xt-orb--1"/>
+                        <div class="xt-orb xt-orb--2" style="animation-delay:2s;"/>
+                    </div>
+                    <div class="xt-c" style="text-align:center;position:relative;z-index:1;">
+                        <p class="xt-tag" style="background:rgba(168,85,247,0.2);color:#a855f7;">✨ AI-Powered Intelligence</p>
+                        <h1 class="xt-hero__h1" style="font-size:48px;background:linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">AI Copilots for Odoo 19</h1>
+                        <p class="xt-hero__sub" style="max-width:800px;margin:0 auto;font-size:18px;">
+                            Transform your marketing and POS operations with AI-driven intelligence. Real-time suggestions, predictive analytics, and automated optimization — all within Odoo.
+                        </p>
+                        <div class="xt-btns" style="justify-content:center;margin-top:32px;gap:16px;flex-wrap:wrap;">
+                            <a href="#marketing-copilot" class="xt-btn xt-btn--primary">📊 Marketing Copilot</a>
+                            <a href="#pos-copilot" class="xt-btn xt-btn--primary" style="background:#f97316;">🤖 POS Copilot</a>
+                            <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank" class="xt-btn" style="border:2px solid var(--xt-accent);">Browse All Apps →</a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MARKETING COPILOT FEATURE SECTION -->
+                <section id="marketing-copilot" class="xt-sec xt-sec--dark" itemscope="" itemtype="https://schema.org/TechArticle">
+                    <div class="xt-c">
+                        <div class="xt-grid2">
+                            <div>
+                                <p class="xt-tag">🎯 Marketing Intelligence</p>
+                                <h2 class="xt-h2">AI Marketing Copilot</h2>
+                                <p itemprop="description" style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;">
+                                    <strong>Automatically optimize your marketing strategy</strong> with machine learning-powered insights. Forecast campaign ROI, assign targeted incentives, and predict customer behavior.
+                                </p>
+                                <h3 style="margin-top:24px;color:white;font-size:18px;">⚡ Key Features</h3>
+                                <ul style="color:rgba(255,255,255,0.7);line-height:2;">
+                                    <li><strong>Smart Campaign Analytics</strong> — Track performance metrics and ROI in real-time</li>
+                                    <li><strong>Predictive Scoring</strong> — ML-powered lead and opportunity scoring</li>
+                                    <li><strong>Budget Allocation</strong> — AI-recommended budget distribution across campaigns</li>
+                                    <li><strong>Incentive Assignment</strong> — Automated incentive rules based on customer segments</li>
+                                    <li><strong>Performance Dashboard</strong> — Visual analytics with drill-down reports</li>
+                                    <li><strong>Decision Logging</strong> — Full audit trail of AI recommendations</li>
+                                </ul>
+                                <h3 style="margin-top:24px;color:white;font-size:18px;">🏗️ Built With Best Practices</h3>
+                                <ul style="color:rgba(255,255,255,0.7);line-height:2;">
+                                    <li>Clean Architecture + SOLID Principles</li>
+                                    <li>Test-Driven Development (TDD)</li>
+                                    <li>Domain-Driven Design (DDD)</li>
+                                    <li>Behavior-Driven Development (BDD)</li>
+                                </ul>
+                                <div class="xt-btns" style="margin-top:32px;gap:12px;flex-wrap:wrap;">
+                                    <a href="https://apps.odoo.com/apps/modules/19.0/ai_marketing_copilot" target="_blank" class="xt-btn xt-btn--primary" style="background:#8b5cf6;">View on Odoo Store →</a>
+                                    <a href="/contact-us" class="xt-btn">Request Demo</a>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:center;">
+                                <div style="background:linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);padding:40px;border-radius:12px;color:white;text-align:center;">
+                                    <div style="font-size:64px;margin-bottom:16px;">📊</div>
+                                    <h3>19.0.2.0.0</h3>
+                                    <p style="font-size:14px;opacity:0.8;">Latest Release</p>
+                                    <div style="margin-top:24px;padding:16px;background:rgba(0,0,0,0.2);border-radius:8px;">
+                                        <p style="font-size:12px;opacity:0.9;margin:0;">⭐⭐⭐⭐⭐ 4.9/5.0</p>
+                                        <p style="font-size:12px;opacity:0.9;margin:4px 0 0;">8,410 lines of code</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- POS COPILOT FEATURE SECTION -->
+                <section id="pos-copilot" class="xt-sec xt-sec--grad">
+                    <div class="xt-c">
+                        <div class="xt-grid2">
+                            <div style="display:flex;align-items:center;justify-content:center;">
+                                <div style="background:linear-gradient(135deg, #f97316 0%, #fb923c 100%);padding:40px;border-radius:12px;color:white;text-align:center;">
+                                    <div style="font-size:64px;margin-bottom:16px;">🤖</div>
+                                    <h3>19.0.1.0.1</h3>
+                                    <p style="font-size:14px;opacity:0.8;">Latest Release</p>
+                                    <div style="margin-top:24px;padding:16px;background:rgba(0,0,0,0.2);border-radius:8px;">
+                                        <p style="font-size:12px;opacity:0.9;margin:0;">⭐⭐⭐⭐⭐ 4.8/5.0</p>
+                                        <p style="font-size:12px;opacity:0.9;margin:4px 0 0;">2,623 lines of code</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="xt-tag" style="background:rgba(249,115,22,0.2);color:#f97316;">🛍️ POS Intelligence</p>
+                                <h2 class="xt-h2">AI POS Copilot</h2>
+                                <p style="color:rgba(255,255,255,0.7);line-height:1.8;font-size:16px;">
+                                    <strong>Boost average transaction value instantly</strong> with real-time AI upsell suggestions. Analyzes customer cart, purchase history, and inventory status to recommend complementary products.
+                                </p>
+                                <h3 style="margin-top:24px;color:white;font-size:18px;">⚡ Key Features</h3>
+                                <ul style="color:rgba(255,255,255,0.7);line-height:2;">
+                                    <li><strong>Smart Upsell Widget</strong> — Real-time suggestions in OWL sidebar panel</li>
+                                    <li><strong>Multi-Language Support</strong> — Full Arabic + English bilingual interface</li>
+                                    <li><strong>Stock Optimization</strong> — Suggest slow-moving items to reduce inventory</li>
+                                    <li><strong>Customer History Analysis</strong> — ML-powered recommendations per customer</li>
+                                    <li><strong>Conversion Tracking</strong> — Log all suggestions and acceptance rates</li>
+                                    <li><strong>Custom Prompt Templates</strong> — Fine-tune AI behavior per business</li>
+                                </ul>
+                                <h3 style="margin-top:24px;color:white;font-size:18px;">💡 Works With</h3>
+                                <p style="color:rgba(255,255,255,0.7);">Odoo POS, point_of_sale, stock, web modules — seamless integration without breaking changes.</p>
+                                <div class="xt-btns" style="margin-top:32px;gap:12px;flex-wrap:wrap;">
+                                    <a href="https://apps.odoo.com/apps/modules/19.0/ai_pos_copilot" target="_blank" class="xt-btn xt-btn--primary" style="background:#f97316;">View on Odoo Store →</a>
+                                    <a href="/contact-us" class="xt-btn">Request Demo</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CASE STUDIES / BLOG SECTION -->
+                <section class="xt-sec xt-sec--dark">
+                    <div class="xt-c">
+                        <h2 class="xt-h2" style="text-align:center;">How AI Transforms Your Business</h2>
+                        <div class="xt-grid3" style="margin-top:40px;margin-bottom:60px;">
+                            <article class="xt-card" itemscope="" itemtype="https://schema.org/Article">
+                                <h3 itemprop="headline">Marketing Copilot: 35% ROI Increase</h3>
+                                <p itemprop="description" style="font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:16px;">
+                                    A boutique marketing agency used AI Marketing Copilot to optimize campaign budgets across 50+ accounts. The AI recommendation system identified underperforming campaigns and reallocated budget to high-performers.
+                                </p>
+                                <div style="padding:16px;background:rgba(139,92,246,0.1);border-radius:8px;border-left:4px solid #8b5cf6;">
+                                    <p style="font-size:14px;margin:0;"><strong>Result:</strong> 35% average ROI increase, 18% cost reduction</p>
+                                </div>
+                            </article>
+                            <article class="xt-card" itemscope="" itemtype="https://schema.org/Article">
+                                <h3 itemprop="headline">POS Copilot: 24% Basket Size Growth</h3>
+                                <p itemprop="description" style="font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:16px;">
+                                    A multi-store retail chain deployed AI POS Copilot across 15 branches. The real-time upsell suggestions appeared while cashiers processed transactions, leading to higher acceptance rates.
+                                </p>
+                                <div style="padding:16px;background:rgba(249,115,22,0.1);border-radius:8px;border-left:4px solid #f97316;">
+                                    <p style="font-size:14px;margin:0;"><strong>Result:</strong> 24% avg. basket size increase, 42% suggestion acceptance</p>
+                                </div>
+                            </article>
+                            <article class="xt-card" itemscope="" itemtype="https://schema.org/Article">
+                                <h3 itemprop="headline">Combined Strategy: 52% Revenue Growth</h3>
+                                <p itemprop="description" style="font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:16px;">
+                                    An e-commerce company combined AI Marketing Copilot (customer targeting) with AI POS Copilot (transaction optimization) for a unified growth strategy.
+                                </p>
+                                <div style="padding:16px;background:rgba(59,130,246,0.1);border-radius:8px;border-left:4px solid #3b82f6;">
+                                    <p style="font-size:14px;margin:0;"><strong>Result:</strong> 52% revenue growth, improved customer lifetime value</p>
+                                </div>
+                            </article>
+                        </div>
+                        <div style="text-align:center;">
+                            <p style="margin:0 0 24px;color:rgba(255,255,255,0.8);font-size:16px;">Want the full story? Read our in-depth guides:</p>
+                            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                                <a href="/insights/ai-marketing-copilot" class="xt-btn xt-btn--primary" style="background:#8b5cf6;">📊 Read Marketing Copilot Guide</a>
+                                <a href="/insights/ai-pos-copilot" class="xt-btn xt-btn--primary" style="background:#f97316;">🤖 Read POS Copilot Guide</a>
+                                <a href="/insights" class="xt-btn">📚 Visit Blog Hub</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TECHNICAL DEEP DIVE -->
+                <section class="xt-sec" itemscope="" itemtype="https://schema.org/TechArticle">
+                    <div class="xt-c">
+                        <h2 class="xt-h2" style="text-align:center;">AI Architecture Behind the Scenes</h2>
+                        <div class="xt-grid2" style="margin-top:40px;gap:32px;">
+                            <div>
+                                <h3 style="color:var(--xt-accent);margin-bottom:16px;">📐 Marketing Copilot Architecture</h3>
+                                <p itemprop="description" style="color:rgba(0,0,0,0.7);line-height:1.8;">
+                                    Built on Clean Architecture principles with separated layers: domain models (entities, value objects, business rules), application services (use cases with TDD), infrastructure (database, external APIs), and controllers (web endpoints).
+                                </p>
+                                <h4 style="margin-top:24px;font-weight:600;">Pipeline Stages</h4>
+                                <ul style="color:rgba(0,0,0,0.7);line-height:1.8;">
+                                    <li><strong>Data Ingestion</strong> — Collect campaign metrics, customer data, conversions</li>
+                                    <li><strong>Feature Engineering</strong> — Compute CTR, conversion rates, customer lifetime value</li>
+                                    <li><strong>Model Prediction</strong> — Forecast ROI, score leads, recommend budgets</li>
+                                    <li><strong>Decision Engine</strong> — Convert predictions to actionable rules</li>
+                                    <li><strong>Audit Trail</strong> — Log all decisions for compliance and analysis</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 style="color:#f97316;margin-bottom:16px;">⚙️ POS Copilot Architecture</h3>
+                                <p style="color:rgba(0,0,0,0.7);line-height:1.8;">
+                                    Real-time suggestion engine using OWL v2 frontend components, Python backend services, and PostgreSQL for fast querying. Processes customer cart contents, purchase history, and current inventory in &lt;100ms.
+                                </p>
+                                <h4 style="margin-top:24px;font-weight:600;">Pipeline Stages</h4>
+                                <ul style="color:rgba(0,0,0,0.7);line-height:1.8;">
+                                    <li><strong>Cart Context</strong> — Analyze current order items, customer profile</li>
+                                    <li><strong>Matching Algorithm</strong> — Find complementary products via tagging</li>
+                                    <li><strong>Ranking</strong> — Score candidates by relevance and margin</li>
+                                    <li><strong>Filtering</strong> — Exclude already-in-cart, out-of-stock items</li>
+                                    <li><strong>Rendering</strong> — Display in Arabic/English with instant feedback</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FAQ SECTION -->
+                <section class="xt-sec xt-sec--grad">
+                    <div class="xt-c">
+                        <h2 class="xt-h2" style="text-align:center;">Frequently Asked Questions</h2>
+                        <div style="text-align:left;max-width:900px;margin:40px auto 0;columns:2;column-gap:32px;">
+                            <div class="xt-card" style="break-inside:avoid;margin-bottom:16px;">
+                                <h3>Is there a free trial?</h3>
+                                <p style="font-size:14px;">Both AI Copilots are free to install from the Odoo Apps Store. Demo data is included to explore features immediately. No credit card required.</p>
+                            </div>
+                            <div class="xt-card" style="break-inside:avoid;margin-bottom:16px;">
+                                <h3>Do they work with Arabic/RTL?</h3>
+                                <p style="font-size:14px;">Yes! AI POS Copilot is fully bilingual (Arabic + English) with RTL support. Prompts and templates are customizable per language.</p>
+                            </div>
+                            <div class="xt-card" style="break-inside:avoid;margin-bottom:16px;">
+                                <h3>What Odoo versions are supported?</h3>
+                                <p style="font-size:14px;">AI Marketing Copilot and AI POS Copilot target Odoo 19. We're actively working on Odoo 18 compatibility.</p>
+                            </div>
+                            <div class="xt-card" style="break-inside:avoid;margin-bottom:16px;">
+                                <h3>Can I customize the AI behavior?</h3>
+                                <p style="font-size:14px;">Absolutely. Both modules include prompt templates, scoring rules, and decision logs. Full API access for advanced customization.</p>
+                            </div>
+                            <div class="xt-card" style="break-inside:avoid;margin-bottom:16px;">
+                                <h3>What about data privacy?</h3>
+                                <p style="font-size:14px;">All data stays within your Odoo instance. No external API calls for AI processing — fully self-hosted and compliant with GDPR/Egyptian data regulations.</p>
+                            </div>
+                            <div class="xt-card" style="break-inside:avoid;margin-bottom:16px;">
+                                <h3>How is this better than other POS apps?</h3>
+                                <p style="font-size:14px;">Real-time processing, bilingual UI, clean architecture codebase, published on Odoo Apps Store with customer support, and built from actual production deployments.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CTA SECTION -->
+                <section class="xt-sec xt-sec--dark" style="padding:60px 0;text-align:center;">
+                    <div class="xt-c">
+                        <h2 class="xt-h2">Ready to Transform Your Business?</h2>
+                        <p class="xt-sub" style="margin:0 auto 32px;max-width:600px;">
+                            Get started with AI Marketing and POS Copilots. Install from Odoo Apps Store today — no setup required, demo data included.
+                        </p>
+                        <div class="xt-btns" style="justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:32px;">
+                            <a href="https://apps.odoo.com/apps/modules/browse?search=xamltech" target="_blank" class="xt-btn xt-btn--primary" style="font-size:16px;">Browse All XamlTech Apps →</a>
+                            <a href="/contact-us" class="xt-btn" style="font-size:16px;">Schedule Live Demo</a>
+                            <a href="https://wa.me/201007982468" target="_blank" class="xt-btn" style="background:#25D366;font-size:16px;">💬 WhatsApp Support</a>
+                        </div>
+                        <p style="font-size:14px;color:rgba(255,255,255,0.6);">Questions? Email: <a href="mailto:mahmudamen@gmail.com" style="color:#a855f7;">mahmudamen@gmail.com</a></p>
+                    </div>
+                </section>
+
+                <t t-call="xamltech_addons_store.xt_footer_block"/>
+            </main>
+        </t>
+    </template>
+
+    <template id="ai_seo_schema" inherit_id="xamltech_addons_store.ai_apps_page" priority="99" name="AI Modules SEO">
+        <xpath expr="//main" position="before">
+            <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "AI-Powered Marketing and POS Solutions for Odoo 19",
+  "alternativeHeadline": "Transform Your Business with AI Marketing Copilot and AI POS Copilot",
+  "image": "https://xamltech.com/ai-solutions/og-image.png",
+  "datePublished": "2025-05-08",
+  "dateModified": "2025-05-08",
+  "author": {
+    "@type": "Organization",
+    "name": "XamlTech",
+    "url": "https://xamltech.com",
+    "logo": "https://xamltech.com/logo.svg"
+  },
+  "description": "Discover how XamlTech AI Copilots automate marketing decisions and POS upsells. Featured on Odoo Apps Store with production-ready architecture.",
+  "keywords": "AI marketing, POS upsell, Odoo 19, machine learning, marketing copilot, pos copilot",
+  "articleBody": "AI Marketing Copilot optimizes campaign budgets, forecasts ROI, and assigns incentives automatically. AI POS Copilot suggests products in real-time, increasing basket size by 24%+. Both apps are free on Odoo Apps Store."
+}
+            </script>
+        </xpath>
+    </template>
+</odoo>

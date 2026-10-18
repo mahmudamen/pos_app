@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ROOT COMMENTS MOVED INSIDE TEMPLATE -->
+    <!--
+        Register each controller-served page as a website.page record so it:
+        - Appears in the website editor's page list (Website ▶ Pages)
+        - Gets SEO fields (title, meta description) editable from the backend
+        - Can be published/unpublished from the website editor toolbar
+    -->
+
+    <record id="page_contact" model="website.page">
+        <field name="view_id" ref="contact_page"/>
+        <field name="url">/contact-us</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_store" model="website.page">
+        <field name="view_id" ref="store_page"/>
+        <field name="url">/addons-store</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_demo" model="website.page">
+        <field name="view_id" ref="demo_page"/>
+        <field name="url">/request-demo</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_knowledge" model="website.page">
+        <field name="view_id" ref="knowledge_page"/>
+        <field name="url">/knowledge</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_portfolio" model="website.page">
+        <field name="view_id" ref="portfolio_page"/>
+        <field name="url">/portfolio</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_erp" model="website.page">
+        <field name="view_id" ref="erp_page"/>
+        <field name="url">/solutions/erp</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_infra" model="website.page">
+        <field name="view_id" ref="infra_page"/>
+        <field name="url">/solutions/it-infrastructure</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_web_dev" model="website.page">
+        <field name="view_id" ref="web_dev_page"/>
+        <field name="url">/solutions/web</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_theme_info" model="website.page">
+        <field name="view_id" ref="xt_theme_info_page"/>
+        <field name="url">/theme-info</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_ai_solutions" model="website.page">
+        <field name="view_id" ref="ai_apps_page"/>
+        <field name="url">/ai-solutions</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_blog_ai_marketing" model="website.page">
+        <field name="view_id" ref="blog_ai_marketing_copilot"/>
+        <field name="url">/insights/ai-marketing-copilot</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_blog_ai_pos" model="website.page">
+        <field name="view_id" ref="blog_ai_pos_copilot"/>
+        <field name="url">/insights/ai-pos-copilot</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_testimonials" model="website.page">
+        <field name="view_id" ref="testimonials_page"/>
+        <field name="url">/testimonials</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_pricing" model="website.page">
+        <field name="view_id" ref="pricing_page"/>
+        <field name="url">/pricing</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_networktool" model="website.page">
+        <field name="view_id" ref="networktool_page"/>
+        <field name="url">/networktool</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+    </record>
+
+    <record id="page_privacy" model="website.page">
+        <field name="view_id" ref="xt_privacy_page"/>
+        <field name="url">/privacy-policy</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+        <field name="name">سياسة الخصوصية</field>
+    </record>
+
+    <record id="page_terms" model="website.page">
+        <field name="view_id" ref="xt_terms_page"/>
+        <field name="url">/terms</field>
+        <field name="website_published">True</field>
+        <field name="is_homepage">False</field>
+        <field name="name">شروط الاستخدام</field>
+    </record>
+</odoo>
