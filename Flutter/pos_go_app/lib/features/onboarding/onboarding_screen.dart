@@ -71,6 +71,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ('sweets', Icons.cake_outlined),
     ('jewelry', Icons.diamond_outlined),
     ('hardware', Icons.handyman_outlined),
+    ('beauty', Icons.spa_outlined),
+    ('supermarket', Icons.shopping_basket_outlined),
   ];
 
   /// Feature interests the merchant can signal on first use. All features are

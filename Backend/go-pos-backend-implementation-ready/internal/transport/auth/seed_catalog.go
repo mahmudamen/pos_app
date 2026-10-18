@@ -306,6 +306,36 @@ func seedCatalogs() map[string]demoVertical {
 				{"tools", "Safety Gloves (12 pairs)", "HW-012", "6220170000127", 900, 450, 30, "photo-1572442388796-11668a67e53d", "Cut-resistant work gloves.", "pack"},
 			},
 		},
+		"beauty": {
+			categories: [][2]string{{"haircare", "Hair Care"}, {"skincare", "Skin Care"}, {"cosmetics", "Cosmetics"}},
+			products: []demoProduct{
+				{"haircare", "Shampoo 400ml", "BT-001", "6220180000018", 220, 110, 50, "photo-1572442388796-11668a67e53d", "Sulphate-free formula for daily use.", "piece"},
+				{"haircare", "Conditioner 400ml", "BT-002", "6220180000025", 240, 120, 45, "photo-1572442388796-11668a67e53d", "Detangling conditioner with argan oil.", "piece"},
+				{"haircare", "Hair Mask 300ml", "BT-003", "6220180000032", 320, 160, 30, "photo-1572442388796-11668a67e53d", "Deep-repair keratin mask, weekly use.", "piece"},
+				{"skincare", "Face Wash 150ml", "BT-004", "6220180000049", 190, 90, 60, "photo-1572442388796-11668a67e53d", "Gentle foaming cleanser for all skin types.", "piece"},
+				{"skincare", "Moisturizing Cream 50ml", "BT-005", "6220180000056", 450, 220, 40, "photo-1572442388796-11668a67e53d", "Lightweight hyaluronic-acid daily cream.", "piece"},
+				{"skincare", "Sunscreen SPF50 50ml", "BT-006", "6220180000063", 520, 260, 35, "photo-1572442388796-11668a67e53d", "Broad-spectrum UVA/UVB, no white cast.", "piece"},
+				{"skincare", "Vitamin C Serum 30ml", "BT-007", "6220180000070", 680, 340, 25, "photo-1572442388796-11668a67e53d", "15% L-ascorbic acid, brightening formula.", "piece"},
+				{"cosmetics", "Matte Lipstick 4g", "BT-008", "6220180000087", 280, 130, 50, "photo-1572442388796-11668a67e53d", "Long-wear matte finish, transfer-resistant.", "piece"},
+				{"cosmetics", "Foundation 30ml", "BT-009", "6220180000094", 550, 280, 30, "photo-1572442388796-11668a67e53d", "Medium buildable coverage, 24h wear.", "piece"},
+				{"cosmetics", "Perfume 50ml", "BT-010", "6220180000100", 950, 480, 20, "photo-1572442388796-11668a67e53d", "Oriental amber fragrance, eau de parfum.", "piece"},
+			},
+		},
+		"supermarket": {
+			categories: [][2]string{{"pantry", "Pantry"}, {"dairy", "Dairy & Eggs"}, {"beverages", "Beverages"}},
+			products: []demoProduct{
+				{"pantry", "Baladi Bread (pack of 5)", "SM-001", "6220190000015", 15, 10, 100, "photo-1572442388796-11668a67e53d", "Fresh Egyptian baladi loaf pack.", "pack"},
+				{"pantry", "Rice 1kg", "SM-002", "6220190000022", 65, 45, 80, "photo-1572442388796-11668a67e53d", "Short-grain Egyptian rice.", "kg"},
+				{"pantry", "Sugar 1kg", "SM-003", "6220190000039", 35, 25, 90, "photo-1572442388796-11668a67e53d", "White granulated sugar.", "kg"},
+				{"pantry", "Cooking Oil 1L", "SM-004", "6220190000046", 95, 75, 60, "photo-1572442388796-11668a67e53d", "Sunflower oil, bottle.", "liter"},
+				{"pantry", "Pasta 400g", "SM-005", "6220190000053", 22, 14, 70, "photo-1572442388796-11668a67e53d", "Macaroni durum wheat.", "piece"},
+				{"pantry", "Tea 100g", "SM-006", "6220190000060", 85, 55, 40, "photo-1572442388796-11668a67e53d", "Black tea leaves, rich blend.", "piece"},
+				{"dairy", "Milk 1L", "SM-007", "6220190000077", 38, 28, 100, "photo-1572442388796-11668a67e53d", "Full-fat fresh milk.", "liter"},
+				{"dairy", "Eggs (tray of 30)", "SM-008", "6220190000084", 135, 105, 40, "photo-1572442388796-11668a67e53d", "Farm-fresh grade-A eggs.", "tray"},
+				{"dairy", "Yellow Cheese 500g", "SM-009", "6220190000091", 145, 100, 35, "photo-1572442388796-11668a67e53d", "Sliced yellow cheese, 500g block.", "piece"},
+				{"beverages", "Mineral Water (6×1L)", "SM-010", "6220190000107", 42, 28, 80, "photo-1572442388796-11668a67e53d", "Pack of six 1-litre bottles.", "pack"},
+			},
+		},
 	}
 }
 

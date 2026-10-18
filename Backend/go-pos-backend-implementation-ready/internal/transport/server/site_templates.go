@@ -274,13 +274,55 @@ const siteIndexBody = `<main>
       <span class="section-label">{{.T.secVerticals}}</span>
       <h2 class="section-title">{{.T.vitTitle}}</h2>
       <p class="section-sub">{{.T.vitLead}}</p>
-      <div class="vgrid">
-        <span class="v">{{.T.vit1}}</span><span class="v">{{.T.vit2}}</span><span class="v">{{.T.vit3}}</span>
-        <span class="v">{{.T.vit4}}</span><span class="v">{{.T.vit5}}</span><span class="v">{{.T.vit6}}</span>
-        <span class="v">{{.T.vit7}}</span><span class="v">{{.T.vit8}}</span><span class="v">{{.T.vit9}}</span>
-        <span class="v">{{.T.vit10}}</span><span class="v">{{.T.vit11}}</span><span class="v">{{.T.vit12}}</span>
-        <span class="v">{{.T.vit13}}</span><span class="v">{{.T.vit14}}</span><span class="v">{{.T.vit15}}</span>
-        <span class="v">{{.T.vit16}}</span><span class="v">{{.T.vit17}}</span>
+      <div class="vgroups">
+        <div class="vgroup">
+          <h3 class="vgtitle">{{.T.vg1t}}</h3>
+          <p class="vgdesc">{{.T.vg1d}}</p>
+          <div class="vrows">
+            <div class="vrow"><b>{{.T.vr1n}}</b><span>{{.T.vr1d}}</span><i class="{{.T.vr1c}}">{{.T.vr1p}}</i></div>
+            <div class="vrow"><b>{{.T.vr2n}}</b><span>{{.T.vr2d}}</span><i class="vplan">{{.T.vr2p}}</i></div>
+            <div class="vrow"><b>{{.T.vr3n}}</b><span>{{.T.vr3d}}</span><i class="vplan">{{.T.vr3p}}</i></div>
+            <div class="vrow"><b>{{.T.vr4n}}</b><span>{{.T.vr4d}}</span><i class="vplan">{{.T.vr4p}}</i></div>
+            <div class="vrow"><b>{{.T.vr5n}}</b><span>{{.T.vr5d}}</span><i class="vplan">{{.T.vr5p}}</i></div>
+            <div class="vrow"><b>{{.T.vr6n}}</b><span>{{.T.vr6d}}</span><i class="vplan">{{.T.vr6p}}</i></div>
+            <div class="vrow"><b>{{.T.vr7n}}</b><span>{{.T.vr7d}}</span><i class="vplan">{{.T.vr7p}}</i></div>
+          </div>
+        </div>
+        <div class="vgroup">
+          <h3 class="vgtitle">{{.T.vg2t}}</h3>
+          <p class="vgdesc">{{.T.vg2d}}</p>
+          <div class="vrows">
+            <div class="vrow"><b>{{.T.vr8n}}</b><span>{{.T.vr8d}}</span><i class="vplan">{{.T.vr8p}}</i></div>
+            <div class="vrow"><b>{{.T.vr9n}}</b><span>{{.T.vr9d}}</span><i class="vplan">{{.T.vr9p}}</i></div>
+            <div class="vrow"><b>{{.T.vr10n}}</b><span>{{.T.vr10d}}</span><i class="vplan">{{.T.vr10p}}</i></div>
+            <div class="vrow"><b>{{.T.vr11n}}</b><span>{{.T.vr11d}}</span><i class="vplan">{{.T.vr11p}}</i></div>
+            <div class="vrow"><b>{{.T.vr12n}}</b><span>{{.T.vr12d}}</span><i class="vplan">{{.T.vr12p}}</i></div>
+            <div class="vrow"><b>{{.T.vr13n}}</b><span>{{.T.vr13d}}</span><i class="vplan">{{.T.vr13p}}</i></div>
+            <div class="vrow"><b>{{.T.vr14n}}</b><span>{{.T.vr14d}}</span><i class="vplan">{{.T.vr14p}}</i></div>
+          </div>
+        </div>
+        <div class="vgroup">
+          <h3 class="vgtitle">{{.T.vg3t}}</h3>
+          <p class="vgdesc">{{.T.vg3d}}</p>
+          <div class="vrows">
+            <div class="vrow"><b>{{.T.vr15n}}</b><span>{{.T.vr15d}}</span><i class="vplan">{{.T.vr15p}}</i></div>
+            <div class="vrow"><b>{{.T.vr16n}}</b><span>{{.T.vr16d}}</span><i class="vplan">{{.T.vr16p}}</i></div>
+          </div>
+        </div>
+        <div class="vgroup">
+          <h3 class="vgtitle">{{.T.vg4t}}</h3>
+          <p class="vgdesc">{{.T.vg4d}}</p>
+          <div class="vrows">
+            <div class="vrow"><b>{{.T.vr17n}}</b><span>{{.T.vr17d}}</span><i class="{{.T.vr17c}}">{{.T.vr17p}}</i></div>
+            <div class="vrow"><b>{{.T.vr18n}}</b><span>{{.T.vr18d}}</span><i class="{{.T.vr18c}}">{{.T.vr18p}}</i></div>
+            <div class="vrow"><b>{{.T.vr19n}}</b><span>{{.T.vr19d}}</span><i class="vplan">{{.T.vr19p}}</i></div>
+          </div>
+        </div>
+      </div>
+      <p class="section-note">{{.T.vitNote}}</p>
+      <div class="vgcta">
+        <a class="btn btn-primary" href="{{$.SaaSURL}}/admin/register">{{.T.vitCta}}</a>
+        <a class="btn btn-ghost" href="/pricing">{{.T.vitCta2}}</a>
       </div>
     </section>
 

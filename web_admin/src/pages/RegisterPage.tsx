@@ -25,6 +25,8 @@ const BUSINESS_TYPES: ReadonlyArray<[string, string]> = [
   ['sweets', 'Sweets shop'],
   ['jewelry', 'Jewelry store'],
   ['hardware', 'Hardware store'],
+  ['beauty', 'Beauty & cosmetics'],
+  ['supermarket', 'Supermarket'],
 ]
 
 export function RegisterPage() {

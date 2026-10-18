@@ -408,21 +408,33 @@ section[id] { scroll-margin-top: 66px; }
 }
 
 /* ---------- verticals ---------- */
-.vgrid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px 28px;
-  border-top: 1px solid var(--border); padding-top: 28px;
+.vgroups {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 30px;
 }
-@media (max-width: 880px) { .vgrid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .vgrid { grid-template-columns: 1fr; } }
-.v {
-  display: flex; align-items: center; gap: 11px; color: var(--text-2); font-size: 14.5px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  padding: 11px 14px; box-shadow: var(--shadow-sm);
+@media (max-width: 880px) { .vgroups { grid-template-columns: 1fr; } }
+.vgroup {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px 20px 10px; box-shadow: var(--shadow-sm);
 }
-.v::before {
-  content: ""; width: 7px; height: 7px; flex: none; border-radius: 50%;
-  background: var(--accent); opacity: 0.85;
+.vgtitle { margin: 0; font-size: 16.5px; letter-spacing: -0.01em; color: var(--text); }
+.vgdesc { color: var(--text-3); font-size: 13px; margin: 4px 0 6px; }
+.vrows { display: flex; flex-direction: column; }
+.vrow {
+  display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; gap: 10px; align-items: baseline;
+  padding: 9px 0; border-top: 1px solid var(--border); font-size: 13.5px;
 }
+.vrow b { font-weight: 600; color: var(--text); }
+.vrow span { color: var(--text-2); }
+.vplan {
+  font-style: normal; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  color: var(--text-3); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px;
+}
+.vplan-special {
+  color: var(--accent); background: transparent;
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.vgcta { display: flex; gap: 12px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
 
 /* ---------- plans ---------- */
 .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }

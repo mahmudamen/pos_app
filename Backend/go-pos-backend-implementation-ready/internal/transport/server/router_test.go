@@ -488,6 +488,56 @@ func TestLandingFeaturesCarryPlanBadgesAndPlainLanguage(t *testing.T) {
 	}
 }
 
+func TestLandingGroupsVerticalsWithDescriptionsAndPlanBadges(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	for _, lang := range []string{"en", "ar"} {
+		rec := httptest.NewRecorder()
+		engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/?lang="+lang, nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("lang=%s: got %d, want 200", lang, rec.Code)
+		}
+		body := rec.Body.String()
+		// The verticals section sells each trade with a one-line description and
+		// the plan badge that runs it, grouped the way a merchant scans it.
+		groups := map[string][]string{
+			"en": {"Food &amp; drink", "Retail &amp; markets", "Electronics", "Health &amp; fashion"},
+			"ar": {"الأغذية والمشروبات", "التجزئة والأسواق", "الإلكترونيات", "الصحة والأزياء"},
+		}
+		for _, want := range groups[lang] {
+			if !strings.Contains(body, want) {
+				t.Errorf("lang=%s index missing vertical group %q", lang, want)
+			}
+		}
+		rows := map[string][]string{
+			"en": {"Tables, bill split and tips", "Large baskets and by-weight items", "Sizes and colours, a barcode per variant", "Ta&#39;ameya, foul and sandwiches", "Business &amp; up"},
+			"ar": {"طاولات وتقسيم الفواتير والبقشيش", "سلال كبيرة وأصناف بالوزن", "مقاسات وألوان بباركود لكل متغير", "طعمية وفول وسندويتشات", "باقة الأعمال فأعلى"},
+		}
+		for _, want := range rows[lang] {
+			if !strings.Contains(body, want) {
+				t.Errorf("lang=%s index missing vertical row text %q", lang, want)
+			}
+		}
+		// A dedicated CTA for the section: trial signup + plan comparison,
+		// pointed at the SaaS host in both languages.
+		if !strings.Contains(body, `class="btn btn-primary" href="https://`+config.DefaultSaaSDomain+`/admin/register"`) {
+			t.Errorf("lang=%s verticals section should link to the register page", lang)
+		}
+		if !strings.Contains(body, `class="btn btn-ghost" href="/pricing"`) {
+			t.Errorf("lang=%s verticals section should link to pricing", lang)
+		}
+		// The old chip grid promised two unregistered verticals and merged
+		// shawerma with falafel; both framings must be gone.
+		for _, bad := range []string{"vgrid", "Shawerma &amp; falafel", "الشاورما والفلافل"} {
+			if strings.Contains(body, bad) {
+				t.Errorf("lang=%s index still carries %q", lang, bad)
+			}
+		}
+	}
+}
+
 func TestSiteFooterLinksToPublicGitHubRepoInBothLanguages(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	// Surface routing on, so "/" is exercised on the POS host and on the company
