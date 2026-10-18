@@ -172,6 +172,12 @@ class _FakeLocalDatabase extends LocalDatabase {
   Future<void> cacheProducts(List<Product> products) async {}
 
   @override
+  Future<void> cacheCategories(List<Category> categories) async {}
+
+  @override
+  Future<List<Category>> cachedCategories() async => const [];
+
+  @override
   Future<void> enqueue(PendingCommand command) async {
     commands.add(command);
   }

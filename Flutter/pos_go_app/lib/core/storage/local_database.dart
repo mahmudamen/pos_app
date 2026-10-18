@@ -13,6 +13,8 @@ class PendingCommand {
     required this.payload,
     this.attempts = 0,
     this.lastError,
+    this.errorDetail,
+    this.isConflict = false,
   });
 
   final String id;
@@ -21,6 +23,15 @@ class PendingCommand {
   final String payload;
   final int attempts;
   final String? lastError;
+
+  /// The server's human-readable explanation ("insufficient stock"), when it
+  /// sent one. [lastError] is the stable machine code the UI maps to a reason.
+  final String? errorDetail;
+
+  /// True when the server answered a *conflict* (the command clashed with
+  /// state created elsewhere, e.g. another device sold the last units) rather
+  /// than a plain rejection. Conflicts are recoverable and surface separately.
+  final bool isConflict;
 }
 
 class LocalDatabase {
@@ -40,7 +51,7 @@ class LocalDatabase {
     _database = await target.factory.openDatabase(
       target.path,
       options: OpenDatabaseOptions(
-        version: 6,
+        version: 8,
         onCreate: (db, _) async {
           await db.execute('''
             CREATE TABLE cached_products (
@@ -52,9 +63,12 @@ class LocalDatabase {
               cost_minor INTEGER NOT NULL DEFAULT 0,
               currency TEXT NOT NULL,
               stock_quantity INTEGER NOT NULL,
-              image_url TEXT NOT NULL DEFAULT ''
+              image_url TEXT NOT NULL DEFAULT '',
+              category_id TEXT NOT NULL DEFAULT '',
+              name_ar TEXT NOT NULL DEFAULT ''
             )
           ''');
+          await _createCachedCategories(db);
           await db.execute('''
             CREATE TABLE pending_commands (
               id TEXT PRIMARY KEY,
@@ -64,6 +78,8 @@ class LocalDatabase {
               status TEXT NOT NULL DEFAULT 'pending',
               attempts INTEGER NOT NULL DEFAULT 0,
               last_error TEXT,
+              error_detail TEXT,
+              is_conflict INTEGER NOT NULL DEFAULT 0,
               created_at INTEGER NOT NULL
             )
           ''');
@@ -94,6 +110,25 @@ class LocalDatabase {
           }
           if (oldVersion < 6) {
             await _createLastSale(db);
+          }
+          if (oldVersion < 7) {
+            // Distinguish a recoverable conflict (state changed on another
+            // device) from a plain rejection, and keep the server's own
+            // explanation for the conflict-review screen.
+            await _addColumnIfMissing(
+                db, 'pending_commands', 'error_detail', 'TEXT');
+            await _addColumnIfMissing(db, 'pending_commands', 'is_conflict',
+                'INTEGER NOT NULL DEFAULT 0');
+          }
+          if (oldVersion < 8) {
+            // The incremental change feed turns the cache into the POS's
+            // primary catalog, so a cached row must keep enough to render the
+            // grid offline: the category it filters under and its Arabic name.
+            await _addColumnIfMissing(
+                db, 'cached_products', 'category_id', "TEXT NOT NULL DEFAULT ''");
+            await _addColumnIfMissing(
+                db, 'cached_products', 'name_ar', "TEXT NOT NULL DEFAULT ''");
+            await _createCachedCategories(db);
           }
         },
       ),
@@ -153,6 +188,20 @@ class LocalDatabase {
     ''');
   }
 
+  /// Categories the POS filters its grid by, cached so a warm start can render
+  /// the chips before the change feed answers. Created for both fresh installs
+  /// and upgrades so the two paths cannot diverge.
+  static Future<void> _createCachedCategories(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cached_categories (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL,
+        name_ar TEXT NOT NULL DEFAULT ''
+      )
+    ''');
+  }
+
   /// Adds [column] to [table] only when it is not already present.
   ///
   /// `ALTER TABLE ... ADD COLUMN` is not idempotent, and `onUpgrade` re-runs
@@ -167,6 +216,10 @@ class LocalDatabase {
     String type,
   ) async {
     final info = await db.rawQuery('PRAGMA table_info($table)');
+    // A missing table means there is nothing to widen yet (the create path
+    // owns it); ALTERing it here would raise `no such table` and roll back the
+    // whole upgrade, which is exactly the bricking this helper exists to stop.
+    if (info.isEmpty) return;
     final existing = info.map((row) => row['name'] as String).toSet();
     if (existing.contains(column)) return;
     await db.execute('ALTER TABLE $table ADD COLUMN $column $type');
@@ -177,7 +230,35 @@ class LocalDatabase {
     final batch = db.batch();
     await db.delete('cached_products');
     for (final p in products) {
-      batch.insert('cached_products', {
+      batch.insert(
+          'cached_products', _productRow(p),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Applies the product half of a change-feed page on top of the cache:
+  /// [upserts] replace/insert by id and [deletes] drop the row. Kept separate
+  /// from [cacheProducts] so an incremental pull never has to wipe the table
+  /// first (which would blank the grid between the delete and the insert).
+  Future<void> applyProductChanges({
+    List<Product> upserts = const [],
+    List<String> deletes = const [],
+  }) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final id in deletes) {
+      batch.delete('cached_products', where: 'id = ?', whereArgs: [id]);
+    }
+    for (final p in upserts) {
+      batch.insert(
+          'cached_products', _productRow(p),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  static Map<String, Object?> _productRow(Product p) => {
         'id': p.id,
         'name': p.name,
         'sku': p.sku,
@@ -187,10 +268,9 @@ class LocalDatabase {
         'currency': p.currency,
         'stock_quantity': p.stockQuantity,
         'image_url': p.imageUrl,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-    }
-    await batch.commit(noResult: true);
-  }
+        'category_id': p.categoryId,
+        'name_ar': p.nameAr,
+      };
 
   Future<List<Product>> cachedProducts() async {
     final rows = await (await database).query('cached_products', orderBy: 'name');
@@ -205,8 +285,68 @@ class LocalDatabase {
               currency: row['currency'] as String,
               stockQuantity: row['stock_quantity'] as int,
               imageUrl: row['image_url'] as String? ?? '',
+              categoryId: row['category_id'] as String? ?? '',
+              nameAr: row['name_ar'] as String? ?? '',
             ))
         .toList();
+  }
+
+  Future<void> cacheCategories(List<Category> categories) async {
+    final db = await database;
+    final batch = db.batch();
+    await db.delete('cached_categories');
+    for (final c in categories) {
+      batch.insert('cached_categories', _categoryRow(c),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Applies the category half of a change-feed page on top of the cache.
+  Future<void> applyCategoryChanges({
+    List<Category> upserts = const [],
+    List<String> deletes = const [],
+  }) async {
+    final db = await database;
+    final batch = db.batch();
+    for (final id in deletes) {
+      batch.delete('cached_categories', where: 'id = ?', whereArgs: [id]);
+    }
+    for (final c in upserts) {
+      batch.insert('cached_categories', _categoryRow(c),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  static Map<String, Object?> _categoryRow(Category c) => {
+        'id': c.id,
+        'name': c.name,
+        'slug': c.slug,
+        'name_ar': c.nameAr,
+      };
+
+  Future<List<Category>> cachedCategories() async {
+    final rows =
+        await (await database).query('cached_categories', orderBy: 'name');
+    return rows
+        .map((row) => Category(
+              id: row['id'] as String,
+              name: row['name'] as String,
+              slug: row['slug'] as String,
+              nameAr: row['name_ar'] as String? ?? '',
+            ))
+        .toList();
+  }
+
+  /// Drops the cached catalog so a full resynchronization can rebuild it. Used
+  /// when the change feed reports an expired cursor and the bridge is gone.
+  Future<void> clearCatalogCache() async {
+    final db = await database;
+    final batch = db.batch();
+    batch.delete('cached_products');
+    batch.delete('cached_categories');
+    await batch.commit(noResult: true);
   }
 
   Future<void> enqueue(PendingCommand command) async {
@@ -232,6 +372,8 @@ class LocalDatabase {
         payload: row['payload']! as String,
         attempts: (row['attempts'] as num?)?.toInt() ?? 0,
         lastError: row['last_error'] as String?,
+        errorDetail: row['error_detail'] as String?,
+        isConflict: ((row['is_conflict'] as num?)?.toInt() ?? 0) != 0,
       );
 
   Future<List<PendingCommand>> pendingCommands() async {
@@ -245,7 +387,9 @@ class LocalDatabase {
   }
 
   /// Commands the server refused that never entered the feed: kept in their
-  /// own status so they neither block the queue nor vanish silently.
+  /// own status so they neither block the queue nor vanish silently. Each row
+  /// carries [PendingCommand.isConflict] so callers can tell a recoverable
+  /// conflict from a plain rejection.
   Future<List<PendingCommand>> failedCommands() async {
     final rows = await (await database).query(
       'pending_commands',
@@ -266,19 +410,33 @@ class LocalDatabase {
   }
 
   /// Parks a command the server rejected, recording why and how often.
-  Future<void> failCommand(String id, {String? errorCode}) async {
+  ///
+  /// [conflict] marks a recoverable clash with state created elsewhere, so the
+  /// review screen can tell it apart from a hard rejection.
+  Future<void> failCommand(
+    String id, {
+    String? errorCode,
+    String? errorDetail,
+    bool conflict = false,
+  }) async {
     await (await database).rawUpdate(
       'UPDATE pending_commands SET status = ?, attempts = attempts + 1, '
-      'last_error = ? WHERE id = ?',
-      ['failed', errorCode, id],
+      'last_error = ?, error_detail = ?, is_conflict = ? WHERE id = ?',
+      ['failed', errorCode, errorDetail, conflict ? 1 : 0, id],
     );
   }
 
-  /// Moves a failed command back into the replay queue.
+  /// Moves a failed command back into the replay queue, clearing the previous
+  /// failure so the next attempt starts clean.
   Future<void> retryCommand(String id) async {
     await (await database).update(
       'pending_commands',
-      {'status': 'pending', 'last_error': null},
+      {
+        'status': 'pending',
+        'last_error': null,
+        'error_detail': null,
+        'is_conflict': 0,
+      },
       where: 'id = ?',
       whereArgs: [id],
     );

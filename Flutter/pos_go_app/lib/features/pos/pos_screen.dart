@@ -14,6 +14,7 @@ import '../../core/printers.dart';
 import '../../core/registers.dart';
 import '../../core/security.dart';
 import '../../core/session_store.dart';
+import '../../core/sync_service.dart';
 import '../../core/theme.dart';
 import '../../core/storage/local_database.dart';
 import '../../core/tour/tour_controller.dart';
@@ -54,6 +55,7 @@ class PosScreen extends StatefulWidget {
       required this.onSignOut,
       this.localDatabase,
       this.sessionStore,
+      this.syncService,
       this.fontSetting = const FontSetting(),
       this.onLanguageChanged,
       this.onFontModeChanged,
@@ -69,6 +71,10 @@ class PosScreen extends StatefulWidget {
   final VoidCallback onSignOut;
   final LocalDatabase? localDatabase;
   final SessionStore? sessionStore;
+
+  /// Drives the incremental change feed. Left null in production so one is
+  /// built from [localDatabase] + [sessionStore]; tests inject a fake.
+  final SyncService? syncService;
   final FontSetting fontSetting;
   final ValueChanged<String>? onLanguageChanged;
   final ValueChanged<FontMode>? onFontModeChanged;
@@ -344,7 +350,45 @@ class _PosScreenState extends State<PosScreen> {
 
   int get _total => _activeOrder.total;
 
-  Future<void> _loadData() async {
+  /// The change-feed consumer, built from the injected pieces unless a test
+  /// supplied its own. Null when this build has no cache to reconcile against.
+  SyncService? get _syncService {
+    final injected = widget.syncService;
+    if (injected != null) return injected;
+    final db = widget.localDatabase;
+    final store = widget.sessionStore;
+    if (db == null || store == null) return null;
+    return SyncService(api: widget.apiClient, local: db, store: store);
+  }
+
+  /// Loads the catalog.
+  ///
+  /// With a warm local cache the grid renders from it immediately and the
+  /// incremental change feed ([SyncService]) folds in whatever changed on other
+  /// devices; a cold cache — first run, or a cache the feed just dropped because
+  /// its cursor expired — falls back to the full catalog fetch, which is also
+  /// what re-seeds the cache.
+  Future<void> _loadData({bool fullRefresh = false}) async {
+    final sync = _syncService;
+    final db = widget.localDatabase;
+
+    if (sync != null && db != null && !fullRefresh) {
+      final cached = await db.cachedProducts();
+      if (cached.isNotEmpty) {
+        final cachedCategories = await db.cachedCategories();
+        if (!mounted) return;
+        setState(() {
+          _products = cached;
+          _categories = cachedCategories;
+          _loading = false;
+          _catalogError = null;
+        });
+        await _applySync(sync);
+        unawaited(_replayPending());
+        return;
+      }
+    }
+
     try {
       final results = await Future.wait([
         widget.apiClient.products(widget.session),
@@ -352,23 +396,30 @@ class _PosScreenState extends State<PosScreen> {
       ]);
       final products = results[0] as List<Product>;
       final categories = results[1] as List<Category>;
-      if (widget.localDatabase != null) {
-        await widget.localDatabase!.cacheProducts(products);
+      if (db != null) {
+        await db.cacheProducts(products);
+        await db.cacheCategories(categories);
       }
       if (!mounted) return;
       setState(() {
         _products = products;
         _categories = categories;
         _loading = false;
+        _catalogError = null;
       });
+      // Advance the feed cursor past the rows this fetch already applied, and
+      // pick up anything that changed in the meantime.
+      if (sync != null) unawaited(_applySync(sync));
       unawaited(_replayPending());
     } catch (error) {
-      if (widget.localDatabase != null) {
-        final cached = await widget.localDatabase!.cachedProducts();
+      if (db != null) {
+        final cached = await db.cachedProducts();
         if (cached.isNotEmpty) {
+          final cachedCategories = await db.cachedCategories();
           if (!mounted) return;
           setState(() {
             _products = cached;
+            _categories = cachedCategories;
             _loading = false;
             _catalogError = null;
           });
@@ -381,6 +432,68 @@ class _PosScreenState extends State<PosScreen> {
         _loading = false;
       });
     }
+  }
+
+  /// Consumes one change-feed pass and folds the result into the grid. A
+  /// transport failure is swallowed: the cache or the last fetch stands.
+  Future<void> _applySync(SyncService sync) async {
+    final SyncPullResult result;
+    try {
+      result = await sync.pull(widget.session);
+    } catch (_) {
+      return;
+    }
+    if (!mounted) return;
+    if (result.resynced) {
+      // The cursor had expired, so the cache was dropped and the feed rebuilt
+      // it; a fresh fetch is the authoritative reseed that also closes any gap
+      // left by the page budget.
+      await _loadData(fullRefresh: true);
+      return;
+    }
+    setState(() {
+      _products = _mergeProducts(
+          _products, result.productUpserts, result.deletedProductIds);
+      _categories = _mergeCategories(
+          _categories, result.categoryUpserts, result.deletedCategoryIds);
+      if (_selectedCategoryId != null &&
+          !_categories.any((c) => c.id == _selectedCategoryId)) {
+        _selectedCategoryId = null;
+      }
+    });
+    if (result.settingsChanged) unawaited(_loadSettings());
+  }
+
+  static List<Product> _mergeProducts(
+    List<Product> current,
+    List<Product> upserts,
+    List<String> deletes,
+  ) {
+    final byId = {for (final p in current) p.id: p};
+    for (final id in deletes) {
+      byId.remove(id);
+    }
+    for (final product in upserts) {
+      byId[product.id] = product;
+    }
+    return byId.values.toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  static List<Category> _mergeCategories(
+    List<Category> current,
+    List<Category> upserts,
+    List<String> deletes,
+  ) {
+    final byId = {for (final c in current) c.id: c};
+    for (final id in deletes) {
+      byId.remove(id);
+    }
+    for (final category in upserts) {
+      byId[category.id] = category;
+    }
+    return byId.values.toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
   }
 
   bool _isLowStock(Product product) =>
@@ -1497,8 +1610,14 @@ class _PosScreenState extends State<PosScreen> {
             applied++;
           } else if (result != null && (result.rejected || result.conflicted)) {
             // Permanent for now: park it with its reason instead of dropping
-            // it, so the failed-sync screen can show and replay it.
-            await db.failCommand(entry.command.id, errorCode: result.errorCode);
+            // it, so the failed-sync screen can show and replay it. A conflict
+            // is flagged so the review screen can explain it in context.
+            await db.failCommand(
+              entry.command.id,
+              errorCode: result.errorCode,
+              errorDetail: result.errorDetail,
+              conflict: result.conflicted,
+            );
             attention++;
           } else {
             break;
@@ -1558,6 +1677,7 @@ class _PosScreenState extends State<PosScreen> {
         session: widget.session,
         localDatabase: db,
         onReplay: _replayPending,
+        onRefresh: _loadData,
       ),
     ));
   }

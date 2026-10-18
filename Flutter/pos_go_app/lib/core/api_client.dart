@@ -3157,11 +3157,8 @@ class ApiClient {
         },
       ),
     );
-    if (respond.statusCode == 409) {
-      throw ApiException(_message(respond));
-    }
     if (respond.statusCode != 200) {
-      throw ApiException(_message(respond));
+      throw ApiException(_message(respond), code: _errorCode(respond));
     }
     final data = jsonDecode(respond.body)['data'] as Map<String, dynamic>;
     final items = (data['items'] as List<dynamic>? ?? [])
@@ -4295,6 +4292,11 @@ class ApiException implements Exception {
   /// The account is valid but belongs to the other public surface: platform
   /// operators sign in on the console domain, store staff on the POS domain.
   bool get isWrongSurface => code == 'wrong_surface';
+
+  /// The change-feed cursor is older than the server's retention window, so the
+  /// incremental pull cannot bridge the gap; the client must drop its local
+  /// catalog and resynchronize from cursor 0.
+  bool get isCursorExpired => code == 'cursor_expired';
 
   /// 402 because the tenant's plan does not grant the feature. The body names
   /// the missing entitlements, so the UI can say "not in your plan" in the

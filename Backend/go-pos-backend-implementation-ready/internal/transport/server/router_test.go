@@ -452,6 +452,42 @@ func TestLandingRendersAllFeaturesModules(t *testing.T) {
 	}
 }
 
+func TestLandingFeaturesCarryPlanBadgesAndPlainLanguage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	server.Register(engine, server.Deps{Config: config.Config{}})
+
+	for _, lang := range []string{"en", "ar"} {
+		rec := httptest.NewRecorder()
+		engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/?lang="+lang, nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("lang=%s: got %d, want 200", lang, rec.Code)
+		}
+		body := rec.Body.String()
+		// Every card now carries the plan that unlocks it, the reopened f6
+		// "discounts" card renders, and the tier badges cover both grids.
+		badges := map[string][]string{
+			"en": {"All plans", "Business &amp; up", "Enterprise", "Available now", "For owners", "Discounts you control"},
+			"ar": {"كل الباقات", "باقة الأعمال وأعلى", "باقة المؤسسات", "متاحة الآن", "للمالكين", "خصومات تحت سيطرتك"},
+		}
+		for _, want := range badges[lang] {
+			if !strings.Contains(body, want) {
+				t.Errorf("lang=%s index missing %q", lang, want)
+			}
+		}
+		// Jargon and the retracted "identical everywhere" framing must be gone.
+		banned := map[string][]string{
+			"en": {"Inventory that thinks", "replays idempotently", "Replays exactly once", "per-cover", "change feed", "tenant backup", "FEFO", "split bills right from the counter"},
+			"ar": {"مخزون يفكر", "على الغطاء", "تغذية التغييرات", "مرة واحدة فقط", "FEFO"},
+		}
+		for _, bad := range banned[lang] {
+			if strings.Contains(body, bad) {
+				t.Errorf("lang=%s index still carries %q", lang, bad)
+			}
+		}
+	}
+}
+
 func TestSiteFooterLinksToPublicGitHubRepoInBothLanguages(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	// Surface routing on, so "/" is exercised on the POS host and on the company
@@ -594,7 +630,7 @@ func TestPricingServesCompareTableAndFAQ(t *testing.T) {
 	}
 	// The page must describe a tiered catalog, not the retracted "every plan is
 	// identical" claim the comparison table below it contradicts.
-	for _, banned := range []string{"never features", "limits, not features"} {
+	for _, banned := range []string{"never features", "limits, not features", "The same engine on every plan"} {
 		if strings.Contains(body, banned) {
 			t.Errorf("pricing body still carries retracted copy %q", banned)
 		}

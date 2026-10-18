@@ -207,10 +207,34 @@ void main() {
     expect(failed.single.id, 'cmd-1');
     expect(failed.single.lastError, 'insufficient_stock');
     expect(failed.single.attempts, 1);
+    expect(failed.single.isConflict, isFalse,
+        reason: 'a plain failure is not flagged as a conflict');
 
     await db.failCommand('cmd-1', errorCode: 'insufficient_stock');
     expect((await db.failedCommands()).single.attempts, 2,
         reason: 'each refusal counts');
+  });
+
+  test('failCommand records a conflict with its server detail', () async {
+    await db.enqueue(const PendingCommand(
+      id: 'cmd-1',
+      idempotencyKey: 'key-1',
+      operation: 'create_sale',
+      payload: '{}',
+    ));
+
+    await db.failCommand(
+      'cmd-1',
+      errorCode: 'insufficient_stock',
+      errorDetail: 'insufficient stock',
+      conflict: true,
+    );
+
+    final failed = (await db.failedCommands()).single;
+    expect(failed.isConflict, isTrue,
+        reason: 'a 409 clash with state elsewhere must stay recoverable');
+    expect(failed.lastError, 'insufficient_stock');
+    expect(failed.errorDetail, 'insufficient stock');
   });
 
   test('retryCommand moves a failed command back into the queue', () async {
@@ -220,7 +244,10 @@ void main() {
       operation: 'create_sale',
       payload: '{}',
     ));
-    await db.failCommand('cmd-1', errorCode: 'insufficient_stock');
+    await db.failCommand('cmd-1',
+        errorCode: 'insufficient_stock',
+        errorDetail: 'insufficient stock',
+        conflict: true);
 
     await db.retryCommand('cmd-1');
 
@@ -229,6 +256,9 @@ void main() {
     expect(pending.single.id, 'cmd-1');
     expect(pending.single.lastError, isNull,
         reason: 'the stale reason must not resurface');
+    expect(pending.single.errorDetail, isNull);
+    expect(pending.single.isConflict, isFalse,
+        reason: 'the conflict flag is cleared for the retry');
     expect(pending.single.attempts, 1, reason: 'history is kept');
   });
 
@@ -456,5 +486,127 @@ void main() {
     final commandNames =
         commandColumns.map((row) => row['name'] as String).toSet();
     expect(commandNames, containsAll(<String>['attempts', 'last_error']));
+  });
+
+  test('cachedProducts keeps the category and Arabic name', () async {
+    await db.cacheProducts(const [
+      Product(
+        id: 'p1',
+        name: 'Coffee',
+        sku: 'COF',
+        barcode: '',
+        priceMinor: 100,
+        currency: 'EGP',
+        stockQuantity: 3,
+        categoryId: 'cat-9',
+        nameAr: 'قهوة',
+      ),
+    ]);
+
+    final cached = await db.cachedProducts();
+    expect(cached.single.categoryId, 'cat-9');
+    expect(cached.single.nameAr, 'قهوة');
+  });
+
+  test('cacheCategories stores and retrieves categories', () async {
+    await db.cacheCategories(const [
+      Category(id: 'c1', name: 'Drinks', slug: 'drinks', nameAr: 'مشروبات'),
+    ]);
+
+    final cached = await db.cachedCategories();
+    expect(cached, hasLength(1));
+    expect(cached.single.name, 'Drinks');
+    expect(cached.single.nameAr, 'مشروبات');
+  });
+
+  test('applyProductChanges upserts by id and deletes without a full wipe',
+      () async {
+    await db.cacheProducts(const [
+      Product(
+        id: 'p1',
+        name: 'Old',
+        sku: 'OLD',
+        barcode: '',
+        priceMinor: 100,
+        currency: 'EGP',
+        stockQuantity: 1,
+      ),
+      Product(
+        id: 'p2',
+        name: 'Keep',
+        sku: 'KEEP',
+        barcode: '',
+        priceMinor: 100,
+        currency: 'EGP',
+        stockQuantity: 1,
+      ),
+    ]);
+
+    await db.applyProductChanges(
+      upserts: const [
+        Product(
+          id: 'p1',
+          name: 'New',
+          sku: 'NEW',
+          barcode: '',
+          priceMinor: 200,
+          currency: 'EGP',
+          stockQuantity: 9,
+        ),
+        Product(
+          id: 'p3',
+          name: 'Added',
+          sku: 'ADD',
+          barcode: '',
+          priceMinor: 100,
+          currency: 'EGP',
+          stockQuantity: 1,
+        ),
+      ],
+      deletes: ['p2'],
+    );
+
+    final cached = await db.cachedProducts();
+    expect(cached.map((p) => p.id), unorderedEquals(['p1', 'p3']));
+    expect(cached.firstWhere((p) => p.id == 'p1').name, 'New');
+    expect(cached.firstWhere((p) => p.id == 'p1').stockQuantity, 9);
+  });
+
+  test('applyCategoryChanges upserts by id and deletes', () async {
+    await db.cacheCategories(const [
+      Category(id: 'c1', name: 'Old', slug: 'c1'),
+      Category(id: 'c2', name: 'Gone', slug: 'c2'),
+    ]);
+
+    await db.applyCategoryChanges(
+      upserts: const [Category(id: 'c1', name: 'New', slug: 'c1')],
+      deletes: ['c2'],
+    );
+
+    final cached = await db.cachedCategories();
+    expect(cached, hasLength(1));
+    expect(cached.single.name, 'New');
+  });
+
+  test('clearCatalogCache empties both cached tables', () async {
+    await db.cacheProducts(const [
+      Product(
+        id: 'p1',
+        name: 'Coffee',
+        sku: 'COF',
+        barcode: '',
+        priceMinor: 100,
+        currency: 'EGP',
+        stockQuantity: 1,
+      ),
+    ]);
+    await db.cacheCategories(const [
+      Category(id: 'c1', name: 'Drinks', slug: 'drinks'),
+    ]);
+
+    await db.clearCatalogCache();
+
+    expect(await db.cachedProducts(), isEmpty);
+    expect(await db.cachedCategories(), isEmpty);
   });
 }

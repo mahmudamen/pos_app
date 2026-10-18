@@ -7,9 +7,12 @@ import '../../core/session_store.dart';
 import '../../core/storage/local_database.dart';
 import '../../l10n/strings.dart';
 
-/// Lists the queued sales the server refused, with the reason and the attempt
-/// count, and lets the cashier retry or discard each one. Reached from the
-/// "needs attention" snackbar after a replay.
+/// Lists the operations the server refused, split into recoverable conflicts
+/// (state changed elsewhere — usually another device) and plain rejections,
+/// with the reason and the attempt count. Each can be retried or discarded;
+/// a conflict can additionally refresh the catalog first, so a stale local
+/// stock count is re-read before the retry. Reached from the "needs
+/// attention" snackbar after a replay.
 class PendingSyncScreen extends StatefulWidget {
   const PendingSyncScreen({
     super.key,
@@ -17,12 +20,17 @@ class PendingSyncScreen extends StatefulWidget {
     required this.session,
     required this.localDatabase,
     this.onReplay,
+    this.onRefresh,
   });
 
   final ApiClient apiClient;
   final Session session;
   final LocalDatabase localDatabase;
   final Future<void> Function()? onReplay;
+
+  /// Reloads the catalog (and replays the queue). Used by a conflict's
+  /// "Refresh & retry" so the retry runs against fresh server state.
+  final Future<void> Function()? onRefresh;
 
   @override
   State<PendingSyncScreen> createState() => _PendingSyncScreenState();
@@ -63,9 +71,13 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
     }
   }
 
-  Future<void> _retry(PendingCommand command) async {
+  Future<void> _retry(PendingCommand command, {bool refresh = false}) async {
     await widget.localDatabase.retryCommand(command.id);
-    await widget.onReplay?.call();
+    if (refresh && widget.onRefresh != null) {
+      await widget.onRefresh!();
+    } else {
+      await widget.onReplay?.call();
+    }
     await _load();
   }
 
@@ -93,12 +105,80 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
     await _load();
   }
 
+  Widget _sectionHeader(String title, int count) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        '$title ($count)',
+        style: Theme.of(context)
+            .textTheme
+            .labelLarge
+            ?.copyWith(color: scheme.primary, letterSpacing: 0.4),
+      ),
+    );
+  }
+
+  Widget _tile(PendingCommand command, {required bool conflict}) {
+    final s = AppStrings.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final reason = conflict
+        ? s.syncConflictReason(command.lastError)
+        : (command.lastError ?? '');
+    final subtitle = <String>[
+      if (reason.isNotEmpty) reason,
+      s.syncAttempts(command.attempts),
+    ].join(' · ');
+    final detail = command.errorDetail;
+    final hasDetail = conflict && detail != null && detail.isNotEmpty;
+    return ListTile(
+      leading: Icon(
+        conflict ? Icons.sync_problem : Icons.error_outline,
+        color: conflict ? scheme.tertiary : scheme.error,
+      ),
+      title: Text('${s.queuedSale} · ${_itemCount(command)} ${s.items}'),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(subtitle),
+          if (hasDetail)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                detail,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ),
+        ],
+      ),
+      isThreeLine: hasDetail,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: conflict ? s.refreshAndRetry : s.retry,
+            icon: const Icon(Icons.refresh),
+            onPressed: () => _retry(command, refresh: conflict),
+          ),
+          IconButton(
+            tooltip: s.discardQueued,
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _discard(command),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
     final failed = _failed;
     return Scaffold(
-      appBar: AppBar(title: Text(s.failedSyncTitle)),
+      appBar: AppBar(title: Text(s.syncIssues)),
       body: _error != null
           ? Center(
               child: Padding(
@@ -120,40 +200,21 @@ class _PendingSyncScreenState extends State<PendingSyncScreen> {
               ? const Center(child: CircularProgressIndicator())
               : failed.isEmpty
                   ? Center(child: Text(s.offlineSynced))
-                  : ListView.separated(
-                      itemCount: failed.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final command = failed[index];
-                        final subtitle = <String>[
-                          if (command.lastError != null &&
-                              command.lastError!.isNotEmpty)
-                            command.lastError!,
-                          s.syncAttempts(command.attempts),
-                        ].join(' · ');
-                        return ListTile(
-                          leading: const Icon(Icons.sync_problem),
-                          title: Text(
-                              '${s.queuedSale} · ${_itemCount(command)} ${s.items}'),
-                          subtitle: Text(subtitle),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: s.retry,
-                                icon: const Icon(Icons.refresh),
-                                onPressed: () => _retry(command),
-                              ),
-                              IconButton(
-                                tooltip: s.discardQueued,
-                                icon: const Icon(Icons.delete_outline),
-                                onPressed: () => _discard(command),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                  : _list(s, failed),
     );
+  }
+
+  Widget _list(AppStrings s, List<PendingCommand> failed) {
+    final conflicts = failed.where((c) => c.isConflict).toList();
+    final rejected = failed.where((c) => !c.isConflict).toList();
+    final tiles = <Widget>[
+      if (conflicts.isNotEmpty)
+        _sectionHeader(s.syncConflictsTitle, conflicts.length),
+      ...conflicts.map((c) => _tile(c, conflict: true)),
+      if (rejected.isNotEmpty)
+        _sectionHeader(s.failedSyncTitle, rejected.length),
+      ...rejected.map((c) => _tile(c, conflict: false)),
+    ];
+    return ListView(children: tiles);
   }
 }

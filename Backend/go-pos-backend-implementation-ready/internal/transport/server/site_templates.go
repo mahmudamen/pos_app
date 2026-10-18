@@ -193,27 +193,31 @@ const siteIndexBody = `<main>
       <div class="feature-grid">
         <div class="feature">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a15 15 0 0 1 18 0"/><path d="M7.5 13a9 9 0 0 1 9 0"/><circle cx="12" cy="17.5" r="0.8" fill="currentColor"/><path d="M4 4l16 16"/></svg>
-          <h3>{{.T.f1t}}</h3><p>{{.T.f1d}}</p>
+          <h3>{{.T.f1t}} <span class="tier">{{.T.tierAll}}</span></h3><p>{{.T.f1d}}</p>
         </div>
         <div class="feature">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M3.5 10h17"/><path d="M8 15h5"/></svg>
-          <h3>{{.T.f2t}}</h3><p>{{.T.f2d}}</p>
+          <h3>{{.T.f2t}} <span class="tier">{{.T.tierAll}}</span></h3><p>{{.T.f2d}}</p>
         </div>
         <div class="feature">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.4v9.2L12 21l-8-4.4V7.4z"/><path d="M12 12l8-4.6M12 12L4 7.4M12 12v9"/></svg>
-          <h3>{{.T.f3t}}</h3><p>{{.T.f3d}}</p>
+          <h3>{{.T.f3t}} <span class="tier">{{.T.tierAll}}</span></h3><p>{{.T.f3d}}</p>
         </div>
         <div class="feature">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/><path d="M6.5 16h4"/><path d="M18 16.8l2.4-2.4M18 16.8V19"/></svg>
-          <h3>{{.T.f4t}}</h3><p>{{.T.f4d}}</p>
+          <h3>{{.T.f4t}} <span class="tier">{{.T.tierAll}}</span></h3><p>{{.T.f4d}}</p>
         </div>
         <div class="feature">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5S4.5 15.5 3 11.2A5.1 5.1 0 0 1 12 7.1a5.1 5.1 0 0 1 9 4.1C19.5 15.5 12 20.5 12 20.5z"/></svg>
-          <h3>{{.T.f5t}}</h3><p>{{.T.f5d}}</p>
+          <h3>{{.T.f5t}} <span class="tier">{{.T.tierBusiness}}</span></h3><p>{{.T.f5d}}</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.2 4.6 5 .8-3.6 3.5.9 5-4.5-2.4L7.5 16.4l.9-5-3.6-3.5 5-.8z"/><path d="M19 19l.5 1.5L21 21l-1.5.5L19 23l-.5-1.5L17 21l1.5-.5z"/></svg>
+          <h3>{{.T.f6t}} <span class="tier">{{.T.tierAll}}</span></h3><p>{{.T.f6d}}</p>
         </div>
         <div class="feature">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.6 4.4 4.4 1.6-4.4 1.6L12 15.5l-1.6-4.4L6 10.4l4.4-1.6z"/><path d="M18.5 15.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg>
-          <h3>{{.T.f7t}}</h3><p>{{.T.f7d}}</p>
+          <h3>{{.T.f7t}} <span class="tier">{{.T.tierNow}}</span></h3><p>{{.T.f7d}}</p>
         </div>
       </div>
     </section>
@@ -225,7 +229,7 @@ const siteIndexBody = `<main>
       <div class="all-grid">
         {{range .Modules}}
         <article class="all-card">
-          <div class="all-head"><span class="all-ico" aria-hidden="true">{{.Icon}}</span><h3>{{.Title}}</h3></div>
+          <div class="all-head"><span class="all-ico" aria-hidden="true">{{.Icon}}</span><h3>{{.Title}}</h3>{{if .Plan}}<span class="tier">{{.Plan}}</span>{{end}}</div>
           <p class="lead">{{.Detail}}</p>
           <ul>{{range .Points}}<li>{{.}}</li>{{end}}</ul>
         </article>

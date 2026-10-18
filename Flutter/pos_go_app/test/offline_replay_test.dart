@@ -22,6 +22,8 @@ class _FakeApiClient extends ApiClient {
 
   bool offline = true;
   bool reject = false;
+  bool conflict = false;
+  String? errorDetail;
   int syncCalls = 0;
 
   /// Counts receipt reads so a queued sale can be shown never to reach for one.
@@ -107,8 +109,14 @@ class _FakeApiClient extends ApiClient {
       results: [
         SyncPushResult(
           commandId: commands.first.commandId,
-          status: reject ? 'rejected' : 'applied',
-          errorCode: reject ? 'insufficient_stock' : null,
+          status: reject
+              ? 'rejected'
+              : conflict
+                  ? 'conflict'
+                  : 'applied',
+          errorCode: (reject || conflict) ? 'insufficient_stock' : null,
+          errorDetail:
+              (reject || conflict) ? (errorDetail ?? 'insufficient stock') : null,
         ),
       ],
     );
@@ -131,6 +139,12 @@ class _FakeLocalDatabase extends LocalDatabase {
   Future<void> cacheProducts(List<Product> products) async {}
 
   @override
+  Future<void> cacheCategories(List<Category> categories) async {}
+
+  @override
+  Future<List<Category>> cachedCategories() async => const [];
+
+  @override
   Future<void> enqueue(PendingCommand command) async {
     commands.add(command);
   }
@@ -151,7 +165,12 @@ class _FakeLocalDatabase extends LocalDatabase {
       List.unmodifiable(failed);
 
   @override
-  Future<void> failCommand(String id, {String? errorCode}) async {
+  Future<void> failCommand(
+    String id, {
+    String? errorCode,
+    String? errorDetail,
+    bool conflict = false,
+  }) async {
     final index = commands.indexWhere((c) => c.id == id);
     if (index == -1) return;
     final command = commands.removeAt(index);
@@ -162,6 +181,8 @@ class _FakeLocalDatabase extends LocalDatabase {
       payload: command.payload,
       attempts: command.attempts + 1,
       lastError: errorCode,
+      errorDetail: errorDetail,
+      isConflict: conflict,
     ));
   }
 
@@ -343,6 +364,139 @@ void main() {
     expect(db.failed, isEmpty, reason: 'discard drops the command');
     expect(find.text('Offline sales synced'), findsOneWidget,
         reason: 'the screen falls back to its empty state');
+  });
+
+  testWidgets('a conflict is reviewed apart from a failure, and retry '
+      'refreshes first', (tester) async {
+    final db = _FakeLocalDatabase();
+    final fake = _FakeApiClient();
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+      deviceId: 'device-1',
+      role: 'manager',
+      currencyCode: 'EGP',
+    );
+    db.failed.addAll(const [
+      PendingCommand(
+        id: 'conflict-1',
+        idempotencyKey: 'key-1',
+        operation: 'create_sale',
+        payload: '{"items":[{},{}]}',
+        attempts: 1,
+        lastError: 'insufficient_stock',
+        errorDetail: 'insufficient stock',
+        isConflict: true,
+      ),
+      PendingCommand(
+        id: 'rejected-1',
+        idempotencyKey: 'key-2',
+        operation: 'create_sale',
+        payload: '{"items":[{}]}',
+        attempts: 2,
+        lastError: 'validation_error',
+      ),
+    ]);
+    var refreshed = 0;
+    var replayed = 0;
+
+    await tester.pumpWidget(
+      _wrap(PendingSyncScreen(
+        apiClient: fake,
+        session: session,
+        localDatabase: db,
+        onReplay: () async => replayed++,
+        onRefresh: () async => refreshed++,
+      )),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Needs review (1)'), findsOneWidget);
+    expect(find.text('Failed sync (1)'), findsOneWidget);
+    expect(
+      find.textContaining('Stock ran out before this sale synced'),
+      findsOneWidget,
+      reason: 'a conflict is explained in plain language',
+    );
+    expect(find.text('insufficient stock'), findsOneWidget,
+        reason: "the server's own detail is kept underneath");
+    expect(find.text('validation_error · 2 attempts'), findsOneWidget,
+        reason: 'a rejection still shows its raw code');
+
+    // The conflict's refresh retries against fresh state.
+    await tester.tap(find.byIcon(Icons.refresh).first);
+    await tester.pumpAndSettle();
+    expect(refreshed, 1);
+    expect(replayed, 0);
+    expect(db.failed.map((c) => c.id), isNot(contains('conflict-1')),
+        reason: 'retry moves the conflict back into the replay queue');
+    expect(find.text('Needs review (1)'), findsNothing);
+
+    // The rejection's retry goes straight back through the plain replay.
+    await tester.tap(find.byIcon(Icons.refresh).first);
+    await tester.pumpAndSettle();
+    expect(replayed, 1);
+    expect(refreshed, 1, reason: 'a rejection must not trigger a refresh');
+  });
+
+  testWidgets('the replay loop flags a conflicted sale as recoverable',
+      (tester) async {
+    final db = _FakeLocalDatabase();
+    final fake = _FakeApiClient();
+    const session = Session(
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      userId: 'user-1',
+      displayName: 'Restaurant Admin',
+      tenantId: 'tenant-1',
+      deviceId: 'device-1',
+      role: 'manager',
+      currencyCode: 'EGP',
+    );
+
+    await tester.pumpWidget(
+      _wrap(PosScreen(
+        session: session,
+        apiClient: fake,
+        localDatabase: db,
+        onSignOut: () {},
+      )),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cappuccino'));
+    await tester.pump();
+    await tester.tap(find.text('Complete sale'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Confirm payment'));
+    await tester.pumpAndSettle();
+    expect(db.commands, hasLength(1));
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    fake.conflict = true;
+    fake.errorDetail = 'insufficient stock';
+    await tester.pumpWidget(
+      _wrap(KeyedSubtree(
+        key: UniqueKey(),
+        child: PosScreen(
+          session: session,
+          apiClient: fake,
+          localDatabase: db,
+          onSignOut: () {},
+        ),
+      )),
+    );
+    await tester.pumpAndSettle();
+
+    expect(db.failed, hasLength(1));
+    expect(db.failed.single.isConflict, isTrue,
+        reason: 'a 409 push result must be parked as a conflict, not a failure');
+    expect(db.failed.single.errorDetail, 'insufficient stock');
   });
 
   testWidgets('a stalled checkout queues the sale instead of hanging forever',

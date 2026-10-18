@@ -499,6 +499,71 @@ class AppStrings {
       : 'Some offline operations were not synced — check sales history';
   String get viewFailed => isArabic ? 'عرض' : 'View';
   String get failedSyncTitle => isArabic ? 'فشلت المزامنة' : 'Failed sync';
+  String get syncIssues => isArabic ? 'مشاكل المزامنة' : 'Sync issues';
+  String get syncConflictsTitle =>
+      isArabic ? 'بحاجة للمراجعة' : 'Needs review';
+  String get refreshAndRetry =>
+      isArabic ? 'تحديث وإعادة المحاولة' : 'Refresh & retry';
+
+  /// A plain-language reason for a sync *conflict* — the command clashed with
+  /// state created elsewhere (usually another device) rather than being
+  /// malformed. Unknown codes fall back to a generic line.
+  String syncConflictReason(String? code) {
+    switch (code) {
+      case 'insufficient_stock':
+        return isArabic
+            ? 'نفد المخزون قبل مزامنة هذا البيع؛ ربما باع جهاز آخر الكميات الأخيرة'
+            : 'Stock ran out before this sale synced — another device may have sold the last units';
+      case 'session_not_open':
+        return isArabic
+            ? 'أُغلقت جلسة البيع المرتبطة بهذا البيع على جهاز آخر'
+            : 'The shift for this sale was closed on another device';
+      case 'idempotency_conflict':
+        return isArabic
+            ? 'سُجِّل هذا البيع مسبقًا بتفاصيل مختلفة'
+            : 'This sale was already recorded with different details';
+      case 'command_conflict':
+        return isArabic
+            ? 'أُعيد إرسال هذا الأمر بتفاصيل مختلفة'
+            : 'This command was replayed with different details';
+      case 'product_conflict':
+        return isArabic
+            ? 'أحد منتجات هذا البيع يتعارض مع منتج موجود'
+            : 'A product in this sale conflicts with an existing one';
+      case 'category_conflict':
+        return isArabic
+            ? 'أحد تصنيفات هذا البيع يتعارض مع تصنيف موجود'
+            : 'A category in this sale conflicts with an existing one';
+      case 'plan_limit_exceeded':
+        return isArabic
+            ? 'تم الوصول إلى حد الخطة على الخادم'
+            : 'The plan limit was reached on the server';
+      case 'table_closed':
+        return isArabic
+            ? 'لم تعد الطاولة المخصصة لهذا البيع متاحة'
+            : 'The table for this sale is no longer available';
+      case 'lot_not_found':
+        return isArabic
+            ? 'لا توجد دفعات تغطي الكمية المطلوبة من أحد المنتجات'
+            : 'No product lots cover the quantity in this sale';
+      case 'product_not_found':
+        return isArabic
+            ? 'لم يعد أحد منتجات هذا البيع موجودًا'
+            : 'A product in this sale no longer exists';
+      case 'customer_not_found':
+        return isArabic
+            ? 'لم يعد عميل هذا البيع موجودًا'
+            : 'The customer in this sale no longer exists';
+      case 'sale_not_refundable':
+        return isArabic
+            ? 'لا يمكن استرجاع هذا البيع في حالته الحالية'
+            : 'This sale can no longer be refunded';
+      default:
+        return isArabic
+            ? 'تعذر تطبيق هذا البيع على الخادم'
+            : 'This sale could not be applied on the server';
+    }
+  }
   String get queuedSale => isArabic ? 'بيع في الانتظار' : 'Queued sale';
   String get discardQueued => isArabic ? 'تجاهل' : 'Discard';
   String get discardQueuedBody => isArabic

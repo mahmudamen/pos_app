@@ -67,9 +67,11 @@ type siteGalleryItem struct {
 }
 
 // siteModule is one card of the "Everything included" section: a title, a
-// lead-in sentence and three proof bullets. Icon is a complete inline SVG.
+// plan badge, a lead-in sentence and three proof bullets. Icon is a complete
+// inline SVG. Plan is the localized minimum-plan label (empty to omit).
 type siteModule struct {
 	Title  string
+	Plan   string
 	Detail string
 	Points []string
 	Icon   template.HTML
@@ -93,21 +95,27 @@ var moduleIcons = map[string]template.HTML{
 
 // buildModules assembles the localized "Everything included" cards from the
 // per-language site strings. 12 modules cover the full shipped feature set.
+// Each module carries the minimum plan that unlocks the whole card, so the grid
+// never implies a paid module is available everywhere.
 func buildModules(lang string) []siteModule {
 	t := siteStrings[lang]
 	defs := []struct {
 		Icon string
 		Key  string
+		Tier string
 	}{
-		{"sell", "all1"}, {"payments", "all2"}, {"registers", "all3"},
-		{"inventory", "all4"}, {"lots", "all5"}, {"discount", "all6"},
-		{"reports", "all7"}, {"loyalty", "all8"}, {"receipts", "all9"},
-		{"sync", "all10"}, {"team", "all11"}, {"panel", "all12"},
+		{"sell", "all1", "tierAll"}, {"payments", "all2", "tierBusiness"},
+		{"registers", "all3", "tierAll"}, {"inventory", "all4", "tierAll"},
+		{"lots", "all5", "tierEnterprise"}, {"discount", "all6", "tierAll"},
+		{"reports", "all7", "tierBusiness"}, {"loyalty", "all8", "tierBusiness"},
+		{"receipts", "all9", "tierAll"}, {"sync", "all10", "tierEnterprise"},
+		{"team", "all11", "tierAll"}, {"panel", "all12", "tierOwners"},
 	}
 	mods := make([]siteModule, 0, len(defs))
 	for _, d := range defs {
 		mods = append(mods, siteModule{
 			Title:  t[d.Key+"t"],
+			Plan:   t[d.Tier],
 			Detail: t[d.Key+"d"],
 			Icon:   moduleIcons[d.Icon],
 			Points: []string{t[d.Key+"a"], t[d.Key+"b"], t[d.Key+"c"]},

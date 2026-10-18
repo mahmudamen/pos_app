@@ -240,6 +240,9 @@ section[id] { scroll-margin-top: 66px; }
 .feature svg { width: 22px; height: 22px; color: var(--accent); }
 .feature h3 { font-size: 1.05rem; margin: 14px 0 6px; font-weight: 700; letter-spacing: 0.01em; }
 .feature p { color: var(--text-2); font-size: 14.5px; margin: 0; line-height: 1.58; text-wrap: pretty; }
+.tier { display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-3); white-space: nowrap; vertical-align: middle; }
+.feature h3 .tier { margin-inline-start: 6px; }
+.all-head .tier { margin-inline-start: auto; }
 
 /* ---------- all-features modules (bento cards) ---------- */
 .all-grid {
