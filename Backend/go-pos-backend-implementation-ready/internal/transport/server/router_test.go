@@ -164,7 +164,7 @@ func TestPrivacyServesPublicPolicyPage(t *testing.T) {
 	server.Register(engine, server.Deps{Config: config.Config{}})
 
 	rec := httptest.NewRecorder()
-	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/private", nil))
+	engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/privacy-policy", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
@@ -200,7 +200,7 @@ func TestDeleteAccountServesPublicDeletionPage(t *testing.T) {
 	body := rec.Body.String()
 	for _, want := range []string{
 		"Delete your POS.Go data", "support@xamltech.com",
-		"Store ID", "thirty days", `href="/private"`, `content="noindex"`,
+		"Store ID", "thirty days", `href="/privacy-policy"`, `content="noindex"`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("deletion body missing %q", want)
@@ -247,7 +247,7 @@ func TestSitePageStringsCoverBothLanguages(t *testing.T) {
 	engine := gin.New()
 	server.Register(engine, server.Deps{Config: config.Config{}})
 
-	for _, path := range []string{"/", "/pricing", "/private", "/delete-account", "/terms", "/refund-policy", "/help"} {
+	for _, path := range []string{"/", "/pricing", "/privacy-policy", "/delete-account", "/terms", "/refund-policy", "/help"} {
 		for _, lang := range []string{"ar", "en"} {
 			rec := httptest.NewRecorder()
 			engine.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path+"?lang="+lang, nil))
@@ -272,7 +272,7 @@ func TestPricingServesFallbackPlansWithoutDatabase(t *testing.T) {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
 	body := rec.Body.String()
-	for _, want := range []string{"Simple pricing", "Starter", "Business", "Enterprise", "/admin/", "/private"} {
+	for _, want := range []string{"Simple pricing", "Starter", "Business", "Enterprise", "/admin/", "/privacy-policy"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("pricing body missing %q", want)
 		}
@@ -547,7 +547,7 @@ func TestSitePagesServeArabicRTL(t *testing.T) {
 	engine := gin.New()
 	server.Register(engine, server.Deps{Config: config.Config{}})
 
-	for _, path := range []string{"/", "/pricing", "/private", "/delete-account", "/terms", "/refund-policy", "/help"} {
+	for _, path := range []string{"/", "/pricing", "/privacy-policy", "/delete-account", "/terms", "/refund-policy", "/help"} {
 		req := httptest.NewRequest(http.MethodGet, path+"?lang=ar", nil)
 		rec := httptest.NewRecorder()
 		engine.ServeHTTP(rec, req)
@@ -719,8 +719,8 @@ func TestSurfaceKeepsPricingAndPrivacyOnTheProductAndCompanyDomains(t *testing.T
 	engine := surfaceEngine(t)
 	for _, host := range []string{config.DefaultCompanyDomain, config.DefaultPOSDomain} {
 		for path, want := range map[string][]string{
-			"/pricing":        {"Simple pricing", "Starter", "/private"},
-			"/private":        {"Privacy Policy", "support@xamltech.com"},
+			"/pricing":        {"Simple pricing", "Starter", "/privacy-policy"},
+			"/privacy-policy":        {"Privacy Policy", "support@xamltech.com"},
 			"/delete-account": {"Delete your POS.Go data", "support@xamltech.com"},
 			"/terms":          {"Terms of Use", "/refund-policy"},
 			"/refund-policy":  {"Refund Policy", "/terms"},

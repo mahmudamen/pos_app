@@ -42,7 +42,7 @@ func TestRequiredSurfaceClassification(t *testing.T) {
 		"/v1/community/jobs": config.SurfacePOS,
 		// Outside the API: not gated.
 		"/":                 config.SurfaceUnknown,
-		"/private":          config.SurfaceUnknown,
+		"/privacy-policy":          config.SurfaceUnknown,
 		"/pricing":          config.SurfaceUnknown,
 		"/health/live":      config.SurfaceUnknown,
 		"/selforder":        config.SurfaceUnknown,
@@ -101,7 +101,7 @@ func surfaceEngine(t *testing.T, routing config.SurfaceRouting) *gin.Engine {
 	engine.GET("/health/live", echo)
 	engine.GET("/", echo)
 	engine.GET("/pricing", echo)
-	engine.GET("/private", echo)
+	engine.GET("/privacy-policy", echo)
 	engine.GET("/terms", echo)
 	engine.GET("/refund-policy", echo)
 	engine.GET("/help", echo)
@@ -176,7 +176,7 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		// Company: brand page, pricing and the legal pages.
 		{config.DefaultCompanyDomain, "/", http.StatusOK},
 		{config.DefaultCompanyDomain, "/pricing", http.StatusOK},
-		{config.DefaultCompanyDomain, "/private", http.StatusOK},
+		{config.DefaultCompanyDomain, "/privacy-policy", http.StatusOK},
 		{config.DefaultCompanyDomain, "/terms", http.StatusOK},
 		{config.DefaultCompanyDomain, "/refund-policy", http.StatusOK},
 		{config.DefaultCompanyDomain, "/help", http.StatusOK},
@@ -190,7 +190,7 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		// POS: the install site plus self-ordering.
 		{config.DefaultPOSDomain, "/", http.StatusOK},
 		{config.DefaultPOSDomain, "/pricing", http.StatusOK},
-		{config.DefaultPOSDomain, "/private", http.StatusOK},
+		{config.DefaultPOSDomain, "/privacy-policy", http.StatusOK},
 		{config.DefaultPOSDomain, "/terms", http.StatusOK},
 		{config.DefaultPOSDomain, "/refund-policy", http.StatusOK},
 		{config.DefaultPOSDomain, "/help", http.StatusOK},
@@ -203,7 +203,7 @@ func TestSurfaceRoutingPublishesOnlyTheRightPages(t *testing.T) {
 		// Console: the redirect to the admin app, nothing else.
 		{config.DefaultSaaSDomain, "/", http.StatusOK},
 		{config.DefaultSaaSDomain, "/pricing", http.StatusNotFound},
-		{config.DefaultSaaSDomain, "/private", http.StatusNotFound},
+		{config.DefaultSaaSDomain, "/privacy-policy", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/terms", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/refund-policy", http.StatusNotFound},
 		{config.DefaultSaaSDomain, "/help", http.StatusNotFound},
@@ -237,7 +237,7 @@ func TestServesPageAndAPI(t *testing.T) {
 	if ServesAPI(config.SurfaceSaaS, "/v1/sales") {
 		t.Error("the console domain must not publish the store API")
 	}
-	if ServesPage(config.SurfaceSaaS, "/") != true || ServesPage(config.SurfaceSaaS, "/private") != false {
+	if ServesPage(config.SurfaceSaaS, "/") != true || ServesPage(config.SurfaceSaaS, "/privacy-policy") != false {
 		t.Error("the console domain publishes only its root redirect")
 	}
 	if !ServesPage(config.SurfacePOS, "/sw.js") || !ServesPage(config.SurfacePOS, "/apk/pos_go.apk") {

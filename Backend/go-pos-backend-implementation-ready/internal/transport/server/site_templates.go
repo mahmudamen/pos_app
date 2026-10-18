@@ -54,7 +54,7 @@ const siteHead = `<!doctype html>
       <a href="/#copilot">{{.T.navCopilot}}</a>
       <a href="/#verticals">{{.T.navVerticals}}</a>
       <a href="/pricing">{{.T.navPricing}}</a>
-      <a href="/private">{{.T.navPrivacy}}</a>
+      <a href="/privacy-policy">{{.T.navPrivacy}}</a>
       {{end}}
       <a class="lang" href="?lang={{if eq .Lang "ar"}}en{{else}}ar{{end}}">{{.T.navLang}}</a>
       {{if eq .Page "company"}}
@@ -397,7 +397,7 @@ const siteDeleteBody = `<main>
       <h2>{{.T.d4t}}</h2><p>{{.T.d4b}}</p>
       <h2>{{.T.d5t}}</h2><p>{{.T.d5b}}</p>
       <h2>{{.T.d6t}}</h2><p>{{.T.d6b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
-      <p class="section-note"><a href="/private">{{.T.deletePrivacyLink}}</a></p>
+      <p class="section-note"><a href="/privacy-policy">{{.T.deletePrivacyLink}}</a></p>
       <p class="section-note"><a href="/">{{.T.deleteBack}}</a></p>
     </section>
   </div>
@@ -425,7 +425,7 @@ const siteTermsBody = `<main>
       <h2>{{.T.tm8t}}</h2><p>{{.T.tm8b}}</p>
       <h2>{{.T.tm9t}}</h2><p>{{.T.tm9b}}</p>
       <h2>{{.T.tm10t}}</h2><p>{{.T.tm10b}} <a href="mailto:{{.T.contact}}">{{.T.contact}}</a></p>
-      <p class="section-note"><a href="/refund-policy">{{.T.termsRefundLink}}</a> · <a href="/private">{{.T.termsPrivacyLink}}</a></p>
+      <p class="section-note"><a href="/refund-policy">{{.T.termsRefundLink}}</a> · <a href="/privacy-policy">{{.T.termsPrivacyLink}}</a></p>
       <p class="section-note"><a href="/">{{.T.termsBack}}</a></p>
     </section>
   </div>
@@ -474,7 +474,7 @@ const siteHelpBody = `<main>
       <h2>{{.T.hp3t}}</h2><p>{{.T.hp3b}}</p>
       <p class="section-note"><a href="/delete-account">{{.T.hp3cta}}</a></p>
       <h2>{{.T.hp4t}}</h2><p>{{.T.hp4b}}</p>
-      <p class="section-note"><a href="/private">{{.T.hp4cta}}</a></p>
+      <p class="section-note"><a href="/privacy-policy">{{.T.hp4cta}}</a></p>
       <p class="section-note"><a href="/">{{.T.helpBack}}</a></p>
     </section>
   </div>
@@ -570,7 +570,7 @@ const siteFoot = `<footer class="site-footer">
       <a href="/#work">{{.T.companyNavWork}}</a>
       <a href="/#approach">{{.T.companyNavApproach}}</a>
       <a href="/#contact">{{.T.companySecStart}}</a>
-      <a href="/private">{{.T.navPrivacy}}</a>
+      <a href="/privacy-policy">{{.T.navPrivacy}}</a>
       {{else}}
       <a href="/#features">{{.T.navFeatures}}</a>
       <a href="/#all">{{.T.navAll}}</a>
@@ -592,7 +592,7 @@ const siteFoot = `<footer class="site-footer">
       {{end}}
       <a href="/terms">{{.T.termsTitle}}</a>
       <a href="/refund-policy">{{.T.refundTitle}}</a>
-      <a href="/private">{{.T.navPrivacy}}</a>
+      <a href="/privacy-policy">{{.T.navPrivacy}}</a>
     </div>
     <div class="footer-links">
       <a href="https://play.google.com/store/apps/details?id=com.xamltech.pos_go" target="_blank" rel="noopener">{{.T.storePlay}}</a>

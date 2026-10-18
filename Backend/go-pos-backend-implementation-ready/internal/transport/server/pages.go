@@ -234,7 +234,7 @@ func registerSitePages(engine *gin.Engine, pool *pgxpool.Pool, routing config.Su
 	engine.GET("/pricing", func(c *gin.Context) {
 		renderSite(c, "pricing", loadPlanCards(c.Request.Context(), pool, pickSiteLang(c)), origins)
 	})
-	engine.GET("/private", func(c *gin.Context) {
+	engine.GET("/privacy-policy", func(c *gin.Context) {
 		renderSite(c, "privacy", nil, origins)
 	})
 	// Public data-deletion request page. Google Play requires a self-service

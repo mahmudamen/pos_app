@@ -72,8 +72,8 @@ func under(path, prefix string) bool {
 // chosen in the Search Console UI, so gating it per host would only make
 // verification fail on the domain that happens to be submitted.
 var publicRoutes = map[config.Surface][]string{
-	config.SurfaceCompany: {"/", "/pricing", "/private", "/terms", "/refund-policy", "/help", "/screenshots", "/delete-account", googleVerifyPath},
-	config.SurfacePOS:     {"/", "/pricing", "/private", "/terms", "/refund-policy", "/help", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account", "/forgot-password", "/reset-password", googleVerifyPath},
+	config.SurfaceCompany: {"/", "/pricing", "/privacy-policy", "/terms", "/refund-policy", "/help", "/screenshots", "/delete-account", googleVerifyPath},
+	config.SurfacePOS:     {"/", "/pricing", "/privacy-policy", "/terms", "/refund-policy", "/help", "/screenshots", "/selforder", "/sw.js", "/apk", "/delete-account", "/forgot-password", "/reset-password", googleVerifyPath},
 	config.SurfaceSaaS:    {"/", "/forgot-password", "/reset-password", googleVerifyPath},
 }
 

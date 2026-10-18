@@ -117,7 +117,7 @@ func TestRecoveryPagesRegisteredAlongsideSitePages(t *testing.T) {
 			paths = append(paths, r.Path)
 		}
 	}
-	for _, want := range []string{"/forgot-password", "/reset-password", "/private", "/pricing"} {
+	for _, want := range []string{"/forgot-password", "/reset-password", "/privacy-policy", "/pricing"} {
 		if !slices.Contains(paths, want) {
 			t.Errorf("route %s not registered", want)
 		}
