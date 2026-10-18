@@ -154,7 +154,7 @@ const authHead = `<!doctype html>
 
 const authFoot = `</section>
 <p class="foot">{{.T.help}}</p>
-<p class="foot">© {{.Year}} XAMLtech · {{.T.rights}} · <a href="/private">{{if eq .Lang "ar"}}الخصوصية{{else}}Privacy{{end}}</a></p>
+<p class="foot">© {{.Year}} XAMLtech · {{.T.rights}} · <a href="/privacy-policy">{{if eq .Lang "ar"}}الخصوصية{{else}}Privacy{{end}}</a></p>
 </main>
 </body>
 </html>`
