@@ -186,7 +186,7 @@ var siteStrings = map[string]map[string]string{
 		"a5":       "Receipts show EGP amounts in Arabic and English and follow a VAT-friendly layout. Direct e-invoicing with the Egyptian Tax Authority (ETA) is on the roadmap.",
 
 		"secPlans":   "Pricing",
-		"plansTitle": "Plans that start free.",
+		"plansTitle": "Plans with a free trial.",
 		"plansLead":  "Start a 15-day trial, pay in Egyptian pounds, and scale as you grow.",
 		"plansCTA":   "Compare all plans →",
 		"ctaPlan":    "Start trial",
